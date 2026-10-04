@@ -1,0 +1,21 @@
+{
+    "app_id": 108600,
+    "published_file_id": null,
+    "owner_steamid64": "76561198033176898",
+    "workshop_root": "MOD/MinidoracatKnoxPassFor42",
+    "mod_info": "MOD/MinidoracatKnoxPassFor42/Contents/mods/MinidoracatKnoxPassFor42/42/mod.info",
+    "preview_gif": null,
+    "changelog": "STEAM_CHANGELOG.md",
+    "titles": {
+        "english": "Minidoracat Knox Pass for B42",
+        "tchinese": "[B42] Minidoracat 感應大門 Knox Pass",
+        "schinese": "[B42] Minidoracat 感应大门 Knox Pass",
+        "japanese": "[B42] Minidoracat 自動ゲート Knox Pass"
+    },
+    "descriptions": {
+        "english": "STEAM_DESCRIPTION_EN.md",
+        "tchinese": "STEAM_DESCRIPTION.md",
+        "schinese": "STEAM_DESCRIPTION.md",
+        "japanese": "STEAM_DESCRIPTION_JP.md"
+    }
+}

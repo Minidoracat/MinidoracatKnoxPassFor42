@@ -1,0 +1,6 @@
+name=Minidoracat Knox Pass for B42
+id=MinidoracatKnoxPassFor42
+description=[B42]車輛裝上感應器、大門裝上讀頭，開車靠近就自動開門，不必下車也不必按鍵；單人與多人皆可用。By Minidoracat
+poster=poster.png
+modversion=42.21.0-0.1.0
+versionMin=42.21.0
