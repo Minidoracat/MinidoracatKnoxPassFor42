@@ -51,6 +51,16 @@ Project Zomboid Build 42 MOD。
 | **MOD 車：W900 Semi-Truck，盒子在遮陽板下** | **管理視窗：登記附近裝了感應盒的車** |
 | ![W900 的感應盒](docs/screenshots/readme/modcar-w900.jpg) | ![管理視窗](docs/screenshots/steam/zh/05-manage-window-zh.jpg) |
 
+### 外殼顏色
+
+感應盒與讀頭各有 7 種顏色：米白、黑色、石墨灰、軍綠、深藍、安全橘、紅色。製作與搜刮拿到的是米白；帶著對應顏色的原版油漆和漆刷，可以在物品欄或門上「重新上色」，電量與登記都保留。
+
+| 7 色擺在地上 | 物品欄 |
+|---|---|
+| ![7 色的感應盒與讀頭](docs/screenshots/readme/colors-ground.jpg) | ![物品欄的 7 色圖示](docs/screenshots/readme/colors-inventory.jpg) |
+| **門上的讀頭重新上色成黑色** | **車上看得到該色的盒子（多人連線實機）** |
+| ![黑色讀頭](docs/screenshots/readme/colors-reader-black.jpg) | ![擋風玻璃上的 4 種顏色](docs/screenshots/readme/colors-windshields.jpg) |
+
 ### 製作與伺服器設定
 
 | 製作抬升閘門組件 | 伺服器設定（沙盒「Knox Pass」頁） |
