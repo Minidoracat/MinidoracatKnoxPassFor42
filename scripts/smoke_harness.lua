@@ -32,7 +32,9 @@
   （ISBuildIsoEntity.lua:595-764、ISBuildingObject.lua:353-367）；IsoDoor sprite 建構子可能隨機上鎖（D:820-840）；
   車庫門開關換 sprite 為 index+8（D:793-805），整條鏈一起翻、不重建（D:3344-3394）；
   關車庫門時車身同時壓到門線兩側才算擋（D:3396-3457，只有關門時查）；拆除照 buildMaterials 退料後移走目標
-  （ISDismantleAction.lua:47-95），大錘只移走被敲的那一個（ISDestroyStuffAction.lua:111-…）
+  （ISDismantleAction.lua:47-95），大錘只移走被敲的那一個（ISDestroyStuffAction.lua:111-…）；殭屍／武器打壞車庫門走
+  destroyGarageDoor，逐片 destroy（D:3460-3499），不掉材料（D:1385-1388）；每次移走物件前觸發 OnObjectAboutToBeRemoved
+  （IsoGridSquare.java:5745、RemoveItemFromSquarePacket.java:151）
 - IsoObject.setSpriteModelName／setAnimating／isAnimating（IsoObject.java:6274-6298、6399-6405）只記錄呼叫；
   client 檔只載 BarrierAnim（不碰 UI），MODE 不是 server 時才載
 
@@ -393,6 +395,7 @@ local function makePiece(cls, x, y, north)
     return o
 end
 local function removeObj(o)
+    fire("OnObjectAboutToBeRemoved", o)
     local sq = o._square
     for i, x in ipairs(sq._objects) do
         if x == o then
@@ -2568,6 +2571,18 @@ local function scenarioBarrier()
     check(not present(nb[6]) and not present(nb[0]) and not present(nb[2]) and KP.Ledger.get("701,100,0N") == nil
         and not present(wb[3]) and not present(wb[5]) and KP.Ledger.get("800,102,0W") == nil,
         "N 向大錘敲車道 2 連機箱一起移除；W 向機箱被打壞連車道一起移除")
+    -- 殭屍／武器打壞車道：IsoDoor.destroyGarageDoor 逐片 destroy → transmitRemoveItemFromSquare（D:3460-3499、1385-1388），
+    -- 原版只拆車道鏈；機箱、帳本、Sensor 狀態靠 OnObjectAboutToBeRemoved 記下、下一個 tick 收掉
+    local z = buildBarrier(900, 100, true, builder)
+    step()
+    local forgot, forget = {}, KP.Sensor.forget
+    KP.Sensor.forget = function(key) forgot[#forgot + 1] = key; return forget(key) end
+    local kits = W.dropped[KIT]
+    for i = 0, 2 do z[i]._square:transmitRemoveItemFromSquare(z[i]) end
+    step()
+    KP.Sensor.forget = forget
+    check(not present(z[6]) and KP.Ledger.get("901,100,0N") == nil and forgot[1] == "901,100,0N" and W.dropped[KIT] == kits,
+        "車道被打壞：下一個 tick 機箱一起移除、帳本與 Sensor 狀態清掉、不退組件")
 
     -- 反面：一般門與原版車庫門照原版行為，不會被當成閘門整組移除
     local plain = makeDoor("IsoThumpable", 500, 100)

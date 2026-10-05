@@ -1,5 +1,5 @@
 -- 抬升閘門：entity 建造（scripts/entities/entity_knoxpass_barrier.txt）的 OnCreate 把三格車道換成 IsoDoor 車庫門鏈，
--- 建好後自動登記內建讀頭（建造者是擁有者）；拆除機箱、機箱被打壞、大錘敲任一格時整座移除。
+-- 建好後自動登記內建讀頭（建造者是擁有者）；拆除機箱、機箱被打壞、大錘敲任一格、車道被打壞時整座移除。
 -- 形態：機箱格是 entity 建出的 IsoThumpable（sprite 帶 solid，永遠擋車）；車道 1-3 是 GarageDoor 1-3 的 IsoDoor，
 -- 第 1 片（緊鄰機箱）是錨點，臂的 3D 模型掛在它身上（common/media/spriteModels.txt）。
 -- media/lua/server 的檔 MP client 也會載入：函式照常定義（entity 腳本以名稱找 OnCreate），事件只在 server／SP 掛。
@@ -147,4 +147,23 @@ if not isClient() then
         if done and list then B.remove(list, key) end
         return done
     end
+
+    -- 任何途徑移走一片車道或機箱：整座跟著移除，不退料。殭屍或武器打壞車道走 IsoDoor.destroyGarageDoor，只拆整條車道鏈、
+    -- 不碰機箱，也不經任何 Lua 動作（IsoDoor.java:1236,1371,3460-3499；車庫門的 destroy 不掉材料，:1385-1388）。
+    -- 移除前伺服器（RemoveItemFromSquarePacket.java:151）與 SP（IsoGridSquare.java:5745）都觸發 OnObjectAboutToBeRemoved
+    -- （原版 SGlobalObjectSystem.lua:275 同樣在伺服器掛）；handler 不能移走該物件本身（IsoGridSquare.java:5746-5748），
+    -- 所以先記下整座（這時鏈還完整），下一個 tick 再收，B.remove 略過已移走的部分。
+    -- 只看 IsoDoor 車道與機箱：建造時 OnCreate 移走的是車道格的 IsoThumpable（上方 onCreate），不能當成拆除
+    local doomed = {}
+    Events.OnObjectAboutToBeRemoved.Add(function(obj)
+        if not (instanceof(obj, "IsoDoor") or KP.isBarrierCabinet(obj)) then return end
+        local list, key = B.parts(obj)
+        if list then doomed[#doomed + 1] = { list, key } end
+    end)
+    Events.OnTick.Add(function()
+        if #doomed == 0 then return end
+        local list = doomed
+        doomed = {}
+        for _, d in ipairs(list) do B.remove(d[1], d[2]) end
+    end)
 end
