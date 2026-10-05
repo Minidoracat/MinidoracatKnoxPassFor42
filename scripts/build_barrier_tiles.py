@@ -37,18 +37,24 @@ poses draw green, the closed tile and closing poses draw the red default. Vanill
 
 Door-post reader (tileset MinidoracatKnoxPass_reader, tileset number 2 in the same .tiles / pack / file number):
 
-    0 N door, post at its west end   1 N door, post at its east end   2 W door, north end   3 W door, south end
+    index = colour * 8 + variant; colour = scripts/blender/build.py COLORS order (0 Cream .. 6 Red, = Lua KP.COLORS)
+    variant 0 N door, post at its west end   1 N door, post at its east end   2 W door, north end   3 W door, south end
 
 One static model (knoxpass_reader_post.glb, both faces of the wall line) on the tile whose NW corner is the post,
-rotated per variant (READER_XFORM; render_tiles.py READER_XFORM draws the 2D cells with the same values). The tiles
+rotated per variant (READER_XFORM; render_tiles.py READER_XFORM draws the 2D cells with the same values); the tile's
+spriteModel texture = that colour's reader item texture (same UV layout, the lamp-colour mechanism above). The tiles
 carry NO properties at all: no collision / door / solid flags (IsoChunk physics shapes and IsoSprite.shouldHaveCollision
 read only flags, IsoChunk.java:2056-2111, IsoSprite.java:2083-2092; AutoDrive classifySprite then returns COST_NONE,
 MDAD_Sensor.lua:390-457), no IsMoveAble (not pick-up-able), not an IsoThumpable (not dismantlable). Placement,
 removal and self-repair: server/MinidoracatKnoxPass/ReaderPost.lua.
+2D cells: every colour's sprite points at the Cream cell of its variant (same pack rect). The game draws the 3D model;
+the 2D cell only shows in the non-FBO fallback (IsoObject.java:6301-6302), and these tiles are placed by Lua, never
+through the build cursor ghost, so per-colour cells would only grow the pack page.
 """
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import re
 import shutil
 import sys
@@ -83,6 +89,16 @@ READER_MODEL = "MinidoracatKnoxPass_ReaderPost"
 # 0 east, 1 west, 2 south, 3 north (engine formula: render_tiles.py pz_matrix; see the barrier XFORM note below)
 READER_T = (-0.5, 0.0, -0.5)
 READER_XFORM = {0: (0.0, 180.0, 0.0), 1: (0.0, 0.0, 0.0), 2: (0.0, 90.0, 0.0), 3: (0.0, -90.0, 0.0)}
+_spec = importlib.util.spec_from_file_location("kpbuild", REPO / "scripts" / "blender" / "build.py")
+KP = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(KP)                   # the one colour table (build.py COLORS)
+READER_STRIDE = 8                              # index = colour * 8 + variant (one row per colour)
+READER_TILES = {c * READER_STRIDE + v: (c, v) for c in range(len(KP.COLORS)) for v in READER_XFORM}
+
+
+def reader_tex(c: int) -> str:
+    return f"WorldItems/MinidoracatKnoxPassReader{KP.suffix(KP.COLORS[c][0])}"
+
 
 # closed: doorN/doorW (tile type -> IsoDoor on load, IsoWorld.java:752-764; CellLoader.java:93-105),
 # GarageDoor k (chain, IsoDoor.java:3212-3238), doorTrans (sight passes, IsoDoor.java:1107).
@@ -183,7 +199,8 @@ def sprite_models() -> str:
             for f in range(FRAMES + 1):
                 body += sm_tile(FRAME_BASE + d * 16 + off + f, "MinidoracatKnoxPass_BarrierArm", x["arm"], x["rotate"],
                                 "Open", f / FRAMES, tex)
-    tiles = "".join(sm_tile(i, READER_MODEL, READER_T, rot, None) for i, rot in READER_XFORM.items())
+    tiles = "".join(sm_tile(i, READER_MODEL, READER_T, READER_XFORM[v], None, texture=reader_tex(c))
+                    for i, (c, v) in READER_TILES.items())
     return ("spriteModel\n{\n    VERSION = 1,\n\n    tileset\n    {\n"
             f"        name = {TILESET},\n\n" + body + "    }\n\n    tileset\n    {\n"
             f"        name = {READER_TILESET},\n\n" + tiles + "    }\n}\n")
@@ -354,19 +371,24 @@ def build() -> None:
     sheet = Image.new("RGBA", (CELL_W * 8, CELL_H * 3), (0, 0, 0, 0))
     entries = []
     placed = [(f"{TILESET}_{i}", i % 8, i // 8, c) for i, c in sorted(cells.items())]
-    placed += [(f"{READER_TILESET}_{i}", i, 2, reader_cell(i)) for i in READER_XFORM]
+    placed += [(f"{READER_TILESET}_{v}", v, 2, reader_cell(v)) for v in READER_XFORM]   # Cream = colour 0
     for name, col, row, c in placed:
         sheet.paste(c, (col * CELL_W, row * CELL_H))
         bbox = c.getbbox() or (0, 0, 1, 1)   # fully transparent cell keeps a 1x1 rect
         x0, y0, x1, y1 = bbox
         entries.append((name, col * CELL_W + x0, row * CELL_H + y0, x1 - x0, y1 - y0, x0, y0, CELL_W, CELL_H))
+    # ponytail: other colours reuse the Cream cell rect (docstring: 2D is fallback only); per-colour cells need
+    # render_tiles.py reader() with tex= per colour and a taller page if the fallback ever matters
+    rect = {e[0]: e[1:] for e in entries}
+    entries += [(f"{READER_TILESET}_{i}", *rect[f"{READER_TILESET}_{v}"])
+                for i, (c, v) in READER_TILES.items() if c]
     (MEDIA / "texturepacks").mkdir(parents=True, exist_ok=True)
     (MEDIA / "texturepacks" / f"{PACK}.pack").write_bytes(pzfmt.write_pack([(f"{PACK}0", sheet, entries)]))
     props = [tiles[i][1] if i in tiles else {} for i in range(n)]
     (MEDIA / f"{TILEDEF}.tiles").write_bytes(pzfmt.write_tiles([
         {"name": TILESET, "image": f"{TILESET}.png", "w": 8, "h": 2, "number": 1, "tiles": props},
-        {"name": READER_TILESET, "image": f"{READER_TILESET}.png", "w": 8, "h": 1, "number": 2,
-         "tiles": [{} for _ in READER_XFORM]}]))
+        {"name": READER_TILESET, "image": f"{READER_TILESET}.png", "w": 8, "h": len(KP.COLORS), "number": 2,
+         "tiles": [{} for _ in range(max(READER_TILES) + 1)]}]))
     COMMON.mkdir(parents=True, exist_ok=True)
     (COMMON / "spriteModels.txt").write_text(sprite_models(), encoding="ascii", newline="\n")
     ENTITY_SCRIPT.parent.mkdir(parents=True, exist_ok=True)
@@ -434,14 +456,20 @@ def check() -> None:
             assert vis(cell) == vis(src), f"{name}: pixels differ from {rels}"
         sid = pzfmt.sprite_id(FILE_NUMBER, ts["number"], i)
         print(f"  {name:32s} id {sid:8d} bbox {cell.getbbox()}  {props.get('GarageDoor', 'cabinet')}")
-    # reader: 4 sprites, NO properties at all (no collision/door/solid/moveable flag), pixels = the rendered cells
+    # reader: colour * 8 + variant, NO properties at all (no collision/door/solid/moveable flag); every colour's
+    # pixels = the rendered Cream cell of its variant (shared 2D, docstring); gap indices have no sprite
     rs = tsets[1]
-    assert rs["tiles"] == [{} for _ in READER_XFORM], rs["tiles"]
-    for i in READER_XFORM:
+    assert rs["h"] == len(KP.COLORS) and rs["tiles"] == [{} for _ in range(max(READER_TILES) + 1)], rs
+    for i in range(len(rs["tiles"])):
         name = f"{READER_TILESET}_{i}"
+        if i not in READER_TILES:
+            assert name not in names, f"{name}: gap index has a sprite"
+            continue
         cell = shipped(name)
-        assert cell.getbbox() and vis(cell) == vis(reader_cell(i)), f"{name}: pixels differ from cells/reader"
-        print(f"  {name:32s} id {pzfmt.sprite_id(FILE_NUMBER, rs['number'], i):8d} bbox {cell.getbbox()}  props none")
+        c, v = READER_TILES[i]
+        assert cell.getbbox() and vis(cell) == vis(reader_cell(v)), f"{name}: pixels differ from cells/reader {v}"
+        print(f"  {name:32s} id {pzfmt.sprite_id(FILE_NUMBER, rs['number'], i):8d} {KP.COLORS[c][0]:8s} "
+              f"variant {v} props none")
     # garage rules: open = closed + 8 with GarageDoor + 3 (IsoDoor.java:793-805, 3212-3238)
     for i in (0, 1, 2, 3, 4, 5):
         c, o = ts["tiles"][i], ts["tiles"][i + 8]
@@ -474,16 +502,17 @@ def check() -> None:
         assert (f"texture = {GREEN}," in blocks[i]) == (i in green), (i, blocks[i])
     assert all("BarrierLines" in blocks[i] for i in (1, 9, 4, 12)) and all("BarrierEmpty" in blocks[i] for i in (2, 10, 5, 13))
     assert (MEDIA / "textures" / f"{GREEN}.png").exists()
-    # reader: one static model per variant on the post (host NW corner), rotated per edge/end, no animation
+    # reader: one static model per tile on the post (host NW corner), rotated per variant, colour texture, no animation
     rblocks = {int(c) + 8 * int(r): b for c, r, b in re.findall(r"xy = (\d+) (\d+),(.*?)\n        }", sm_reader, re.S)}
-    assert sorted(rblocks) == sorted(READER_XFORM), sorted(rblocks)
-    for i, rot in READER_XFORM.items():
+    assert sorted(rblocks) == sorted(READER_TILES), sorted(rblocks)
+    for i, (c, v) in READER_TILES.items():
         b = rblocks[i]
-        assert (f"modelScript = Base.{READER_MODEL}," in b and f"translate = {fmt3(READER_T)}," in b
-                and f"rotate = {fmt3(rot)}," in b and "animation" not in b), (i, b)
+        assert (f"modelScript = Base.{READER_MODEL}," in b and f"texture = {reader_tex(c)}," in b
+                and f"translate = {fmt3(READER_T)}," in b and f"rotate = {fmt3(READER_XFORM[v])}," in b
+                and "animation" not in b), (i, b)
+        assert (MEDIA / "textures" / f"{reader_tex(c)}.png").exists(), reader_tex(c)
     assert READER_MODEL in models
     assert re.search(rf"model {READER_MODEL}\s*{{[^}}]*static = true,", MODEL_SCRIPT)
-    assert (MEDIA / "textures" / "WorldItems" / "MinidoracatKnoxPassReader.png").exists()
     # entity: every sprite token is a tiledef sprite, no duplicates (SpriteConfigManager duplicate rule)
     toks = re.findall(rf"{TILESET}_(\d+)", ent)
     assert len(toks) == len(set(toks)) == 8 and all(int(t) in tiles for t in toks), toks
