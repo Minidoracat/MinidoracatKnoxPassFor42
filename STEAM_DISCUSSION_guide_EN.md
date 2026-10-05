@@ -28,7 +28,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [h3]Gate Reader[/h3]
 [list]
 [*] [b]Where it fits[/b]: map doors, fence gates, double doors, garage doors, and player-built doors and gates.
-[*] [b]Installing[/b]: right-click the gate with the reader and a screwdriver. Whoever installs it owns it.
+[*] [b]Installing[/b]: right-click the gate with the reader and a screwdriver. Whoever installs it owns it. Once installed, the reader shows on the gate post (a boom barrier has its reader on top of the cabinet); it doesn't block people or cars.
 [*] [b]Management window[/b]: shows the gate type, owner, power, lock, registered cars (charge, last pass) and nearby cars with a tag.
 [*] [b]Removing[/b]: the owner can take the reader back. If Knox Pass has the gate open, it closes it first and restores the original lock.
 [/list]
