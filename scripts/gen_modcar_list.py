@@ -40,7 +40,7 @@ TEXT = {
             "[b]只是未必看得到[/b]：盒子的位置改用車輛大小推算，常落在擋風玻璃裡面，被玻璃擋住。",
         ],
         "list_h": "✅ 已支援的 MOD 車（{n} 個 MOD）",
-        "legend": "位置是從車輛模型算出來的，每台都看過預覽圖；標 ✔ 的也在遊戲裡實際看過。其他 MOD 沿用這些車身的車（例如同系列的擴充包）也一樣支援。",
+        "legend": "位置是從車輛模型算出來的，用遊戲視角（由上往下斜看）避開車輛生成時可能帶的配件（車頂燈架、行李架、遮陽板等），每台都看過預覽圖；標 ✔ 的也在遊戲裡實際看過。其他 MOD 沿用這些車身的車（例如同系列的擴充包）也一樣支援。車上加裝的配件可能擋住盒子，例如自己裝的擋風玻璃裝甲。",
         "addons": "（含同一個 Workshop 項目的 {ids}）",
         "sep": "、",
         "colon": "：",
@@ -56,6 +56,9 @@ TEXT = {
         "cant": [
             "擋風玻璃不在車頭正中間（例如裝甲車偏一側的觀察窗）：盒子只能放在中線，會落在車殼上。",
         ],
+        "blocked": "同車身但遊戲裡看不到盒子（功能照常）",
+        "why": {"ladder": "雲梯架在駕駛室上方，擋住擋風玻璃", "armor": "出廠就裝了擋風玻璃裝甲"},
+        "item": "{name}（{why}）",
     },
     "EN": {
         "file": "STEAM_DISCUSSION_modcars_EN.md",
@@ -73,7 +76,7 @@ TEXT = {
             "[b]You may just not see it[/b]: the position is estimated from the vehicle size and often ends up behind the windshield, hidden by the glass.",
         ],
         "list_h": "✅ Supported modded vehicles ({n} mods)",
-        "legend": "Positions are computed from the vehicle models and every one was checked in a preview render; vehicles marked ✔ were also checked in game. Vehicles from other mods that reuse these bodies (such as expansion packs of the same series) are covered too.",
+        "legend": "Positions are computed from the vehicle models, using the game's top-down camera angle to stay clear of accessories a vehicle can spawn with (roof light bars, roof racks, sun visors and so on), and every one was checked in a preview render; vehicles marked ✔ were also checked in game. Vehicles from other mods that reuse these bodies (such as expansion packs of the same series) are covered too. Accessories added to a vehicle can hide the tag, for example windshield armor you install yourself.",
         "addons": " (including {ids} from the same Workshop item)",
         "sep": ", ",
         "colon": ": ",
@@ -89,6 +92,9 @@ TEXT = {
         "cant": [
             "Windshields that are not centred on the vehicle (such as an armoured vehicle's offset vision slit): the tag can only sit on the centre line and would end up on the body.",
         ],
+        "blocked": "Same body, but the tag can't be seen in game (everything still works)",
+        "why": {"ladder": "the ladder sits over the cab and hides the windshield", "armor": "comes with windshield armor fitted"},
+        "item": "{name} ({why})",
     },
 }
 
@@ -117,7 +123,12 @@ def render(mods, t):
         out.append(line + t["colon"] + cars)
     out += ["[/list]", "", "[h2]" + t["ask_h"] + "[/h2]", t["ask_pre"], "[olist]"]
     out += ["[*] " + s for s in t["ask"]] + ["[/olist]", t["ask_post"], ""]
-    out += ["[h3]" + t["cant_h"] + "[/h3]", "[list]"] + ["[*] " + s for s in t["cant"]] + ["[/list]"]
+    blocked = [t["item"].format(name=plain(u["name"]), why=t["why"][u["why"]]) for mod in sorted(mods, key=sort_key)
+               for car in mod["models"] for u in car.get("unsupported", {}).values()]
+    out += ["[h3]" + t["cant_h"] + "[/h3]", "[list]"] + ["[*] " + s for s in t["cant"]]
+    if blocked:
+        out.append("[*] " + t["blocked"] + t["colon"] + t["sep"].join(blocked))
+    out.append("[/list]")
     return "\n".join(out) + "\n"
 
 

@@ -1,5 +1,5 @@
 {
-  "_comment": "支援的 MOD 車（擋風玻璃位置表）的唯一資料來源：scripts/blender/dock_spots.py 讀它烘 DockSpots.lua 的 MOD 區塊，scripts/gen_modcar_list.py 讀它產生 Steam 支援清單。addons＝同一個 Workshop 項目裡共用這些車身的附加 MOD；vehicles＝車輛腳本名 → 英文顯示名；status：preview＝只看過離線預覽、ingame＝實機看過。",
+  "_comment": "支援的 MOD 車（擋風玻璃位置表）的唯一資料來源：scripts/blender/dock_spots.py 讀它烘 DockSpots.lua 的 MOD 區塊，scripts/gen_modcar_list.py 讀它產生 Steam 支援清單。addons＝同一個 Workshop 項目裡共用這些車身的附加 MOD；vehicles＝車輛腳本名 → 英文顯示名（位置照這些車的配件最壞情況算）；unsupported＝同車身但遊戲鏡頭看不到盒子的車，why：ladder＝雲梯架在駕駛室上方、armor＝出廠就裝擋風玻璃裝甲；status：preview＝只看過離線預覽、ingame＝實機看過。",
   "mods": [
     {
       "name": "'91 RANGE ROVER Classic",
@@ -213,10 +213,15 @@
         {
           "file": "90pierceArrowBase",
           "vehicles": {
-            "90pierceArrow": "'90 Pierce Arrow Pumper",
-            "90pierceArrowQuint": "'90 Pierce Arrow Quint Ladder Truck"
+            "90pierceArrow": "'90 Pierce Arrow Pumper"
           },
-          "status": "preview"
+          "status": "preview",
+          "unsupported": {
+            "90pierceArrowQuint": {
+              "name": "'90 Pierce Arrow Quint Ladder Truck",
+              "why": "ladder"
+            }
+          }
         }
       ]
     },
@@ -842,10 +847,15 @@
         {
           "file": "85chevyStepVanBase",
           "vehicles": {
-            "85chevyStepVan": "'85 Chevrolet Step-Van",
-            "85chevyStepVanSWAT": "'85 Chevrolet Step-Van SWAT"
+            "85chevyStepVan": "'85 Chevrolet Step-Van"
           },
-          "status": "preview"
+          "status": "preview",
+          "unsupported": {
+            "85chevyStepVanSWAT": {
+              "name": "'85 Chevrolet Step-Van SWAT",
+              "why": "armor"
+            }
+          }
         }
       ]
     },
