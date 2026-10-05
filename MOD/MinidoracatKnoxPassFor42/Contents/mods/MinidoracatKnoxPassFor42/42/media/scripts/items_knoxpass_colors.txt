@@ -1,0 +1,192 @@
+module MinidoracatKnoxPass
+{
+    /*
+        由 scripts/gen_colors.py 產生，不要手改：色表在 scripts/blender/build.py COLORS，
+        屬性照 items_knoxpass.txt 的米白 VehicleTag／GateReader；那兩個物品改了就重跑產生器。
+    */
+    item VehicleTag_Black
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:drainable,
+        Weight = 0.1,
+        ConditionMax = 100,
+        Icon = MinidoracatKnoxPassTag_Black,
+        UseDelta = 0.001,
+        UseWhileEquipped = false,
+        DisappearOnUse = false,
+        KeepOnDeplete = true,
+        cantBeConsolided = true,
+        WorldStaticModel = MinidoracatKnoxPass.KnoxPassTag_Black,
+        StaticModel = MinidoracatKnoxPass.KnoxPassTag_Black,
+        VehiclePartModel = KnoxPassTag Dock MinidoracatKnoxPass.KnoxPassTagDock_Black,
+        Tags = base:miscelectronic;base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_Tag,
+    }
+
+    item GateReader_Black
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:normal,
+        Weight = 0.8,
+        ConditionMax = 100,
+        Icon = MinidoracatKnoxPassReader_Black,
+        WorldStaticModel = MinidoracatKnoxPass.KnoxPassReader_Black,
+        Tags = base:miscelectronic;base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_Reader,
+    }
+
+    item VehicleTag_Graphite
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:drainable,
+        Weight = 0.1,
+        ConditionMax = 100,
+        Icon = MinidoracatKnoxPassTag_Graphite,
+        UseDelta = 0.001,
+        UseWhileEquipped = false,
+        DisappearOnUse = false,
+        KeepOnDeplete = true,
+        cantBeConsolided = true,
+        WorldStaticModel = MinidoracatKnoxPass.KnoxPassTag_Graphite,
+        StaticModel = MinidoracatKnoxPass.KnoxPassTag_Graphite,
+        VehiclePartModel = KnoxPassTag Dock MinidoracatKnoxPass.KnoxPassTagDock_Graphite,
+        Tags = base:miscelectronic;base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_Tag,
+    }
+
+    item GateReader_Graphite
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:normal,
+        Weight = 0.8,
+        ConditionMax = 100,
+        Icon = MinidoracatKnoxPassReader_Graphite,
+        WorldStaticModel = MinidoracatKnoxPass.KnoxPassReader_Graphite,
+        Tags = base:miscelectronic;base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_Reader,
+    }
+
+    item VehicleTag_Olive
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:drainable,
+        Weight = 0.1,
+        ConditionMax = 100,
+        Icon = MinidoracatKnoxPassTag_Olive,
+        UseDelta = 0.001,
+        UseWhileEquipped = false,
+        DisappearOnUse = false,
+        KeepOnDeplete = true,
+        cantBeConsolided = true,
+        WorldStaticModel = MinidoracatKnoxPass.KnoxPassTag_Olive,
+        StaticModel = MinidoracatKnoxPass.KnoxPassTag_Olive,
+        VehiclePartModel = KnoxPassTag Dock MinidoracatKnoxPass.KnoxPassTagDock_Olive,
+        Tags = base:miscelectronic;base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_Tag,
+    }
+
+    item GateReader_Olive
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:normal,
+        Weight = 0.8,
+        ConditionMax = 100,
+        Icon = MinidoracatKnoxPassReader_Olive,
+        WorldStaticModel = MinidoracatKnoxPass.KnoxPassReader_Olive,
+        Tags = base:miscelectronic;base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_Reader,
+    }
+
+    item VehicleTag_Navy
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:drainable,
+        Weight = 0.1,
+        ConditionMax = 100,
+        Icon = MinidoracatKnoxPassTag_Navy,
+        UseDelta = 0.001,
+        UseWhileEquipped = false,
+        DisappearOnUse = false,
+        KeepOnDeplete = true,
+        cantBeConsolided = true,
+        WorldStaticModel = MinidoracatKnoxPass.KnoxPassTag_Navy,
+        StaticModel = MinidoracatKnoxPass.KnoxPassTag_Navy,
+        VehiclePartModel = KnoxPassTag Dock MinidoracatKnoxPass.KnoxPassTagDock_Navy,
+        Tags = base:miscelectronic;base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_Tag,
+    }
+
+    item GateReader_Navy
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:normal,
+        Weight = 0.8,
+        ConditionMax = 100,
+        Icon = MinidoracatKnoxPassReader_Navy,
+        WorldStaticModel = MinidoracatKnoxPass.KnoxPassReader_Navy,
+        Tags = base:miscelectronic;base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_Reader,
+    }
+
+    item VehicleTag_Orange
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:drainable,
+        Weight = 0.1,
+        ConditionMax = 100,
+        Icon = MinidoracatKnoxPassTag_Orange,
+        UseDelta = 0.001,
+        UseWhileEquipped = false,
+        DisappearOnUse = false,
+        KeepOnDeplete = true,
+        cantBeConsolided = true,
+        WorldStaticModel = MinidoracatKnoxPass.KnoxPassTag_Orange,
+        StaticModel = MinidoracatKnoxPass.KnoxPassTag_Orange,
+        VehiclePartModel = KnoxPassTag Dock MinidoracatKnoxPass.KnoxPassTagDock_Orange,
+        Tags = base:miscelectronic;base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_Tag,
+    }
+
+    item GateReader_Orange
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:normal,
+        Weight = 0.8,
+        ConditionMax = 100,
+        Icon = MinidoracatKnoxPassReader_Orange,
+        WorldStaticModel = MinidoracatKnoxPass.KnoxPassReader_Orange,
+        Tags = base:miscelectronic;base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_Reader,
+    }
+
+    item VehicleTag_Red
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:drainable,
+        Weight = 0.1,
+        ConditionMax = 100,
+        Icon = MinidoracatKnoxPassTag_Red,
+        UseDelta = 0.001,
+        UseWhileEquipped = false,
+        DisappearOnUse = false,
+        KeepOnDeplete = true,
+        cantBeConsolided = true,
+        WorldStaticModel = MinidoracatKnoxPass.KnoxPassTag_Red,
+        StaticModel = MinidoracatKnoxPass.KnoxPassTag_Red,
+        VehiclePartModel = KnoxPassTag Dock MinidoracatKnoxPass.KnoxPassTagDock_Red,
+        Tags = base:miscelectronic;base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_Tag,
+    }
+
+    item GateReader_Red
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:normal,
+        Weight = 0.8,
+        ConditionMax = 100,
+        Icon = MinidoracatKnoxPassReader_Red,
+        WorldStaticModel = MinidoracatKnoxPass.KnoxPassReader_Red,
+        Tags = base:miscelectronic;base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_Reader,
+    }
+}

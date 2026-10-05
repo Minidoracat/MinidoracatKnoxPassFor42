@@ -319,16 +319,24 @@ def holdout_wall(north):
     p.data.materials.append(mat)
 
 
-def reader():
-    for i, rotate in READER_XFORM.items():
+def reader(tex=None, out=HERE / "cells" / "reader", variants=READER_XFORM):
+    """tex: bind this reader texture instead of the glb's own (build_models.py renders each colour's preview)."""
+    for i in variants:
         reset()
-        import_glb(HERE / "export" / "knoxpass_reader_post.glb", pz_matrix(READER_T, rotate))
+        post = import_glb(HERE / "export" / "knoxpass_reader_post.glb", pz_matrix(READER_T, READER_XFORM[i]))
+        if tex:
+            img = bpy.data.images.load(str(tex))
+            for mat in post.data.materials:
+                for n in mat.node_tree.nodes:
+                    if n.type == "TEX_IMAGE":
+                        n.image = img
         holdout_wall(i < 2)
         aim((0, 0, 0), 64, 224, 128, 256)
-        render(HERE / "cells" / "reader" / f"reader_{i}.png")
+        render(Path(out) / f"reader_{i}.png")
 
 
-STEPS = {"calibrate": calibrate, "barrier": barrier, "game": game, "reader": reader}
-for step in (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else STEPS):
-    STEPS[step]()
-print("[render_tiles] done")
+if __name__ == "__main__":   # build_models.py imports reader()
+    STEPS = {"calibrate": calibrate, "barrier": barrier, "game": game, "reader": reader}
+    for step in (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else STEPS):
+        STEPS[step]()
+    print("[render_tiles] done")

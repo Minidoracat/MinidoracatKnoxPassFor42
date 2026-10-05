@@ -25,7 +25,7 @@ SIGN = (288, 0, 416, 128)            # STOP octagon, square = 2 x circumradius
 ARM = (0, 456, 512, 488)             # arm +-Y faces: bands + reflectors
 ARM_TOP = (0, 496, 512, 512)         # arm +-Z faces: bands only
 SWATCH = 16
-NAVY, AMBER = "#1d2b4a", "#e8a33d"   # brand: scripts/blender/build.py NAVY, cover accent colour
+NAVY, AMBER = "#1d2b4a", "#e8a33d"   # brand: scripts/blender/build.py COLORS Cream text colour, cover accent colour
 LAMP = {"red": "#ff3324", "green": "#2bea5a"}
 COLORS = {                           # sRGB hex
     "navy": NAVY,

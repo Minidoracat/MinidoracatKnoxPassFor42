@@ -1,0 +1,138 @@
+module MinidoracatKnoxPass
+{
+    /*
+        由 scripts/gen_colors.py 產生，不要手改：色表在 scripts/blender/build.py COLORS，
+        照 models_knoxpass.txt 的米白模型，只換 texture；那幾個模型改了就重跑產生器。
+    */
+    model KnoxPassTag_Black
+    {
+        mesh = WorldItems/MinidoracatKnoxPassTag,
+        texture = WorldItems/MinidoracatKnoxPassTag_Black,
+        scale = 1.0,
+    }
+
+    model KnoxPassTagDock_Black
+    {
+        mesh = vehicles/MinidoracatKnoxPassTagDock,
+        texture = WorldItems/MinidoracatKnoxPassTag_Black,
+        shader = vehiclewheel,
+        scale = 1.0,
+    }
+
+    model KnoxPassReader_Black
+    {
+        mesh = WorldItems/MinidoracatKnoxPassReader,
+        texture = WorldItems/MinidoracatKnoxPassReader_Black,
+        scale = 1.0,
+    }
+
+    model KnoxPassTag_Graphite
+    {
+        mesh = WorldItems/MinidoracatKnoxPassTag,
+        texture = WorldItems/MinidoracatKnoxPassTag_Graphite,
+        scale = 1.0,
+    }
+
+    model KnoxPassTagDock_Graphite
+    {
+        mesh = vehicles/MinidoracatKnoxPassTagDock,
+        texture = WorldItems/MinidoracatKnoxPassTag_Graphite,
+        shader = vehiclewheel,
+        scale = 1.0,
+    }
+
+    model KnoxPassReader_Graphite
+    {
+        mesh = WorldItems/MinidoracatKnoxPassReader,
+        texture = WorldItems/MinidoracatKnoxPassReader_Graphite,
+        scale = 1.0,
+    }
+
+    model KnoxPassTag_Olive
+    {
+        mesh = WorldItems/MinidoracatKnoxPassTag,
+        texture = WorldItems/MinidoracatKnoxPassTag_Olive,
+        scale = 1.0,
+    }
+
+    model KnoxPassTagDock_Olive
+    {
+        mesh = vehicles/MinidoracatKnoxPassTagDock,
+        texture = WorldItems/MinidoracatKnoxPassTag_Olive,
+        shader = vehiclewheel,
+        scale = 1.0,
+    }
+
+    model KnoxPassReader_Olive
+    {
+        mesh = WorldItems/MinidoracatKnoxPassReader,
+        texture = WorldItems/MinidoracatKnoxPassReader_Olive,
+        scale = 1.0,
+    }
+
+    model KnoxPassTag_Navy
+    {
+        mesh = WorldItems/MinidoracatKnoxPassTag,
+        texture = WorldItems/MinidoracatKnoxPassTag_Navy,
+        scale = 1.0,
+    }
+
+    model KnoxPassTagDock_Navy
+    {
+        mesh = vehicles/MinidoracatKnoxPassTagDock,
+        texture = WorldItems/MinidoracatKnoxPassTag_Navy,
+        shader = vehiclewheel,
+        scale = 1.0,
+    }
+
+    model KnoxPassReader_Navy
+    {
+        mesh = WorldItems/MinidoracatKnoxPassReader,
+        texture = WorldItems/MinidoracatKnoxPassReader_Navy,
+        scale = 1.0,
+    }
+
+    model KnoxPassTag_Orange
+    {
+        mesh = WorldItems/MinidoracatKnoxPassTag,
+        texture = WorldItems/MinidoracatKnoxPassTag_Orange,
+        scale = 1.0,
+    }
+
+    model KnoxPassTagDock_Orange
+    {
+        mesh = vehicles/MinidoracatKnoxPassTagDock,
+        texture = WorldItems/MinidoracatKnoxPassTag_Orange,
+        shader = vehiclewheel,
+        scale = 1.0,
+    }
+
+    model KnoxPassReader_Orange
+    {
+        mesh = WorldItems/MinidoracatKnoxPassReader,
+        texture = WorldItems/MinidoracatKnoxPassReader_Orange,
+        scale = 1.0,
+    }
+
+    model KnoxPassTag_Red
+    {
+        mesh = WorldItems/MinidoracatKnoxPassTag,
+        texture = WorldItems/MinidoracatKnoxPassTag_Red,
+        scale = 1.0,
+    }
+
+    model KnoxPassTagDock_Red
+    {
+        mesh = vehicles/MinidoracatKnoxPassTagDock,
+        texture = WorldItems/MinidoracatKnoxPassTag_Red,
+        shader = vehiclewheel,
+        scale = 1.0,
+    }
+
+    model KnoxPassReader_Red
+    {
+        mesh = WorldItems/MinidoracatKnoxPassReader,
+        texture = WorldItems/MinidoracatKnoxPassReader_Red,
+        scale = 1.0,
+    }
+}

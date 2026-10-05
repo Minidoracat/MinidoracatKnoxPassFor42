@@ -1,5 +1,6 @@
-"""Blender 5.2 headless：建 Knox Pass 三個低面數模型、匯出 FBX、渲染圖示原圖。
-由 build.py 呼叫：blender --background --factory-startup --python build_models.py -- <media> <tmp>
+"""Blender 5.2 headless：建 Knox Pass 三個低面數模型、匯出 FBX（一次），再逐色換貼圖渲染圖示原圖與預覽。
+由 build.py 呼叫：blender --background --factory-startup --python build_models.py -- <media> <out> <suffix>...
+（suffix 依 build.py COLORS 的順序，米白是空字串；貼圖讀 MOD 裡剛寫好的 textures/WorldItems/*<suffix>.png）
 
 座標慣例（Blender，Z 上）：
 - 物品（WorldItems）：平躺在地，原點在底面中心，單位公尺；腳本 scale = 1.0。
@@ -17,7 +18,8 @@ from mathutils import Matrix, Vector
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 ARGS = sys.argv[sys.argv.index("--") + 1:]
-MEDIA, TMP = ARGS[0], ARGS[1]
+MEDIA, OUT, SUFFIXES = ARGS[0], ARGS[1], ARGS[2:]
+BARRIER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "barrier")
 
 # 與 build.py 相同的貼圖格局（像素，左上原點）
 TAG_TEX, READER_TEX = 512, 512
@@ -170,10 +172,14 @@ def render_icon(ob, out, az, el, ortho):
     bpy.data.objects.remove(cam)
 
 
+def tex(kind, sfx):
+    return os.path.join(MEDIA, "textures", "WorldItems", f"MinidoracatKnoxPass{kind}{sfx}.png")
+
+
 def main():
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    tag_img = load_image(os.path.join(MEDIA, "textures", "WorldItems", "MinidoracatKnoxPassTag.png"))
-    reader_img = load_image(os.path.join(MEDIA, "textures", "WorldItems", "MinidoracatKnoxPassReader.png"))
+    tag_img = load_image(tex("Tag", ""))
+    reader_img = load_image(tex("Reader", ""))
 
     # 1. 感應盒物品（地上／手上）
     mb = MB()
@@ -209,10 +215,22 @@ def main():
     reader = mb.build("MinidoracatKnoxPassReader", reader_img)
     export(reader, os.path.join(MEDIA, "models_X", "WorldItems", "MinidoracatKnoxPassReader.fbx"))
 
-    render_icon(tag, os.path.join(TMP, "icon_tag.png"), az=-25, el=58, ortho=0.11)
-    render_icon(reader, os.path.join(TMP, "icon_reader.png"), az=-25, el=52, ortho=0.5)
-    # 預覽（人看的，不進 MOD）
-    render_icon(dock, os.path.join(TMP, "preview_dock.png"), az=180 - 30, el=20, ortho=0.12)
+    # 網格與 FBX 只建一次（米白貼圖）；各色只在模型腳本換 texture，這裡換同一張 image 的來源檔重渲
+    for sfx in SUFFIXES:
+        tag_img.filepath, reader_img.filepath = tex("Tag", sfx), tex("Reader", sfx)
+        tag_img.reload()
+        reader_img.reload()
+        render_icon(tag, os.path.join(OUT, f"icon_tag{sfx}.png"), az=-25, el=58, ortho=0.11)
+        render_icon(reader, os.path.join(OUT, f"icon_reader{sfx}.png"), az=-25, el=52, ortho=0.5)
+        # 預覽（人看的，不進 MOD）：車上、地上（PZ 鏡頭方位 az 45 / 仰角 30，render_tiles.py 的相機方向）
+        render_icon(dock, os.path.join(OUT, f"preview_dock{sfx}.png"), az=180 - 30, el=20, ortho=0.12)
+        render_icon(tag, os.path.join(OUT, f"ground_tag{sfx}.png"), az=45, el=30, ortho=0.11)
+        render_icon(reader, os.path.join(OUT, f"ground_reader{sfx}.png"), az=45, el=30, ortho=0.5)
+    # 門柱讀頭：與 2D 格同一支渲染（PZ 2x 投影），貼圖換成該色；render_tiles 會重設場景，所以放最後
+    sys.path.insert(0, BARRIER)
+    import render_tiles
+    for sfx in SUFFIXES:
+        render_tiles.reader(tex=tex("Reader", sfx), out=os.path.join(OUT, f"post{sfx}"), variants=(0,))
     print("BUILD OK")
 
 
