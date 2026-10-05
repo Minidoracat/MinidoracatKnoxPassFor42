@@ -6,6 +6,7 @@ require "MinidoracatKnoxPass/Core"
 require "MinidoracatKnoxPass/Gates"
 require "MinidoracatKnoxPass/Ledger"
 require "MinidoracatKnoxPass/Sensor"
+require "MinidoracatKnoxPass/ReaderPost"
 local KP = MinidoracatKnoxPass
 local G = KP.Gates
 local L = KP.Ledger
@@ -170,19 +171,22 @@ function KP.sendState(player, key)
     if rec then reply(player, "state", buildState(player, key, rec)) end
 end
 
--- 寫帳本並在錨點留標記（安裝讀頭、建好抬升閘門共用）。builtin＝閘門內建讀頭，不能單獨拆（H.uninstall）
+-- 寫帳本並在錨點留標記（安裝讀頭、建好抬升閘門共用）。builtin＝閘門內建讀頭，不能單獨拆（H.uninstall）。
+-- 門柱上放讀頭模型（閘門不放：機箱頂已有圓頂讀頭）
 function KP.registerReader(adapter, anchor, name, sid, builtin)
     local key = G.key(anchor)
     local asq = anchor:getSquare()
     local cx, cy = G.center(G.pieces(adapter, anchor))
-    L.put(key, {
+    local rec = {
         key = key, x = asq:getX(), y = asq:getY(), z = asq:getZ(), cx = cx, cy = cy,
         adapter = adapter.id, kind = G.kind(adapter, anchor), owner = name, sid = sid, builtin = builtin or nil,
         tags = {}, created = getGameTime():getWorldAgeHours(),
-    })
+    }
+    L.put(key, rec)
     -- 建造者身分無法驗證（分割畫面第 2-4 位，KP.principal 回 nil）時閘門沒有擁有者、只有管理員能管；
     -- 標記仍要非 nil，client 才知道這扇門裝了讀頭（Client.lua onFillMenu、KnoxPassAPI.willOpenFor）
     mark(anchor, name or "", false)
+    KP.ReaderPost.attach(key, rec, adapter, anchor)
     KP.log("reader installed key=" .. key .. " owner=" .. tostring(name) .. (builtin and " builtin" or ""))
     return key
 end

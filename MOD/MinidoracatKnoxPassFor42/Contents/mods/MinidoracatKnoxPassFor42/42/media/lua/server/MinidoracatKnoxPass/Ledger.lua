@@ -78,9 +78,11 @@ function L.put(key, rec)
     version = version + 1
 end
 
+-- 所有刪除路徑（拆讀頭、門不見了、閘門移除）都經過這裡：門柱上的讀頭模型一起拿掉（ReaderPost.lua）
 function L.remove(key)
     local rec = L.get(key)
     if not rec then return end
+    if KP.ReaderPost then KP.ReaderPost.detach(key, rec) end
     for id in pairs(rec.tags) do
         if byTag[id] then byTag[id][key] = nil end
     end

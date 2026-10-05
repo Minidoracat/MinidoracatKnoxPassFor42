@@ -8,8 +8,11 @@ Full rebuild, run inside scripts/blender/barrier/ ("blender" = Blender 5.2 blend
     blender -b --factory-startup --python verify_export.py        # export/knoxpass_barrier_verify.txt
     uv run --with pillow python extract_vanilla_sprites.py        # vanilla_dump/sprites (calibration, gitignored)
     blender -b --factory-startup --python render_tiles.py         # cells/_canvas + previews (+ vanilla calibration)
+                                                                  # + cells/reader/ (`-- reader` renders only those)
     uv run --with pillow python assemble_previews.py              # cells/{N,W}/*.png + cells/cells.txt
+    uv run --with pillow python reader_previews.py                # previews/reader_*.png (reader on vanilla doors)
     uv run scripts/build_barrier_tiles.py                         # (repo root) pack/tiles/scripts into MOD/
+Door-post reader only (model or cells changed): build_barrier.py, render_tiles.py -- reader, build_barrier_tiles.py.
 
 export/knoxpass_barrier_cabinet.glb  static: navy/amber cabinet + amber cap + dome reader, KNOX PASS plate on both
                                      traffic faces (+-Y), vertical KNOX PASS on +-X
@@ -20,6 +23,11 @@ export/knoxpass_barrier_arm.glb      skinned: armature Dummy01, DoorBone = 0.16 
 export/knoxpass_barrier_lines.glb    static: road paint, 2 cm above the floor: white stop line + amber KNOX PASS on
                                      both sides of the gate line, text facing oncoming traffic (Barlow, OFL)
 export/knoxpass_barrier_empty.glb    static: one ~1 mm triangle 1 cm under the floor ("render nothing")
+export/knoxpass_reader_post.glb      static: Knox Pass reader hung on a door post (gate reader install), both faces
+                                     of the wall line: steel back plate + cream radome with the navy KNOX PASS band
+                                     (item design B), junction box below, cable, conduit to the floor. Texture = the
+                                     reader item texture (MOD textures/WorldItems/MinidoracatKnoxPassReader.png,
+                                     painted by scripts/blender/build.py). Own model space, see reader_post().
 
 Rig conventions copied from vanilla fixtures_doors_fences_01_*.blend (vanilla_dump/dump.txt): armature
 object "Dummy01", bones "DoorBone" (moving) + "PostBone" (static), bones point +Z, one skinned mesh, one
@@ -49,6 +57,12 @@ OPEN_DEG = 86.0
 FPS = 24
 F0, F1 = 1, 1 + 6 * FPS               # 6.0 s clip; engine plays at speedDelta 1.5 -> ~4.0 s (IsoObjectAnimations.java:281)
 TEX = HERE / "textures" / "knoxpass_barrier.png"
+# reader item texture and its layout (pixels, top-left origin): same numbers as scripts/blender/build.py
+# READER_FACE / READER_JLBL / READER_SW (that script needs PIL, which Blender's Python does not ship)
+READER_TEX = HERE.parents[2] / "MOD/MinidoracatKnoxPassFor42/Contents/mods/MinidoracatKnoxPassFor42/42/media/textures/WorldItems/MinidoracatKnoxPassReader.png"
+READER_FACE, READER_JLBL = (0, 0, 320, 320), (336, 0, 496, 100)
+READER_SW = {name: (x + 4, 340, x + 36, 372) for name, x in
+             {"radome": 0, "side": 48, "steel": 96, "jbox": 144, "cable": 192}.items()}
 POST, DOOR = 0, 1                     # vertex group indices (vertex_groups are created in this order)
 
 
@@ -249,15 +263,35 @@ def empty(m):
     m._face(v, POST, [uv] * 3)
 
 
-def build_material():
-    mat = bpy.data.materials.new("knoxpass_barrier")
+def reader_post(m):
+    """Reader hung on a door post. Model space: origin = the post (tile corner) on the floor, +X = along the wall line
+    into the door opening, +-Y = the two faces of the wall line, Z up (metres = tile units; one floor = 2.449).
+    Everything sits at x < -0.02 (beyond the post, away from the opening: the leaf swings about the hinge post and
+    never reaches x < 0) and |y| >= 0.04 (on the faces, not inside the wall line). Same parts mirrored on both faces
+    so a car reads it from either side; text reads unmirrored on both (Builder.box "read").
+    Plate 0.34 x 0.34 (the item is 0.25: ~31 px wide at the default zoom), centre 0.92 up (car window height)."""
+    for s in (1, -1):
+        def box(x0, x1, y0, y1, z0, z1, paint, s=s):
+            m.box((x0, min(s * y0, s * y1), z0), (x1, max(s * y0, s * y1), z1), POST, paint)
+        box(-0.42, -0.06, 0.06, 0.075, 0.74, 1.10, lambda ax, sg: READER_SW["steel"])                 # back plate
+        box(-0.41, -0.07, 0.075, 0.105, 0.75, 1.09,                                                # radome
+            lambda ax, sg, s=s: ("read", READER_FACE) if (ax, sg) == (1, s) else READER_SW["side"])
+        box(-0.075, -0.025, 0.04, 0.075, 0.86, 0.98, lambda ax, sg: READER_SW["steel"])             # post bracket
+        box(-0.245, -0.225, 0.07, 0.085, 0.66, 0.75, lambda ax, sg: READER_SW["cable"])             # cable
+        box(-0.30, -0.17, 0.06, 0.10, 0.56, 0.66,                                                  # junction box
+            lambda ax, sg, s=s: ("read", READER_JLBL) if (ax, sg) == (1, s) else READER_SW["jbox"])
+        box(-0.215, -0.195, 0.065, 0.08, 0.0, 0.56, lambda ax, sg: READER_SW["cable"])              # conduit
+
+
+def build_material(path=TEX):
+    mat = bpy.data.materials.new(path.stem)
     nt = mat.node_tree
     bsdf = nt.nodes["Principled BSDF"]
     bsdf.inputs["Roughness"].default_value = 0.5
     bsdf.inputs["Metallic"].default_value = 0.0
     tex = nt.nodes.new("ShaderNodeTexImage")
-    img = bpy.data.images.load(str(TEX), check_existing=True)
-    img.name = "knoxpass_barrier"
+    img = bpy.data.images.load(str(path), check_existing=True)
+    img.name = path.stem
     tex.image = img
     tex.interpolation = "Closest"
     nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
@@ -306,7 +340,7 @@ def add_rig(sc, obj):
     return rig
 
 
-def build_variant(name, parts, rigged, blend=None):
+def build_variant(name, parts, rigged, blend=None, tex=TEX):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     sc = bpy.context.scene
     sc.render.fps, sc.render.fps_base = FPS, 1.0
@@ -315,7 +349,7 @@ def build_variant(name, parts, rigged, blend=None):
     m = Builder()
     parts(m)
     me = m.to_mesh(name)
-    me.materials.append(build_material())
+    me.materials.append(build_material(tex))
     obj = bpy.data.objects.new(name, me)
     sc.collection.objects.link(obj)
     keep = [obj, add_rig(sc, obj)] if rigged else [obj]
@@ -338,3 +372,4 @@ build_variant("knoxpass_barrier_cabinet", cabinet, False, blend="barrier_cabinet
 build_variant("knoxpass_barrier_arm", arm, True, blend="barrier_arm.blend")
 build_variant("knoxpass_barrier_lines", lines, False)
 build_variant("knoxpass_barrier_empty", empty, False)
+build_variant("knoxpass_reader_post", reader_post, False, tex=READER_TEX)

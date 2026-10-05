@@ -507,4 +507,42 @@ spriteModel
             animationTime = 1.0000,
         }
     }
+
+    tileset
+    {
+        name = MinidoracatKnoxPass_reader,
+
+        tile
+        {
+            xy = 0 0,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPost,
+            translate = -0.5000 0.0000 -0.5000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 1 0,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPost,
+            translate = -0.5000 0.0000 -0.5000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 2 0,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPost,
+            translate = -0.5000 0.0000 -0.5000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 3 0,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPost,
+            translate = -0.5000 0.0000 -0.5000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+        }
+    }
 }
