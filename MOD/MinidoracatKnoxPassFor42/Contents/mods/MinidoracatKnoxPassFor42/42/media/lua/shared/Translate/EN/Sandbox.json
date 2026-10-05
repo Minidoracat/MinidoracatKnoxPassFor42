@@ -1,0 +1,19 @@
+{
+    "Sandbox_MinidoracatKnoxPass": "Minidoracat Knox Pass",
+    "Sandbox_MinidoracatKnoxPassReadRange": "Reader range (tiles)",
+    "Sandbox_MinidoracatKnoxPassReadRange_tooltip": "How close, in tiles from the gate center, a driven vehicle with a registered tag must be for the gate to open. Default 8 (2-30).\nWhile the vehicle is moving the gate also opens early, based on where the vehicle will be after the look-ahead time.\nTakes effect as soon as an admin clicks Apply.",
+    "Sandbox_MinidoracatKnoxPassLeadSeconds": "Look-ahead time (seconds)",
+    "Sandbox_MinidoracatKnoxPassLeadSeconds_tooltip": "Seconds of look-ahead along the vehicle's actual movement: the gate opens when any point between where the vehicle is now and where it will be after this many seconds is within the reader range. Default 2 (0-5).\n0 uses only the circle around the gate. Higher values open earlier for fast vehicles. For self-driving vehicles see \"Self-driving early open distance\".\nTakes effect as soon as an admin clicks Apply.",
+    "Sandbox_MinidoracatKnoxPassAutoDriveAhead": "Self-driving early open distance (tiles)",
+    "Sandbox_MinidoracatKnoxPassAutoDriveAhead_tooltip": "While a vehicle under Minidoracat AutoDrive is heading for the gate (the gate within about 12 degrees of its direction of travel), open the gate when it is this many tiles away. Default 150 (0-250).\nAutoDrive slows down when it sees a closed gate; opening early means it only ever sees the gate open. The server must have the gate's area loaded before it can open it, so in practice the gate opens about 70-130 tiles out. 0 treats self-driving vehicles like any other vehicle. Has no effect without AutoDrive.\nTakes effect as soon as an admin clicks Apply.",
+    "Sandbox_MinidoracatKnoxPassCloseDelay": "Auto-close delay (seconds)",
+    "Sandbox_MinidoracatKnoxPassCloseDelay_tooltip": "Real-time seconds the gate waits to close after no driven vehicle with a registered tag is within range. Default 5 (0-120).\nOnly gates opened by Knox Pass are closed automatically. A gate never closes onto a vehicle, player or zombie; it waits and tries again.\nTakes effect as soon as an admin clicks Apply.",
+    "Sandbox_MinidoracatKnoxPassRequirePower": "Gate readers need power",
+    "Sandbox_MinidoracatKnoxPassRequirePower_tooltip": "When enabled (default), a gate only opens while grid power or a running generator reaches the gate.\nUnlike vanilla outdoor appliances, outdoor gates do count grid power. Disabled means readers work without power.\nTakes effect as soon as an admin clicks Apply.",
+    "Sandbox_MinidoracatKnoxPassTagDrainPercent": "Vehicle tag drain multiplier (percent)",
+    "Sandbox_MinidoracatKnoxPassTagDrainPercent_tooltip": "Charge a vehicle tag uses each time it opens a gate. 100 (default) uses 1%% of a full charge per opening, 200 uses 2%%, and 0 means tags never run out.\nTags recharge while installed in a running vehicle whose battery is above 10%%.\nTakes effect as soon as an admin clicks Apply.",
+    "Sandbox_MinidoracatKnoxPassAllowCraft": "Allow crafting Knox Pass items",
+    "Sandbox_MinidoracatKnoxPassAllowCraft_tooltip": "Enabled (default) lets players craft the Vehicle Tag (Electrical 2) and the Gate Reader (Electrical 4).\nWhen disabled the recipes cannot be performed. World loot is controlled separately; existing items are unaffected.\nTakes effect as soon as an admin clicks Apply.",
+    "Sandbox_MinidoracatKnoxPassSpawnLoot": "Spawn Knox Pass items in world loot",
+    "Sandbox_MinidoracatKnoxPassSpawnLoot_tooltip": "Enabled (default) adds Vehicle Tags and Gate Readers to loot in gas-station and mechanic storage, car-supply, tool and electronics stores, electrician tools and electronics crates.\nDisabled prevents new loot. Existing items and containers that have already generated contents are not removed.\nAfter an admin clicks Apply, containers whose contents have not yet generated use the new setting immediately."
+}

@@ -1,0 +1,19 @@
+{
+    "Sandbox_MinidoracatKnoxPass": "Minidoracat Knox Pass",
+    "Sandbox_MinidoracatKnoxPassReadRange": "リーダーの感知範囲（マス）",
+    "Sandbox_MinidoracatKnoxPassReadRange_tooltip": "登録済みタグを付けた運転中の車両が、ゲート中心から何マス以内に入るとゲートを開くか。初期値 8（2-30）。\n車両が移動中は「先読み時間」後の位置をもとに早めに開きます。\n管理者が「適用」を押すと即座に反映されます。",
+    "Sandbox_MinidoracatKnoxPassLeadSeconds": "先読み時間（秒）",
+    "Sandbox_MinidoracatKnoxPassLeadSeconds_tooltip": "車両の実際の移動方向に沿って何秒先まで予測するか。現在位置から数秒後の位置までのどこかが感知範囲に入るとゲートを開きます。初期値 2（0-5）。\n0 はゲート周囲の円形範囲のみ。値を大きくすると速い車両ほど早く開きます。自動運転の車両は「自動運転の早期開放距離」も参照してください。\n管理者が「適用」を押すと即座に反映されます。",
+    "Sandbox_MinidoracatKnoxPassAutoDriveAhead": "自動運転の早期開放距離（マス）",
+    "Sandbox_MinidoracatKnoxPassAutoDriveAhead_tooltip": "Minidoracat AutoDrive で自動運転中の車両がゲートに向かって走っているとき（ゲートが進行方向の約 12 度以内）、このマス数まで近づいたらゲートを開きます。初期値 150（0-250）。\nAutoDrive は閉じたゲートを見つけると減速するため、早めに開けておけば開いたゲートしか見えません。ゲートのある区域がサーバーに読み込まれてから開くので、実際には約 70-130 マス手前で開きます。0 は通常の車両と同じ扱い。AutoDrive がない場合は効果がありません。\n管理者が「適用」を押すと即座に反映されます。",
+    "Sandbox_MinidoracatKnoxPassCloseDelay": "自動で閉じるまでの時間（秒）",
+    "Sandbox_MinidoracatKnoxPassCloseDelay_tooltip": "範囲内に登録済みタグを付けた運転中の車両がいなくなってから、ゲートを閉じるまでの実時間（秒）。初期値 5（0-120）。\nKnox Pass が開けたゲートだけを自動で閉じます。車両・プレイヤー・ゾンビがいるときは絶対に閉じず、少し待って再試行します。\n管理者が「適用」を押すと即座に反映されます。",
+    "Sandbox_MinidoracatKnoxPassRequirePower": "リーダーに電力が必要",
+    "Sandbox_MinidoracatKnoxPassRequirePower_tooltip": "有効（初期値）にすると、送電網か稼働中の発電機の電力がゲートに届いているときだけ開きます。\nバニラの屋外家電と違い、屋外のゲートでも送電網の電力が使えます。無効にすると電力なしで動作します。\n管理者が「適用」を押すと即座に反映されます。",
+    "Sandbox_MinidoracatKnoxPassTagDrainPercent": "車載タグの消費電力倍率（パーセント）",
+    "Sandbox_MinidoracatKnoxPassTagDrainPercent_tooltip": "ゲートを1回開けるごとにタグが消費する電力。100（初期値）は満充電の 1%%、200 は 2%%、0 は電池切れになりません。\nエンジンがかかっていて車のバッテリーが 10%% を超える車両に取り付けている間、タグは充電されます。\n管理者が「適用」を押すと即座に反映されます。",
+    "Sandbox_MinidoracatKnoxPassAllowCraft": "Knox Pass アイテムの製作を許可",
+    "Sandbox_MinidoracatKnoxPassAllowCraft_tooltip": "有効（初期値）にすると、車載タグ（電気技師レベル2）とゲートリーダー（電気技師レベル4）を製作できます。\n無効にするとレシピを実行できません。ワールド探索は別の設定で決まり、既存のアイテムには影響しません。\n管理者が「適用」を押すと即座に反映されます。",
+    "Sandbox_MinidoracatKnoxPassSpawnLoot": "ワールド探索で Knox Pass アイテムを生成",
+    "Sandbox_MinidoracatKnoxPassSpawnLoot_tooltip": "有効（初期値）にすると、ガソリンスタンドと整備工場の倉庫、カー用品店・工具店・家電店、電気工具、電子機器クレートの探索品に車載タグとゲートリーダーが追加されます。\n無効にすると新しい探索品として生成されません。既存のアイテムや内容生成済みのコンテナからは削除されません。\n管理者が「適用」を押すと、内容が未生成のコンテナには新しい設定が即座に反映されます。"
+}

@@ -3,28 +3,48 @@
 
 [hr][/hr]
 
-[h2]✨ これは何？[/h2]
-車にトランスポンダー、門にリーダーを取り付ければ、車で近づくだけで門が自動で開きます。車を降りる必要もキー操作も要りません。シングル・マルチ両対応です。
+車にタグ、ゲートにリーダーを取り付ければ、車で近づくだけでゲートが開き、通り過ぎると自動で閉まります。
 
-[h2]🧰 主な機能[/h2]
+[h2]📦 必要なMOD[/h2]
 [list]
-[*] [b]XXXX[/b]：公開前に記入
+[*] UIフレームワーク（必須）：[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library for B42[/url]
 [/list]
 
-[h2]🔗 Minidoracat の MOD 一覧[/h2]
-すべての MOD を[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3809297109]Minidoracat 全シリーズ コレクション[/url]にまとめています。必要なものを選んでサブスクライブしてください。
+[h2]🚀 クイックスタート[/h2]
+[olist]
+[*] [b]車載タグ[/b]と[b]ゲートリーダー[/b]を入手します。クラフトのほか、整備工場やガソリンスタンドで見つかります
+[*] 車両整備画面の「Knox Pass」から車載タグを取り付けます
+[*] リーダーとドライバーを持ってゲートを右クリックし、[b]Knox Pass リーダーを取り付ける[/b]を選びます
+[*] 右クリックメニューの[b]リーダーを管理[/b]で、近くに停めた車を登録します
+[/olist]
 
-[h2]📋 MOD 情報[/h2]
+[h2]✨ 主な機能[/h2]
 [list]
-[*] [b]Mod ID:[/b] MinidoracatKnoxPassFor42
-[*] [b]対応バージョン:[/b] Build 42.21.0+
-[*] [b]シングル / マルチ:[/b] 両対応
+[*] [b]ボタン不要[/b]：運転席で近づくとゲートが開き、離れると閉まります
+[*] [b]走行中も検知[/b]：速いほど早く開き、自動運転の車には遠くから開けておきます
+[*] [b]本物の車両部品[/b]：バニラ車にもMOD車にも付き、タグごと別の車へ移せます
+[*] [b]ゲートごとの登録[/b]：登録した車だけがあなたのゲートを開けます
+[*] [b]ゲートロック[/b]：Knox Pass でしか開かないように設定できます
+[*] [b]多くのゲートに対応[/b]：フェンスゲート、両開き扉、ガレージ扉、プレイヤーが建てた扉
+[*] [b]挟み込み防止[/b]：出入口に車や人がいる間は閉まりません
+[*] [b]サーバー設定[/b]：検知距離・閉まるまでの時間・電源・タグの電池を調整できます
 [/list]
+
+[h2]🔗 Minidoracat 全シリーズ[/h2]
+ほかの作品は[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3809297109]Minidoracat コレクション[/url]からどうぞ。必要なものだけ購読してください。
 
 [h2]💬 フィードバック[/h2]
 [list]
-[*] [url=https://discord.gg/Gur2V67]Discord コミュニティ[/url]
+[*] GitHub Issues：https://github.com/Minidoracat/MinidoracatKnoxPassFor42/issues
+[*] Discord：https://discord.gg/Gur2V67
 [/list]
 
+[h2]☕ 作者を応援[/h2]
+役に立ったら、このページで 👍 を、GitHub で ⭐ を押してください。より多くのプレイヤーに届きます。
+MODはずっと無料です。気に入ったらコーヒーをおごってもらえると嬉しいです。支援はサーバーとMOD開発に使います。ソースはGitHubで公開しています。
+[url=https://ko-fi.com/minidoracat][img]https://raw.githubusercontent.com/Minidoracat/workshop-resources/refs/heads/main/badges/badge_kofi.png[/img][/url] [url=https://github.com/Minidoracat/MinidoracatKnoxPassFor42][img]https://raw.githubusercontent.com/Minidoracat/workshop-resources/refs/heads/main/badges/badge_github.png[/img][/url]
 
 [b]#Minidoracat[/b]
+
+Workshop ID: 未割り当て
+Mod ID: MinidoracatKnoxPassFor42

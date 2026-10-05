@@ -1,0 +1,25 @@
+VERSION = 1,
+
+option MinidoracatKnoxPass.ReadRange
+{type = integer, min = 2, max = 30, default = 8, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassReadRange,}
+
+option MinidoracatKnoxPass.LeadSeconds
+{type = double, min = 0.0, max = 5.0, default = 2.0, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassLeadSeconds,}
+
+option MinidoracatKnoxPass.AutoDriveAhead
+{type = integer, min = 0, max = 250, default = 150, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassAutoDriveAhead,}
+
+option MinidoracatKnoxPass.CloseDelay
+{type = integer, min = 0, max = 120, default = 5, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassCloseDelay,}
+
+option MinidoracatKnoxPass.RequirePower
+{type = boolean, default = true, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassRequirePower,}
+
+option MinidoracatKnoxPass.TagDrainPercent
+{type = integer, min = 0, max = 500, default = 100, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassTagDrainPercent,}
+
+option MinidoracatKnoxPass.AllowCraft
+{type = boolean, default = true, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassAllowCraft,}
+
+option MinidoracatKnoxPass.SpawnLoot
+{type = boolean, default = true, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassSpawnLoot,}

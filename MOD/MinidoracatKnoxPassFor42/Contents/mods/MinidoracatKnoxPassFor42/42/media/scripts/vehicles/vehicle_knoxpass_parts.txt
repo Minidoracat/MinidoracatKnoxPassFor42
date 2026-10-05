@@ -1,0 +1,45 @@
+/*
+    感應盒零件槽的唯一定義：template 不會進入可生成車輛清單。
+    MinidoracatKnoxPass/Parts.lua 在 OnGameBoot 把這一槽複製到每個有電瓶的車型，area 依車型改寫。
+    不寫 items：感應盒用黏扣帶貼在擋風玻璃上，不需要工具；沒有 skills＝安裝必定成功
+    （VehicleUtils.calculateInstallationSuccess，Vehicles.lua:1463-1485）。
+    install／uninstall 兩個表都要有：原版拆除流程讀的是 install 表的 time 與 skills
+    （ISVehiclePartMenu.lua:217,224、ISUninstallVehiclePart.lua:46-47）。
+    mechanicRequireKey：要有車鑰匙或車門沒鎖才能拆裝（VehicleUtils.RequiredKeyNotFound，Vehicles.lua:1380-1389），
+    鎖好的車偷不走感應盒。
+    install／uninstall 的 complete：裝上或拆下後由伺服器呼叫（ISInstallVehiclePart.lua:95-98、
+    ISUninstallVehiclePart.lua:65-67、Vehicles.lua:1327），把這顆感應盒登記的每一扇門改記新車／未裝在車上。
+*/
+module Base
+{
+    template vehicle KnoxPassParts
+    {
+        part KnoxPassTag
+        {
+            area = Engine,
+            mechanicArea = Engine,
+            itemType = MinidoracatKnoxPass.VehicleTag,
+            specificItem = false,
+            mechanicRequireKey = true,
+            category = KnoxPass,
+            durability = 2,
+            table install
+            {
+                time = 60,
+                test = Vehicles.InstallTest.Default,
+                complete = MinidoracatKnoxPass.onTagInstalled,
+            }
+            table uninstall
+            {
+                time = 60,
+                test = Vehicles.UninstallTest.Default,
+                complete = MinidoracatKnoxPass.onTagUninstalled,
+            }
+            lua
+            {
+                create = MinidoracatKnoxPass.onPartCreate,
+                update = MinidoracatKnoxPass.onPartUpdate,
+            }
+        }
+    }
+}

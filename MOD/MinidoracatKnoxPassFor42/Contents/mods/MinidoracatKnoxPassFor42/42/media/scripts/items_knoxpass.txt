@@ -1,0 +1,44 @@
+module MinidoracatKnoxPass
+{
+    /*
+        VehicleTag：車用感應盒。造型照 1989 年達拉斯 TollTag／1993 年 E-ZPass（信用卡大小、米白素殼）。
+        drainable＝內建可充電池；裝在車上由零件 update 從車輛電瓶充電（MinidoracatKnoxPass/Parts.lua）。
+        UseDelta 0.001：setCurrentUsesFloat 會量化到一格（DrainableComboItem.java:83-87），
+        每遊戲分鐘的充電量約 0.33%，格子太粗會整筆被吃掉。
+        刻意不加 base:usesbattery：電池內建不可換，原版 InsertBattery／RemoveBattery 不適用。
+        base:miscelectronic 讓原版 DismantleElectronics 可拆成電子零件，與原版小電子物一致。
+        模型與圖示先借原版 Pager（models_items.txt:14575），之後換 Blender 自製模型。
+    */
+    item VehicleTag
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:drainable,
+        Weight = 0.1,
+        ConditionMax = 100,
+        Icon = Pager,
+        UseDelta = 0.001,
+        UseWhileEquipped = false,
+        DisappearOnUse = false,
+        KeepOnDeplete = true,
+        cantBeConsolided = true,
+        WorldStaticModel = Pager,
+        Tags = base:miscelectronic;base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_Tag,
+    }
+
+    /*
+        GateReader：大門讀頭。拿著它對大門按右鍵安裝，裝好後成為那扇門的一部分。
+        模型與圖示先借原版 HomeAlarm（models_items.txt:1187）。
+    */
+    item GateReader
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:normal,
+        Weight = 0.8,
+        ConditionMax = 100,
+        Icon = HomeAlarm,
+        WorldStaticModel = HomeAlarm,
+        Tags = base:miscelectronic;base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_Reader,
+    }
+}

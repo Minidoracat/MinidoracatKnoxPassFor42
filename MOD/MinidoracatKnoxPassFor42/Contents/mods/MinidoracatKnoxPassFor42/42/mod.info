@@ -4,3 +4,4 @@ description=[B42]車輛裝上感應器、大門裝上讀頭，開車靠近就自
 poster=poster.png
 modversion=42.21.0-0.1.0
 versionMin=42.21.0
+require=MinidoracatUIFor42

@@ -1,0 +1,9 @@
+{
+    "ContextMenu_KnoxPass": "Knox Pass",
+    "ContextMenu_KnoxPass_Install": "Install Knox Pass reader",
+    "ContextMenu_KnoxPass_Manage": "Manage reader...",
+    "ContextMenu_KnoxPass_Lock": "Lock (only Knox Pass opens it)",
+    "ContextMenu_KnoxPass_Open": "Open with Knox Pass",
+    "ContextMenu_KnoxPass_Remove": "Remove reader",
+    "ContextMenu_KnoxPass_OtherOwner": "Reader belongs to another player"
+}

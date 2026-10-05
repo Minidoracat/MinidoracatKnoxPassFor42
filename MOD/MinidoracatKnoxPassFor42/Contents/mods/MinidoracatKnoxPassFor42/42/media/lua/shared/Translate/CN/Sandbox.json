@@ -1,0 +1,19 @@
+{
+    "Sandbox_MinidoracatKnoxPass": "Minidoracat Knox Pass",
+    "Sandbox_MinidoracatKnoxPassReadRange": "读头感应范围（格）",
+    "Sandbox_MinidoracatKnoxPassReadRange_tooltip": "装着已登记感应盒、有人驾驶的车辆离大门中心几格内就会开门。默认 8（2-30）。\n车辆移动中还会按「预判时间」后的位置提前开门。\n管理员按「应用」后立即生效。",
+    "Sandbox_MinidoracatKnoxPassLeadSeconds": "预判时间（秒）",
+    "Sandbox_MinidoracatKnoxPassLeadSeconds_tooltip": "沿车辆实际移动方向往前预判几秒：从当前位置到几秒后位置之间，只要有一点进入感应范围就开门。默认 2（0-5）。\n0＝只看大门周围的圆形范围。数值越大，快车越早开门。自动驾驶的车另见「自动驾驶提早开门距离」。\n管理员按「应用」后立即生效。",
+    "Sandbox_MinidoracatKnoxPassAutoDriveAhead": "自动驾驶提早开门距离（格）",
+    "Sandbox_MinidoracatKnoxPassAutoDriveAhead_tooltip": "车辆由 Minidoracat AutoDrive 自动驾驶、正朝大门开过去时（大门在行进方向前方约 12 度内），离大门这么多格内就开门。默认 150（0-250）。\nAutoDrive 看到关着的门会减速；提前开门让它看到的就是开着的门。门所在的区域要先被服务器加载才能开，所以实际上大约在 70-130 格外开门。0＝与普通车辆相同。没装 AutoDrive 时没有作用。\n管理员按「应用」后立即生效。",
+    "Sandbox_MinidoracatKnoxPassCloseDelay": "自动关门延迟（秒）",
+    "Sandbox_MinidoracatKnoxPassCloseDelay_tooltip": "范围内不再有装着已登记感应盒、有人驾驶的车辆后，等待几秒（现实时间）才关门。默认 5（0-120）。\n只会自动关上由 Knox Pass 打开的门；门口有车辆、玩家或丧尸时绝不关门，会稍后再试。\n管理员按「应用」后立即生效。",
+    "Sandbox_MinidoracatKnoxPassRequirePower": "读头需要供电",
+    "Sandbox_MinidoracatKnoxPassRequirePower_tooltip": "开启（默认）＝大门要有电网供电或运转中的发电机覆盖才会开。\n与原版室外电器不同，室外大门也能算到电网供电。关闭＝读头不需要电力。\n管理员按「应用」后立即生效。",
+    "Sandbox_MinidoracatKnoxPassTagDrainPercent": "感应盒耗电倍率（百分比）",
+    "Sandbox_MinidoracatKnoxPassTagDrainPercent_tooltip": "感应盒每次开门消耗的电量。100（默认）＝每次用掉满电的 1%%，200＝2%%，0＝永远不会没电。\n装在发动中的车上、且车用电瓶电量高于 10%% 时会自动充电。\n管理员按「应用」后立即生效。",
+    "Sandbox_MinidoracatKnoxPassAllowCraft": "允许制作 Knox Pass 道具",
+    "Sandbox_MinidoracatKnoxPassAllowCraft_tooltip": "开启（默认）＝玩家可以制作车用感应盒（需电工 2 级）与大门读头（需电工 4 级）。\n关闭后配方无法执行；世界搜刮另由各自设置决定，既有道具不受影响。\n管理员按「应用」后立即生效。",
+    "Sandbox_MinidoracatKnoxPassSpawnLoot": "世界搜刮会生成 Knox Pass 道具",
+    "Sandbox_MinidoracatKnoxPassSpawnLoot_tooltip": "开启（默认）＝车用感应盒与大门读头会加入加油站与修车厂仓储、汽车用品店、五金店与电子用品店、电工工具与电子板条箱的搜刮生成清单。\n关闭＝之后生成的搜刮不再出现；既有道具与已经生成过的容器内容不会移除。\n管理员按「应用」后，尚未生成内容的容器立即采用新设置。"
+}

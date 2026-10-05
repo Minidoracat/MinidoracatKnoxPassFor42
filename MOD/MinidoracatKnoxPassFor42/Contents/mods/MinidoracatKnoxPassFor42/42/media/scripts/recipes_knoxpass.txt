@@ -1,0 +1,54 @@
+module Base
+{
+    /*
+        B42 craftRecipe。版型對齊原版 MakeRemoteControllerV1（recipes_traps.txt:3-25）與家族 AutoDrive。
+        放在 module Base：短名引用只在 Base 解析（AutoDrive recipes_autodrive.txt 註解）。
+        不需要先學會（沒有 NeedToBeLearn）；SkillRequired 只擋能不能做。
+        OnTest 讀沙盒 AllowCraft，關閉時沒有可用材料、配方無法執行（MinidoracatKnoxPass/Core.lua）。
+        原版 Battery 是 drainable：用 flags[ItemCount] 按件消耗，避免空電件被連坐銷毀
+        （AutoDrive 正式服實爆，recipes_autodrive.txt:76-86）。
+    */
+    craftRecipe CraftKnoxPassVehicleTag
+    {
+        timedAction = MakingElectrical,
+        time = 80,
+        SkillRequired = Electricity:2,
+        OnTest = MinidoracatKnoxPass.canCraft,
+        Tags = AnySurfaceCraft,
+        category = Electrical,
+        xpAward = Electricity:5,
+        inputs
+        {
+            item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
+            item 1 [Base.Pager;Base.Remote] flags[NoBrokenItems],
+            item 2 [Base.ElectronicsScrap] flags[NoBrokenItems],
+            item 1 [Base.Battery] mode:destroy flags[ItemCount],
+        }
+        outputs
+        {
+            item 1 MinidoracatKnoxPass.VehicleTag,
+        }
+    }
+
+    craftRecipe CraftKnoxPassGateReader
+    {
+        timedAction = MakingElectrical,
+        time = 150,
+        SkillRequired = Electricity:4,
+        OnTest = MinidoracatKnoxPass.canCraft,
+        Tags = AnySurfaceCraft,
+        category = Electrical,
+        xpAward = Electricity:10,
+        inputs
+        {
+            item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
+            item 1 [Base.RadioReceiver] flags[NoBrokenItems],
+            item 3 [Base.ElectronicsScrap] flags[NoBrokenItems],
+            item 2 [Base.ElectricWire] flags[NoBrokenItems],
+        }
+        outputs
+        {
+            item 1 MinidoracatKnoxPass.GateReader,
+        }
+    }
+}

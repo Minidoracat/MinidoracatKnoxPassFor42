@@ -1,0 +1,9 @@
+{
+    "ContextMenu_KnoxPass": "Knox Pass",
+    "ContextMenu_KnoxPass_Install": "Knox Pass リーダーを取り付ける",
+    "ContextMenu_KnoxPass_Manage": "リーダーを管理...",
+    "ContextMenu_KnoxPass_Lock": "施錠（Knox Pass でのみ開く）",
+    "ContextMenu_KnoxPass_Open": "Knox Pass で開ける",
+    "ContextMenu_KnoxPass_Remove": "リーダーを取り外す",
+    "ContextMenu_KnoxPass_OtherOwner": "他のプレイヤーのリーダーです"
+}
