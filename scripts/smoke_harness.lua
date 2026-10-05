@@ -2643,11 +2643,105 @@ local function scenarioBarrierAnim()
     clean(from, "閘門動畫（MP client）")
 end
 
+-- 駕駛預警（client/DriveWarn.lua）：自己開車、前方 20 格內有關著且 willOpenFor 回 false+原因的大門，提示一次。
+-- 用伺服器模式建門（cmd 讀 W.sent），再手動載入這個 client 檔；KP.passes 照推送內容自己設
+local function scenarioDriveWarn()
+    out("情境：駕駛預警")
+    freshWorld()
+    local from = #logLines + 1
+    local a = gate(100)                         -- 登記了這顆感應盒：會開
+    local n = gate(110)                         -- 有讀頭、沒登記：不會開（NotRegistered）
+    local plainDoor = makeDoor("IsoDoor", 120, 100)
+    local behind = gate(140)
+    local ad = gate(160)
+    local unknown = gate(180)
+    assert(loadfile(MEDIA .. "/client/MinidoracatKnoxPass/DriveWarn.lua"))()
+    local said = {}
+    KP.Client = { say = function(_, text, bad, halo) said[#said + 1] = { text = text, bad = bad, halo = halo } end }
+    local realGetText = getText
+    getText = function(key, arg)
+        if arg then return key .. "|" .. arg end
+        if key:find("_Why_", 1, true) then return "why:" .. key end
+        return key
+    end
+    local v = makeVehicle(100.5, 112.5, { tag = 0.5 })   -- 登記要在大門 15 格內
+    check(register(a, v).ok == true, "（前提）登記 a")
+    local p = driver(v)
+    W.locals = { p }
+    local mark = #W.sent
+    step()
+    local got = passesSince(p, mark)
+    KP.passes = { tag = got[1].tag, keys = (keySet(got[1])) }
+    -- 沿 x 北行（y 減少）每 250 ms 走 2.5 格（36 km/h）到 toY；回傳第一次提示時與門線 y=100 的距離
+    local function drive(x, fromY, toY)
+        moveCar(v, x, fromY)
+        local n0, at = #said, nil
+        step()
+        local y = fromY
+        while y > toY do
+            y = math.max(toY, y - 2.5)
+            moveCar(v, x, y)
+            step()
+            if not at and #said > n0 then at = y - 100 end
+        end
+        return at, #said - n0
+    end
+
+    -- 伺服器預判會在 20 格前就開門；這段讓它到門口才開，驗的是 willOpenFor 回 true 這條路
+    SandboxVars.MinidoracatKnoxPass.ReadRange, SandboxVars.MinidoracatKnoxPass.LeadSeconds = 1, 0
+    local _, cnt = drive(100.5, 130.5, 103.5)
+    check(not a.door:IsOpen() and cnt == 0, "會開的門（登記、有電）關著也不提示")
+    SandboxVars.MinidoracatKnoxPass.ReadRange, SandboxVars.MinidoracatKnoxPass.LeadSeconds = nil, nil
+    local at
+    at, cnt = drive(110.5, 130.5, 101.5)
+    check(cnt == 1, "不會開的門：一次接近只提示一次（" .. cnt .. " 次）")
+    check(at ~= nil and at > 17 and at <= 21, "約 20 格前提示（" .. tostring(at) .. "）")
+    local s = said[#said]
+    check(s and s.text == "IGUI_KnoxPass_AheadWarn|why:IGUI_KnoxPass_Why_NotRegistered" and s.bad == true and s.halo == true,
+        "提示文字帶原因（whyText），Toast＋頭上：" .. tostring(s and s.text))
+    runMs(3000)
+    check(#said == 1, "停在門前不重複提示")
+    moveCar(v, 110.5, 145.5)                    -- 開到 30 格外（往南，門在後方）
+    step()
+    step()
+    _, cnt = drive(110.5, 130.5, 101.5)
+    check(cnt == 1, "離開 30 格外再接近：重新提示一次")
+
+    _, cnt = drive(140.5, 95.5, 70.5)
+    check(cnt == 0, "門在後方（已開過門線往北走）不提示")
+
+    local asked
+    MDAD = { Drive = { isActive = function(pn) asked = pn; return true end } }
+    _, cnt = drive(160.5, 130.5, 110.5)
+    check(cnt == 0 and asked == 0, "AutoDrive 正在替這位玩家開（MDAD.Drive.isActive(playerNum)）不提示")
+    MDAD = { Drive = { isActive = function() error("boom") end } }
+    _, cnt = drive(160.5, 110.5, 101.5)
+    check(cnt == 1, "MDAD.Drive.isActive 出錯：當自己開，照常提示")
+    MDAD = nil
+
+    _, cnt = drive(120.5, 130.5, 101.5)
+    check(cnt == 0, "沒有讀頭的一般門（不帶原因）不提示")
+    KP.passes = nil
+    _, cnt = drive(180.5, 130.5, 101.5)
+    check(cnt == 0 and unknown.key ~= nil, "還沒收到這顆感應盒的推送（不帶原因）不提示")
+    KP.passes = { tag = got[1].tag, keys = (keySet(got[1])) }
+
+    local nOpen = #said
+    n.door:ToggleDoor(n.owner)
+    moveCar(v, 110.5, 145.5)
+    step()
+    step()
+    _, cnt = drive(110.5, 130.5, 101.5)
+    check(n.door:IsOpen() and cnt == 0 and #said == nOpen, "門開著時不提示")
+    getText = realGetText
+    clean(from, "駕駛預警")
+end
+
 local tests = {
     scenarioParts, scenarioDetection, scenarioAutoClose, scenarioLocks, scenarioCommands,
     scenarioSinglePlayer, scenarioLedger, scenarioCharging, scenarioReopen, scenarioUninstallOpen, scenarioGarage,
     scenarioDoubleDoorway, scenarioAutoDrive, scenarioLoadGridsquare, scenarioTagScript,
-    scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim,
+    scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,
 }
 for _, t in ipairs(tests) do t() end
 

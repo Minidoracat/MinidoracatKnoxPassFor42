@@ -67,5 +67,6 @@
     "IGUI_KnoxPass_Why_Error": "Knox Pass could not complete that action.",
     "IGUI_KnoxPass_Barrier_Name": "Knox Pass Boom Barrier",
     "IGUI_KnoxPass_Kind_Barrier": "Boom barrier",
-    "IGUI_KnoxPass_Why_BuiltIn": "This reader is built into the barrier; dismantle the barrier's cabinet instead."
+    "IGUI_KnoxPass_Why_BuiltIn": "This reader is built into the barrier; dismantle the barrier's cabinet instead.",
+    "IGUI_KnoxPass_AheadWarn": "The Knox Pass gate ahead won't open for this vehicle: %1"
 }

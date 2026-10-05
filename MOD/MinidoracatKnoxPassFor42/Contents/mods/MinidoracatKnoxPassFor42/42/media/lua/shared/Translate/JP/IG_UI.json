@@ -67,5 +67,6 @@
     "IGUI_KnoxPass_Why_Error": "Knox Pass はこの操作を完了できませんでした。",
     "IGUI_KnoxPass_Barrier_Name": "Knox Pass 遮断機",
     "IGUI_KnoxPass_Kind_Barrier": "遮断機",
-    "IGUI_KnoxPass_Why_BuiltIn": "このリーダーは遮断機に内蔵されています。外すには遮断機の筐体を解体してください。"
+    "IGUI_KnoxPass_Why_BuiltIn": "このリーダーは遮断機に内蔵されています。外すには遮断機の筐体を解体してください。",
+    "IGUI_KnoxPass_AheadWarn": "前方の Knox Pass ゲートはこの車両には開きません：%1"
 }

@@ -33,11 +33,13 @@ function C.send(player, command, args)
     sendClientCommand(player, KP.MODULE, command, args)
 end
 
--- Toast（CAPABILITIES.toast）優先；沒有就 setHaloNote(str, r, g, b, dispTime)（IsoGameCharacter.java:6965）
-function C.say(player, text, bad)
+-- Toast（CAPABILITIES.toast）優先；沒有就 setHaloNote(str, r, g, b, dispTime)（IsoGameCharacter.java:6965）。
+-- halo＝true 時 Toast 之外頭上也提示（駕駛預警：開車時視線在車上）
+function C.say(player, text, bad, halo)
     local UI = MinidoracatUI and MinidoracatUI.v1
     if UI and UI.CAPABILITIES and UI.CAPABILITIES.toast and UI.Toast
-        and pcall(UI.Toast.show, { title = getText("IGUI_KnoxPass_Title"), message = text, holdMs = 3500, maxLines = 3 }) then
+        and pcall(UI.Toast.show, { title = getText("IGUI_KnoxPass_Title"), message = text, holdMs = 3500, maxLines = 3 })
+        and not halo then
         return
     end
     if not player then return end

@@ -67,5 +67,6 @@
     "IGUI_KnoxPass_Why_Error": "Knox Pass 无法完成这个动作。",
     "IGUI_KnoxPass_Barrier_Name": "Knox Pass 升降闸门",
     "IGUI_KnoxPass_Kind_Barrier": "升降闸门",
-    "IGUI_KnoxPass_Why_BuiltIn": "这是闸门内置的读头，要拆请拆除闸门的机箱。"
+    "IGUI_KnoxPass_Why_BuiltIn": "这是闸门内置的读头，要拆请拆除闸门的机箱。",
+    "IGUI_KnoxPass_AheadWarn": "前方的 Knox Pass 大门不会为这台车打开：%1"
 }
