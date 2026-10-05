@@ -9,8 +9,8 @@ module MinidoracatKnoxPass
         base:miscelectronic 讓原版 DismantleElectronics 可拆成電子零件，與原版小電子物一致。
         模型與圖示是自製的（models_knoxpass.txt；圖示 textures/Item_MinidoracatKnoxPassTag.png 由模型渲染）。
         StaticModel 是手上模型：非武器物品只在動作設了 overrideHandModels 時才畫在手上，沒填就不畫（ModelManager.java:650-721、:759-761）。
-        VehiclePartModel：裝在車上時零件 KnoxPassTag 的 model Dock 畫哪個模型。零件模型不寫 file 時，引擎改用裝上去的物品
-        這一行指定的模型（BaseVehicle.java:1756-1779、Item.java:3013-3026；原版先例 HoodOrnament）——各色感應盒靠它在車上顯示自己的顏色。
+        車上的模型由零件決定，不用 VehiclePartModel：零件 KnoxPassTag 每色一個 model Dock<後綴>（都寫 file），
+        MinidoracatKnoxPass.syncDock 只顯示裝著的那一色（vehicle_knoxpass_parts.txt 檔頭寫了為什麼）。
         外殼顏色版（VehicleTag_<色>、GateReader_<色>）在 items_knoxpass_colors.txt，由 scripts/gen_colors.py 從這兩個物品產生：
         改這兩個物品的屬性後重跑產生器。
     */
@@ -28,7 +28,6 @@ module MinidoracatKnoxPass
         cantBeConsolided = true,
         WorldStaticModel = MinidoracatKnoxPass.KnoxPassTag,
         StaticModel = MinidoracatKnoxPass.KnoxPassTag,
-        VehiclePartModel = KnoxPassTag Dock MinidoracatKnoxPass.KnoxPassTagDock,
         Tags = base:miscelectronic;base:hasmetal,
         Tooltip = Tooltip_MinidoracatKnoxPass_Tag,
     }

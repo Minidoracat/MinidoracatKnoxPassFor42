@@ -37,6 +37,9 @@
   （IsoGridSquare.java:5745、RemoveItemFromSquarePacket.java:151）
 - IsoObject.setSpriteModelName／setAnimating／isAnimating（IsoObject.java:6274-6298、6399-6405）只記錄呼叫；
   client 檔只載 BarrierAnim（不碰 UI），MODE 不是 server 時才載
+- 零件模型：template 讀真正的 vehicle_knoxpass_parts.txt；VehicleScript.Load 只覆寫出現的欄位、沒有的 model id 新增一個
+  file 是 nil 的 model（VehicleScript.java:693-722）；setModelVisible 冪等、變了才標記同步（BaseVehicle.java:1707-1754），
+  顯示 file 是 nil 的 model 記成客戶端 NPE（BaseVehicle.java:11844-11853）
 
 寫情境的原則：
 - 情境要「執行到會炸的路徑」——刪除後的收尾、跨 tick 的第二輪、聚合輸出，都是重災區
@@ -136,7 +139,7 @@ local function newWorld()
         sent = {}, sendServerCalls = 0, itemStats = 0, removeSent = 0, addSent = 0, handsRemoved = 0,
         partDeltas = 0, nilToggles = 0, refused = 0, recreated = 0, obstructChecks = 0, copyCalls = 0,
         customLockTx = 0, garageBlocked = 0, removedObjs = 0, invalidated = 0, dropped = {}, onLoadSprite = {},
-        vehicleQueries = 0, postTx = 0, paintUses = 0,
+        vehicleQueries = 0, postTx = 0, paintUses = 0, modelFlags = 0, npe = {},
     }
 end
 -- MapObjects.OnLoadWithSprite（Lua/MapObjects.java:134-176）：記下回呼，loadSprites() 模擬區塊載入時逐物件呼叫
@@ -737,6 +740,20 @@ Part.__index = Part
 function Part:getInventoryItem() return self._item end
 function Part:setCondition(c) self._condition = c end
 function Part:getId() return self._id end
+function Part:getIndex() return self._index or 30 end
+-- VehiclePart.setModelVisible → BaseVehicle.setModelVisible（VehiclePart.java:467-470、BaseVehicle.java:1707-1754）：
+-- 零件腳本沒有這個 model id 就不動；已顯示再開、沒顯示再關直接返回、不標記同步；真的變了才標記 updateFlags 64（W.modelFlags）。
+-- 顯示一個 file 是 nil 的 model＝客戶端畫車時 NPE 踢回主選單：零件沒有 parent 時 ModelInfo.getAnimationPlayer
+-- 用 scriptModel.file（BaseVehicle.java:11844-11853）→ getModelScript(null)（ScriptBucketCollection.java:73），記進 W.npe
+function Part:setModelVisible(id, visible)
+    local m = self._scriptPart and self._scriptPart.models and self._scriptPart.models[id]
+    if not m then return end
+    self._shown = self._shown or {}
+    if (self._shown[id] == true) == visible then return end
+    if visible and m.file == nil then W.npe[#W.npe + 1] = id end
+    self._shown[id] = visible or nil
+    W.modelFlags = W.modelFlags + 1
+end
 
 local Vehicle = {}
 Vehicle.__index = Vehicle
@@ -747,6 +764,7 @@ function Vehicle:getId() return self._id end
 function Vehicle:getDriver() return self._seats[0] end
 function Vehicle:getPartById(id) return self._parts[id] end
 function Vehicle:getScriptName() return self._script end
+function Vehicle:getScript() return self._vscript end
 function Vehicle:getBatteryCharge() return self._battery end
 function Vehicle:transmitPartUsedDelta() if isServer() then W.partDeltas = W.partDeltas + 1 end end   -- BaseVehicle.java:8235-8244
 function Vehicle:isIntersectingSquare(x, y, z) return vehicleCovers(self, x, y, z) end
@@ -782,6 +800,13 @@ local function makeVehicle(x, y, opts)
     })
     W.nextVid = W.nextVid + 1
     if opts.tag then v._parts.KnoxPassTag._item = newItem(opts.tagType or TAG, opts.tag) end
+    -- opts.vscript：注入過的車型腳本，零件帶它的 KnoxPassTag 零件腳本（7 個 Dock model）與在腳本裡的索引
+    local vs, tagPart = opts.vscript, v._parts.KnoxPassTag
+    v._vscript = vs
+    for i, p in ipairs(vs and vs._parts or {}) do
+        if p.id == "KnoxPassTag" then tagPart._scriptPart, tagPart._index = p, i - 1 end
+    end
+    tagPart._index = opts.index or tagPart._index
     W.vehicles[#W.vehicles + 1] = v
     return v
 end
@@ -854,10 +879,13 @@ function VScript:getArea(i)
     local id = self._areas[i + 1]
     return { getId = function() return id end }
 end
-function VScript:copyPartsFrom(tmpl, id)   -- 同 id 整個換成 copy、新 id 就 add（VehicleScript.java:~1270）
+function VScript:copyPartsFrom(tmpl, id)   -- 同 id 整個換成 copy、新 id 就 add（VehicleScript.java:~1270、makeCopy :2381-2388）
     W.copyCalls = W.copyCalls + 1
     local src = tmpl:getPartById(id)
-    local copy = { id = src.id, area = src.area, visible = src.visible, offset = src.offset, scale = src.scale, rotate = src.rotate }
+    local copy = { id = src.id, area = src.area, visible = src.visible, models = {} }
+    for mid, m in pairs(src.models or {}) do
+        copy.models[mid] = { file = m.file, offset = m.offset, rotate = m.rotate, scale = m.scale }
+    end
     for i, p in ipairs(self._parts) do
         if p.id == id then
             self._parts[i] = copy
@@ -866,26 +894,56 @@ function VScript:copyPartsFrom(tmpl, id)   -- 同 id 整個換成 copy、新 id 
     end
     self._parts[#self._parts + 1] = copy
 end
--- 對既有 part／model 只覆寫出現的欄位（VehicleScript.java:909-951、:693-722）；area 不是識別字就像 ScriptParser 一樣炸
+-- 對既有 part／model 只覆寫出現的欄位（VehicleScript.java:909-951、:693-722）；area 不是識別字就像 ScriptParser 一樣炸。
+-- model 區塊的 id 不存在就新增一個 file 是 nil 的 model（LoadModel :693-699）
+local function scriptFields(text, fn)
+    for k, v in string.gmatch(text, "([%w_]+)%s*=%s*([^,\n]+),") do fn(k, v) end
+end
+local function vec3(v)
+    local x, y, z = string.match(v, "^(%S+) (%S+) (%S+)$")
+    return { tonumber(x), tonumber(y), tonumber(z) }
+end
 function VScript:Load(_, body)
     local id = string.match(body, "part%s+([%w_]+)")
     local part = self:getPartById(id)
-    for k, v in string.gmatch(body, "([%w_]+)%s*=%s*([^,\n]+),") do
+    local top = string.gsub(body, "model%s+([%w_]+)%s*{(.-)}", function(mid, inner)
+        part.models = part.models or {}
+        local m = part.models[mid] or {}
+        part.models[mid] = m
+        scriptFields(inner, function(k, v)
+            if k == "file" then m.file = v
+            elseif k == "offset" then m.offset = vec3(v)
+            elseif k == "rotate" then m.rotate = vec3(v)
+            elseif k == "scale" then m.scale = tonumber(v) end
+        end)
+        return ""
+    end)
+    scriptFields(top, function(k, v)
         if k == "area" or k == "mechanicArea" then
             if not string.find(v, "^%a[%w_]*$") then error("ScriptParser: bad value " .. v) end
             if k == "area" then part.area = v end
         elseif k == "setAllModelsVisible" then
             part.visible = v == "true"
-        elseif k == "offset" then
-            local x, y, z = string.match(v, "^(%S+) (%S+) (%S+)$")
-            part.offset = { tonumber(x), tonumber(y), tonumber(z) }
-        elseif k == "rotate" then
-            local x, y, z = string.match(v, "^(%S+) (%S+) (%S+)$")
-            part.rotate = { tonumber(x), tonumber(y), tonumber(z) }
-        elseif k == "scale" then
-            part.scale = tonumber(v)
         end
-    end
+    end)
+end
+-- 真正的 template（vehicle_knoxpass_parts.txt）：植入破壞時 KP_MEDIA 的暫存複本要連 ../scripts/vehicles 一起複製
+local TEMPLATE_SRC = (function()
+    local f = assert(io.open(MEDIA .. "/../scripts/vehicles/vehicle_knoxpass_parts.txt", "r"))
+    local src = f:read("*a")
+    f:close()
+    return (string.gsub(src, "/%*.-%*/", ""))
+end)()
+local function templateScript()
+    local t = setmetatable({ _name = "Base.KnoxPassParts", _areas = { "Engine" }, _parts = { { id = "KnoxPassTag" } } }, VScript)
+    t:Load("KnoxPassParts", TEMPLATE_SRC)
+    return t
+end
+-- template 的 lua／complete 欄位（例 "init"）指到的全域函式；找不到回 nil
+local function templateHook(key)
+    local f = _G
+    for seg in string.gmatch(string.match(TEMPLATE_SRC, key .. " = ([%w_.]+),") or "", "[^.]+") do f = f and f[seg] end
+    return f ~= _G and f or nil
 end
 function getScriptManager()
     return {
@@ -1142,7 +1200,7 @@ local function scenarioParts()
     fire("OnGameBoot")
     check(car1:getPartById("KnoxPassTag") == nil and logHas("ABORT", from), "沒有 template 時不注入並記 ABORT")
 
-    W.template = newScript("Base.KnoxPassParts", { "Engine" }, { { "KnoxPassTag", "Engine" } })
+    W.template = templateScript()
     local van = newScript("Base.Van", { "TruckBed", "Engine" }, { { "Battery", "Engine" } }, nil,
         { scale = 1.82, mo = { 0, 0.6699, 0 }, ext = { 1.7001, 1.32, 4.2401 }, com = { 0, 0.6599, 0 }, seat = { 0.35, -0.18, 0.77 } })
     local weird = newScript("Mod.Weird", { "Bad-Area", "Rear_Seat" }, { { "Battery", "Engine" } })
@@ -1187,10 +1245,16 @@ local function scenarioParts()
     check(huge:getPartById("KnoxPassTag") == nil and huge:getPartCount() == 255, "超過 255 個零件上限的腳本跳過")
     check(noArea:getPartById("KnoxPassTag") == nil, "沒有任何合法 area 的腳本跳過")
 
-    -- 擋風玻璃上的固定座模型：offset＝(目標點－模型 offset)/車輛 scale、scale＝1/車輛 scale（Parts.lua KP.dockPlacement）
+    -- 擋風玻璃上的固定座模型：offset＝(目標點－模型 offset)/車輛 scale、scale＝1/車輛 scale（Parts.lua KP.dockPlacement）。
+    -- 第 1 個回傳值：這個車型裝上黑色感應盒後 KP.syncDock 有沒有顯示 Dock_Black（掛不掛模型）；位置取米白 Dock
     local function dock(s)
         local p = s:getPartById("KnoxPassTag")
-        return p and p.visible, p and p.offset, p and p.scale, p and p.rotate
+        if not p then return nil end
+        local v = makeVehicle(0, 0, { vscript = s, tag = 0.5, tagType = TAG .. "_Black" })
+        local part = v._parts.KnoxPassTag
+        KP.syncDock(v, part)
+        local m = p.models.Dock
+        return part._shown ~= nil and part._shown.Dock_Black == true, m.offset, m.scale, m.rotate
     end
     local function close(a, b) return a ~= nil and math.abs(a - b) < 0.0002 end
     local vis, off, sc, rot = dock(car1)
@@ -1232,6 +1296,23 @@ local function scenarioParts()
     vis, off = dock(nose)
     check(vis == true and close(off[3], (4.74 / 2 - 0.3) / 1.82), "駕駛座推算超過車頭時夾在 extents 前緣後 0.3 m")
     check(logHas("nomodel=4", from), "log 記錄有槽但不掛模型的車型數")
+    -- 7 色的 model 都寫到同一組位置、各自指向該色的模型腳本；setAllModelsVisible 一律 false（引擎不自動全開）
+    local seven = true
+    for _, s in ipairs({ car1, van, sedan, modCar, f350, nose, edge127, noSeat }) do
+        local p = s:getPartById("KnoxPassTag")
+        local base, n = p.models.Dock, 0
+        for _ in pairs(p.models) do n = n + 1 end
+        seven = seven and p.visible == false and n == #KP.COLORS
+        for c = 0, #KP.COLORS - 1 do
+            local m = p.models[KP.dockModelId(c)]
+            seven = seven and m ~= nil and m.file == "MinidoracatKnoxPass.KnoxPassTagDock" .. KP.COLORS[c + 1].suffix
+                and m.offset[1] == base.offset[1] and m.offset[2] == base.offset[2] and m.offset[3] == base.offset[3]
+                and m.rotate[1] == base.rotate[1] and m.scale == base.scale
+        end
+    end
+    check(seven and car1:getPartById("KnoxPassTag").models.Dock_Red.offset[2] ~= 0,
+        "注入：7 個 Dock model 都寫到同一組 offset／rotate／scale、file 指向該色模型、setAllModelsVisible=false")
+    check(#W.npe == 0, "沒有顯示過 file 是 nil 的零件模型")
 
     local copies, counts = W.copyCalls, {}
     for i, s in ipairs(W.scripts) do counts[i] = s:getPartCount() end
@@ -1243,6 +1324,97 @@ local function scenarioParts()
     local part = setmetatable({}, Part)
     KP.onPartCreate(nil, part)
     check(part._condition == 100 and part._item == nil, "新零件槽是空的、condition 100")
+end
+
+-- 車上 Dock 模型跟著感應盒顏色（Parts.lua KP.syncDock）：7 個 model 只顯示裝著的那一色。
+-- 呼叫點照引擎：template lua.init（addToWorld 與 repair 換了物品之後）、安裝／拆下 complete、零件 update
+local function scenarioDock()
+    out("情境：車上 Dock 模型跟著感應盒顏色")
+    freshWorld()
+    local from = #logLines + 1
+    local tmpl = templateScript()
+    local tp, files = tmpl:getPartById("KnoxPassTag"), true
+    for c = 0, #KP.COLORS - 1 do
+        local m = tp.models and tp.models[KP.dockModelId(c)]
+        files = files and m ~= nil and m.file == "MinidoracatKnoxPass.KnoxPassTagDock" .. KP.COLORS[c + 1].suffix
+    end
+    check(files and tp.visible == false, "template：7 個 Dock<後綴> model 都寫了 file（該色模型腳本）、setAllModelsVisible=false")
+    local init = templateHook("init")
+    check(init == KP.syncDock and templateHook("create") == KP.onPartCreate and templateHook("update") == KP.onPartUpdate,
+        "template 的 lua.init／create／update 指到 MOD 的函式")
+    init = init or function() end   -- 沒接上時後面的載入／repair 斷言照樣跑、照樣 FAIL
+    W.template = tmpl
+    local sedan = newScript("Base.CarNormal", { "SeatFrontLeft" }, { { "Battery", "Engine" } }, nil, GEO_CAR)
+    local noSeat = newScript("Mod.NoSeat", { "Engine" }, { { "Battery", "Engine" } }, nil,
+        { scale = 1.82, mo = { 0, 0.5, 0 }, ext = { 1.6, 1.2, 4.7 }, com = { 0, 0.55, 0 }, seat = nil })
+    W.scripts = { sedan, noSeat }
+    fire("OnGameBoot")
+    local function shown(part)
+        local ids = {}
+        for id in pairs(part._shown or {}) do ids[#ids + 1] = id end
+        table.sort(ids)
+        return table.concat(ids, ",")
+    end
+
+    -- 安裝黑色 → 只有 Dock_Black；拆下 → 全關；換裝橘色 → 只有 Dock_Orange（原版先換物品再呼叫 complete）
+    local v = makeVehicle(0, 0, { vscript = sedan })
+    local part = v._parts.KnoxPassTag
+    local black = newItem(TAG .. "_Black", 0.5)
+    part._item = black
+    KP.onTagInstalled(v, part)
+    check(shown(part) == "Dock_Black", "裝上黑色感應盒：只顯示 Dock_Black")
+    part._item = nil
+    KP.onTagUninstalled(v, part, black)
+    check(shown(part) == "", "拆下：7 個 Dock 全關")
+    part._item = newItem(TAG .. "_Orange", 0.5)
+    KP.onTagInstalled(v, part)
+    check(shown(part) == "Dock_Orange", "換裝橘色：只顯示 Dock_Orange")
+    local flags = W.modelFlags
+    KP.onPartUpdate(v, part, 1)
+    init(v, part)
+    check(shown(part) == "Dock_Orange" and W.modelFlags == flags, "顏色沒變：update／init 不改顯示、不標記模型同步")
+
+    -- 管理員修車：VehiclePart.repair 直接 setInventoryItem 再呼叫 lua.init（VehiclePart.java:956-971），不走 complete
+    part._item = newItem(TAG .. "_Red", 1)
+    check(shown(part) == "Dock_Orange", "（前提）只換物品、沒有掛勾時顯示還是舊色")
+    init(v, part)
+    check(shown(part) == "Dock_Red" and W.modelFlags == flags + 2, "repair 後的 init：改成 Dock_Red（關舊色、開新色各一次同步）")
+    part._item = newItem(TAG .. "_Navy", 1)
+    KP.onPartUpdate(v, part, 1)
+    check(shown(part) == "Dock_Navy", "其他 MOD 直接換物品：下一次零件 update 改成 Dock_Navy")
+    part._item = newItem(READER)
+    init(v, part)
+    check(shown(part) == "", "槽裡不是感應盒（讀頭也有顏色）：全關")
+
+    -- 載入既有車輛：存檔的物品已在槽裡、模型清單是空的（顯示狀態不存檔），addToWorld → init
+    local loaded = makeVehicle(10, 0, { vscript = sedan, tag = 0.4, tagType = TAG .. "_Graphite" })
+    init(loaded, loaded._parts.KnoxPassTag)
+    check(shown(loaded._parts.KnoxPassTag) == "Dock_Graphite", "載入：init 顯示存檔裡那顆的顏色")
+    local cream = makeVehicle(20, 0, { vscript = sedan, tag = 0.4 })
+    init(cream, cream._parts.KnoxPassTag)
+    check(shown(cream._parts.KnoxPassTag) == "Dock", "米白：model id 就是 Dock（KP.DOCK_MODEL_ID）")
+
+    -- 零件模型封包索引是有號 byte（VehiclePartModels.java:31、:52）：索引 >127 全關；推算不出位置的車型也全關
+    local i127 = makeVehicle(30, 0, { vscript = sedan, tag = 0.4, tagType = TAG .. "_Black", index = 127 })
+    local i128 = makeVehicle(40, 0, { vscript = sedan, tag = 0.4, tagType = TAG .. "_Black", index = 128 })
+    init(i127, i127._parts.KnoxPassTag)
+    init(i128, i128._parts.KnoxPassTag)
+    check(shown(i127._parts.KnoxPassTag) == "Dock_Black" and shown(i128._parts.KnoxPassTag) == "",
+        "零件索引 127 顯示、128 全關")
+    local ns = makeVehicle(50, 0, { vscript = noSeat, tag = 0.4, tagType = TAG .. "_Black" })
+    init(ns, ns._parts.KnoxPassTag)
+    check(shown(ns._parts.KnoxPassTag) == "", "推算不出位置的車型：有槽但全關")
+
+    -- MP 客戶端：整車封包不含已顯示的零件模型，init 在客戶端也要自己算；update 只在伺服器
+    MODE = "client"
+    local remote = makeVehicle(60, 0, { vscript = sedan, tag = 0.4, tagType = TAG .. "_Olive" })
+    init(remote, remote._parts.KnoxPassTag)
+    remote._parts.KnoxPassTag._item = newItem(TAG .. "_Red", 1)
+    KP.onPartUpdate(remote, remote._parts.KnoxPassTag, 1)
+    MODE = "server"
+    check(shown(remote._parts.KnoxPassTag) == "Dock_Olive", "MP 客戶端：init 自己顯示該色、update 不動（等伺服器封包）")
+    check(#W.npe == 0, "沒有顯示過 file 是 nil 的零件模型（客戶端不會 NPE）")
+    clean(from, "車上 Dock 模型")
 end
 
 local function scenarioDetection()
@@ -3180,7 +3352,7 @@ local function scenarioColors()
 end
 
 local tests = {
-    scenarioParts, scenarioDetection, scenarioAutoClose, scenarioLocks, scenarioCommands,
+    scenarioParts, scenarioDock, scenarioDetection, scenarioAutoClose, scenarioLocks, scenarioCommands,
     scenarioSinglePlayer, scenarioLedger, scenarioCharging, scenarioReopen, scenarioUninstallOpen, scenarioGarage,
     scenarioDoubleDoorway, scenarioAutoDrive, scenarioLoadGridsquare, scenarioTagScript,
     scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,

@@ -4,6 +4,7 @@
 if isClient() then return end
 require "MinidoracatKnoxPass/Core"
 require "MinidoracatKnoxPass/Gates"
+require "MinidoracatKnoxPass/Parts"
 require "MinidoracatKnoxPass/Ledger"
 require "MinidoracatKnoxPass/Sensor"
 require "MinidoracatKnoxPass/ReaderPost"
@@ -33,7 +34,8 @@ end
 KP.reply = reply   -- Sensor.lua 推送已授權大門也走這裡
 
 -- 原版零件安裝／拆下完成時由伺服器呼叫（vehicle_knoxpass_parts.txt 的 complete；ISInstallVehiclePart.lua:95-98、
--- ISUninstallVehiclePart.lua:65-67）：感應盒換車，它登記的每一扇門立刻改記新車；拆下來記成未裝在車上（script 留空）
+-- ISUninstallVehiclePart.lua:65-67）：感應盒換車，它登記的每一扇門立刻改記新車；拆下來記成未裝在車上（script 留空）。
+-- 車上的 Dock 模型也在這裡切成該色／全關（KP.syncDock，Parts.lua）
 local function retag(id, script)
     for key in pairs(L.gatesForTag(id) or {}) do
         local rec = L.get(key)
@@ -43,11 +45,13 @@ local function retag(id, script)
 end
 
 function KP.onTagInstalled(vehicle, part)
+    KP.syncDock(vehicle, part)
     local tag = part and part:getInventoryItem()
     if vehicle and KP.isTag(tag) then retag(tag:getID(), vehicle:getScriptName()) end
 end
 
 function KP.onTagUninstalled(vehicle, part, item)
+    KP.syncDock(vehicle, part)
     if KP.isTag(item) then retag(item:getID(), nil) end
 end
 
