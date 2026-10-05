@@ -7,7 +7,8 @@ module MinidoracatKnoxPass
         每遊戲分鐘的充電量約 0.33%，格子太粗會整筆被吃掉。
         刻意不加 base:usesbattery：電池內建不可換，原版 InsertBattery／RemoveBattery 不適用。
         base:miscelectronic 讓原版 DismantleElectronics 可拆成電子零件，與原版小電子物一致。
-        模型與圖示先借原版 Pager（models_items.txt:14575），之後換 Blender 自製模型。
+        模型與圖示是自製的（models_knoxpass.txt；圖示 textures/Item_MinidoracatKnoxPassTag.png 由模型渲染）。
+        StaticModel 是手上模型：非武器物品只在動作設了 overrideHandModels 時才畫在手上，沒填就不畫（ModelManager.java:650-721、:759-761）。
     */
     item VehicleTag
     {
@@ -15,20 +16,21 @@ module MinidoracatKnoxPass
         ItemType = base:drainable,
         Weight = 0.1,
         ConditionMax = 100,
-        Icon = Pager,
+        Icon = MinidoracatKnoxPassTag,
         UseDelta = 0.001,
         UseWhileEquipped = false,
         DisappearOnUse = false,
         KeepOnDeplete = true,
         cantBeConsolided = true,
-        WorldStaticModel = Pager,
+        WorldStaticModel = MinidoracatKnoxPass.KnoxPassTag,
+        StaticModel = MinidoracatKnoxPass.KnoxPassTag,
         Tags = base:miscelectronic;base:hasmetal,
         Tooltip = Tooltip_MinidoracatKnoxPass_Tag,
     }
 
     /*
         GateReader：大門讀頭。拿著它對大門按右鍵安裝，裝好後成為那扇門的一部分。
-        模型與圖示先借原版 HomeAlarm（models_items.txt:1187）。
+        模型與圖示是自製的（models_knoxpass.txt）。裝進大門後照第一版規則不在門上另外顯示。
     */
     item GateReader
     {
@@ -36,8 +38,8 @@ module MinidoracatKnoxPass
         ItemType = base:normal,
         Weight = 0.8,
         ConditionMax = 100,
-        Icon = HomeAlarm,
-        WorldStaticModel = HomeAlarm,
+        Icon = MinidoracatKnoxPassReader,
+        WorldStaticModel = MinidoracatKnoxPass.KnoxPassReader,
         Tags = base:miscelectronic;base:hasmetal,
         Tooltip = Tooltip_MinidoracatKnoxPass_Reader,
     }

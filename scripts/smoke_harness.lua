@@ -767,11 +767,29 @@ function getSpecificPlayer(i) return W.locals[i + 1] end
 -- ===== 載具腳本（零件注入）=====
 local VScript = {}
 VScript.__index = VScript
-local function newScript(name, areas, parts, filler)
-    local s = setmetatable({ _name = name, _areas = areas, _parts = {} }, VScript)
+local function vec(x, y, z)
+    return { x = function() return x end, y = function() return y end, z = function() return z end }
+end
+-- geo（選用）：加載後的公尺值 { scale, mo = {x,y,z}, ext = {...}, com = {...}, seat = {...} }；seat=nil 表示沒有 inside 位置
+local function newScript(name, areas, parts, filler, geo)
+    local s = setmetatable({ _name = name, _areas = areas, _parts = {}, _geo = geo }, VScript)
     for _, p in ipairs(parts) do s._parts[#s._parts + 1] = { id = p[1], area = p[2] } end
     for i = 1, filler or 0 do s._parts[#s._parts + 1] = { id = "Filler" .. i, area = "Engine" } end
     return s
+end
+local GEO_CAR = { scale = 1.82, mo = { 0, 0.4899, 0 }, ext = { 1.62, 1.1801, 4.74 }, com = { 0, 0.55, 0 }, seat = { 0.32, -0.2501, 0.16 } }
+function VScript:getModelScale() return self._geo and self._geo.scale or 1 end
+function VScript:getModelOffset() local g = self._geo; return g and vec(g.mo[1], g.mo[2], g.mo[3]) end
+function VScript:getModel() local g = self._geo; return g and { getFile = function() return g.file end } end
+function VScript:getExtents() local g = self._geo; return vec(g.ext[1], g.ext[2], g.ext[3]) end
+function VScript:getCenterOfMassOffset() local g = self._geo; return vec(g.com[1], g.com[2], g.com[3]) end
+function VScript:getPassengerCount() return self._geo and 1 or 0 end
+function VScript:getPassenger(_)
+    local seat = self._geo.seat
+    return { getPositionById = function(_, id)
+        if id ~= "inside" or not seat then return nil end
+        return { getOffset = function() return vec(seat[1], seat[2], seat[3]) end }
+    end }
 end
 function VScript:getFullName() return self._name end
 function VScript:getPartCount() return #self._parts end
@@ -791,7 +809,7 @@ end
 function VScript:copyPartsFrom(tmpl, id)   -- 同 id 整個換成 copy、新 id 就 add（VehicleScript.java:~1270）
     W.copyCalls = W.copyCalls + 1
     local src = tmpl:getPartById(id)
-    local copy = { id = src.id, area = src.area }
+    local copy = { id = src.id, area = src.area, visible = src.visible, offset = src.offset, scale = src.scale, rotate = src.rotate }
     for i, p in ipairs(self._parts) do
         if p.id == id then
             self._parts[i] = copy
@@ -800,12 +818,25 @@ function VScript:copyPartsFrom(tmpl, id)   -- 同 id 整個換成 copy、新 id 
     end
     self._parts[#self._parts + 1] = copy
 end
-function VScript:Load(_, body)   -- 對既有 part 只覆寫出現的欄位（VehicleScript.java:909-951）；值不是識別字就像 ScriptParser 一樣炸
+-- 對既有 part／model 只覆寫出現的欄位（VehicleScript.java:909-951、:693-722）；area 不是識別字就像 ScriptParser 一樣炸
+function VScript:Load(_, body)
     local id = string.match(body, "part%s+([%w_]+)")
     local part = self:getPartById(id)
     for k, v in string.gmatch(body, "([%w_]+)%s*=%s*([^,\n]+),") do
-        if not string.find(v, "^%a[%w_]*$") then error("ScriptParser: bad value " .. v) end
-        if k == "area" then part.area = v end
+        if k == "area" or k == "mechanicArea" then
+            if not string.find(v, "^%a[%w_]*$") then error("ScriptParser: bad value " .. v) end
+            if k == "area" then part.area = v end
+        elseif k == "setAllModelsVisible" then
+            part.visible = v == "true"
+        elseif k == "offset" then
+            local x, y, z = string.match(v, "^(%S+) (%S+) (%S+)$")
+            part.offset = { tonumber(x), tonumber(y), tonumber(z) }
+        elseif k == "rotate" then
+            local x, y, z = string.match(v, "^(%S+) (%S+) (%S+)$")
+            part.rotate = { tonumber(x), tonumber(y), tonumber(z) }
+        elseif k == "scale" then
+            part.scale = tonumber(v)
+        end
     end
 end
 function getScriptManager()
@@ -1047,22 +1078,37 @@ end
 local function scenarioParts()
     out("情境：感應盒零件槽注入")
     freshWorld()
-    local car1 = newScript("Base.CarNormal", { "Engine", "SeatFrontLeft" }, { { "Battery", "Engine" } })
+    local car1 = newScript("Base.CarNormal", { "Engine", "SeatFrontLeft" }, { { "Battery", "Engine" } }, nil, GEO_CAR)
     W.scripts = { car1 }
     local from = #logLines + 1
     fire("OnGameBoot")
     check(car1:getPartById("KnoxPassTag") == nil and logHas("ABORT", from), "沒有 template 時不注入並記 ABORT")
 
     W.template = newScript("Base.KnoxPassParts", { "Engine" }, { { "KnoxPassTag", "Engine" } })
-    local van = newScript("Base.Van", { "TruckBed", "Engine" }, { { "Battery", "Engine" } })
+    local van = newScript("Base.Van", { "TruckBed", "Engine" }, { { "Battery", "Engine" } }, nil,
+        { scale = 1.82, mo = { 0, 0.6699, 0 }, ext = { 1.7001, 1.32, 4.2401 }, com = { 0, 0.6599, 0 }, seat = { 0.35, -0.18, 0.77 } })
     local weird = newScript("Mod.Weird", { "Bad-Area", "Rear_Seat" }, { { "Battery", "Engine" } })
     local bike = newScript("Base.Bicycle", { "SeatFrontLeft" }, {})
     local foreign = newScript("Mod.Foreign", { "SeatFrontLeft" }, { { "Battery", "Engine" }, { "KnoxPassTag", "Trunk" } })
     local foreignPart = foreign:getPartById("KnoxPassTag")
-    local big = newScript("Mod.Big", { "Engine" }, { { "Battery", "Engine" } }, 253)    -- 254 → 255
+    local big = newScript("Mod.Big", { "Engine" }, { { "Battery", "Engine" } }, 253, GEO_CAR)    -- 254 → 255
     local huge = newScript("Mod.Huge", { "Engine" }, { { "Battery", "Engine" } }, 254)  -- 255 → 256
     local noArea = newScript("Mod.NoArea", {}, { { "Battery", "Engine" } })
-    W.scripts = { car1, van, weird, bike, foreign, big, huge, noArea }
+    local noSeat = newScript("Mod.NoSeat", { "Engine" }, { { "Battery", "Engine" } }, nil,
+        { scale = 1.82, mo = { 0, 0.5, 0 }, ext = { 1.6, 1.2, 4.7 }, com = { 0, 0.55, 0 }, seat = nil })
+    local edge127 = newScript("Mod.Edge127", { "Engine" }, { { "Battery", "Engine" } }, 126, GEO_CAR)  -- 新槽索引 127
+    local edge128 = newScript("Mod.Edge128", { "Engine" }, { { "Battery", "Engine" } }, 127, GEO_CAR)  -- 新槽索引 128
+    local nose = newScript("Mod.Nose", { "Engine" }, { { "Battery", "Engine" } }, nil,
+        { scale = 1.82, mo = { 0, 0.4899, 0 }, ext = { 1.62, 1.1801, 4.74 }, com = { 0, 0.55, 0 }, seat = { 0.32, -0.25, 3.0 } })
+    local function geoFile(file)
+        local g = {}
+        for k, v in pairs(GEO_CAR) do g[k] = v end
+        g.file = file
+        return g
+    end
+    local sedan = newScript("Base.CarNormal", { "SeatFrontLeft" }, { { "Battery", "Engine" } }, nil, geoFile("Vehicles_CarNormal"))
+    local modCar = newScript("Mod.Car", { "SeatFrontLeft" }, { { "Battery", "Engine" } }, nil, geoFile("ModCar_Body"))
+    W.scripts = { car1, noSeat, van, weird, bike, foreign, big, huge, noArea, edge127, edge128, nose, sedan, modCar }
     from = #logLines + 1
     fire("OnGameBoot")
     local function area(s)
@@ -1078,6 +1124,36 @@ local function scenarioParts()
     check(big:getPartCount() == 255 and area(big) == "Engine", "注入後剛好 255 個零件仍可注入")
     check(huge:getPartById("KnoxPassTag") == nil and huge:getPartCount() == 255, "超過 255 個零件上限的腳本跳過")
     check(noArea:getPartById("KnoxPassTag") == nil, "沒有任何合法 area 的腳本跳過")
+
+    -- 擋風玻璃上的固定座模型：offset＝(目標點－模型 offset)/車輛 scale、scale＝1/車輛 scale（Parts.lua KP.dockPlacement）
+    local function dock(s)
+        local p = s:getPartById("KnoxPassTag")
+        return p and p.visible, p and p.offset, p and p.scale, p and p.rotate
+    end
+    local function close(a, b) return a ~= nil and math.abs(a - b) < 0.0002 end
+    local vis, off, sc, rot = dock(car1)
+    -- CarNormal：高 0.55+1.1801/2-0.15=0.99005、前後 0.16+0.2*1.1801+0.043=0.43902（42.21 實測腳本值）
+    check(vis == true and close(off[1], 0) and close(off[2], (0.99005 - 0.4899) / 1.82) and close(off[3], 0.43902 / 1.82)
+        and close(sc, 1 / 1.82) and close(rot[1], -20), "轎車（model 沒寫 file）：offset／scale 由駕駛座、extents、車輛 scale 推算，傾角 -20")
+    -- 查表：DockSpots.lua 的 Vehicles_CarNormal = { 0.2738, 0.2556, 49.2 }（重跑 dock_spots.py 換了值就同步改這裡）
+    vis, off, sc, rot = dock(sedan)
+    check(vis == true and close(off[1], 0) and close(off[2], 0.2738) and close(off[3], 0.2556) and close(sc, 1 / 1.82)
+        and close(rot[1], -49.2) and rot[2] == 0 and rot[3] == 0, "原版車：查 DockSpots 表（offset 直接用表值、rotate.x＝負的玻璃後傾角）")
+    local _, off2 = dock(car1)
+    vis, off, sc, rot = dock(modCar)
+    check(vis == true and close(off[2], off2[2]) and close(off[3], off2[3]) and close(rot[1], -20),
+        "表裡沒有的 model file（MOD 車）退回腳本幾何公式")
+    vis, off = dock(van)
+    check(vis == true and close(off[2], (0.6599 + 0.66 - 0.15 - 0.6699) / 1.82) and close(off[3], (0.77 + 0.264 + 0.043) / 1.82),
+        "廂型車：每個車型有自己的 offset（template 改寫後各自複製）")
+    check(dock(noSeat) == false, "推算不出位置（駕駛座沒有 inside）→ 有槽但不掛模型，不沿用上一台的設定")
+    check(noSeat:getPartById("KnoxPassTag") ~= nil and dock(weird) == false, "沒有幾何的車型照樣有槽、不掛模型")
+    check(dock(edge127) == true, "新槽索引 127：仍掛模型（有號 byte 上限，VehiclePartModels.java:31）")
+    check(edge128:getPartById("KnoxPassTag") ~= nil and dock(edge128) == false and dock(big) == false,
+        "新槽索引 ≥128：有槽但不掛模型，避免零件模型封包索引溢位")
+    vis, off = dock(nose)
+    check(vis == true and close(off[3], (4.74 / 2 - 0.3) / 1.82), "駕駛座推算超過車頭時夾在 extents 前緣後 0.3 m")
+    check(logHas("nomodel=4", from), "log 記錄有槽但不掛模型的車型數")
 
     local copies, counts = W.copyCalls, {}
     for i, s in ipairs(W.scripts) do counts[i] = s:getPartCount() end

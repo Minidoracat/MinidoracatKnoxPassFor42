@@ -1,0 +1,34 @@
+module MinidoracatKnoxPass
+{
+    /*
+        自製模型（Blender 原始檔：repo scripts/blender/build.py）。
+        FBX 頂點單位是公尺、節點變換是單位矩陣，所以 scale = 1.0 就是實物大小
+        （PZ 用 assimp 讀 FBX：套節點的 Lcl Scaling、不套 UnitScaleFactor；原版 Pager.fbx 的節點縮放 1/12 × 腳本 0.075 ≈ 7.8 cm）。
+        引用一律寫完整名稱：getModelScript 對不含點的名稱只查 Base 模組（ScriptBucketCollection.java:72-89）。
+    */
+    model KnoxPassTag
+    {
+        mesh = WorldItems/MinidoracatKnoxPassTag,
+        texture = WorldItems/MinidoracatKnoxPassTag,
+        scale = 1.0,
+    }
+
+    model KnoxPassReader
+    {
+        mesh = WorldItems/MinidoracatKnoxPassReader,
+        texture = WorldItems/MinidoracatKnoxPassReader,
+        scale = 1.0,
+    }
+
+    /*
+        車上零件模型（vehicle_knoxpass_parts.txt 的 model Dock）。vehiclewheel 是原版輪胎用的車輛著色器，
+        吃模型自己的貼圖（Vehicles_Wheel，models_vehicles.txt）；不指定 texture 的零件模型會沿用車身貼圖（ModelManager.java:1144-1146）。
+    */
+    model KnoxPassTagDock
+    {
+        mesh = vehicles/MinidoracatKnoxPassTagDock,
+        texture = WorldItems/MinidoracatKnoxPassTag,
+        shader = vehiclewheel,
+        scale = 1.0,
+    }
+}
