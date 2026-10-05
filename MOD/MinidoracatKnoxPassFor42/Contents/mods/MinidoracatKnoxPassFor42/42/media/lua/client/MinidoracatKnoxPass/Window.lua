@@ -211,7 +211,8 @@ function Win:refreshButtons()
     local row = self.near:getSelectedItem()
     self.btnRemoveTag:setEnabled(manager and self.tags:getSelectedItem() ~= nil)
     self.btnRegister:setEnabled(manager and row ~= nil and not row.registered)
-    self.btnRemoveReader:setEnabled(manager)
+    -- 閘門的讀頭是內建的（伺服器 H.uninstall 回 BuiltIn）：拆整座閘門走拆除機箱
+    self.btnRemoveReader:setEnabled(manager and self.state.kind ~= "Barrier")
 end
 
 local LABELS = { "IGUI_KnoxPass_Kind", "IGUI_KnoxPass_Owner", "IGUI_KnoxPass_Power", "IGUI_KnoxPass_Door" }

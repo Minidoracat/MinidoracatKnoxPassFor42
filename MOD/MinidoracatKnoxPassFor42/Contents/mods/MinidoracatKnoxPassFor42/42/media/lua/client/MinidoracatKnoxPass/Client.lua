@@ -232,6 +232,8 @@ local function onFillMenu(playerIndex, context, worldobjects, test)
 
     sub:addOption(getText("ContextMenu_KnoxPass_Open"), player, onOpen, key)
 
+    -- 閘門的讀頭是內建的：不給拆（伺服器 H.uninstall 回 BuiltIn），拆整座閘門走拆除機箱
+    if KP.isBarrier(anchor) then return end
     local remove = sub:addOption(getText("ContextMenu_KnoxPass_Remove"), player, C.queueUninstall, anchor, key)
     if not hasScrewdriver then disable(remove, "IGUI_KnoxPass_NeedScrewdriver") end
 end

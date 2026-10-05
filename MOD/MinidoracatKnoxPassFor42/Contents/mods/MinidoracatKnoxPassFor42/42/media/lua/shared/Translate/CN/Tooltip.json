@@ -1,4 +1,5 @@
 {
     "Tooltip_MinidoracatKnoxPass_Tag": "在车辆维修面板的「Knox Pass」分类安装（需要车钥匙或车门未上锁），会从车上充电。到大门读头登记这辆车后，那扇门就会为它打开。",
-    "Tooltip_MinidoracatKnoxPass_Reader": "拿着螺丝刀对大门按右键即可安装。之后再对大门按右键，可管理已登记的车辆与可选的门锁。"
+    "Tooltip_MinidoracatKnoxPass_Reader": "拿着螺丝刀对大门按右键即可安装。之后再对大门按右键，可管理已登记的车辆与可选的门锁。",
+    "Tooltip_MinidoracatKnoxPass_BarrierKit": "从建造菜单放在路上（旋转可切换方向），占 4 格：机箱 1 格加 3 格车道。闸门内置读头，建造的人就是拥有者；是否需要供电照读头的规则。拆除机箱会收回组件。"
 }

@@ -41,4 +41,19 @@ module MinidoracatKnoxPass
         Tags = base:miscelectronic;base:hasmetal,
         Tooltip = Tooltip_MinidoracatKnoxPass_Reader,
     }
+
+    /*
+        BoomBarrierKit：抬升閘門組件。建造選單「Knox Pass 抬升閘門」消耗它（entities/entity_knoxpass_barrier.txt），
+        建好的閘門內建讀頭、建造者就是擁有者（server/MinidoracatKnoxPass/Barrier.lua）。拆掉機箱退回一個。
+        圖示由 scripts/build_barrier_tiles.py 從閘門的關閉態渲染圖產生。
+    */
+    item BoomBarrierKit
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:normal,
+        Weight = 8.0,
+        Icon = MinidoracatKnoxPassBarrierKit,
+        Tags = base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_BarrierKit,
+    }
 }

@@ -1,0 +1,37 @@
+module Base
+{
+    model MinidoracatKnoxPass_BarrierArm
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_barrier_arm,
+        animationsMesh = MinidoracatKnoxPass_BarrierArm,
+        texture = IsoObject/MinidoracatKnoxPass_barrier,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_BarrierArm
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_barrier_arm,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_BarrierCabinet
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_barrier_cabinet,
+        texture = IsoObject/MinidoracatKnoxPass_barrier,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_BarrierEmpty
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_barrier_empty,
+        texture = IsoObject/MinidoracatKnoxPass_barrier,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+}

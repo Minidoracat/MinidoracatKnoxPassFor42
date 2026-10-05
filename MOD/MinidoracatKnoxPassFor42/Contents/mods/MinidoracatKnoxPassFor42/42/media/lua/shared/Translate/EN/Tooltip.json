@@ -1,4 +1,5 @@
 {
     "Tooltip_MinidoracatKnoxPass_Tag": "Install it from the vehicle mechanics panel under the \"Knox Pass\" category (needs the car key or an unlocked door); it charges from the vehicle. Register the vehicle at a Knox Pass Gate Reader so that gate opens for it.",
-    "Tooltip_MinidoracatKnoxPass_Reader": "Right-click a gate with a screwdriver to install it. Right-click the gate again to manage registered vehicles and the optional lock."
+    "Tooltip_MinidoracatKnoxPass_Reader": "Right-click a gate with a screwdriver to install it. Right-click the gate again to manage registered vehicles and the optional lock.",
+    "Tooltip_MinidoracatKnoxPass_BarrierKit": "Place it across a road from the build menu (rotate to switch direction); it takes 4 tiles: the cabinet plus 3 lane tiles. The barrier has a built-in reader owned by whoever builds it and follows the reader's power rule. Dismantle the cabinet to get the kit back."
 }

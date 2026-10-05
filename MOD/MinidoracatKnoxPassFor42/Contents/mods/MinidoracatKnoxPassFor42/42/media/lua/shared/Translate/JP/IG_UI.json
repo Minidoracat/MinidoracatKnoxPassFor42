@@ -64,5 +64,8 @@
     "IGUI_KnoxPass_Why_Busy": "ゲートが動きませんでした。少し待ってから試してください。",
     "IGUI_KnoxPass_Why_NotLoaded": "ゲートの区域が読み込まれていません。",
     "IGUI_KnoxPass_Why_RateLimited": "操作が多すぎます。数秒待ってください。",
-    "IGUI_KnoxPass_Why_Error": "Knox Pass はこの操作を完了できませんでした。"
+    "IGUI_KnoxPass_Why_Error": "Knox Pass はこの操作を完了できませんでした。",
+    "IGUI_KnoxPass_Barrier_Name": "Knox Pass 遮断機",
+    "IGUI_KnoxPass_Kind_Barrier": "遮断機",
+    "IGUI_KnoxPass_Why_BuiltIn": "このリーダーは遮断機に内蔵されています。外すには遮断機の筐体を解体してください。"
 }

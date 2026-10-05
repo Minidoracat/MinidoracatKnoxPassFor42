@@ -39,6 +39,22 @@ local function garagePieces(anchor)
     return out
 end
 
+-- 車庫門關門前的擋車檢查：引擎的 isGarageDoorObstructed 是私有的（IsoDoor.java:3396-3457），照它的判斷重寫：
+-- 任一片的格子上有車、而且同一台車也壓到門線另一側那格（N 向 y-1、W 向 x-1）才算擋住。
+-- 不先查的話 ToggleDoor 會拒關，並對開關者播 Blocked 音、顯示 HaloNote（:1583-1586），Sensor 每次重試都洗一次畫面。
+-- getVehicleContainer 只回該格第一台相交的車（IsoGridSquare.java:9872-9893），同格兩台車的情況不管
+local function garageBlocked(anchor)
+    local north = anchor:getNorth()
+    for _, p in ipairs(garagePieces(anchor)) do
+        local sq = p:getSquare()
+        local v = sq and sq:getVehicleContainer()
+        if v and v:isIntersectingSquare(sq:getX() - (north and 0 or 1), sq:getY() - (north and 1 or 0), sq:getZ()) then
+            return true
+        end
+    end
+    return false
+end
+
 local function isGarage(obj) return IsoDoor.getGarageDoorIndex(obj) ~= -1 end
 local function isDouble(obj) return IsoDoor.getDoubleDoorIndex(obj) ~= -1 end
 
@@ -73,7 +89,7 @@ local doorAdapter = {
         return { anchor }
     end,
     kind = function(anchor)
-        if isGarage(anchor) then return "Garage" end
+        if isGarage(anchor) then return KP.isBarrier(anchor) and "Barrier" or "Garage" end
         if isDouble(anchor) then return "Double" end
         return "Door"
     end,
@@ -83,10 +99,9 @@ local doorAdapter = {
         if anchor:IsOpen() ~= open then anchor:ToggleDoor(player) end
         return anchor:IsOpen() == open
     end,
-    -- 車庫門的擋車檢查是私有的（IsoDoor.java:3396），交給 ToggleDoor 自己拒絕，關完再看有沒有真的關上
     isBlocked = function(anchor)
         if isDouble(anchor) then return IsoDoor.isDoubleDoorObstructed(anchor) end
-        if isGarage(anchor) then return false end
+        if isGarage(anchor) then return garageBlocked(anchor) end
         return anchor:isObstructed()
     end,
     -- 開門前解除整組的鑰匙鎖與 Knox Pass 門鎖，回傳原本的鎖別（關好後照原樣鎖回）：

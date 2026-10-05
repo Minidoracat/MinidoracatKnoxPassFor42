@@ -51,4 +51,28 @@ module Base
             item 1 MinidoracatKnoxPass.GateReader,
         }
     }
+
+    /* 抬升閘門組件：內建一個讀頭，機箱與桿用鐵管、金屬板（材料 2026-10-05 使用者確認）。只能製作，不進戰利品表 */
+    craftRecipe CraftKnoxPassBoomBarrierKit
+    {
+        timedAction = MakingElectrical,
+        time = 200,
+        SkillRequired = Electricity:4,
+        OnTest = MinidoracatKnoxPass.canCraft,
+        Tags = AnySurfaceCraft,
+        category = Electrical,
+        xpAward = Electricity:10,
+        inputs
+        {
+            item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
+            item 1 [MinidoracatKnoxPass.GateReader] flags[NoBrokenItems],
+            item 2 [Base.MetalPipe] flags[NoBrokenItems],
+            item 1 [Base.SheetMetal] flags[NoBrokenItems],
+            item 2 [Base.ElectricWire] flags[NoBrokenItems],
+        }
+        outputs
+        {
+            item 1 MinidoracatKnoxPass.BoomBarrierKit,
+        }
+    }
 }

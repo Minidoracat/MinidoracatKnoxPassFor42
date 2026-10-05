@@ -15,6 +15,32 @@ KP.CHARGE_PER_HOUR = 0.2                          -- 裝在車上、車在跑、
 KP.CHARGE_MIN_BATTERY = 0.1
 KP.DRAIN_PER_OPEN = 0.01                          -- 每次開門耗電（再乘沙盒耗電倍率）
 
+-- 抬升閘門（scripts/build_barrier_tiles.py 產生 tile 與 spriteModels；索引表見該檔 docstring）：
+-- 0-2／3-5＝N／W 向車道 1-3（關，GarageDoor 1-3），8-13＝開（關＋8，IsoDoor.java:793-805），6／7＝N／W 向機箱；
+-- 16-24／32-40＝N／W 向臂的靜態姿勢（只在 spriteModels，SP 動畫步進用）
+KP.BARRIER_TILESET = "MinidoracatKnoxPass_barrier"
+KP.BARRIER_KIT = "MinidoracatKnoxPass.BoomBarrierKit"
+KP.BARRIER_ANIM_MS = 4000                         -- 臂的 clip 6 s ÷ speedDelta 1.5（IsoObjectAnimations.java:~281）
+KP.BARRIER_POSES = 8                              -- 靜態姿勢 0..8（animationTime k/8）
+
+-- 物件是閘門的哪一張 tile：回傳索引，不是閘門回 nil
+function KP.barrierIndex(obj)
+    local spr = obj and obj.getSprite and obj:getSprite()
+    local name = spr and spr:getName()
+    if not name then return nil end
+    local n = string.match(name, "^" .. KP.BARRIER_TILESET .. "_(%d+)$")
+    return n and tonumber(n) or nil
+end
+
+function KP.isBarrier(obj)
+    return KP.barrierIndex(obj) ~= nil
+end
+
+function KP.isBarrierCabinet(obj)
+    local i = KP.barrierIndex(obj)
+    return i == 6 or i == 7
+end
+
 function KP.log(msg)
     print("[MinidoracatKnoxPassFor42] " .. tostring(msg))
 end

@@ -1,0 +1,7 @@
+vanilla_dump/
+*.blend
+*.blend1
+cells/_canvas/
+export/superseded/
+previews/*
+!previews/N_closed_full.png

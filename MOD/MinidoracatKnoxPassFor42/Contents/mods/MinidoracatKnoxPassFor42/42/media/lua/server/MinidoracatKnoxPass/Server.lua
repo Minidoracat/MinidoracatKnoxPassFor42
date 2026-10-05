@@ -170,6 +170,23 @@ function KP.sendState(player, key)
     if rec then reply(player, "state", buildState(player, key, rec)) end
 end
 
+-- 寫帳本並在錨點留標記（安裝讀頭、建好抬升閘門共用）。builtin＝閘門內建讀頭，不能單獨拆（H.uninstall）
+function KP.registerReader(adapter, anchor, name, sid, builtin)
+    local key = G.key(anchor)
+    local asq = anchor:getSquare()
+    local cx, cy = G.center(G.pieces(adapter, anchor))
+    L.put(key, {
+        key = key, x = asq:getX(), y = asq:getY(), z = asq:getZ(), cx = cx, cy = cy,
+        adapter = adapter.id, kind = G.kind(adapter, anchor), owner = name, sid = sid, builtin = builtin or nil,
+        tags = {}, created = getGameTime():getWorldAgeHours(),
+    })
+    -- 建造者身分無法驗證（分割畫面第 2-4 位，KP.principal 回 nil）時閘門沒有擁有者、只有管理員能管；
+    -- 標記仍要非 nil，client 才知道這扇門裝了讀頭（Client.lua onFillMenu、KnoxPassAPI.willOpenFor）
+    mark(anchor, name or "", false)
+    KP.log("reader installed key=" .. key .. " owner=" .. tostring(name) .. (builtin and " builtin" or ""))
+    return key
+end
+
 function H.install(player, args)
     local cmd = "install"
     if not (KP.isInt(args.x) and KP.isInt(args.y) and KP.isInt(args.z) and KP.isInt(args.itemId)) then
@@ -192,15 +209,7 @@ function H.install(player, args)
     player:removeFromHands(item)
     container:DoRemoveItem(item)
     if isServer() then sendRemoveItemFromContainer(container, item) end
-    local asq = anchor:getSquare()
-    local cx, cy = G.center(G.pieces(adapter, anchor))
-    L.put(key, {
-        key = key, x = asq:getX(), y = asq:getY(), z = asq:getZ(), cx = cx, cy = cy,
-        adapter = adapter.id, kind = G.kind(adapter, anchor), owner = name, sid = sid,
-        tags = {}, created = getGameTime():getWorldAgeHours(),
-    })
-    mark(anchor, name, false)
-    KP.log("reader installed key=" .. key .. " owner=" .. name)
+    KP.registerReader(adapter, anchor, name, sid)
     result(player, cmd, true, nil, key)
     KP.sendState(player, key)
 end
@@ -211,6 +220,7 @@ function H.uninstall(player, args)
     local rec, why = gateFor(player, args)
     if not rec then return result(player, cmd, false, why) end
     if not canManage(player, rec) then return result(player, cmd, false, "NotOwner", args.key) end
+    if rec.builtin then return result(player, cmd, false, "BuiltIn", args.key) end
     local adapter, anchor = G.findAt(rec)
     if adapter then
         local pieces = G.pieces(adapter, anchor)
@@ -285,7 +295,7 @@ function H.lock(player, args)
         local pieces = G.pieces(adapter, anchor)
         if rec.lock then G.lock(adapter, anchor, pieces, true, false) else G.unlockKnox(adapter, anchor, pieces) end
     end
-    mark(anchor, rec.owner, rec.lock)
+    mark(anchor, rec.owner or "", rec.lock)
     result(player, cmd, true, nil, args.key)
     KP.sendState(player, args.key)
 end

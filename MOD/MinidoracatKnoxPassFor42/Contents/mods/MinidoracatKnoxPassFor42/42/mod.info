@@ -5,3 +5,5 @@ poster=poster.png
 modversion=42.21.0-0.1.0
 versionMin=42.21.0
 require=MinidoracatUIFor42
+pack=MinidoracatKnoxPass
+tiledef=MinidoracatKnoxPass_tiles 7430

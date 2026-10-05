@@ -64,5 +64,8 @@
     "IGUI_KnoxPass_Why_Busy": "大门刚才没能动作，请稍后再试。",
     "IGUI_KnoxPass_Why_NotLoaded": "大门所在区域还没载入。",
     "IGUI_KnoxPass_Why_RateLimited": "操作太频繁，请等几秒。",
-    "IGUI_KnoxPass_Why_Error": "Knox Pass 无法完成这个动作。"
+    "IGUI_KnoxPass_Why_Error": "Knox Pass 无法完成这个动作。",
+    "IGUI_KnoxPass_Barrier_Name": "Knox Pass 升降闸门",
+    "IGUI_KnoxPass_Kind_Barrier": "升降闸门",
+    "IGUI_KnoxPass_Why_BuiltIn": "这是闸门内置的读头，要拆请拆除闸门的机箱。"
 }

@@ -1,0 +1,62 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_MinidoracatKnoxPassBarrier
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_Barrier_Name,
+            Icon = media/ui/MinidoracatKnoxPass/barrier_icon.png,
+        }
+    }
+
+    entity MinidoracatKnoxPassBoomBarrier
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassBarrier,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            health = 600,
+            skillBaseHealth = 0,
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.Barrier.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_barrier_6 MinidoracatKnoxPass_barrier_0 MinidoracatKnoxPass_barrier_1 MinidoracatKnoxPass_barrier_2,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_barrier_5,
+                    row = MinidoracatKnoxPass_barrier_4,
+                    row = MinidoracatKnoxPass_barrier_3,
+                    row = MinidoracatKnoxPass_barrier_7,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWoodenStructureMedium,
+            time = 150,
+            category = Furniture,
+            Tags = Furniture,
+            inputs
+            {
+                item 1 tags[base:screwdriver] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [MinidoracatKnoxPass.BoomBarrierKit],
+            }
+        }
+    }
+}
