@@ -68,5 +68,19 @@
     "IGUI_KnoxPass_Barrier_Name": "Knox Pass 遮断機",
     "IGUI_KnoxPass_Kind_Barrier": "遮断機",
     "IGUI_KnoxPass_Why_BuiltIn": "このリーダーは遮断機に内蔵されています。外すには遮断機の筐体を解体してください。",
-    "IGUI_KnoxPass_AheadWarn": "前方の Knox Pass ゲートはこの車両には開きません：%1"
+    "IGUI_KnoxPass_AheadWarn": "前方の Knox Pass ゲートはこの車両には開きません：%1",
+    "IGUI_KnoxPass_Color_Cream": "クリーム",
+    "IGUI_KnoxPass_Color_Black": "ブラック",
+    "IGUI_KnoxPass_Color_Graphite": "グラファイト",
+    "IGUI_KnoxPass_Color_Olive": "オリーブ",
+    "IGUI_KnoxPass_Color_Navy": "ネイビー",
+    "IGUI_KnoxPass_Color_Orange": "セーフティオレンジ",
+    "IGUI_KnoxPass_Color_Red": "レッド",
+    "IGUI_KnoxPass_Recolored": "塗り直しました",
+    "IGUI_KnoxPass_NeedPaint": "%1（残量 1 回分以上）が必要です。",
+    "IGUI_KnoxPass_Why_NoBrush": "塗装ブラシが必要です。",
+    "IGUI_KnoxPass_Why_NoPaint": "その色の塗料を持っていません。",
+    "IGUI_KnoxPass_Why_NotCarried": "アイテムを所持している必要があります（車に付いているタグは整備画面で先に取り外してください）。",
+    "IGUI_KnoxPass_Why_BadColor": "その色には塗り直せません。",
+    "IGUI_KnoxPass_Why_BarrierColor": "遮断機内蔵のリーダーは塗り直せません。"
 }

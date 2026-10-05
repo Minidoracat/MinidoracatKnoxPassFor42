@@ -68,5 +68,19 @@
     "IGUI_KnoxPass_Barrier_Name": "Knox Pass 抬升閘門",
     "IGUI_KnoxPass_Kind_Barrier": "抬升閘門",
     "IGUI_KnoxPass_Why_BuiltIn": "這是閘門內建的讀頭，要拆請拆除閘門的機箱。",
-    "IGUI_KnoxPass_AheadWarn": "前方的 Knox Pass 大門不會為這台車打開：%1"
+    "IGUI_KnoxPass_AheadWarn": "前方的 Knox Pass 大門不會為這台車打開：%1",
+    "IGUI_KnoxPass_Color_Cream": "米白",
+    "IGUI_KnoxPass_Color_Black": "黑色",
+    "IGUI_KnoxPass_Color_Graphite": "石墨灰",
+    "IGUI_KnoxPass_Color_Olive": "軍綠",
+    "IGUI_KnoxPass_Color_Navy": "深藍",
+    "IGUI_KnoxPass_Color_Orange": "安全橘",
+    "IGUI_KnoxPass_Color_Red": "紅色",
+    "IGUI_KnoxPass_Recolored": "已重新上色",
+    "IGUI_KnoxPass_NeedPaint": "需要%1（至少一格）。",
+    "IGUI_KnoxPass_Why_NoBrush": "需要漆刷。",
+    "IGUI_KnoxPass_Why_NoPaint": "身上沒有那個顏色的油漆。",
+    "IGUI_KnoxPass_Why_NotCarried": "物品要在你身上（裝在車上的感應盒請先用維修面板拆下）。",
+    "IGUI_KnoxPass_Why_BadColor": "不能換成這個顏色。",
+    "IGUI_KnoxPass_Why_BarrierColor": "閘門內建的讀頭不能重新上色。"
 }

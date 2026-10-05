@@ -52,7 +52,8 @@ module Base
         }
     }
 
-    /* 抬升閘門組件：內建一個讀頭，機箱與桿用鐵管、金屬板（材料 2026-10-05 使用者確認）。只能製作，不進戰利品表 */
+    /* 抬升閘門組件：內建一個讀頭，機箱與桿用鐵管、金屬板（材料 2026-10-05 使用者確認）。只能製作，不進戰利品表。
+       讀頭 7 色都收（閘門內建讀頭不分顏色） */
     craftRecipe CraftKnoxPassBoomBarrierKit
     {
         timedAction = MakingElectrical,
@@ -65,7 +66,7 @@ module Base
         inputs
         {
             item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
-            item 1 [MinidoracatKnoxPass.GateReader] flags[NoBrokenItems],
+            item 1 [MinidoracatKnoxPass.GateReader;MinidoracatKnoxPass.GateReader_Black;MinidoracatKnoxPass.GateReader_Graphite;MinidoracatKnoxPass.GateReader_Olive;MinidoracatKnoxPass.GateReader_Navy;MinidoracatKnoxPass.GateReader_Orange;MinidoracatKnoxPass.GateReader_Red] flags[NoBrokenItems],
             item 2 [Base.MetalPipe] flags[NoBrokenItems],
             item 1 [Base.SheetMetal] flags[NoBrokenItems],
             item 2 [Base.ElectricWire] flags[NoBrokenItems],

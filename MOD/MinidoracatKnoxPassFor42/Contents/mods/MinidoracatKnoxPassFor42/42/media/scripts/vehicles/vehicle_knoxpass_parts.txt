@@ -9,11 +9,15 @@
     鎖好的車偷不走感應盒。
     install／uninstall 的 complete：裝上或拆下後由伺服器呼叫（ISInstallVehiclePart.lua:95-98、
     ISUninstallVehiclePart.lua:65-67、Vehicles.lua:1327），把這顆感應盒登記的每一扇門改記新車／未裝在車上。
+    itemType：7 色感應盒都能裝，分號分隔（VehicleScript.java:926-932 拆成清單；原版同寫法 generated/vehicles/template_brake.txt:60）。
+    管理員「修理車輛」對空槽會從清單隨機挑一種裝上（VehiclePart.java:956-971 repair），所以修好的車可能是任一色。
     model Dock：擋風玻璃上的「固定座＋感應盒」。裝上感應盒時顯示、拆下就消失：引擎在 setInventoryItem
-    依 setAllModelsVisible 切換零件模型（VehiclePart.java:148-182），MP 由車輛更新封包同步（VehiclePartModels.java）。
+    依 setAllModelsVisible 切換零件模型（VehiclePart.java:148-182），MP 由車輛更新封包同步（VehiclePartModels.java；
+    同一封包先解零件物品再解模型，VehicleUpdatePacket.java:132-145）。
+    不寫 file：模型改由裝上去的物品指定（物品腳本的 VehiclePartModel = KnoxPassTag Dock MinidoracatKnoxPass.KnoxPassTagDock<顏色後綴>，
+    BaseVehicle.java:1756-1779 getModelScriptNameForPart、Item.java:3013-3026；原版先例 HoodOrnament），所以車上顯示的是該色的盒子。
     offset／rotate／scale 是佔位值，Parts.lua 注入時依各車型改寫（原版車查 DockSpots.lua、其他車用腳本幾何推算）；
     推算不出來或零件索引超過 127 的車型改成 setAllModelsVisible = false（不掛模型）。
-*/
 module Base
 {
     template vehicle KnoxPassParts
@@ -22,7 +26,7 @@ module Base
         {
             area = Engine,
             mechanicArea = Engine,
-            itemType = MinidoracatKnoxPass.VehicleTag,
+            itemType = MinidoracatKnoxPass.VehicleTag;MinidoracatKnoxPass.VehicleTag_Black;MinidoracatKnoxPass.VehicleTag_Graphite;MinidoracatKnoxPass.VehicleTag_Olive;MinidoracatKnoxPass.VehicleTag_Navy;MinidoracatKnoxPass.VehicleTag_Orange;MinidoracatKnoxPass.VehicleTag_Red,
             specificItem = false,
             mechanicRequireKey = true,
             category = KnoxPass,
@@ -46,7 +50,6 @@ module Base
             }
             model Dock
             {
-                file = MinidoracatKnoxPass.KnoxPassTagDock,
                 offset = 0.0 0.0 0.0,
                 rotate = 0.0 0.0 0.0,
                 scale = 1.0,

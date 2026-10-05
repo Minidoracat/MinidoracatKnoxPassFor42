@@ -104,6 +104,23 @@ function L.removeTag(key, rec, id)
     version = version + 1
 end
 
+-- 感應盒重新上色＝換成另一個物品（新 ID）：它登記的每一扇門改記新 ID（序號跟著 ID 換），重建索引。
+-- version 加一，Sensor.lua 下一輪掃描就重推已授權大門。回傳改了幾扇門
+function L.renameTag(oldId, newId)
+    local n = 0
+    for key in pairs(byTag[oldId] or {}) do
+        local rec = L.get(key)
+        local info = rec and rec.tags[oldId]
+        if info then
+            info.serial = KP.serial(newId)
+            rec.tags[newId], rec.tags[oldId] = info, nil
+            n = n + 1
+        end
+    end
+    L.rebuild()
+    return n
+end
+
 function L.gatesForTag(id)
     return byTag[id]
 end

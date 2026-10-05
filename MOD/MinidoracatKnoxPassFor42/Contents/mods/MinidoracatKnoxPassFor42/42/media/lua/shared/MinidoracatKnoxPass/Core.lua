@@ -9,6 +9,7 @@ KP.READER_TYPE = "MinidoracatKnoxPass.GateReader"
 KP.PART_ID = "KnoxPassTag"
 KP.MARKER_OWNER = "KnoxPassReader"                -- 大門錨點 modData：讀頭擁有者名稱（只給右鍵選單用，伺服器不信它）
 KP.MARKER_LOCK = "KnoxPassLock"                   -- 大門錨點 modData：Knox Pass 門鎖是否開啟（同上）
+KP.MARKER_COLOR = "KnoxPassColor"                 -- 大門錨點 modData：讀頭顏色索引（同上；沒有＝米白）
 KP.MANAGE_RANGE = 3                               -- 操作讀頭要站在大門幾格內（同樓層）
 KP.REGISTER_RANGE = 15                            -- 登記時車要在大門幾格內
 KP.CHARGE_PER_HOUR = 0.2                          -- 裝在車上、車在跑、電瓶高於 10% 時每遊戲小時充電量
@@ -60,10 +61,11 @@ function KP.isBarrierCabinet(obj)
     return i == 6 or i == 7
 end
 
--- 門柱上的讀頭模型（scripts/build_barrier_tiles.py 的第 2 個 tileset；變體 0-3 見 server/ReaderPost.lua R.spot）
+-- 門柱上的讀頭模型（scripts/build_barrier_tiles.py 的第 2 個 tileset）：索引＝顏色×8＋變體（變體 0-3 見 server/ReaderPost.lua R.spot）
 KP.READER_POST_TILESET = "MinidoracatKnoxPass_reader"
+KP.READER_POST_STRIDE = 8
 
--- 物件是哪個讀頭模型變體：回傳 0-3，不是回 nil
+-- 物件是哪張讀頭模型 tile：回傳 tile 索引（顏色×8＋變體），不是回 nil
 function KP.readerPostIndex(obj)
     local spr = obj and obj.getSprite and obj:getSprite()
     local name = spr and spr:getName()
@@ -97,10 +99,62 @@ function KP.isInt(v)
     return type(v) == "number" and v == v and v == math.floor(v) and v > -2147483649 and v < 2147483648
 end
 
+-- ── 外殼顏色 ────────────────────────────────────────────────────────────
+-- 順序就是顏色索引 0-6（帳本 rec.color、門柱 tile 顏色×8＋變體）；米白是原本的物品，type 不帶後綴。
+-- 換色用原版油漆一格＋油漆刷（Server.lua H.recolor／recolorReader）；搜刮與配方只出米白
+KP.COLORS = {
+    { id = "Cream", suffix = "", paint = "Base.PaintWhite" },
+    { id = "Black", suffix = "_Black", paint = "Base.PaintBlack" },
+    { id = "Graphite", suffix = "_Graphite", paint = "Base.PaintGrey" },
+    { id = "Olive", suffix = "_Olive", paint = "Base.PaintGreen" },
+    { id = "Navy", suffix = "_Navy", paint = "Base.PaintBlue" },
+    { id = "Orange", suffix = "_Orange", paint = "Base.PaintOrange" },
+    { id = "Red", suffix = "_Red", paint = "Base.PaintRed" },
+}
+local TAG_COLOR, READER_COLOR = {}, {}   -- 物品 fullType → 顏色索引
+for i, c in ipairs(KP.COLORS) do
+    TAG_COLOR[KP.TAG_TYPE .. c.suffix] = i - 1
+    READER_COLOR[KP.READER_TYPE .. c.suffix] = i - 1
+end
+
+-- 感應盒或讀頭的顏色索引；其他物品回 nil
+function KP.colorOf(item)
+    if not item then return nil end
+    local t = item:getFullType()
+    return TAG_COLOR[t] or READER_COLOR[t]
+end
+
+-- 合法顏色索引（client 送來的值也用這個驗）
+function KP.isColor(c)
+    return KP.isInt(c) and c >= 0 and c < #KP.COLORS
+end
+
+-- 同一種物品換成顏色 c 的 fullType（base＝KP.TAG_TYPE 或 KP.READER_TYPE）
+function KP.colorType(base, c)
+    return base .. KP.COLORS[c + 1].suffix
+end
+
+-- 換成顏色 c 要用的原版油漆（身上含背包、至少一格）與油漆刷（tag base:paintbrush）：原版刷油漆同款查法
+-- （ISPaintCursor.lua:227 getFirstTagRecurse(ItemTag.PAINTBRUSH)、getFirstTypeRecurse(paintType)），多跳過 0 格的罐子
+-- （getFirstTypeEvalRecurse，ItemContainer.java:1569）。回傳油漆；缺什麼回 nil, 原因代碼（NoBrush／NoPaint）。
+-- 伺服器重驗與 client 選單共用
+local function hasUse(item) return item:getCurrentUses() >= 1 end
+function KP.paintFor(player, c)
+    local inv = player:getInventory()
+    if not inv:getFirstTagRecurse(ItemTag.PAINTBRUSH) then return nil, "NoBrush" end
+    local paint = inv:getFirstTypeEvalRecurse(KP.COLORS[c + 1].paint, hasUse)
+    if not paint then return nil, "NoPaint" end
+    return paint
+end
+
 -- ── 感應盒 ──────────────────────────────────────────────────────────────
 
 function KP.isTag(item)
-    return item ~= nil and item:getFullType() == KP.TAG_TYPE
+    return item ~= nil and TAG_COLOR[item:getFullType()] ~= nil
+end
+
+function KP.isReader(item)
+    return item ~= nil and READER_COLOR[item:getFullType()] ~= nil
 end
 
 -- 顯示用序號：由伺服器分配的物品 ID 換算。憑證本身是物品 ID，不是這個字串
