@@ -1,5 +1,17 @@
 {
     "MinidoracatKnoxPass.VehicleTag": "Knox Pass Vehicle Tag",
     "MinidoracatKnoxPass.GateReader": "Knox Pass Gate Reader",
-    "MinidoracatKnoxPass.BoomBarrierKit": "Knox Pass Boom Barrier Kit"
+    "MinidoracatKnoxPass.BoomBarrierKit": "Knox Pass Boom Barrier Kit",
+    "MinidoracatKnoxPass.VehicleTag_Black": "Knox Pass Vehicle Tag (Black)",
+    "MinidoracatKnoxPass.VehicleTag_Graphite": "Knox Pass Vehicle Tag (Graphite)",
+    "MinidoracatKnoxPass.VehicleTag_Olive": "Knox Pass Vehicle Tag (Olive)",
+    "MinidoracatKnoxPass.VehicleTag_Navy": "Knox Pass Vehicle Tag (Navy)",
+    "MinidoracatKnoxPass.VehicleTag_Orange": "Knox Pass Vehicle Tag (Safety Orange)",
+    "MinidoracatKnoxPass.VehicleTag_Red": "Knox Pass Vehicle Tag (Red)",
+    "MinidoracatKnoxPass.GateReader_Black": "Knox Pass Gate Reader (Black)",
+    "MinidoracatKnoxPass.GateReader_Graphite": "Knox Pass Gate Reader (Graphite)",
+    "MinidoracatKnoxPass.GateReader_Olive": "Knox Pass Gate Reader (Olive)",
+    "MinidoracatKnoxPass.GateReader_Navy": "Knox Pass Gate Reader (Navy)",
+    "MinidoracatKnoxPass.GateReader_Orange": "Knox Pass Gate Reader (Safety Orange)",
+    "MinidoracatKnoxPass.GateReader_Red": "Knox Pass Gate Reader (Red)"
 }

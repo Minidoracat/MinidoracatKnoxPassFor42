@@ -1,5 +1,5 @@
 -- 伺服器指令：client 只送意圖（sendClientCommand），這裡重查一切再改世界。
--- 指令：install、uninstall、register、unregister、lock、open、query。回覆：state、result。
+-- 指令：install、uninstall、register、unregister、lock、open、query、recolor、recolorReader。回覆：state、result。
 -- SP 的 sendServerCommand 是 no-op（LuaManager.java:8952-8970），回覆直接交給 client 的接收函式（家族 VM 同做法）。
 if isClient() then return end
 require "MinidoracatKnoxPass/Core"
@@ -76,10 +76,11 @@ local function nearGate(player, rec)
     return KP.near(player, rec.x, rec.y, rec.z, KP.MANAGE_RANGE)
 end
 
-local function mark(anchor, owner, lock)
+local function mark(anchor, owner, lock, color)
     local md = anchor:getModData()
     md[KP.MARKER_OWNER] = owner
     md[KP.MARKER_LOCK] = lock or nil
+    md[KP.MARKER_COLOR] = owner and color ~= 0 and color or nil   -- 只給右鍵選單列出「其他顏色」用
     anchor:transmitModData()
 end
 
@@ -172,20 +173,20 @@ function KP.sendState(player, key)
 end
 
 -- 寫帳本並在錨點留標記（安裝讀頭、建好抬升閘門共用）。builtin＝閘門內建讀頭，不能單獨拆（H.uninstall）。
--- 門柱上放讀頭模型（閘門不放：機箱頂已有圓頂讀頭）
-function KP.registerReader(adapter, anchor, name, sid, builtin)
+-- color＝裝上去的讀頭顏色索引（拆下退回同色；閘門內建讀頭不記）。門柱上放讀頭模型（閘門不放：機箱頂已有圓頂讀頭）
+function KP.registerReader(adapter, anchor, name, sid, builtin, color)
     local key = G.key(anchor)
     local asq = anchor:getSquare()
     local cx, cy = G.center(G.pieces(adapter, anchor))
     local rec = {
         key = key, x = asq:getX(), y = asq:getY(), z = asq:getZ(), cx = cx, cy = cy,
         adapter = adapter.id, kind = G.kind(adapter, anchor), owner = name, sid = sid, builtin = builtin or nil,
-        tags = {}, created = getGameTime():getWorldAgeHours(),
+        color = color, tags = {}, created = getGameTime():getWorldAgeHours(),
     }
     L.put(key, rec)
     -- 建造者身分無法驗證（分割畫面第 2-4 位，KP.principal 回 nil）時閘門沒有擁有者、只有管理員能管；
     -- 標記仍要非 nil，client 才知道這扇門裝了讀頭（Client.lua onFillMenu、KnoxPassAPI.willOpenFor）
-    mark(anchor, name or "", false)
+    mark(anchor, name or "", false, color)
     KP.ReaderPost.attach(key, rec, adapter, anchor)
     KP.log("reader installed key=" .. key .. " owner=" .. tostring(name) .. (builtin and " builtin" or ""))
     return key
@@ -208,12 +209,12 @@ function H.install(player, args)
     local key = G.key(anchor)
     if L.get(key) then return result(player, cmd, false, "AlreadyInstalled", key) end
     local item = player:getInventory():getItemWithIDRecursiv(args.itemId)
-    if not item or item:getFullType() ~= KP.READER_TYPE then return result(player, cmd, false, "NoReader") end
+    if not KP.isReader(item) then return result(player, cmd, false, "NoReader") end
     local container = item:getContainer()
     player:removeFromHands(item)
     container:DoRemoveItem(item)
     if isServer() then sendRemoveItemFromContainer(container, item) end
-    KP.registerReader(adapter, anchor, name, sid)
+    KP.registerReader(adapter, anchor, name, sid, nil, KP.colorOf(item))
     result(player, cmd, true, nil, key)
     KP.sendState(player, key)
 end
@@ -241,7 +242,7 @@ function H.uninstall(player, args)
     L.remove(args.key)
     S.forget(args.key)
     local inv = player:getInventory()
-    local item = inv:AddItem(KP.READER_TYPE)
+    local item = inv:AddItem(KP.colorType(KP.READER_TYPE, rec.color or 0))   -- 退回同色；舊記錄沒有 color＝米白
     if item and isServer() then sendAddItemToContainer(inv, item) end
     KP.log("reader removed key=" .. args.key .. " by=" .. tostring(player:getUsername()))
     result(player, cmd, true, nil, args.key)
@@ -299,19 +300,72 @@ function H.lock(player, args)
         local pieces = G.pieces(adapter, anchor)
         if rec.lock then G.lock(adapter, anchor, pieces, true, false) else G.unlockKnox(adapter, anchor, pieces) end
     end
-    mark(anchor, rec.owner or "", rec.lock)
+    mark(anchor, rec.owner or "", rec.lock, rec.color)
     result(player, cmd, true, nil, args.key)
     KP.sendState(player, args.key)
 end
 
 -- 身上帶著已登記、有電的感應盒
 local function carriedTag(player, rec)
-    local list = player:getInventory():getAllTypeRecurse(KP.TAG_TYPE)
+    local list = player:getInventory():getAllEvalRecurse(KP.isTag)   -- 7 色都算（ItemContainer.java:1936）
     for i = 0, list:size() - 1 do
         local item = list:get(i)
         if rec.tags[item:getID()] and KP.charge(item) > 0 then return item end
     end
     return nil
+end
+
+-- ── 重新上色：原版油漆一格＋油漆刷（KP.paintFor），動畫在 client 的計時動作 ──────────────
+
+-- 身上（含背包）的感應盒或讀頭換成另一色：新物品放回同一個容器，電量與狀態照抄；感應盒的登記改記新 ID（L.renameTag）。
+-- 裝在車上的感應盒不在玩家物品欄，找不到＝NotCarried（要先用維修面板拆下）
+function H.recolor(player, args)
+    local cmd = "recolor"
+    if not (KP.isInt(args.itemId) and KP.isColor(args.color)) then return result(player, cmd, false, "BadColor") end
+    local item = player:getInventory():getItemWithIDRecursiv(args.itemId)
+    local from = KP.colorOf(item)
+    if from == nil then return result(player, cmd, false, "NotCarried") end
+    if from == args.color then return result(player, cmd, false, "BadColor") end
+    local paint, why = KP.paintFor(player, args.color)
+    if not paint then return result(player, cmd, false, why) end
+    local isTag = KP.isTag(item)
+    local container = item:getContainer()
+    local fresh = container:AddItem(KP.colorType(isTag and KP.TAG_TYPE or KP.READER_TYPE, args.color))
+    if not fresh then return result(player, cmd, false, "Error") end
+    if isTag then KP.setCharge(fresh, KP.charge(item)) end
+    fresh:setCondition(item:getCondition())
+    player:removeFromHands(item)
+    container:DoRemoveItem(item)
+    if isServer() then
+        sendRemoveItemFromContainer(container, item)
+        sendAddItemToContainer(container, fresh)
+    end
+    local gates = isTag and L.renameTag(item:getID(), fresh:getID()) or 0
+    paint:UseAndSync()   -- 用掉一格並同步（InventoryItem.java:1275-1277→DrainableComboItem.java:322-383；用完換成空桶）
+    KP.log("recolor " .. tostring(item:getFullType()) .. " -> " .. tostring(fresh:getFullType()) .. " gates=" .. gates
+        .. " by=" .. tostring(player:getUsername()))
+    result(player, cmd, true)
+end
+
+-- 已裝在門上的讀頭改色：擁有者或管理員、站在門邊；帳本改 rec.color、門柱模型換色（ReaderPost.refresh），登記不動。
+-- 抬升閘門的內建讀頭不分顏色
+function H.recolorReader(player, args)
+    local cmd = "recolorReader"
+    if player:getVehicle() then return result(player, cmd, false, "InVehicle") end
+    local rec, why = gateFor(player, args)
+    if not rec then return result(player, cmd, false, why) end
+    if not canManage(player, rec) then return result(player, cmd, false, "NotOwner", args.key) end
+    if rec.builtin then return result(player, cmd, false, "BarrierColor", args.key) end
+    if not KP.isColor(args.color) or args.color == (rec.color or 0) then return result(player, cmd, false, "BadColor", args.key) end
+    local paint, pwhy = KP.paintFor(player, args.color)
+    if not paint then return result(player, cmd, false, pwhy, args.key) end
+    paint:UseAndSync()
+    rec.color = args.color
+    KP.ReaderPost.refresh(args.key, rec)
+    local adapter, anchor = G.findAt(rec)
+    if adapter then mark(anchor, rec.owner or "", rec.lock, rec.color) end
+    KP.log("reader recolor key=" .. args.key .. " color=" .. KP.COLORS[rec.color + 1].id .. " by=" .. tostring(player:getUsername()))
+    result(player, cmd, true, nil, args.key)
 end
 
 function H.open(player, args)

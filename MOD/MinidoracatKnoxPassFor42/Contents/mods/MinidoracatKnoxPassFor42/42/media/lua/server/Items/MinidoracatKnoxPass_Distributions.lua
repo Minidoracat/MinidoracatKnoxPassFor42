@@ -70,8 +70,7 @@ local function filterOneContainer(container)
     if not items then return end
     for i = items:size() - 1, 0, -1 do
         local item = items:get(i)
-        local fullType = item and item:getFullType()
-        if fullType == KP.TAG_TYPE or fullType == KP.READER_TYPE then
+        if KP.colorOf(item) ~= nil then   -- 任何顏色的感應盒或讀頭（搜刮表只放米白）
             -- 仍在生成 call stack 內，直接移除即可；容器之後才做正常同步
             container:DoRemoveItem(item)
         end

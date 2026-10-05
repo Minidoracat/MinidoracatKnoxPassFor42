@@ -1,5 +1,17 @@
 {
     "MinidoracatKnoxPass.VehicleTag": "Knox Pass 車載タグ",
     "MinidoracatKnoxPass.GateReader": "Knox Pass ゲートリーダー",
-    "MinidoracatKnoxPass.BoomBarrierKit": "Knox Pass 遮断機キット"
+    "MinidoracatKnoxPass.BoomBarrierKit": "Knox Pass 遮断機キット",
+    "MinidoracatKnoxPass.VehicleTag_Black": "Knox Pass 車載タグ（ブラック）",
+    "MinidoracatKnoxPass.VehicleTag_Graphite": "Knox Pass 車載タグ（グラファイト）",
+    "MinidoracatKnoxPass.VehicleTag_Olive": "Knox Pass 車載タグ（オリーブ）",
+    "MinidoracatKnoxPass.VehicleTag_Navy": "Knox Pass 車載タグ（ネイビー）",
+    "MinidoracatKnoxPass.VehicleTag_Orange": "Knox Pass 車載タグ（セーフティオレンジ）",
+    "MinidoracatKnoxPass.VehicleTag_Red": "Knox Pass 車載タグ（レッド）",
+    "MinidoracatKnoxPass.GateReader_Black": "Knox Pass ゲートリーダー（ブラック）",
+    "MinidoracatKnoxPass.GateReader_Graphite": "Knox Pass ゲートリーダー（グラファイト）",
+    "MinidoracatKnoxPass.GateReader_Olive": "Knox Pass ゲートリーダー（オリーブ）",
+    "MinidoracatKnoxPass.GateReader_Navy": "Knox Pass ゲートリーダー（ネイビー）",
+    "MinidoracatKnoxPass.GateReader_Orange": "Knox Pass ゲートリーダー（セーフティオレンジ）",
+    "MinidoracatKnoxPass.GateReader_Red": "Knox Pass ゲートリーダー（レッド）"
 }

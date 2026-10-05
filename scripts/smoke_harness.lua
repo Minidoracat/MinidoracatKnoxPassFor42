@@ -136,7 +136,7 @@ local function newWorld()
         sent = {}, sendServerCalls = 0, itemStats = 0, removeSent = 0, addSent = 0, handsRemoved = 0,
         partDeltas = 0, nilToggles = 0, refused = 0, recreated = 0, obstructChecks = 0, copyCalls = 0,
         customLockTx = 0, garageBlocked = 0, removedObjs = 0, invalidated = 0, dropped = {}, onLoadSprite = {},
-        vehicleQueries = 0, postTx = 0,
+        vehicleQueries = 0, postTx = 0, paintUses = 0,
     }
 end
 -- MapObjects.OnLoadWithSprite（Lua/MapObjects.java:134-176）：記下回呼，loadSprites() 模擬區塊載入時逐物件呼叫
@@ -224,13 +224,21 @@ function sendAddItemToContainer() if isServer() then W.addSent = W.addSent + 1 e
 
 -- ===== 物品與容器 =====
 local TAG, READER = "MinidoracatKnoxPass.VehicleTag", "MinidoracatKnoxPass.GateReader"
+local COLOR_IDS = { "Black", "Graphite", "Olive", "Navy", "Orange", "Red" }   -- 索引 1-6（米白 0 不帶後綴）
+local PAINTS = { "Base.PaintWhite", "Base.PaintBlack", "Base.PaintGrey", "Base.PaintGreen", "Base.PaintBlue", "Base.PaintOrange", "Base.PaintRed" }
 local USE_DELTA = { [TAG] = 0.001, ["Base.CarBattery1"] = 0.00001 }
+for _, id in ipairs(COLOR_IDS) do USE_DELTA[TAG .. "_" .. id] = 0.001 end
+for _, p in ipairs(PAINTS) do USE_DELTA[p] = 0.1 end   -- 原版油漆 UseDelta 0.1（generated/items/drainable.txt:1803-1817）
+local TAGS = { ["Base.Paintbrush"] = "base:paintbrush" }
+ItemTag = { PAINTBRUSH = "base:paintbrush", SCREWDRIVER = "base:screwdriver" }
 
 local Item = {}
 Item.__index = Item
 function Item:getID() return self._id end
 function Item:getFullType() return self._type end
 function Item:getContainer() return self._container end
+function Item:getCondition() return self._condition or 100 end
+function Item:setCondition(c) self._condition = c end
 local Drain = setmetatable({}, { __index = Item })
 Drain.__index = Drain
 function Drain:getUseDelta() return self._useDelta end
@@ -238,6 +246,17 @@ function Drain:getCurrentUsesFloat() return self._uses * self._useDelta end
 function Drain:setCurrentUsesFloat(v)   -- 量化到一格（Math.round）
     v = math.max(0, math.min(1, v))
     self._uses = math.floor(v / self._useDelta + 0.5)
+end
+function Drain:getCurrentUses() return self._uses end
+-- 油漆：用一格，用完換成空桶（DrainableComboItem.java:322-383）；伺服器上同步計數
+function Drain:UseAndSync()
+    W.paintUses = W.paintUses + 1
+    self._uses = self._uses - 1
+    if self._uses <= 0 and self._container then
+        local c = self._container
+        c:DoRemoveItem(self)
+        c:AddItem("Base.PaintbucketEmpty")
+    end
 end
 
 local function newItem(fullType, charge)
@@ -249,7 +268,7 @@ local function newItem(fullType, charge)
         it:setCurrentUsesFloat(charge or 1)
         return it
     end
-    return new("InventoryItem", Item, { _id = id, _type = fullType })
+    return new("InventoryItem", Item, { _id = id, _type = fullType, _tag = TAGS[fullType] })
 end
 local function newKey(keyId)
     local k = newItem("Base.Key1")
@@ -285,11 +304,18 @@ function Container:haveThisKeyId(id)   -- ItemContainer.java:3242-3255
     for _, it in ipairs(self._items) do if it._keyId == id then return it end end
     return nil
 end
-function Container:getAllTypeRecurse(t)
+local function evalAll(inv, fn)
     local list = {}
-    for _, it in ipairs(self._items) do if it._type == t then list[#list + 1] = it end end
-    return javaList(list)
+    for _, it in ipairs(inv._items) do if fn(it) then list[#list + 1] = it end end
+    return list
 end
+function Container:getAllTypeRecurse(t) return javaList(evalAll(self, function(it) return it._type == t end)) end
+function Container:getAllEvalRecurse(fn) return javaList(evalAll(self, fn)) end   -- ItemContainer.java:1936
+function Container:getFirstEvalRecurse(fn) return evalAll(self, fn)[1] end          -- :1491
+function Container:containsEvalRecurse(fn) return evalAll(self, fn)[1] ~= nil end    -- :1146
+function Container:getFirstTypeRecurse(t) return evalAll(self, function(it) return it._type == t end)[1] end
+function Container:getFirstTypeEvalRecurse(t, fn) return evalAll(self, function(it) return it._type == t and fn(it) end)[1] end   -- :1569
+function Container:getFirstTagRecurse(tag) return evalAll(self, function(it) return it._tag == tag end)[1] end
 local function countType(inv, t) return inv:getAllTypeRecurse(t):size() end
 
 -- ===== 角色 =====
@@ -755,7 +781,7 @@ local function makeVehicle(x, y, opts)
         },
     })
     W.nextVid = W.nextVid + 1
-    if opts.tag then v._parts.KnoxPassTag._item = newItem(TAG, opts.tag) end
+    if opts.tag then v._parts.KnoxPassTag._item = newItem(opts.tagType or TAG, opts.tag) end
     W.vehicles[#W.vehicles + 1] = v
     return v
 end
@@ -1077,7 +1103,7 @@ local function gate(x, opts)
     end
     if opts.power ~= false then square(x, 100, 0)._grid = true end
     local owner = opts.owner or newPlayer(opts.name or ("owner" .. x), x, 102, { sid = opts.sid })
-    local reader = owner._inv:AddItem(READER)
+    local reader = owner._inv:AddItem(opts.reader or READER)
     local res = cmd(owner, "install", { x = clicked._square._x, y = 100, z = 0, index = clicked:getObjectIndex(), itemId = reader:getID() })
     local g = { door = door, key = res.key, owner = owner, res = res, group = door._group or door._gg }
     local rec = KP.Ledger.get(res.key)
@@ -2972,12 +2998,193 @@ local function scenarioReaderPost()
         "MP client：沒有伺服器邏輯，大錘過濾照樣生效")
 end
 
+-- 外殼顏色（KP.COLORS）與重新上色（Server.lua H.recolor／H.recolorReader、Ledger.lua L.renameTag、ReaderPost.lua 顏色×8＋變體）
+local function scenarioColors()
+    out("情境：外殼顏色與重新上色")
+    freshWorld()
+    local from = #logLines + 1
+    local function postsAt(x, y)
+        local list = {}
+        for _, o in ipairs(square(x, y, 0)._objects) do
+            local n = KP.readerPostIndex(o)
+            if n then list[#list + 1] = n end
+        end
+        return table.concat(list, ",")
+    end
+    local function painter(p, paints, brush)   -- 身上放油漆（滿桶 10 格）與刷子
+        for _, c in ipairs(paints) do p._inv:AddItem(PAINTS[c + 1]) end
+        if brush ~= false then p._inv:AddItem("Base.Paintbrush") end
+    end
+    local function paintLeft(p, c)   -- 身上這色油漆剩幾格（所有罐子合計）
+        local n = 0
+        for _, it in ipairs(p._inv._items) do if it._type == PAINTS[c + 1] then n = n + it._uses end end
+        return n
+    end
+
+    -- 1. 7 色都認得；其他物品不算
+    local all = true
+    for i, c in ipairs(KP.COLORS) do
+        local t, r = newItem(TAG .. c.suffix), newItem(READER .. c.suffix)
+        all = all and KP.isTag(t) and not KP.isReader(t) and KP.isReader(r) and not KP.isTag(r)
+            and KP.colorOf(t) == i - 1 and KP.colorOf(r) == i - 1 and KP.colorType(TAG, i - 1) == t._type
+            and c.paint == PAINTS[i] and (i == 1 or c.suffix == "_" .. COLOR_IDS[i - 1])
+    end
+    check(#KP.COLORS == 7 and all, "7 色感應盒與讀頭都認得、顏色索引與油漆照順序")
+    check(KP.colorOf(newItem("Base.Hammer")) == nil and not KP.isTag(nil) and not KP.isReader(newItem("Base.Hammer"))
+        and KP.isColor(6) and not KP.isColor(7) and not KP.isColor(-1) and not KP.isColor(1.5), "反面：其他物品、nil、越界索引都不算")
+
+    -- 2. 黑色讀頭：帳本記黑色、門柱用黑色 tile、錨點標記顏色；黑色感應盒登記後開車與步行都開
+    local g = gate(100, { reader = READER .. "_Black" })
+    check(g.res.ok == true and rec(g).color == 1 and postsAt(100, 100) == "8", "黑色讀頭安裝：rec.color=1、門柱 tile 1×8＋0")
+    check(g.door._modData.KnoxPassColor == 1 and g.door._view.modData.KnoxPassColor == 1, "錨點標記顏色並同步（選單列其他顏色用）")
+    local v = car(g, 7, { tag = 0.5, tagType = TAG .. "_Black" })
+    check(register(g, v).ok == true, "黑色感應盒可登記")
+    driver(v)
+    step()
+    check(g.door:IsOpen(), "黑色感應盒開車到門前 → 開門")
+    local res = cmd(g.owner, "lock", { key = g.key, on = true })
+    check(res.ok == true and g.door._modData.KnoxPassColor == 1, "上鎖重寫標記時顏色保留")
+    res = cmd(g.owner, "uninstall", { key = g.key })
+    check(res.ok == true and countType(g.owner._inv, READER .. "_Black") == 1 and countType(g.owner._inv, READER) == 0
+        and postsAt(100, 100) == "" and g.door._modData.KnoxPassColor == nil, "拆下退回黑色讀頭、門柱模型與標記一起拿掉")
+    local old = gate(150)
+    rec(old).color = nil   -- 更新前裝的讀頭：帳本沒有 color
+    cmd(old.owner, "uninstall", { key = old.key })
+    check(countType(old.owner._inv, READER) == 1, "舊記錄（沒有 color）拆下退回米白")
+
+    -- 3. 物品欄的感應盒換色：電量、狀態、容器、登記跟著走，舊 ID 失效
+    local gt = gate(200)
+    local vt = car(gt, 7, { tag = 0.37 })
+    register(gt, vt)
+    local tag = vt._parts.KnoxPassTag._item
+    local oldId = tag:getID()
+    tag:setCondition(64)
+    vt._parts.KnoxPassTag._item = nil   -- 用維修面板拆下來放進物品欄
+    local owner = gt.owner
+    owner._inv:AddItem(tag)
+    painter(owner, { 5 })
+    local ver, adds, removes = KP.Ledger.version(), W.addSent, W.removeSent
+    res = cmd(owner, "recolor", { itemId = oldId, color = 5 })
+    local fresh = owner._inv:getFirstTypeRecurse(TAG .. "_Orange")
+    check(res.ok == true and fresh ~= nil and countType(owner._inv, TAG) == 0 and fresh._container == owner._inv,
+        "感應盒換成安全橘：換 type、留在同一個容器")
+    check(fresh and near(fresh:getCurrentUsesFloat(), 0.37) and fresh:getCondition() == 64, "電量與狀態保留")
+    local r = rec(gt)
+    check(fresh and r.tags[fresh:getID()] ~= nil and r.tags[oldId] == nil and r.tags[fresh:getID()].serial == KP.serial(fresh:getID())
+        and KP.Ledger.gatesForTag(fresh:getID())[gt.key] == true and next(KP.Ledger.gatesForTag(oldId) or {}) == nil,
+        "登記改記新 ID（序號跟著換）、索引重建、舊 ID 查不到")
+    check(KP.Ledger.version() > ver and W.addSent == adds + 1 and W.removeSent == removes + 1, "帳本版本加一（重推 passes）、MP 同步增刪")
+    check(paintLeft(owner, 5) == 9 and W.paintUses == 1, "用掉一格油漆")
+    local walker = newPlayer("walker", 200, 102)
+    local forged = walker._inv:AddItem(newItem(TAG, 1))
+    forged._id = oldId   -- 舊 ID 的感應盒（不該再有效）
+    check(cmd(walker, "open", { key = gt.key }).why == "NotAllowed", "舊 ID 不再能開門")
+    walker._inv:DoRemoveItem(forged)
+    walker._inv:AddItem(fresh)
+    check(cmd(walker, "open", { key = gt.key }).ok == true, "新 ID（換色後的感應盒）可以開門")
+    restart()
+    check(rec(gt).tags[fresh:getID()] ~= nil and KP.Ledger.gatesForTag(fresh:getID()) ~= nil, "重開後登記仍是新 ID")
+
+    -- 4. 物品欄的讀頭換色（沒有登記可改）
+    local rd = owner._inv:AddItem(READER)
+    painter(owner, { 1 }, false)   -- 刷子已有
+    res = cmd(owner, "recolor", { itemId = rd:getID(), color = 1 })
+    check(res.ok == true and countType(owner._inv, READER) == 0 and countType(owner._inv, READER .. "_Black") == 1 and paintLeft(owner, 1) == 9,
+        "讀頭換成黑色、用掉一格")
+
+    -- 5. 拒絕：缺油漆、缺刷子、不在身上、裝在車上、顏色不合法；被拒時物品與油漆都不動
+    local bare = newPlayer("bare", 200, 102)
+    local t2 = bare._inv:AddItem(newItem(TAG, 0.8))
+    painter(bare, {}, true)
+    check(cmd(bare, "recolor", { itemId = t2:getID(), color = 2 }).why == "NoPaint" and bare._inv:getFirstTypeRecurse(TAG) == t2, "缺油漆 → NoPaint")
+    local empty = bare._inv:AddItem(PAINTS[3])
+    empty._uses = 0
+    check(cmd(bare, "recolor", { itemId = t2:getID(), color = 2 }).why == "NoPaint", "油漆用完（0 格）→ NoPaint")
+    local nobrush = newPlayer("nobrush", 200, 102)
+    local t3 = nobrush._inv:AddItem(newItem(TAG, 0.8))
+    painter(nobrush, { 2 }, false)
+    check(cmd(nobrush, "recolor", { itemId = t3:getID(), color = 2 }).why == "NoBrush" and paintLeft(nobrush, 2) == 10, "缺刷子 → NoBrush，油漆不扣")
+    painter(bare, { 2 }, false)
+    check(cmd(bare, "recolor", { itemId = t3:getID(), color = 2 }).why == "NotCarried", "別人身上的物品 → NotCarried")
+    local vi = car(gt, 9, { tag = 0.5 })
+    check(cmd(bare, "recolor", { itemId = vi._parts.KnoxPassTag._item:getID(), color = 2 }).why == "NotCarried"
+        and vi._parts.KnoxPassTag._item._type == TAG, "裝在車上的感應盒 → NotCarried（要先拆下）")
+    local hammer = bare._inv:AddItem("Base.Hammer")
+    check(cmd(bare, "recolor", { itemId = hammer:getID(), color = 2 }).why == "NotCarried", "不是感應盒或讀頭 → NotCarried")
+    check(cmd(bare, "recolor", { itemId = t2:getID(), color = 0 }).why == "BadColor"
+        and cmd(bare, "recolor", { itemId = t2:getID(), color = 7 }).why == "BadColor"
+        and cmd(bare, "recolor", { itemId = t2:getID(), color = "2" }).why == "BadColor", "同色、越界、非整數 → BadColor")
+    check(W.paintUses == 2 and bare._inv:getFirstTypeRecurse(TAG) == t2 and paintLeft(bare, 2) == 10, "反面：被拒的都沒扣油漆、沒換物品")
+
+    -- 6. 已裝在門上的讀頭改色：登記保留、模型換色；非擁有者、缺料、閘門被拒
+    local gd = gate(300)
+    local vd = car(gd, 7, { tag = 0.5 })
+    register(gd, vd)
+    local tagId = vd._parts.KnoxPassTag._item:getID()
+    local stranger = newPlayer("stranger", 300, 102)
+    painter(stranger, { 1 })
+    check(cmd(stranger, "recolorReader", { key = gd.key, color = 1 }).why == "NotOwner" and paintLeft(stranger, 1) == 10, "非擁有者 → NotOwner")
+    check(cmd(gd.owner, "recolorReader", { key = gd.key, color = 1 }).why == "NoBrush", "擁有者缺刷子 → NoBrush")
+    gd.owner._inv:AddItem("Base.Paintbrush")
+    check(cmd(gd.owner, "recolorReader", { key = gd.key, color = 1 }).why == "NoPaint", "擁有者缺油漆 → NoPaint")
+    painter(gd.owner, { 1 }, false)
+    check(cmd(gd.owner, "recolorReader", { key = gd.key, color = 0 }).why == "BadColor"
+        and cmd(gd.owner, "recolorReader", { key = gd.key, color = 9 }).why == "BadColor", "同色、越界 → BadColor")
+    local far = newPlayer("far", 300, 110)
+    painter(far, { 1 })
+    check(cmd(far, "recolorReader", { key = gd.key, color = 1 }).why == "TooFar", "離門太遠 → TooFar")
+    local post0 = postsAt(300, 100)
+    res = cmd(gd.owner, "recolorReader", { key = gd.key, color = 1 })
+    check(res.ok == true and rec(gd).color == 1 and post0 == "0" and postsAt(300, 100) == "8", "改成黑色：rec.color=1、門柱 tile 0 → 8（只有一個）")
+    check(rec(gd).tags[tagId] ~= nil and gd.door._modData.KnoxPassColor == 1 and paintLeft(gd.owner, 1) == 9, "登記保留、標記改色、用掉一格")
+    driver(vd)
+    step()
+    check(gd.door:IsOpen(), "改色後登記的車照樣開門")
+    local builder = newPlayer("builder", 401, 102)
+    buildBarrier(400, 100, true, builder)
+    step()
+    painter(builder, { 1 })
+    check(cmd(builder, "recolorReader", { key = "401,100,0N", color = 1 }).why == "BarrierColor"
+        and paintLeft(builder, 1) == 10, "抬升閘門內建讀頭 → BarrierColor")
+
+    -- 7. 對齊（heal）把顏色不對的模型換掉；孤兒的彩色 tile 也認得
+    rec(gd).color = 3   -- 例：存檔不同步，帳本是軍綠、格上是黑色
+    fire("LoadGridsquare", square(300, 100, 0))
+    step()
+    check(postsAt(300, 100) == "24" and logHas("not in ledger", from), "宿主格載入：黑色換成帳本的軍綠（3×8＋0）")
+    local orphan = IsoObject.new(nil, nil, "MinidoracatKnoxPass_reader_49")   -- 紅色（6）變體 1
+    square(600, 600, 0):AddTileObject(orphan)
+    local cb = W.onLoadSprite["MinidoracatKnoxPass_reader_49"]
+    if cb then cb(orphan) end
+    step()
+    check(cb ~= nil and not present(orphan), "孤兒的彩色讀頭模型：區塊載入時移除")
+    restart()
+    step()
+    check(rec(gd).color == 3 and postsAt(300, 100) == "24", "重開：顏色隨帳本保留、模型不重複")
+    clean(from, "外殼顏色與重新上色")
+
+    -- 8. SP：同樣換色，不送網路
+    freshWorld("sp")
+    from = #logLines + 1
+    local me = newPlayer("me", 100, 102)
+    W.locals = { me }
+    local got
+    KP.clientReceive = function(command, args) if command == "result" then got = args end end
+    local st = me._inv:AddItem(newItem(TAG, 0.6))
+    painter(me, { 6 })
+    fire("OnClientCommand", "MinidoracatKnoxPass", "recolor", me, { itemId = st:getID(), color = 6 })
+    local red = me._inv:getFirstTypeRecurse(TAG .. "_Red")
+    check(got and got.ok == true and red and near(red:getCurrentUsesFloat(), 0.6) and W.addSent == 0 and paintLeft(me, 6) == 9,
+        "SP：換成紅色、電量保留、沒有網路傳送")
+    clean(from, "外殼顏色與重新上色（SP）")
+end
+
 local tests = {
     scenarioParts, scenarioDetection, scenarioAutoClose, scenarioLocks, scenarioCommands,
     scenarioSinglePlayer, scenarioLedger, scenarioCharging, scenarioReopen, scenarioUninstallOpen, scenarioGarage,
     scenarioDoubleDoorway, scenarioAutoDrive, scenarioLoadGridsquare, scenarioTagScript,
     scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,
-    scenarioReaderPost,
+    scenarioReaderPost, scenarioColors,
 }
 for _, t in ipairs(tests) do t() end
 

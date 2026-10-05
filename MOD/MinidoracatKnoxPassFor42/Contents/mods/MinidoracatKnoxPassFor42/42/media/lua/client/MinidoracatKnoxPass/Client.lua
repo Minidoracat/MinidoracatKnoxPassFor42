@@ -55,7 +55,8 @@ local function onResult(args)
     local player = C.lastPlayer or getSpecificPlayer(0)
     if args.ok then
         if args.cmd == "install" then C.say(player, getText("IGUI_KnoxPass_Installed"), false)
-        elseif args.cmd == "uninstall" then C.say(player, getText("IGUI_KnoxPass_Uninstalled"), false) end
+        elseif args.cmd == "uninstall" then C.say(player, getText("IGUI_KnoxPass_Uninstalled"), false)
+        elseif args.cmd == "recolor" or args.cmd == "recolorReader" then C.say(player, getText("IGUI_KnoxPass_Recolored"), false) end
         return
     end
     C.say(player, KnoxPassAPI.whyText(args.why), true)
@@ -142,7 +143,7 @@ local function queue(player, door, action)
 end
 
 function C.queueInstall(player, door)
-    local reader = player:getInventory():getFirstTypeRecurse(KP.READER_TYPE)
+    local reader = player:getInventory():getFirstEvalRecurse(KP.isReader)   -- 任何顏色（ItemContainer.java:1491）
     if not reader then return end
     local action = Action:new(player, door, "install", INSTALL_TICKS)
     action.itemId = reader:getID()
@@ -154,6 +155,72 @@ function C.queueUninstall(player, anchor, key)
     local action = Action:new(player, anchor, "uninstall", UNINSTALL_TICKS)
     action.key = key
     queue(player, anchor, action)
+end
+
+-- ── 計時動作：重新上色 ──────────────────────────────────────────────────
+-- 同上不定義 complete，只在本機跑；perform 送意圖，伺服器重驗油漆、刷子、物品／擁有權後才換色並扣油漆
+-- （Server.lua H.recolor／H.recolorReader）。動畫、手上模型、音效與時間照原版 ISPaintAction.lua:19-31、:87-93
+local PAINT_TICKS = 100
+local Paint = ISBaseTimedAction:derive("KnoxPassPaintAction")
+Paint.__index = Paint
+C.Paint = Paint
+
+function Paint:isValid()
+    if not KP.paintFor(self.character, self.color) then return false end
+    local door = self.door
+    if door then return door:getSquare() ~= nil and door:getObjectIndex() ~= -1 end
+    return self.character:getInventory():getItemWithIDRecursiv(self.itemId) ~= nil
+end
+
+function Paint:waitToStart()
+    if not self.door then return false end
+    self.character:faceThisObject(self.door)
+    return self.character:shouldBeTurning()
+end
+
+function Paint:update()
+    if self.door then self.character:faceThisObject(self.door) end
+    self.character:setMetabolicTarget(Metabolics.LightWork)
+end
+
+function Paint:start()
+    self:setActionAnim(CharacterActionAnims.Paint)
+    self:setOverrideHandModels("PaintBrush", nil)
+    self.sound = self.character:playSound("Painting")
+end
+
+function Paint:stop()
+    if self.sound then self.character:stopOrTriggerSound(self.sound) end
+    ISBaseTimedAction.stop(self)
+end
+
+function Paint:perform()
+    if self.sound then self.character:stopOrTriggerSound(self.sound) end
+    if self.door then
+        C.send(self.character, "recolorReader", { key = self.key, color = self.color })
+    else
+        C.send(self.character, "recolor", { itemId = self.itemId, color = self.color })
+    end
+    ISBaseTimedAction.perform(self)
+end
+
+function Paint:new(character, color)
+    local o = ISBaseTimedAction.new(self, character)
+    o.color = color
+    o.maxTime = character:isTimedActionInstant() and 1 or PAINT_TICKS
+    return o
+end
+
+-- target＝{ item = 物品欄的感應盒或讀頭 } 或 { door = 錨點, key = 帳本 key }（門上的讀頭：走到錨點，伺服器以錨點格量距離）
+function C.queueRecolor(player, target, color)
+    local action = Paint:new(player, color)
+    if target.door then
+        if not luautils.walkAdjWindowOrDoor(player, target.door:getSquare(), target.door) then return end
+        action.door, action.key = target.door, target.key
+    else
+        action.itemId = target.item:getID()
+    end
+    ISTimedActionQueue.add(action)
 end
 
 -- ── 右鍵選單 ────────────────────────────────────────────────────────────
@@ -186,6 +253,26 @@ local function onManage(player, anchor, key) KP.Window.open(player, anchor, key)
 local function onLock(player, key, on) C.send(player, "lock", { key = key, on = on }) end
 local function onOpen(player, key) C.send(player, "open", { key = key }) end
 
+-- 「重新上色」子選單：列出 current 以外的顏色；缺刷子或該色油漆的灰掉並提示（原版 notAvailable＋池化 tooltip，
+-- addTip＝該選單的 tooltip 池：ISWorldObjectContextMenu.lua:2595／ISInventoryPaneContextMenu.lua:3417）
+local function recolorMenu(menu, player, current, addTip, target)
+    local sub = ISContextMenu:getNew(menu)
+    menu:addSubMenu(menu:addOption(getText("ContextMenu_KnoxPass_Recolor"), nil, nil), sub)
+    for i, c in ipairs(KP.COLORS) do
+        if i - 1 ~= current then
+            local opt = sub:addOption(getText("IGUI_KnoxPass_Color_" .. c.id), player, C.queueRecolor, target, i - 1)
+            local _, why = KP.paintFor(player, i - 1)
+            if why then
+                opt.notAvailable = true
+                local t = addTip()
+                t.description = why == "NoBrush" and getText("IGUI_KnoxPass_Why_NoBrush")
+                    or getText("IGUI_KnoxPass_NeedPaint", getItemNameFromFullType(c.paint))   -- LuaManager.java:8603-8607
+                opt.toolTip = t
+            end
+        end
+    end
+end
+
 -- 事件簽名 (playerIndex, context, worldobjects, test)：ISWorldObjectContextMenu.lua:213；
 -- 別人的保險屋內本來就不觸發（同檔 :211）
 local function onFillMenu(playerIndex, context, worldobjects, test)
@@ -205,7 +292,7 @@ local function onFillMenu(playerIndex, context, worldobjects, test)
     local md = anchor:getModData()
     local owner = md[KP.MARKER_OWNER]
     local hasScrewdriver = screwdriverOf(player) ~= nil
-    if not owner and not player:getInventory():containsTypeRecurse(KP.READER_TYPE) then return end
+    if not owner and not player:getInventory():containsEvalRecurse(KP.isReader) then return end   -- ItemContainer.java:1146
 
     local root = context:addOption(getText("ContextMenu_KnoxPass"), nil, nil)
     local sub = ISContextMenu:getNew(context)
@@ -234,10 +321,28 @@ local function onFillMenu(playerIndex, context, worldobjects, test)
 
     sub:addOption(getText("ContextMenu_KnoxPass_Open"), player, onOpen, key)
 
-    -- 閘門的讀頭是內建的：不給拆（伺服器 H.uninstall 回 BuiltIn），拆整座閘門走拆除機箱
+    -- 閘門的讀頭是內建的：不給拆（伺服器 H.uninstall 回 BuiltIn）、不分顏色，拆整座閘門走拆除機箱
     if KP.isBarrier(anchor) then return end
     local remove = sub:addOption(getText("ContextMenu_KnoxPass_Remove"), player, C.queueUninstall, anchor, key)
     if not hasScrewdriver then disable(remove, "IGUI_KnoxPass_NeedScrewdriver") end
+    recolorMenu(sub, player, md[KP.MARKER_COLOR] or 0, ISWorldObjectContextMenu.addToolTip, { door = anchor, key = key })
 end
 
 Events.OnFillWorldObjectContextMenu.Add(onFillMenu)
+
+-- 物品欄右鍵：身上（含背包）的感應盒或讀頭可以重新上色。事件簽名 (playerIndex, context, items)：
+-- ISInventoryPaneContextMenu.lua:935；items 混著物品與分組表，用 ISInventoryPane.getActualItems 攤平（ISInventoryPane.lua:912-933）。
+-- 地上、別的容器、裝在車上的不給（伺服器 H.recolor 也只找玩家身上，isInPlayerInventory InventoryItem.java:2278-2281）
+local function onFillInventoryMenu(playerIndex, context, items)
+    local player = getSpecificPlayer(playerIndex)
+    if not player then return end
+    for _, item in ipairs(ISInventoryPane.getActualItems(items)) do
+        local color = KP.colorOf(item)
+        if color and item:isInPlayerInventory() then
+            recolorMenu(context, player, color, ISInventoryPaneContextMenu.addToolTip, { item = item })
+            return
+        end
+    end
+end
+
+Events.OnFillInventoryObjectContextMenu.Add(onFillInventoryMenu)

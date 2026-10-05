@@ -28,6 +28,7 @@ description=[*] [b]Reads on the move[/b]: the faster you drive, the earlier it o
 description=[*] [b]A real vehicle part[/b]: fits vanilla and modded cars, and moves with the tag to another car
 description=[*] [b]Per-gate registration[/b]: only the cars you register get through, and you can lock it to Knox Pass only
 description=[*] [b]Works with many gates[/b]: fence gates, double doors, garage doors and player-built doors
+description=[*] [b]7 shell colors[/b]: repaint tags and readers with vanilla paint and a paintbrush; registrations stay intact
 description=[*] [b]No crashes, no pinching[/b]: warns you ahead of a gate that won't open, and never closes on a car or a person
 description=[*] [b]Server settings[/b]: read range, close delay, power and tag battery are all adjustable
 description=[/list]

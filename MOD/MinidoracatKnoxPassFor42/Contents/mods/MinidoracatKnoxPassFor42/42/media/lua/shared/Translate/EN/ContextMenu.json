@@ -5,5 +5,6 @@
     "ContextMenu_KnoxPass_Lock": "Lock (only Knox Pass opens it)",
     "ContextMenu_KnoxPass_Open": "Open with Knox Pass",
     "ContextMenu_KnoxPass_Remove": "Remove reader",
-    "ContextMenu_KnoxPass_OtherOwner": "Reader belongs to another player"
+    "ContextMenu_KnoxPass_OtherOwner": "Reader belongs to another player",
+    "ContextMenu_KnoxPass_Recolor": "Repaint"
 }

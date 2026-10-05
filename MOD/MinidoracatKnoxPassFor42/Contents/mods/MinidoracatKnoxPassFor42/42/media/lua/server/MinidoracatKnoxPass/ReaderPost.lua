@@ -1,12 +1,12 @@
 -- 門柱上的讀頭模型：裝了讀頭的門，在錨點那片的外端門柱上多放一個 IsoObject（tileset MinidoracatKnoxPass_reader，
--- scripts/build_barrier_tiles.py）。tile 沒有任何屬性：不擋人車、AutoDrive 當成沒東西、不能搬、不能拆；
+-- 索引＝讀頭顏色×8＋變體，scripts/build_barrier_tiles.py）。tile 沒有任何屬性：不擋人車、AutoDrive 當成沒東西、不能搬、不能拆；
 -- 3D 模型由 common/media/spriteModels.txt 掛上（有 spriteModel 的物件只畫模型，IsoObject.java:3540-3545）。
 -- 帳本是唯一依據，世界上的物件只是顯示，全部只在伺服器（含 SP）改：
 --   放上：KP.registerReader → R.attach（帳本記 post＝宿主格與變體）；抬升閘門與其他 MOD 的門不放
 --   拿掉：L.remove → R.detach（拆讀頭、門不見了、閘門移除都走 L.remove）
---   門被拆、被打壞、被搬走：OnObjectAboutToBeRemoved 看到帶讀頭標記的錨點，下一個 tick 確認門真的不在就刪帳本
 --   自我修復：宿主格（與還沒記 post 的舊記錄的錨點格）載入時，下一個 tick 對齊：帳本有、格上沒有就補；
---   格上有、帳本沒有（或變體不對、重複）就移除。更新前已裝的讀頭因此在門所在的格子載入時補上
+--   格上有、帳本沒有（或變體、顏色不對、重複）就移除。更新前已裝的讀頭因此在門所在的格子載入時補上
+--   改色：帳本 rec.color 改完呼叫 R.refresh，對齊把舊顏色的換成新顏色（rec.color 沒有＝米白，舊記錄）
 -- media/lua/server 的檔 MP client 也會載入：大錘游標的過濾（client UI）在檔頭，其餘只在 server／SP 掛
 require "MinidoracatKnoxPass/Core"
 require "BuildingObjects/ISDestroyCursor"
@@ -90,10 +90,16 @@ end
 
 -- IsoObject(cell, square, spriteName)（IsoObject.java:331-336）→ AddTileObject（IsoGridSquare.java:5851-5880）→
 -- MP 送給附近客戶端（transmitCompleteItemToClients，IsoObject.java:4604-4611；SP 是 no-op）
-local function add(sq, v)
-    local o = IsoObject.new(getCell(), sq, KP.READER_POST_TILESET .. "_" .. v)
+local function add(sq, n)
+    local o = IsoObject.new(getCell(), sq, KP.READER_POST_TILESET .. "_" .. n)
     sq:AddTileObject(o)
     o:transmitCompleteItemToClients()
+end
+
+-- 帳本這筆讀頭在變體 v 該用哪張 tile
+local function tileFor(key, v)
+    local rec = L.get(key)
+    return ((rec and rec.color) or 0) * KP.READER_POST_STRIDE + v
 end
 
 local function heal(x, y, z)
@@ -110,15 +116,17 @@ local function heal(x, y, z)
             if adapter then R.attach(key, rec, adapter, anchor) end
         end
     end
-    local want = hosts[c] or {}
+    local want = {}   -- 變體 → 該用的 tile 索引
+    for v, key in pairs(hosts[c] or {}) do want[v] = tileFor(key, v) end
     local seen, extra = {}, {}
     local objects = sq:getObjects()
-    for i = 0, objects:size() - 1 do   -- 留最早放的那個，之後的重複與帳本沒有的移除
+    for i = 0, objects:size() - 1 do   -- 留最早放的那個，之後的重複、顏色不對與帳本沒有的移除
         local o = objects:get(i)
-        local v = KP.readerPostIndex(o)
-        if v and want[v] and not seen[v] then
+        local n = KP.readerPostIndex(o)
+        local v = n and n % KP.READER_POST_STRIDE
+        if n and want[v] == n and not seen[v] then
             seen[v] = true
-        elseif v then
+        elseif n then
             extra[#extra + 1] = o
         end
     end
@@ -127,8 +135,8 @@ local function heal(x, y, z)
         sq:transmitRemoveItemFromSquare(o, false)
         KP.log("reader post removed (not in ledger) at " .. x .. "," .. y .. "," .. z)
     end
-    for v in pairs(want) do
-        if not seen[v] then add(sq, v) end
+    for v, n in pairs(want) do
+        if not seen[v] then add(sq, n) end
     end
 end
 
@@ -154,6 +162,13 @@ function R.detach(key, rec)
     heal(p.x, p.y, rec.z)
 end
 
+-- 帳本改了讀頭顏色（rec.color）：宿主格已載入就馬上換模型，沒載入時等載入對齊
+function R.refresh(key, rec)
+    if not ready() then return end
+    local p = rec.post
+    if p then heal(p.x, p.y, rec.z) end
+end
+
 -- LoadGridsquare（伺服器載入一格，IsoChunk.java:3835、ServerMap.java:950-969）：只記下來，下一個 tick 整個 chunk
 -- 都載入完才對齊（同 Sensor.lua 的理由：載入途中相鄰格的物件還沒 addToWorld）
 Events.LoadGridsquare.Add(function(sq)
@@ -164,9 +179,11 @@ Events.LoadGridsquare.Add(function(sq)
 end)
 
 -- 格上已有的讀頭模型（帳本被清掉、存檔不同步時的孤兒）：chunk 載入時逐物件回呼（Lua/MapObjects.java:134-216，
--- 觸發點 IsoChunk.java:3829，伺服器與 SP 都跑）
+-- 觸發點 IsoChunk.java:3829，伺服器與 SP 都跑）。7 色 × 變體 0-3
 local names = {}
-for i = 0, 3 do names[#names + 1] = KP.READER_POST_TILESET .. "_" .. i end
+for c = 0, #KP.COLORS - 1 do
+    for v = 0, 3 do names[#names + 1] = KP.READER_POST_TILESET .. "_" .. (c * KP.READER_POST_STRIDE + v) end
+end
 MapObjects.OnLoadWithSprite(names, function(obj)
     local sq = obj:getSquare()
     if sq then queue[#queue + 1] = { sq:getX(), sq:getY(), sq:getZ() } end

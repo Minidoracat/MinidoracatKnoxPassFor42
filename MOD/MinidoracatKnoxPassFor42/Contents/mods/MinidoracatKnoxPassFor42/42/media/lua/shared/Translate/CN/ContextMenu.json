@@ -5,5 +5,6 @@
     "ContextMenu_KnoxPass_Lock": "上锁（只有 Knox Pass 能开）",
     "ContextMenu_KnoxPass_Open": "用 Knox Pass 开门",
     "ContextMenu_KnoxPass_Remove": "拆下读头",
-    "ContextMenu_KnoxPass_OtherOwner": "这个读头属于其他玩家"
+    "ContextMenu_KnoxPass_OtherOwner": "这个读头属于其他玩家",
+    "ContextMenu_KnoxPass_Recolor": "重新上色"
 }

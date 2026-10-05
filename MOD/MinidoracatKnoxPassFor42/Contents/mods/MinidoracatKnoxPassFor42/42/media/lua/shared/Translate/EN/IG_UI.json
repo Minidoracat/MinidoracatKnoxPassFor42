@@ -68,5 +68,19 @@
     "IGUI_KnoxPass_Barrier_Name": "Knox Pass Boom Barrier",
     "IGUI_KnoxPass_Kind_Barrier": "Boom barrier",
     "IGUI_KnoxPass_Why_BuiltIn": "This reader is built into the barrier; dismantle the barrier's cabinet instead.",
-    "IGUI_KnoxPass_AheadWarn": "The Knox Pass gate ahead won't open for this vehicle: %1"
+    "IGUI_KnoxPass_AheadWarn": "The Knox Pass gate ahead won't open for this vehicle: %1",
+    "IGUI_KnoxPass_Color_Cream": "Cream",
+    "IGUI_KnoxPass_Color_Black": "Black",
+    "IGUI_KnoxPass_Color_Graphite": "Graphite",
+    "IGUI_KnoxPass_Color_Olive": "Olive",
+    "IGUI_KnoxPass_Color_Navy": "Navy",
+    "IGUI_KnoxPass_Color_Orange": "Safety Orange",
+    "IGUI_KnoxPass_Color_Red": "Red",
+    "IGUI_KnoxPass_Recolored": "Repainted",
+    "IGUI_KnoxPass_NeedPaint": "Requires %1 (at least one use).",
+    "IGUI_KnoxPass_Why_NoBrush": "Requires a paintbrush.",
+    "IGUI_KnoxPass_Why_NoPaint": "You don't have paint in that color.",
+    "IGUI_KnoxPass_Why_NotCarried": "The item must be in your inventory (remove an installed tag with the mechanics panel first).",
+    "IGUI_KnoxPass_Why_BadColor": "Can't repaint to that color.",
+    "IGUI_KnoxPass_Why_BarrierColor": "The barrier's built-in reader can't be repainted."
 }
