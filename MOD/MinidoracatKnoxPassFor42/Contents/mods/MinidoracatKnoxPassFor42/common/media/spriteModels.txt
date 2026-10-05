@@ -20,6 +20,7 @@ spriteModel
         {
             xy = 0 1,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = -1.0000 0.0000 0.0000,
             rotate = 0.0000 180.0000 0.0000,
             scale = 1.0000,
@@ -29,17 +30,17 @@ spriteModel
         tile
         {
             xy = 1 0,
-            modelScript = Base.MinidoracatKnoxPass_BarrierEmpty,
-            translate = 0.0000 0.0000 0.0000,
-            rotate = 0.0000 0.0000 0.0000,
+            modelScript = Base.MinidoracatKnoxPass_BarrierLines,
+            translate = -2.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
             scale = 1.0000,
         }
         tile
         {
             xy = 1 1,
-            modelScript = Base.MinidoracatKnoxPass_BarrierEmpty,
-            translate = 0.0000 0.0000 0.0000,
-            rotate = 0.0000 0.0000 0.0000,
+            modelScript = Base.MinidoracatKnoxPass_BarrierLines,
+            translate = -2.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
             scale = 1.0000,
         }
         tile
@@ -80,6 +81,7 @@ spriteModel
         {
             xy = 3 1,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = 0.0000 0.0000 1.0000,
             rotate = 0.0000 -90.0000 0.0000,
             scale = 1.0000,
@@ -89,17 +91,17 @@ spriteModel
         tile
         {
             xy = 4 0,
-            modelScript = Base.MinidoracatKnoxPass_BarrierEmpty,
-            translate = 0.0000 0.0000 0.0000,
-            rotate = 0.0000 0.0000 0.0000,
+            modelScript = Base.MinidoracatKnoxPass_BarrierLines,
+            translate = 0.0000 0.0000 2.0000,
+            rotate = 0.0000 -90.0000 0.0000,
             scale = 1.0000,
         }
         tile
         {
             xy = 4 1,
-            modelScript = Base.MinidoracatKnoxPass_BarrierEmpty,
-            translate = 0.0000 0.0000 0.0000,
-            rotate = 0.0000 0.0000 0.0000,
+            modelScript = Base.MinidoracatKnoxPass_BarrierLines,
+            translate = 0.0000 0.0000 2.0000,
+            rotate = 0.0000 -90.0000 0.0000,
             scale = 1.0000,
         }
         tile
@@ -130,6 +132,7 @@ spriteModel
         {
             xy = 0 2,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = -1.0000 0.0000 0.0000,
             rotate = 0.0000 180.0000 0.0000,
             scale = 1.0000,
@@ -140,6 +143,7 @@ spriteModel
         {
             xy = 1 2,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = -1.0000 0.0000 0.0000,
             rotate = 0.0000 180.0000 0.0000,
             scale = 1.0000,
@@ -150,6 +154,7 @@ spriteModel
         {
             xy = 2 2,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = -1.0000 0.0000 0.0000,
             rotate = 0.0000 180.0000 0.0000,
             scale = 1.0000,
@@ -160,6 +165,7 @@ spriteModel
         {
             xy = 3 2,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = -1.0000 0.0000 0.0000,
             rotate = 0.0000 180.0000 0.0000,
             scale = 1.0000,
@@ -170,6 +176,7 @@ spriteModel
         {
             xy = 4 2,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = -1.0000 0.0000 0.0000,
             rotate = 0.0000 180.0000 0.0000,
             scale = 1.0000,
@@ -180,6 +187,7 @@ spriteModel
         {
             xy = 5 2,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = -1.0000 0.0000 0.0000,
             rotate = 0.0000 180.0000 0.0000,
             scale = 1.0000,
@@ -190,6 +198,7 @@ spriteModel
         {
             xy = 6 2,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = -1.0000 0.0000 0.0000,
             rotate = 0.0000 180.0000 0.0000,
             scale = 1.0000,
@@ -200,6 +209,7 @@ spriteModel
         {
             xy = 7 2,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = -1.0000 0.0000 0.0000,
             rotate = 0.0000 180.0000 0.0000,
             scale = 1.0000,
@@ -209,6 +219,97 @@ spriteModel
         tile
         {
             xy = 0 3,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
+            translate = -1.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 0 6,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = -1.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 6,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = -1.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 6,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = -1.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 6,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = -1.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 6,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = -1.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 6,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = -1.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 6,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = -1.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 6,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = -1.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 7,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
             translate = -1.0000 0.0000 0.0000,
             rotate = 0.0000 180.0000 0.0000,
@@ -220,6 +321,7 @@ spriteModel
         {
             xy = 0 4,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = 0.0000 0.0000 1.0000,
             rotate = 0.0000 -90.0000 0.0000,
             scale = 1.0000,
@@ -230,6 +332,7 @@ spriteModel
         {
             xy = 1 4,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = 0.0000 0.0000 1.0000,
             rotate = 0.0000 -90.0000 0.0000,
             scale = 1.0000,
@@ -240,6 +343,7 @@ spriteModel
         {
             xy = 2 4,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = 0.0000 0.0000 1.0000,
             rotate = 0.0000 -90.0000 0.0000,
             scale = 1.0000,
@@ -250,6 +354,7 @@ spriteModel
         {
             xy = 3 4,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = 0.0000 0.0000 1.0000,
             rotate = 0.0000 -90.0000 0.0000,
             scale = 1.0000,
@@ -260,6 +365,7 @@ spriteModel
         {
             xy = 4 4,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = 0.0000 0.0000 1.0000,
             rotate = 0.0000 -90.0000 0.0000,
             scale = 1.0000,
@@ -270,6 +376,7 @@ spriteModel
         {
             xy = 5 4,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = 0.0000 0.0000 1.0000,
             rotate = 0.0000 -90.0000 0.0000,
             scale = 1.0000,
@@ -280,6 +387,7 @@ spriteModel
         {
             xy = 6 4,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = 0.0000 0.0000 1.0000,
             rotate = 0.0000 -90.0000 0.0000,
             scale = 1.0000,
@@ -290,6 +398,7 @@ spriteModel
         {
             xy = 7 4,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
             translate = 0.0000 0.0000 1.0000,
             rotate = 0.0000 -90.0000 0.0000,
             scale = 1.0000,
@@ -299,6 +408,97 @@ spriteModel
         tile
         {
             xy = 0 5,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
+            translate = 0.0000 0.0000 1.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 0 8,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = 0.0000 0.0000 1.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 8,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = 0.0000 0.0000 1.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 8,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = 0.0000 0.0000 1.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 8,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = 0.0000 0.0000 1.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 8,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = 0.0000 0.0000 1.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 8,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = 0.0000 0.0000 1.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 8,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = 0.0000 0.0000 1.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 8,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArm,
+            translate = 0.0000 0.0000 1.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 9,
             modelScript = Base.MinidoracatKnoxPass_BarrierArm,
             translate = 0.0000 0.0000 1.0000,
             rotate = 0.0000 -90.0000 0.0000,

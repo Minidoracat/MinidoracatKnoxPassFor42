@@ -10,13 +10,18 @@ check of the translate/rotate values we hand to spriteModels.txt:
   calib/*:  vanilla fixtures_doors_fences_01_{0,1}.glb with their vanilla spriteModels values
   barrier:  knoxpass_barrier_cabinet.glb on the cabinet tile, translate 0; knoxpass_barrier_arm.glb on
             lane tile 1 with translate = one tile back toward the cabinet (LAYOUTS); rotate N (0,180,0), W (0,-90,0).
+  game:     previews/<N|W>_<closed|half|open>_game.png at the 2x scale (game default zoom) and *_zoom.png at 2.5x:
+            asphalt ground with a tile grid, + knoxpass_barrier_lines.glb on lane tile 2 (translate two tiles back),
+            lamp texture as the engine picks it (closed red; half = opening and open use knoxpass_barrier_green.png).
+            Cells never include the road paint: 2D only shows in the build cursor.
 
 Cells: 128x256, tile top corner at (64,192), centre at (64,224) — vanilla Tiles2x convention
 (IsoObject.java:2174 offsetY = 96*tileScale; all 35k Tiles2x world tiles are 128x256).
 Each cell is rendered on a 128x448 canvas (top corner at (64,384)) so geometry taller than one level can
 go to an optional z+1 cell (rows 0..191 of the canvas); slicing by tile uses a world-position alpha mask.
 Cell kinds: cabinet (cabinet model, state independent), lane1..3 (arm model inside that tile),
-cabinet_arm (arm model inside the cabinet tile: the raised arm lives here).
+cabinet_arm (arm model inside the cabinet tile: the raised arm lives here), cabinet_ghost (cabinet + closed arm
+inside the cabinet tile, depth-correct: the build-cursor cell for the cabinet tile, where the lamp sits).
 """
 import math
 from pathlib import Path
@@ -28,10 +33,11 @@ HERE = Path(__file__).resolve().parent
 VANILLA = Path("D:/SteamLibrary/steamapps/common/ProjectZomboid/media/models_X/IsoObject")
 PX = 128 / math.sqrt(2)             # pixels per tile unit (horizontal or vertical) at 2x
 STATES = {"closed": 0.0, "a30": 30.0, "a60": 60.0, "open": 86.0}
-LAYOUTS = {   # spriteModels rotate, lane-1 translate (back to the cabinet tile), tile k centre in scene coords
+LAYOUTS = {   # spriteModels rotate, translate per tile back toward the cabinet tile, tile k centre in scene coords
     "N": ((0.0, 180.0, 0.0), (-1.0, 0.0, 0.0), lambda k: (k, 0)),   # arm runs east (+x) along the north edge
     "W": ((0.0, -90.0, 0.0), (0.0, 0.0, 1.0), lambda k: (0, k)),    # arm runs north (-y) along the west edge
 }
+GAME = {"closed": (0.0, False), "half": (43.0, True), "open": (86.0, True)}   # deg, green lamp texture
 EPS = 1e-4
 
 
@@ -86,16 +92,16 @@ def reset():
     return sc
 
 
-def aim(point, px, py, w, h):
-    """Put scene point at canvas pixel (px, py) of a w x h render at the PZ 2x scale."""
+def aim(point, px, py, w, h, zoom=1.0):
+    """Put scene point at canvas pixel (px, py) of a w x h render at the PZ 2x scale (x zoom)."""
     sc = bpy.context.scene
     cam = sc.camera
     sc.render.resolution_x, sc.render.resolution_y = w, h
     cam.data.sensor_fit = "AUTO"
-    cam.data.ortho_scale = max(w, h) / PX
+    cam.data.ortho_scale = max(w, h) / (PX * zoom)
     rot = cam.rotation_euler.to_matrix()
     right, up, d = rot.col[0], rot.col[1], Vector(cam["dir"])
-    centre = Vector(point) + right * ((w / 2 - px) / PX) + up * ((py - h / 2) / PX)
+    centre = Vector(point) + right * ((w / 2 - px) / (PX * zoom)) + up * ((py - h / 2) / (PX * zoom))
     cam.location = centre - d * 30
 
 
@@ -218,6 +224,8 @@ def barrier():
             render(HERE / "previews" / f"{layout}_{state}_full.png")
             for lim in limits:
                 lim.default_value = 0.5 + EPS
+            if state == "closed":
+                cell("cabinet_ghost", *tile_xy(0))
             cab.hide_render = True                   # arm cells: arm only, sliced by tile footprint
             cell(f"cabinet_arm_{state}", *tile_xy(0))
             for k in (1, 2, 3):
@@ -225,6 +233,64 @@ def barrier():
             cab.hide_render = False
 
 
+def ground():
+    """Asphalt plane with a faint 1-tile grid (scene units = tiles)."""
+    bpy.ops.mesh.primitive_plane_add(size=24, location=(1.5, 0, 0))
+    mat = bpy.data.materials.new("asphalt")
+    nt = mat.node_tree
+    bsdf = nt.nodes["Principled BSDF"]
+    bsdf.inputs["Roughness"].default_value = 1.0
+    geo, sep = nt.nodes.new("ShaderNodeNewGeometry"), nt.nodes.new("ShaderNodeSeparateXYZ")
+    nt.links.new(geo.outputs["Position"], sep.inputs[0])
+    edge = []
+    for axis in ("X", "Y"):   # distance to the nearest tile edge (edges at k + 0.5) < 0.012 -> grid line
+        add, fr, sub, ab, lt = (nt.nodes.new("ShaderNodeMath") for _ in range(5))
+        add.operation, fr.operation, sub.operation, ab.operation, lt.operation = "ADD", "FRACT", "SUBTRACT", "ABSOLUTE", "LESS_THAN"
+        add.inputs[1].default_value, sub.inputs[1].default_value, lt.inputs[1].default_value = 0.5, 0.5, 0.488
+        nt.links.new(sep.outputs[axis], add.inputs[0])
+        nt.links.new(add.outputs[0], fr.inputs[0])
+        nt.links.new(fr.outputs[0], sub.inputs[0])
+        nt.links.new(sub.outputs[0], ab.inputs[0])
+        nt.links.new(ab.outputs[0], lt.inputs[0])
+        edge.append(lt)
+    both = nt.nodes.new("ShaderNodeMath")
+    both.operation = "MULTIPLY"
+    nt.links.new(edge[0].outputs[0], both.inputs[0])
+    nt.links.new(edge[1].outputs[0], both.inputs[1])
+    mix = nt.nodes.new("ShaderNodeMix")
+    mix.data_type = "RGBA"
+    mix.inputs["A"].default_value = (0.045, 0.047, 0.05, 1)   # grid line
+    mix.inputs["B"].default_value = (0.075, 0.077, 0.08, 1)   # asphalt
+    nt.links.new(both.outputs[0], mix.inputs["Factor"])
+    nt.links.new(mix.outputs["Result"], bsdf.inputs["Base Color"])
+    bpy.context.object.data.materials.append(mat)
+
+
+def game():
+    for layout, (rotate, step, tile_xy) in LAYOUTS.items():
+        for state, (deg, lit) in GAME.items():
+            reset()
+            bpy.data.objects["Sun"].data.use_shadow = False   # PZ draws no model shadows
+            ground()
+            import_glb(HERE / "export" / "knoxpass_barrier_cabinet.glb", pz_matrix((0, 0, 0), rotate))
+            lane = lambda k: Matrix.Translation((*tile_xy(k), 0)) @ pz_matrix(tuple(k * s for s in step), rotate)  # noqa: E731
+            rig = import_glb(HERE / "export" / "knoxpass_barrier_arm.glb", lane(1))
+            import_glb(HERE / "export" / "knoxpass_barrier_lines.glb", lane(2))
+            if lit:   # spriteModels texture = IsoObject/MinidoracatKnoxPass_barrier_green on open tiles / opening poses
+                img = bpy.data.images.load(str(HERE / "textures" / "knoxpass_barrier_green.png"))
+                mesh = next(o for o in rig.children if o.type == "MESH")
+                for n in mesh.data.materials[0].node_tree.nodes:
+                    if n.type == "TEX_IMAGE":
+                        n.image = img
+            pose(rig, deg)
+            aim((0, 0, 0), 180, 450, 640, 640)
+            render(HERE / "previews" / f"{layout}_{state}_game.png")
+            if layout == "N" and state in ("closed", "open"):   # 2.5x: tile 0 centre at (300, y), all paint in frame
+                aim((0, 0, 0), 300, 870 if state == "open" else 380, 1280, 1260 if state == "open" else 760, zoom=2.5)
+                render(HERE / "previews" / f"{layout}_{state}_zoom.png")
+
+
 calibrate()
 barrier()
+game()
 print("[render_tiles] done")

@@ -3,7 +3,8 @@ full renders; compare the vanilla calibration renders with the shipped 2D sprite
 用法：python assemble_previews.py      (after render_tiles.py; needs Pillow)
 Outputs: cells/<N|W>/{cabinet,cabinet_arm,lane1,lane2,lane3}_<state>.png (128x256, tile top corner (64,192),
 floor diamond bottom vertex (64,255)), *_z1.png (same tile one level up, only when the geometry is taller
-than one level), previews/<layout>_<state>_cells.png, cells/cells.txt.
+than one level), cells/<N|W>/cabinet_ghost_closed.png (build-cursor cell), previews/<layout>_<state>_cells.png,
+cells/cells.txt.
 """
 from pathlib import Path
 
@@ -88,4 +89,8 @@ for layout, off in OFFSETS.items():
             diamond(d, OX + (dx - dy) * 64, OY + (dx + dy) * 32, (200, 170, 60, 255))
         bg.alpha_composite(comp)
         bg.save(HERE / "previews" / f"{layout}_{state}_cells.png")
+    ghost = Image.open(HERE / "cells" / "_canvas" / f"{layout}_cabinet_ghost.png").convert("RGBA")
+    assert not alpha_bbox(ghost.crop((0, 0, 128, 192))), "closed cabinet ghost taller than one level"
+    ghost.crop((0, 192, 128, 448)).save(HERE / "cells" / layout / "cabinet_ghost_closed.png")
+    say(f"{layout} cabinet_ghost_closed: bbox {alpha_bbox(ghost.crop((0, 192, 128, 448)))}")
 (HERE / "cells" / "cells.txt").write_text("\n".join(report) + "\n", encoding="utf-8")
