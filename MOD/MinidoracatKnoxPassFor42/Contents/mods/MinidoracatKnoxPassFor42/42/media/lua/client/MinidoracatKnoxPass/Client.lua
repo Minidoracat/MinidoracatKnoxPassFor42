@@ -56,10 +56,7 @@ local function onResult(args)
         elseif args.cmd == "uninstall" then C.say(player, getText("IGUI_KnoxPass_Uninstalled"), false) end
         return
     end
-    local key = "IGUI_KnoxPass_Why_" .. tostring(args.why)
-    local text = getText(key)
-    if text == key then text = getText("IGUI_KnoxPass_Why_Error") end -- getText 找不到鍵回鍵本身
-    C.say(player, text, true)
+    C.say(player, KnoxPassAPI.whyText(args.why), true)
 end
 
 -- 伺服器回覆入口：MP 經 OnServerCommand；SP 由 Server.lua 的 reply 直接呼叫（SP 的 sendServerCommand 是 no-op）

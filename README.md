@@ -1,6 +1,6 @@
 # Minidoracat Knox Pass for B42
 
-車輛裝上感應器、大門裝上讀頭，開車靠近就自動開門，不必下車也不必按鍵；單人與多人皆可用
+車輛裝上感應盒、大門裝上讀頭，開車靠近就自動開門，不必下車也不必按鍵；單人與多人皆可用
 
 Project Zomboid Build 42 MOD。
 
@@ -16,7 +16,7 @@ Project Zomboid Build 42 MOD。
 - **自動開關門**：有人駕駛、裝著已登記感應盒的車靠近就開門，駛離後自動關；會依車速提前開門，自動駕駛不必停車；門口有車或有人時不關。
 - **大門門鎖**：可設成只有 Knox Pass 開得了；步行時也能用右鍵「用 Knox Pass 開門」。
 - **伺服器可調**：感應距離、行進預測、自動駕駛提早開門距離、關門延遲、供電需求、感應盒耗電、製作與搜刮開關。
-- **給其他 MOD**：`KnoxPassAPI.registerGateAdapter` 可讓自訂的門接入 Knox Pass；`KnoxPassAPI.willOpenFor(vehicle, obj)` 讓自駕 MOD 在客戶端查「這扇門會不會替這台車開」（`KnoxPassAPI.VERSION >= 2`，預告不是保證，呼叫端仍要能在門前停住）。介面說明見 `42/media/lua/shared/MinidoracatKnoxPass/Gates.lua` 檔尾。
+- **給其他 MOD**：`KnoxPassAPI.registerGateAdapter` 可讓自訂的門接入 Knox Pass；`KnoxPassAPI.willOpenFor(vehicle, obj)` 讓自駕 MOD 在客戶端查「這扇門會不會替這台車開」（預告不是保證，呼叫端仍要能在門前停住），裝了讀頭的門不會開時第二個回傳值是原因代碼，`KnoxPassAPI.whyText(why)` 轉成玩家語言（`KnoxPassAPI.VERSION >= 3`）。介面說明見 `42/media/lua/shared/MinidoracatKnoxPass/Gates.lua` 檔尾。
 
 ## 安裝
 

@@ -329,7 +329,7 @@ end
 -- 選填 pieces、kind、isBlocked；門鎖要 unlock(anchor, pieces)→原本的鎖別（純量，沒鎖回 nil）、
 -- lock(anchor, pieces, knoxLock, keyed)（keyed 是 unlock 當初的回傳值）、unlockKnox(anchor, pieces) 三個都提供
 KnoxPassAPI = KnoxPassAPI or {}
-KnoxPassAPI.VERSION = 2
+KnoxPassAPI.VERSION = 3
 
 function KnoxPassAPI.registerGateAdapter(adapter)
     if type(adapter) ~= "table" or type(adapter.id) ~= "string" then return false, "id" end
@@ -351,14 +351,28 @@ end
 -- 條件：車上裝著有電的感應盒、這顆感應盒登記在這扇門（伺服器推送的清單，Sensor.lua pushPasses）、
 -- 門需要供電時有電（KP.squarePowered 在客戶端可用：發電機看區塊資料、電網看沙盒，IsoGridSquare.java:9696,11799）。
 -- 是預告不是保證：伺服器仍可能開不了（門片擺動範圍被擋、剛斷電、延遲），呼叫端要能在門前停住。
+-- 裝了讀頭的門不會開時，第二個回傳值是原因代碼（whyText 轉成玩家語言）：NoTag、NotRegistered、TagEmpty、NoPower。
+-- 一般門、或還沒收到這顆感應盒的推送（剛上車、剛換感應盒）時不帶原因，免得把「還不知道」說成「沒登記」。
 -- 在 MP 客戶端與單機有效；專用伺服器沒有推送清單，一律 false。每次呼叫配置一個短字串與一個小 table
 function KnoxPassAPI.willOpenFor(vehicle, obj)
-    local passes = KP.passes
-    if not passes or not vehicle or not obj then return false end
-    local tag = KP.vehicleTag(vehicle)
-    if not tag or tag:getID() ~= passes.tag or KP.charge(tag) <= 0 then return false end
+    if not vehicle or not obj then return false end
     local adapter, anchor = G.resolve(obj)
-    if not adapter or not passes.keys[G.key(anchor)] then return false end
-    if KP.sandbox("RequirePower") == true and not G.powered(G.pieces(adapter, anchor)) then return false end
+    if not adapter then return false end
+    local reader = anchor:hasModData() and anchor:getModData()[KP.MARKER_OWNER] ~= nil
+    local tag = KP.vehicleTag(vehicle)
+    if not tag then return false, reader and "NoTag" or nil end
+    local passes = KP.passes
+    if not passes or tag:getID() ~= passes.tag then return false end
+    if not passes.keys[G.key(anchor)] then return false, reader and "NotRegistered" or nil end
+    if KP.charge(tag) <= 0 then return false, "TagEmpty" end
+    if KP.sandbox("RequirePower") == true and not G.powered(G.pieces(adapter, anchor)) then return false, "NoPower" end
     return true
+end
+
+-- 原因代碼 → 玩家語言的一句說明（willOpenFor 的第二個回傳值、伺服器拒絕的 why 共用）；不認得的代碼回通用說法
+function KnoxPassAPI.whyText(why)
+    local key = "IGUI_KnoxPass_Why_" .. tostring(why)
+    local text = getText(key)
+    if text == key then text = getText("IGUI_KnoxPass_Why_Error") end -- getText 找不到鍵回鍵本身
+    return text
 end

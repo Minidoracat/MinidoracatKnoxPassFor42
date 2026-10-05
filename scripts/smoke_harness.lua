@@ -2185,13 +2185,18 @@ local function scenarioWillOpenFor()
     freshWorld()
     local from = #logLines + 1
     local api = KnoxPassAPI.willOpenFor
-    check(KnoxPassAPI.VERSION == 2 and type(api) == "function", "KnoxPassAPI.VERSION 2 提供 willOpenFor")
+    check(KnoxPassAPI.VERSION == 3 and type(api) == "function" and type(KnoxPassAPI.whyText) == "function",
+        "KnoxPassAPI.VERSION 3 提供 willOpenFor 與 whyText")
     local a = gate(100)
     local c = gate(104, { power = false })
     local d = gate(108, { double = true })
     local n = gate(114)                        -- 有讀頭但沒登記這顆感應盒
     local plainDoor = makeDoor("IsoDoor", 120, 100)
     local v = makeVehicle(106.5, 110.5, { tag = 0.5 })
+    local function both(o) -- willOpenFor 的兩個回傳值合成一個字串，方便比對
+        local r, why = api(v, o)
+        return tostring(r) .. "/" .. tostring(why)
+    end
     register(a, v)
     register(c, v)
     register(d, v)
@@ -2203,25 +2208,37 @@ local function scenarioWillOpenFor()
     KP.passes = { tag = got[1].tag, keys = (keySet(got[1])) }
     check(not d.door:IsOpen(), "（前提）雙開門關著")
 
-    check(api(v, a.door) == true, "登記、有電、有供電 → true")
-    check(api(v, n.door) == false, "沒登記這顆感應盒的門 → false")
-    check(api(v, plainDoor) == false, "沒有讀頭的一般門 → false")
+    check(both(a.door) == "true/nil", "登記、有電、有供電 → true，不帶原因")
+    check(both(n.door) == "false/NotRegistered", "有讀頭但沒登記這顆感應盒 → false, NotRegistered")
+    check(both(plainDoor) == "false/nil", "沒有讀頭的一般門 → false，不帶原因")
     local item = v._parts.KnoxPassTag._item
     item:setCurrentUsesFloat(0)
-    check(api(v, a.door) == false, "感應盒沒電 → false")
+    check(both(a.door) == "false/TagEmpty", "感應盒沒電 → false, TagEmpty")
     item:setCurrentUsesFloat(0.5)
     v._parts.KnoxPassTag._item = newItem(TAG, 0.5)
-    check(api(v, a.door) == false, "換了別顆感應盒（tag 不符）→ false")
+    check(both(a.door) == "false/nil", "換了別顆感應盒、還沒收到它的推送 → false，不帶原因")
+    v._parts.KnoxPassTag._item = nil
+    check(both(a.door) == "false/NoTag" and both(plainDoor) == "false/nil",
+        "車上沒有感應盒：有讀頭的門 NoTag、一般門不帶原因")
     v._parts.KnoxPassTag._item = item
-    check(api(v, c.door) == false, "RequirePower 且門沒供電 → false")
+    check(both(c.door) == "false/NoPower", "RequirePower 且門沒供電 → false, NoPower")
     SandboxVars.MinidoracatKnoxPass.RequirePower = false
-    check(api(v, c.door) == true, "RequirePower=false 時沒供電也 true")
+    check(both(c.door) == "true/nil", "RequirePower=false 時沒供電也 true")
     SandboxVars.MinidoracatKnoxPass.RequirePower = nil
-    check(api(v, v) == false, "非門物件（車輛）→ false")
+    check(both(v) == "false/nil", "非門物件（車輛）→ false，不帶原因")
     check(api(v, d.group.pieces[2]) == true and api(v, d.group.pieces[3]) == true and api(v, d.group.pieces[4]) == true,
         "雙開門第 2、3、4 片解析到同一扇門 → true")
     KP.passes = nil
-    check(api(v, a.door) == false, "KP.passes 為 nil → false")
+    check(both(a.door) == "false/nil", "KP.passes 為 nil → false，不帶原因")
+    local realGetText = getText
+    getText = function(key)
+        if key == "IGUI_KnoxPass_Why_NoPower" then return "no power" end
+        if key == "IGUI_KnoxPass_Why_Error" then return "error" end
+        return key
+    end
+    check(KnoxPassAPI.whyText("NoPower") == "no power" and KnoxPassAPI.whyText("Bogus") == "error"
+        and KnoxPassAPI.whyText(nil) == "error", "whyText：認得的代碼回翻譯、不認得的回通用說法")
+    getText = realGetText
     clean(from, "willOpenFor")
 end
 

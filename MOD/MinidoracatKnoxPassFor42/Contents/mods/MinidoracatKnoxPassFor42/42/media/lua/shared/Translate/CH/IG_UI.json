@@ -54,6 +54,8 @@
     "IGUI_KnoxPass_Why_NotOwner": "只有讀頭擁有者能這樣做。",
     "IGUI_KnoxPass_Why_VehicleTooFar": "車輛要在大門 15 格內。",
     "IGUI_KnoxPass_Why_NoTag": "這台車沒有裝 Knox Pass 感應盒。",
+    "IGUI_KnoxPass_Why_NotRegistered": "這台車的感應盒沒有登記這扇門。",
+    "IGUI_KnoxPass_Why_TagEmpty": "感應盒沒電了。",
     "IGUI_KnoxPass_Why_TooMany": "這個讀頭登記的車輛已達上限。",
     "IGUI_KnoxPass_Why_NoLockSupport": "這扇門不支援 Knox Pass 門鎖。",
     "IGUI_KnoxPass_Why_NotAllowed": "需要身上帶著已登記而且還有電的感應盒。",

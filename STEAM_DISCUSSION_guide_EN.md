@@ -70,7 +70,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] Player-built garage doors aren't supported (the game itself doesn't open them as a group).
 [*] A parked car with nobody in it and the engine off doesn't recharge its tag.
 [*] When a self-driving car passes along another road heading almost straight at the gate (for example a parallel road a few dozen tiles away), the gate may open early and close again a few seconds later.
-[*] The server can only open a gate once it has loaded that part of the map (roughly 60–130 tiles ahead of the car). With older AutoDrive versions a self-driving car may now and then see the gate closed a moment before it opens and slow down or drive around; newer versions are not affected. If the gate never opens (for example, no power), the self-driving car stops in front of it and waits or hands control back, just like at any closed gate.
+[*] The server can only open a gate once it has loaded that part of the map (roughly 60–130 tiles ahead of the car). With older AutoDrive versions a self-driving car may now and then see the gate closed a moment before it opens and slow down or drive around; newer versions are not affected. If the gate never opens, the self-driving car stops in front of it and waits or hands control back, just like at any closed gate; when the reason is something like an unpowered reader or a tag that isn't registered at that gate, newer AutoDrive versions tell you why in the top-right corner and with a voice line.
 [*] Low fence gates can always be climbed over; the lock doesn't stop climbing.
 [*] This first version borrows vanilla models for the tag and the reader; dedicated models come later.
 [/list]
