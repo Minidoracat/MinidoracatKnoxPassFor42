@@ -15,14 +15,24 @@ SpriteModelsFile.java:225; IsoDoor garage open sprite = closed index + 8, IsoDoo
 
     row 0 (closed)  0 N lane1  1 N lane2  2 N lane3  3 W lane1  4 W lane2  5 W lane3  6 N cabinet  7 W cabinet
     row 1 (open)    8 N lane1  9 N lane2 10 N lane3 11 W lane1 12 W lane2 13 W lane3
-    16..          spriteModels-only static poses for the SP frame stepper (no sprite, no tiledef entry;
-                  SpriteModels.toScriptManager registers them by name, SpriteModels.java:81-96, initSprites skips
+    16..24 / 32..40  N / W opening poses (Open clip, t = k/8, green lamp texture)
+    48..56 / 64..72  N / W closing poses (same geometry, red lamp = model script texture); BarrierAnim picks
+                  base + pose (+ CLOSE_OFFSET while the door is closed). spriteModels-only: no sprite, no tiledef entry
+                  (SpriteModels.toScriptManager registers them by name, SpriteModels.java:81-96, initSprites skips
                   missing sprites, SpriteModelsFile.java:271-279)
 
 lane1 = GarageDoor 1 = chain anchor, the tile next to the cabinet (anchor sits at min x for N, max y for W:
-IsoDoor.getGarageDoorPrev/Next, IsoDoor.java:3241-3342). Only lane1 carries the arm model; lane2/3 carry an
-empty model so their 2D cells (arm segments) only show in the build-cursor ghost (ISBuildIsoEntity.lua:823-837
-draws 2D only) and in the non-FBO fallback (IsoObject.java:6301-6302).
+IsoDoor.getGarageDoorPrev/Next, IsoDoor.java:3241-3342). lane1 carries the arm model (arm, STOP sign, pivot lamp,
+tip post); lane2 carries the road-paint model (stop lines + KNOX PASS on both sides of the gate line); lane3 carries
+an empty model. Their 2D cells (arm segments) only show in the build-cursor ghost (ISBuildIsoEntity.lua:823-837 draws
+2D only) and in the non-FBO fallback (IsoObject.java:6301-6302).
+
+Lamp colour = texture of the spriteModel being drawn: both IsoObjectModelDrawer.renderMain overloads (static and
+animated, IsoObjectModelDrawer.java:134-139, 285-290) bind spriteModel.textureName over the model script texture
+(:563-566), and IsoObject.renderModel passes the object's current getSpriteModel() even while an animation plays
+(IsoObject.java:6280-6298, 6368-6385). So the open tile (sprite switched before the Open clip plays) and the opening
+poses draw green, the closed tile and closing poses draw the red default. Vanilla does the same on animated doors
+(spriteModels.txt:774-822, texture = fixtures_doors_02_22).
 """
 from __future__ import annotations
 
@@ -89,15 +99,17 @@ def cabinet_props(edge: str) -> dict:
     }
 
 
-# index -> (cell file, props)
-def layout() -> dict[int, tuple[str, dict]]:
-    t: dict[int, tuple[str, dict]] = {}
+# index -> (cell files composited bottom-up, props)
+def layout() -> dict[int, tuple[tuple[str, ...], dict]]:
+    t: dict[int, tuple[tuple[str, ...], dict]] = {}
     for base, edge in ((0, "N"), (3, "W")):
         for k in (1, 2, 3):
-            t[base + k - 1] = (f"{edge}/lane{k}_closed.png", lane_props(edge, k, False))
-            t[base + k - 1 + 8] = (f"{edge}/lane{k}_open.png", lane_props(edge, k, True))
-    t[6] = ("N/cabinet_closed.png", cabinet_props("N"))
-    t[7] = ("W/cabinet_closed.png", cabinet_props("W"))
+            t[base + k - 1] = ((f"{edge}/lane{k}_closed.png",), lane_props(edge, k, False))
+            t[base + k - 1 + 8] = ((f"{edge}/lane{k}_open.png",), lane_props(edge, k, True))
+    # the pivot lamp and the arm root sit in the cabinet tile but belong to the arm model: the cabinet cell is the
+    # depth-correct cabinet + closed arm render (render_tiles.py cabinet_ghost)
+    t[6] = (("N/cabinet_ghost_closed.png",), cabinet_props("N"))
+    t[7] = (("W/cabinet_ghost_closed.png",), cabinet_props("W"))
     return t
 
 
@@ -106,23 +118,28 @@ def layout() -> dict[int, tuple[str, dict]]:
 # Values from blender/render_tiles.py, which places the glbs with the engine formula validated against the
 # vanilla fence gate (closed tiles within 1-2 px of the shipped 2D sprites; cells/cells.txt). Static models
 # (cabinet, empty) were not calibrated; confirm live with the SpriteModel editor (IngameState.java:1455).
-# lane1 hosts the arm whose model origin is the cabinet tile centre, one tile back along the run.
+# lane k hosts a model whose origin is the cabinet tile centre, k tiles back along the run.
 XFORM = {
-    "N": {"rotate": (0.0, 180.0, 0.0), "cabinet": (0.0, 0.0, 0.0), "arm": (-1.0, 0.0, 0.0)},
-    "W": {"rotate": (0.0, -90.0, 0.0), "cabinet": (0.0, 0.0, 0.0), "arm": (0.0, 0.0, 1.0)},
+    "N": {"rotate": (0.0, 180.0, 0.0), "cabinet": (0.0, 0.0, 0.0), "arm": (-1.0, 0.0, 0.0), "lines": (-2.0, 0.0, 0.0)},
+    "W": {"rotate": (0.0, -90.0, 0.0), "cabinet": (0.0, 0.0, 0.0), "arm": (0.0, 0.0, 1.0), "lines": (0.0, 0.0, 2.0)},
 }
 FRAMES = 8                                   # SP stepper poses per direction (Open clip, t = k/FRAMES)
 FRAME_BASE = 16
+CLOSE_OFFSET = 32                            # closing (red) poses = opening pose index + 32
+GREEN = "IsoObject/MinidoracatKnoxPass_barrier_green"   # media/textures/<GREEN>.png (IsoObjectModelDrawer.java:138)
 
 
 def fmt3(v) -> str:
     return " ".join(f"{x:.4f}" for x in v)
 
 
-def sm_tile(index: int, model: str, translate, rotate, anim: str | None, t: float | None = None) -> str:
-    lines = [f"            xy = {index % 8} {index // 8},", f"            modelScript = Base.{model},",
-             f"            translate = {fmt3(translate)},", f"            rotate = {fmt3(rotate)},",
-             "            scale = 1.0000,"]
+def sm_tile(index: int, model: str, translate, rotate, anim: str | None, t: float | None = None,
+            texture: str | None = None) -> str:
+    lines = [f"            xy = {index % 8} {index // 8},", f"            modelScript = Base.{model},"]
+    if texture:
+        lines.append(f"            texture = {texture},")
+    lines += [f"            translate = {fmt3(translate)},", f"            rotate = {fmt3(rotate)},",
+              "            scale = 1.0000,"]
     if anim:
         lines.append(f"            animation = {anim},")
         lines.append(f"            animationTime = {0.0 if t is None else t:.4f},")
@@ -133,18 +150,20 @@ def sprite_models() -> str:
     body = ""
     for base, edge, cab in ((0, "N", 6), (3, "W", 7)):
         x = XFORM[edge]
-        # closed lane1 shows frame 0 of Open (arm down); open lane1 shows frame 0 of Close (arm up)
+        # closed lane1 shows frame 0 of Open (arm down, red lamp); open lane1 shows frame 0 of Close (arm up, green)
         body += sm_tile(base, "MinidoracatKnoxPass_BarrierArm", x["arm"], x["rotate"], "Open")
-        body += sm_tile(base + 8, "MinidoracatKnoxPass_BarrierArm", x["arm"], x["rotate"], "Close")
-        for k in (1, 2):
-            for idx in (base + k, base + k + 8):
-                body += sm_tile(idx, "MinidoracatKnoxPass_BarrierEmpty", (0, 0, 0), (0, 0, 0), None)
+        body += sm_tile(base + 8, "MinidoracatKnoxPass_BarrierArm", x["arm"], x["rotate"], "Close", texture=GREEN)
+        for idx in (base + 1, base + 9):
+            body += sm_tile(idx, "MinidoracatKnoxPass_BarrierLines", x["lines"], x["rotate"], None)
+        for idx in (base + 2, base + 10):
+            body += sm_tile(idx, "MinidoracatKnoxPass_BarrierEmpty", (0, 0, 0), (0, 0, 0), None)
         body += sm_tile(cab, "MinidoracatKnoxPass_BarrierCabinet", x["cabinet"], x["rotate"], None)
     for d, edge in enumerate(("N", "W")):
         x = XFORM[edge]
-        for f in range(FRAMES + 1):
-            body += sm_tile(FRAME_BASE + d * 16 + f, "MinidoracatKnoxPass_BarrierArm", x["arm"], x["rotate"],
-                            "Open", f / FRAMES)
+        for off, tex in ((0, GREEN), (CLOSE_OFFSET, None)):
+            for f in range(FRAMES + 1):
+                body += sm_tile(FRAME_BASE + d * 16 + off + f, "MinidoracatKnoxPass_BarrierArm", x["arm"], x["rotate"],
+                                "Open", f / FRAMES, tex)
     return ("spriteModel\n{\n    VERSION = 1,\n\n    tileset\n    {\n"
             f"        name = {TILESET},\n\n" + body + "    }\n}\n")
 
@@ -171,6 +190,15 @@ MODEL_SCRIPT = """module Base
     model MinidoracatKnoxPass_BarrierCabinet
     {
         mesh = IsoObject/MinidoracatKnoxPass_barrier_cabinet,
+        texture = IsoObject/MinidoracatKnoxPass_barrier,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_BarrierLines
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_barrier_lines,
         texture = IsoObject/MinidoracatKnoxPass_barrier,
         static = true,
         scale = 1.0,
@@ -271,15 +299,20 @@ def fit_cell(img: Image.Image) -> Image.Image:
     return cell
 
 
-def build() -> None:
-    tiles = layout()
-    n = max(tiles) + 1
-    cells = {}
-    for i, (rel, _) in tiles.items():
+def load_cell(rels: tuple[str, ...]) -> Image.Image:
+    cell = Image.new("RGBA", (CELL_W, CELL_H), (0, 0, 0, 0))
+    for rel in rels:
         p = CELLS / rel
         if not p.exists():
             raise SystemExit(f"missing cell {p} (run scripts/blender/barrier/render_tiles.py first)")
-        cells[i] = fit_cell(Image.open(p))
+        cell.alpha_composite(fit_cell(Image.open(p)))
+    return cell
+
+
+def build() -> None:
+    tiles = layout()
+    n = max(tiles) + 1
+    cells = {i: load_cell(rels) for i, (rels, _) in tiles.items()}
     # one page: 8 x 2 grid of trimmed cells (sheet keeps full cells; entries store the trimmed rect)
     sheet = Image.new("RGBA", (CELL_W * 8, CELL_H * 2), (0, 0, 0, 0))
     entries = []
@@ -316,7 +349,7 @@ def build() -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         icon.save(path, optimize=True)
     print(f"wrote {len(entries)} sprites, tiledef {TILEDEF} {FILE_NUMBER}, spriteModels, model + entity scripts, "
-          f"3 glb, texture, icons; mod.info needs: pack={PACK} / tiledef={TILEDEF} {FILE_NUMBER}")
+          f"4 glb, 2 textures, icons; mod.info needs: pack={PACK} / tiledef={TILEDEF} {FILE_NUMBER}")
 
 
 ICON = MEDIA / "ui" / "MinidoracatKnoxPass" / "barrier_icon.png"
@@ -325,9 +358,11 @@ KIT_ICON = MEDIA / "textures" / "Item_MinidoracatKnoxPassBarrierKit.png"
 
 def assets() -> list[tuple[Path, Path]]:
     out = [(BLENDER / "export" / f"knoxpass_barrier_{p}.glb",
-            MEDIA / "models_X" / "IsoObject" / f"MinidoracatKnoxPass_barrier_{p}.glb") for p in ("arm", "cabinet", "empty")]
-    out.append((BLENDER / "textures" / "knoxpass_barrier.png",
-                MEDIA / "textures" / "IsoObject" / "MinidoracatKnoxPass_barrier.png"))
+            MEDIA / "models_X" / "IsoObject" / f"MinidoracatKnoxPass_barrier_{p}.glb")
+           for p in ("arm", "cabinet", "lines", "empty")]
+    for suffix in ("", "_green"):
+        out.append((BLENDER / "textures" / f"knoxpass_barrier{suffix}.png",
+                    MEDIA / "textures" / "IsoObject" / f"MinidoracatKnoxPass_barrier{suffix}.png"))
     return out
 
 
@@ -340,7 +375,7 @@ def check() -> None:
     tsets = pzfmt.read_tiles((MEDIA / f"{TILEDEF}.tiles").read_bytes())
     assert len(tsets) == 1 and tsets[0]["name"] == TILESET and tsets[0]["w"] == 8, tsets
     ts = tsets[0]
-    for i, (rel, props) in tiles.items():
+    for i, (rels, props) in tiles.items():
         name = f"{TILESET}_{i}"
         assert name in names, f"{name} missing from pack"
         assert ts["tiles"][i] == props, (name, ts["tiles"][i])
@@ -348,10 +383,10 @@ def check() -> None:
         assert (fx, fy) == (CELL_W, CELL_H)
         cell = Image.new("RGBA", (CELL_W, CELL_H), (0, 0, 0, 0))
         cell.paste(page["image"].convert("RGBA").crop((x, y, x + w, y + h)), (ox, oy))
-        src = fit_cell(Image.open(CELLS / rel))
+        src = load_cell(rels)
         if src.getbbox():
             vis = lambda im: [p if p[3] else (0, 0, 0, 0) for p in im.get_flattened_data()]  # noqa: E731
-            assert vis(cell) == vis(src), f"{name}: pixels differ from {rel}"
+            assert vis(cell) == vis(src), f"{name}: pixels differ from {rels}"
         sid = pzfmt.sprite_id(FILE_NUMBER, ts["number"], i)
         print(f"  {name:32s} id {sid:8d} rect {w:3d}x{h:3d}+{ox},{oy}  {props.get('GarageDoor', 'cabinet')}")
     # garage rules: open = closed + 8 with GarageDoor + 3 (IsoDoor.java:793-805, 3212-3238)
@@ -374,6 +409,16 @@ def check() -> None:
         assert idx in tiles or idx >= FRAME_BASE, idx
     for idx in tiles:
         assert f"xy = {idx % 8} {idx // 8}," in sm, f"tile {idx} has no spriteModel"
+    # lamp: green texture exactly on the open anchors and the opening poses, red default on closed + closing poses
+    blocks = {int(c) + 8 * int(r): b for c, r, b in re.findall(r"xy = (\d+) (\d+),(.*?)\n        }", sm, re.S)}
+    poses = lambda off: {FRAME_BASE + d * 16 + off + f for d in (0, 1) for f in range(FRAMES + 1)}  # noqa: E731
+    green, red = {8, 11} | poses(0), {0, 3} | poses(CLOSE_OFFSET)
+    arms = {i for i, b in blocks.items() if "BarrierArm" in b}
+    assert arms == green | red and not green & red, sorted(arms)
+    for i in arms:
+        assert (f"texture = {GREEN}," in blocks[i]) == (i in green), (i, blocks[i])
+    assert all("BarrierLines" in blocks[i] for i in (1, 9, 4, 12)) and all("BarrierEmpty" in blocks[i] for i in (2, 10, 5, 13))
+    assert (MEDIA / "textures" / f"{GREEN}.png").exists()
     # entity: every sprite token is a tiledef sprite, no duplicates (SpriteConfigManager duplicate rule)
     toks = re.findall(rf"{TILESET}_(\d+)", ent)
     assert len(toks) == len(set(toks)) == 8 and all(int(t) in tiles for t in toks), toks

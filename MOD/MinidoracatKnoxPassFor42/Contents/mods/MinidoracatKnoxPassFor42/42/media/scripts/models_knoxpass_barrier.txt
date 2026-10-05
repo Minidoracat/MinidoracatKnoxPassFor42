@@ -26,6 +26,15 @@ module Base
         undoCoreScale = true,
     }
 
+    model MinidoracatKnoxPass_BarrierLines
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_barrier_lines,
+        texture = IsoObject/MinidoracatKnoxPass_barrier,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
     model MinidoracatKnoxPass_BarrierEmpty
     {
         mesh = IsoObject/MinidoracatKnoxPass_barrier_empty,

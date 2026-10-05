@@ -6,50 +6,52 @@ fixtures_doors_fences_01_3: render bbox (4, 115, 68, 226)  sprite bbox (1, 115, 
 
 == cells: 128x256, tile top corner (64,192); bbox = opaque rect inside the cell
 N cabinet_closed: bbox (59, 112, 107, 226)
-N cabinet_arm_closed: bbox (94, 138, 117, 157)
-N lane1_closed: bbox (49, 116, 117, 157)
-N lane2_closed: bbox (49, 116, 117, 157)
-N lane3_closed: bbox (49, 116, 117, 227)
+N cabinet_arm_closed: bbox (87, 132, 119, 160)
+N lane1_closed: bbox (47, 112, 119, 160)
+N lane2_closed: bbox (47, 109, 119, 163)
+N lane3_closed: bbox (47, 112, 119, 229)
    N closed: cells vs full render -> 0 alpha-mismatch px
 N cabinet_a30: bbox (59, 112, 107, 226)
-N cabinet_arm_a30: bbox (93, 133, 117, 147)
-N lane1_a30: bbox (49, 88, 117, 111)
-N lane2_a30: bbox (49, 43, 117, 66)
-N lane3_a30: bbox (49, 4, 108, 227)
-   N a30: cells vs full render -> 2 alpha-mismatch px
+N cabinet_arm_a30: bbox (87, 132, 119, 158)
+N lane1_a30: bbox (47, 77, 119, 119)
+N lane2_a30: bbox (47, 34, 119, 87)
+N lane3_a30: bbox (47, 2, 113, 229)
+   N a30: cells vs full render -> 1 alpha-mismatch px
 N cabinet_a60: bbox (59, 112, 107, 226)
-N cabinet_arm_a60: bbox (92, 104, 117, 146)
-N lane1_a60: bbox (49, 0, 106, 87)  z+1 bbox (95, 160, 117, 192)
-N lane2_a60: bbox None  z+1 bbox (49, 95, 78, 143)
-N lane3_a60: bbox (97, 139, 108, 227)
-   N a60: cells vs full render -> 2 alpha-mismatch px
+N cabinet_arm_a60: bbox (87, 106, 119, 158)
+N lane1_a60: bbox (47, 0, 116, 103)  z+1 bbox (77, 163, 119, 192)
+N lane2_a60: bbox None  z+1 bbox (47, 98, 84, 160)
+N lane3_a60: bbox (92, 140, 113, 229)
+   N a60: cells vs full render -> 0 alpha-mismatch px
 N cabinet_open: bbox (59, 112, 107, 226)
-N cabinet_arm_open: bbox (91, 0, 109, 145)  z+1 bbox (99, 82, 116, 192)
-N lane1_open: bbox None
+N cabinet_arm_open: bbox (86, 0, 119, 158)  z+1 bbox (87, 87, 119, 192)
+N lane1_open: bbox (47, 0, 62, 8)  z+1 bbox (47, 58, 66, 192)
 N lane2_open: bbox None
-N lane3_open: bbox (97, 139, 108, 227)
-   N open: cells vs full render -> 0 alpha-mismatch px
+N lane3_open: bbox (92, 140, 113, 229)
+   N open: cells vs full render -> 5 alpha-mismatch px
+N cabinet_ghost_closed: bbox (59, 112, 119, 226)
 W cabinet_closed: bbox (21, 112, 69, 226)
-W cabinet_arm_closed: bbox (55, 115, 79, 134)
-W lane1_closed: bbox (11, 115, 79, 157)
-W lane2_closed: bbox (11, 115, 79, 157)
-W lane3_closed: bbox (11, 115, 78, 208)
+W cabinet_arm_closed: bbox (49, 112, 81, 141)
+W lane1_closed: bbox (9, 112, 81, 160)
+W lane2_closed: bbox (9, 109, 81, 163)
+W lane3_closed: bbox (9, 112, 80, 209)
    W closed: cells vs full render -> 0 alpha-mismatch px
 W cabinet_a30: bbox (21, 112, 69, 226)
-W cabinet_arm_a30: bbox (54, 101, 79, 133)
-W lane1_a30: bbox (11, 56, 79, 143)
-W lane2_a30: bbox (11, 11, 79, 98)
-W lane3_a30: bbox (11, 2, 70, 208)
+W cabinet_arm_a30: bbox (49, 100, 81, 141)
+W lane1_a30: bbox (9, 45, 81, 151)
+W lane2_a30: bbox (9, 10, 81, 105)
+W lane3_a30: bbox (9, 1, 74, 209)
    W a30: cells vs full render -> 0 alpha-mismatch px
 W cabinet_a60: bbox (21, 112, 69, 226)
-W cabinet_arm_a60: bbox (53, 71, 79, 131)
-W lane1_a60: bbox (11, 0, 60, 119)  z+1 bbox (50, 128, 79, 192)
-W lane2_a60: bbox None  z+1 bbox (11, 108, 39, 175)
-W lane3_a60: bbox (58, 120, 70, 208)
+W cabinet_arm_a60: bbox (49, 74, 81, 141)
+W lane1_a60: bbox (9, 0, 76, 135)  z+1 bbox (38, 131, 81, 192)
+W lane2_a60: bbox None  z+1 bbox (9, 110, 46, 191)
+W lane3_a60: bbox (54, 121, 74, 209)
    W a60: cells vs full render -> 0 alpha-mismatch px
 W cabinet_open: bbox (21, 112, 69, 226)
-W cabinet_arm_open: bbox (53, 0, 70, 132)  z+1 bbox (60, 54, 77, 192)
-W lane1_open: bbox None
+W cabinet_arm_open: bbox (48, 0, 81, 141)  z+1 bbox (48, 58, 81, 192)
+W lane1_open: bbox (9, 0, 28, 40)  z+1 bbox (9, 88, 22, 192)
 W lane2_open: bbox None
-W lane3_open: bbox (58, 120, 70, 208)
+W lane3_open: bbox (54, 121, 74, 209)
    W open: cells vs full render -> 0 alpha-mismatch px
+W cabinet_ghost_closed: bbox (21, 112, 81, 226)

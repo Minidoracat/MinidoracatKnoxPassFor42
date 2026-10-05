@@ -3,7 +3,7 @@
 Idempotent: every variant starts from an empty factory scene and overwrites its outputs.
 
 Full rebuild, run inside scripts/blender/barrier/ ("blender" = Blender 5.2 blender.exe):
-    uv run --with pillow python atlas.py                          # textures/knoxpass_barrier.png (Barlow, OFL)
+    uv run --with pillow python atlas.py                          # textures/knoxpass_barrier{,_green}.png (Barlow, OFL)
     blender -b --factory-startup --python build_barrier.py        # .blend + export/*.glb
     blender -b --factory-startup --python verify_export.py        # export/knoxpass_barrier_verify.txt
     uv run --with pillow python extract_vanilla_sprites.py        # vanilla_dump/sprites (calibration, gitignored)
@@ -11,10 +11,14 @@ Full rebuild, run inside scripts/blender/barrier/ ("blender" = Blender 5.2 blend
     uv run --with pillow python assemble_previews.py              # cells/{N,W}/*.png + cells/cells.txt
     uv run scripts/build_barrier_tiles.py                         # (repo root) pack/tiles/scripts into MOD/
 
-export/knoxpass_barrier_cabinet.glb  static: cabinet + cap + dome reader + KNOX PASS front + pivot hub
-export/knoxpass_barrier_arm.glb      skinned: armature Dummy01, DoorBone = arm (+ tip cap),
-                                     PostBone = static tip rest post with fork; clips Open 0->86 deg,
-                                     Close 86->0 deg, 6.0 s each (barrier_arm.blend keeps the source)
+export/knoxpass_barrier_cabinet.glb  static: navy/amber cabinet + amber cap + dome reader, KNOX PASS plate on both
+                                     traffic faces (+-Y), vertical KNOX PASS on +-X
+export/knoxpass_barrier_arm.glb      skinned: armature Dummy01, DoorBone = 0.16 x 0.10 red/white arm (+ tip cap,
+                                     reflectors, STOP octagon at the middle lane); PostBone = static lamp at the
+                                     pivot (lens = "lamp" swatch: red in knoxpass_barrier.png, green in _green.png)
+                                     + tip rest post with fork; clips Open 0->86 deg, Close 86->0 deg, 6.0 s each
+export/knoxpass_barrier_lines.glb    static: road paint, 2 cm above the floor: white stop line + amber KNOX PASS on
+                                     both sides of the gate line, text facing oncoming traffic (Barlow, OFL)
 export/knoxpass_barrier_empty.glb    static: one ~1 mm triangle 1 cm under the floor ("render nothing")
 
 Rig conventions copied from vanilla fixtures_doors_fences_01_*.blend (vanilla_dump/dump.txt): armature
@@ -38,7 +42,9 @@ sys.path.insert(0, str(HERE))
 import atlas as A  # noqa: E402
 
 LANE_Y = 0.30                         # arm / cabinet centre line, 0.2 m inside the gate edge
-PIVOT = Vector((0.20, LANE_Y, 1.0))   # on the cabinet's lane-facing side; axis horizontal along Y; 1.0 m high
+PIVOT = Vector((0.27, LANE_Y, 1.0))   # 0.11 m off the cabinet side: the raised 0.16 m arm clears the cap at 86 deg
+GATE_Y = 0.5                          # gate line (tile edge of the door)
+FONT = HERE / "fonts" / "Barlow-SemiBold.ttf"
 OPEN_DEG = 86.0
 FPS = 24
 F0, F1 = 1, 1 + 6 * FPS               # 6.0 s clip; engine plays at speedDelta 1.5 -> ~4.0 s (IsoObjectAnimations.java:281)
@@ -69,7 +75,8 @@ class Builder:
         return f
 
     def box(self, mn, mx, group, paint):
-        """Axis-aligned box. paint(axis, sign) -> colour name or atlas region (projected per face)."""
+        """Axis-aligned box. paint(axis, sign) -> colour name, atlas region (projected per face, world-consistent u),
+        or ("read", region): u runs to the viewer's right on every side face, so text is never mirrored."""
         mn, mx = Vector(mn), Vector(mx)
         size = mx - mn
         corners = {}
@@ -93,21 +100,71 @@ class Builder:
             if isinstance(p, str):
                 uvs = [A.swatch_uv(p)] * 4
             else:
+                flip = p[0] == "read" and (axis, sign) in ((0, -1), (1, 1))   # viewer's right = -u on these faces
+                region = p[1] if p[0] == "read" else p
                 ua, va = uaxis[axis], vaxis[axis]
-                uvs = [A.region_uv(p, (v.co[ua] - mn[ua]) / size[ua], (v.co[va] - mn[va]) / size[va]) for v in verts]
+                uvs = []
+                for v in verts:
+                    u = (v.co[ua] - mn[ua]) / size[ua]
+                    uvs.append(A.region_uv(region, 1 - u if flip else u, (v.co[va] - mn[va]) / size[va]))
             self._face(verts, group, uvs)
 
     def cylinder_y(self, centre, r, depth, n, group, colour):
-        """Prism with its axis along Y (hub disc)."""
+        """Prism with its axis along Y (lamp housing, lens), wound outward (the door shader culls back faces)."""
         uv = A.swatch_uv(colour)
         a, b = ([self.bm.verts.new((centre.x + r * math.cos(2 * math.pi * i / n), y,
                                     centre.z + r * math.sin(2 * math.pi * i / n))) for i in range(n)]
                 for y in (centre.y - depth / 2, centre.y + depth / 2))
         for i in range(n):
             j = (i + 1) % n
-            self._face([a[i], a[j], b[j], b[i]], group, [uv] * 4, smooth=True)
-        self._face(list(reversed(a)), group, [uv] * n)
-        self._face(b, group, [uv] * n)
+            self._face([a[i], b[i], b[j], a[j]], group, [uv] * 4, smooth=True)
+        self._face(a, group, [uv] * n)
+        self._face(list(reversed(b)), group, [uv] * n)
+
+    def octagon_y(self, centre, apothem, depth, group, region, rim):
+        """Octagonal plate, flat top, normal +-Y; both faces map `region` so the text reads right from either side."""
+        r = apothem / math.cos(math.radians(22.5))
+        ring = [(math.cos(math.radians(22.5 + 45 * k)), math.sin(math.radians(22.5 + 45 * k))) for k in range(8)]
+        f, b = ([self.bm.verts.new((centre.x + r * c, y, centre.z + r * s)) for c, s in ring]
+                for y in (centre.y - depth / 2, centre.y + depth / 2))
+        uv = lambda c, s, mirror: A.region_uv(region, (1 - c if mirror else 1 + c) / 2, (1 + s) / 2)  # noqa: E731
+        self._face(f, group, [uv(c, s, False) for c, s in ring])
+        self._face(list(reversed(b)), group, [uv(c, s, True) for c, s in reversed(ring)])
+        rim_uv = A.swatch_uv(rim)
+        for i in range(8):
+            j = (i + 1) % 8
+            self._face([f[i], b[i], b[j], f[j]], group, [rim_uv] * 4)
+
+    def quad_up(self, x0, y0, x1, y1, z, group, colour):
+        uv = A.swatch_uv(colour)
+        v = [self.bm.verts.new(co) for co in ((x0, y0, z), (x1, y0, z), (x1, y1, z), (x0, y1, z))]
+        self._face(v, group, [uv] * 4)
+
+    def text_up(self, text, x0, y0, x1, y1, z, turn, group, colour):
+        """Flat text mesh (Barlow, curve fill) stretched into the rectangle, facing +Z. turn=True rotates it 180 deg
+        so it reads from the +Y side."""
+        cu = bpy.data.curves.new("t", "FONT")
+        cu.body, cu.font, cu.resolution_u = text, bpy.data.fonts.load(str(FONT)), 3
+        ob = bpy.data.objects.new("t", cu)
+        bpy.context.scene.collection.objects.link(ob)
+        me = bpy.data.meshes.new_from_object(ob.evaluated_get(bpy.context.evaluated_depsgraph_get()))
+        xs, ys = [v.co.x for v in me.vertices], [v.co.y for v in me.vertices]
+        mnx, mxx, mny, mxy = min(xs), max(xs), min(ys), max(ys)
+        uv = A.swatch_uv(colour)
+        new = {}
+        for v in me.vertices:
+            u, w = (v.co.x - mnx) / (mxx - mnx), (v.co.y - mny) / (mxy - mny)
+            if turn:
+                u, w = 1 - u, 1 - w
+            new[v.index] = self.bm.verts.new((x0 + u * (x1 - x0), y0 + w * (y1 - y0), z))
+        for p in me.polygons:
+            vs = [new[i] for i in p.vertices]
+            if p.normal.z < 0:                    # curve fill winding is not guaranteed; face up
+                vs.reverse()
+            self._face(vs, group, [uv] * len(vs))
+        bpy.data.objects.remove(ob)
+        bpy.data.curves.remove(cu)
+        bpy.data.meshes.remove(me)
 
     def dome(self, centre, r, zscale, n, rings, group, colour):
         """Closed hemisphere (flat bottom) sitting on centre.z."""
@@ -141,27 +198,49 @@ class Builder:
 def cabinet(m):
     hw, hd = A.CAB_W / 2, A.CAB_D / 2
     y0 = LANE_Y - hd                                      # front face (-Y) at y = 0.12
-    m.box((-hw, y0, 0), (hw, LANE_Y + hd, A.CAB_H), POST, lambda ax, s: A.FRONT if (ax, s) == (1, -1) else "orange")
+    m.box((-hw, y0, 0), (hw, LANE_Y + hd, A.CAB_H), POST,
+          lambda ax, s: ("read", A.FRONT) if ax == 1 else ("read", A.SIDE) if ax == 0 else "navy")
     m.box((-hw - 0.015, y0 - 0.015, A.CAB_H), (hw + 0.015, LANE_Y + hd + 0.015, A.CAB_H + 0.05), POST,
-          lambda ax, s: "cap")
+          lambda ax, s: "amber")
     m.dome(Vector((0, LANE_Y - 0.04, A.CAB_H + 0.05)), 0.06, 0.7, 10, 3, POST, "dome")
-    m.cylinder_y(Vector((PIVOT.x, LANE_Y, PIVOT.z)), 0.075, 0.08, 10, POST, "cap")
 
 
 def arm(m):
-    arm_h, arm_t = 0.085, 0.05
+    h, t = A.ARM_H, A.ARM_T
     x1 = PIVOT.x + A.ARM_LEN                              # 3.46: arm + cap end inside the 4th tile (x < 3.5)
-    m.box((PIVOT.x, LANE_Y - arm_t / 2, PIVOT.z - arm_h / 2), (x1, LANE_Y + arm_t / 2, PIVOT.z + arm_h / 2), DOOR,
-          lambda ax, s: "white" if ax == 0 else A.ARM)
-    m.box((x1, LANE_Y - 0.0275, PIVOT.z - 0.045), (x1 + 0.03, LANE_Y + 0.0275, PIVOT.z + 0.045), DOOR,
-          lambda ax, s: "dark")
-    post_x = x1 - 0.16                                    # tip rest post (static), arm rests in the fork
-    post_top = PIVOT.z - arm_h / 2 - 0.005
-    m.box((post_x - 0.04, LANE_Y - 0.04, 0), (post_x + 0.04, LANE_Y + 0.04, post_top), POST, lambda ax, s: "orange")
+    m.box((PIVOT.x, LANE_Y - t / 2, PIVOT.z - h / 2), (x1, LANE_Y + t / 2, PIVOT.z + h / 2), DOOR,
+          lambda ax, s: "white" if ax == 0 else A.ARM if ax == 1 else A.ARM_TOP)
+    m.box((x1, LANE_Y - t / 2 - 0.005, PIVOT.z - h / 2 - 0.005), (x1 + 0.03, LANE_Y + t / 2 + 0.005, PIVOT.z + h / 2 + 0.005),
+          DOOR, lambda ax, s: "dark")
+    # STOP sign: plate 6 mm proud of both arm faces, rides on DoorBone
+    m.octagon_y(Vector((PIVOT.x + A.SIGN_U, LANE_Y, PIVOT.z)), A.SIGN_APOTHEM, t + 0.012, DOOR, A.SIGN, "white")
+    # signal lamp on the pivot (PostBone, static): housing, lens on both traffic faces; the lens colour comes from
+    # the texture (red default, green via spriteModels texture = on open tiles / opening poses)
+    hd = t / 2 + 0.03
+    m.cylinder_y(PIVOT, 0.12, 2 * hd, 16, POST, "cap")
     for sy in (-1, 1):
-        yc = LANE_Y + sy * 0.04
-        m.box((post_x - 0.015, yc - 0.006, post_top - 0.02), (post_x + 0.015, yc + 0.006, post_top + 0.10), POST,
+        m.cylinder_y(Vector((PIVOT.x, LANE_Y + sy * (hd + 0.004), PIVOT.z)), 0.095, 0.008, 16, POST, "lamp")
+    post_x = x1 - 0.16                                    # tip rest post (static), arm rests in the fork
+    post_top = PIVOT.z - h / 2 - 0.005
+    pw = t / 2 + 0.015
+    m.box((post_x - pw, LANE_Y - pw, 0), (post_x + pw, LANE_Y + pw, post_top), POST, lambda ax, s: "navy")
+    m.box((post_x - pw - 0.01, LANE_Y - pw - 0.01, post_top - 0.06), (post_x + pw + 0.01, LANE_Y + pw + 0.01, post_top),
+          POST, lambda ax, s: "amber")
+    for sy in (-1, 1):
+        yc = LANE_Y + sy * (t / 2 + 0.008)
+        m.box((post_x - 0.015, yc - 0.006, post_top - 0.02), (post_x + 0.015, yc + 0.006, post_top + 0.12), POST,
               lambda ax, s: "dark")
+
+
+def lines(m):
+    """Road paint over lanes 1..3 (x 0.5..3.5), mirrored about the gate line: stop line 0.55-0.75 from the line,
+    KNOX PASS beyond it, letters upright for the driver approaching that side."""
+    z, xa, xb = 0.02, 0.56, 3.44
+    for side in (-1, 1):                                  # -1 = lane-tile side (Blender -Y), +1 = the far side
+        near, far = GATE_Y + side * 0.55, GATE_Y + side * 0.75
+        m.quad_up(xa, min(near, far), xb, max(near, far), z, POST, "paint_white")
+        t0, t1 = GATE_Y + side * 0.95, GATE_Y + side * 1.55
+        m.text_up("KNOX PASS", xa + 0.12, min(t0, t1), xb - 0.12, max(t0, t1), z, side > 0, POST, "amber")
 
 
 def empty(m):
@@ -257,4 +336,5 @@ def build_variant(name, parts, rigged, blend=None):
 
 build_variant("knoxpass_barrier_cabinet", cabinet, False, blend="barrier_cabinet.blend")
 build_variant("knoxpass_barrier_arm", arm, True, blend="barrier_arm.blend")
+build_variant("knoxpass_barrier_lines", lines, False)
 build_variant("knoxpass_barrier_empty", empty, False)
