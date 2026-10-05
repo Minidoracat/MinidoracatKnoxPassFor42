@@ -1,0 +1,1056 @@
+{
+  "_comment": "支援的 MOD 車（擋風玻璃位置表）的唯一資料來源：scripts/blender/dock_spots.py 讀它烘 DockSpots.lua 的 MOD 區塊，scripts/gen_modcar_list.py 讀它產生 Steam 支援清單。addons＝同一個 Workshop 項目裡共用這些車身的附加 MOD；vehicles＝車輛腳本名 → 英文顯示名；status：preview＝只看過離線預覽、ingame＝實機看過。",
+  "mods": [
+    {
+      "name": "'91 RANGE ROVER Classic",
+      "workshop": "2409333430",
+      "modId": "91range",
+      "models": [
+        {
+          "file": "91rangeBase",
+          "vehicles": {
+            "91range": "'91 RANGE ROVER 4-door"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "91range2Base",
+          "vehicles": {
+            "91range2": "'91 RANGE ROVER 2-door"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'86 Oshkosh P19A + Military Trailers",
+      "workshop": "2566953935",
+      "modId": "86oshkoshP19A",
+      "models": [
+        {
+          "file": "86oshkoshUSMCBase",
+          "vehicles": {
+            "86oshkoshFRTR55": "P19A FRTR55",
+            "86oshkoshKYFD": "'86 Oshkosh P19A KYFD",
+            "86oshkoshUSMC": "'86 Oshkosh P19A USMC"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'92 AM General M998 + M101A3 Trailer",
+      "workshop": "2642541073",
+      "modId": "92amgeneralM998",
+      "models": [
+        {
+          "file": "92amgeneralM998Base",
+          "vehicles": {
+            "92amgeneralM998": "'92 AM General M998 HMMWV"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'84 Mercedes Benz W460",
+      "workshop": "2805630347",
+      "modId": "84merc",
+      "models": [
+        {
+          "file": "W460L2Base",
+          "vehicles": {
+            "84mercLWB2": "'84 Mercedes-Benz W460 2-Door LWB"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "W460L4Base",
+          "vehicles": {
+            "84mercLWB4": "'84 Mercedes-Benz W460 4-Door LWB",
+            "84mercLWB4M": "'84 Mercedes-Benz Military W460"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "W460SBase",
+          "vehicles": {
+            "84mercSWB": "'84 Mercedes-Benz W460 SWB"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'92 NISSAN Skyline GT-R (R32)",
+      "workshop": "2846036306",
+      "modId": "92nissanGTR",
+      "models": [
+        {
+          "file": "92nissanGTRBase",
+          "vehicles": {
+            "92nissanGTR": "'92 NISSAN Skyline GT-R (R32) Imported",
+            "92nissanGTRlhd": "'92 NISSAN Skyline GT-R (R32) Converted"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'86 Ford Econoline E150",
+      "workshop": "2870394916",
+      "modId": "86fordE150",
+      "addons": [
+        "86fordE150expanded"
+      ],
+      "models": [
+        {
+          "file": "86fordE150Base",
+          "vehicles": {
+            "86fordE150": "'86 Ford Econoline E-150",
+            "86fordE150dnd": "'86 Ford Econoline E-150",
+            "86fordE150ksp": "'86 Ford E-150 KY State Police",
+            "86fordE150med": "'86 Ford E-150 Knox County Medical Examiner",
+            "86fordE150mm": "The Mystery Machine",
+            "86fordE150pd": "'86 Ford Econoline E-150 Escape Van",
+            "86fordE150slide": "'86 Ford Econoline E-150 with sliding door",
+            "86fordE150slideSpiffo": "'86 Ford Econoline E-150 Spiffo",
+            "86fordE150so": "'86 Ford E-150 Knox County Sheriff"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "86fordE150longBase",
+          "vehicles": {
+            "86fordE150long": "'86 Ford Econoline E-150 long variant",
+            "86fordE150mccoy": "'86 Ford Econoline E-150 McCoy"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "86fordE150longWBase",
+          "vehicles": {
+            "86fordE150longW": "'86 Ford Econoline E-150 with windows"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'49 Dodge Power Wagon Crew Cab",
+      "workshop": "2900580391",
+      "modId": "49powerWagon",
+      "models": [
+        {
+          "file": "49powerWagonBase",
+          "vehicles": {
+            "49powerWagon": "'49 Dodge Power Wagon Crew Cab",
+            "49powerWagonMP": "'49 Dodge Power Wagon Military Police",
+            "49powerWagonPD": "'49 Dodge Power Wagon Police"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "49powerWagonPABase",
+          "vehicles": {
+            "49powerWagonPA": "'49 Dodge Power Wagon Apocalypse"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'89 Isuzu Trooper",
+      "workshop": "2932549988",
+      "modId": "89trooper",
+      "models": [
+        {
+          "file": "89trooperBase",
+          "vehicles": {
+            "89trooper": "'89 Isuzu Trooper",
+            "89trooperOP": "'89 Isuzu Trooper Offroad Pack"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "89trooperRSBase",
+          "vehicles": {
+            "89trooperRS": "'89 Isuzu Trooper RS"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'69 Mini Mk2",
+      "workshop": "2937786633",
+      "modId": "69mini",
+      "models": [
+        {
+          "file": "69miniBase",
+          "vehicles": {
+            "69mini": "'69 Mini",
+            "69miniIJ": "Italian Job Mini",
+            "69miniMrB": "MrBean's Mini",
+            "69miniUnionJack": "Union Jack Mini"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "69miniPSBase",
+          "vehicles": {
+            "69miniPS": "Pitbull Special Mini"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'90 Pierce Arrow Pumper and Ladder Trucks",
+      "workshop": "2942793445",
+      "modId": "90pierceArrow",
+      "models": [
+        {
+          "file": "90pierceArrowBase",
+          "vehicles": {
+            "90pierceArrow": "'90 Pierce Arrow Pumper",
+            "90pierceArrowQuint": "'90 Pierce Arrow Quint Ladder Truck"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'90 Ford F350 Ambulance Type 1",
+      "workshop": "2952802178",
+      "modId": "90fordF350ambulance",
+      "models": [
+        {
+          "file": "90fordF350ambulanceBase",
+          "vehicles": {
+            "90fordF350SWAT": "'90 Ford F350 S.W.A.T.",
+            "90fordF350ambulance": "'90 Ford F350 Ambulance"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'92 Ford Crown Victoria Police Interceptor",
+      "workshop": "2962175696",
+      "modId": "92fordCVPI",
+      "models": [
+        {
+          "file": "92fordCVPIBase",
+          "vehicles": {
+            "92fordCV": "'92 Ford Crown Victoria",
+            "92fordCVPI": "'92 Ford Crown Victoria Police Interceptor",
+            "92fordCVPI2": "'92 Ford Crown Victoria Police Interceptor",
+            "92fordCVPI2ksp": "'92 Ford Crown Victoria KYSP Interceptor",
+            "92fordCVPI2kspst": "'92 Ford Crown Victoria KYSP Interceptor",
+            "92fordCVPI2so": "The Sheriff",
+            "92fordCVPI2sup": "'92 Ford Crown Victoria Patrol Supervisor",
+            "92fordCVPIfd": "'92 Ford Crown Victoria KC Fire Rescue",
+            "92fordCVPIpdu": "'92 Ford Crown Victoria Undercover",
+            "92fordCVPItaxi": "'92 Ford Crown Victoria Taxi",
+            "92fordCVPIunmarked": "'92 Ford Crown Victoria Unmarked"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'93 Ford CF8000 Elgin Street Sweeper",
+      "workshop": "2969343830",
+      "modId": "93fordElgin",
+      "models": [
+        {
+          "file": "93fordElginBase",
+          "vehicles": {
+            "93fordElgin": "'93 Ford CF8000 Elgin Street Sweeper",
+            "93fordElginSpec": "'93 Ford CF8000 Elgin Special Street Sweeper"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'63 Volkswagen 1300 Beetle",
+      "workshop": "3005903549",
+      "modId": "63beetle",
+      "models": [
+        {
+          "file": "63beetleBase",
+          "vehicles": {
+            "63beetle": "'63 Volkswagen 1300 Beetle"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "63beetleBuggyBase",
+          "vehicles": {
+            "63beetleBuggy": "'63 Volkswagen Beetle Dune Buggy"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "63beetleHPBase",
+          "vehicles": {
+            "63beetleHP": "'63 Volkswagen Beetle High Performance"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'91 Geo Metro",
+      "workshop": "3008795514",
+      "modId": "91geoMetro",
+      "models": [
+        {
+          "file": "91geoMetroBase",
+          "vehicles": {
+            "91geoMetro": "'91 Geo Metro"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'67 Shelby GT500 + Eleanor",
+      "workshop": "3026723485",
+      "modId": "67gt500",
+      "models": [
+        {
+          "file": "67gt500Base",
+          "vehicles": {
+            "67gt500": "'67 Shelby GT500"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "67gt500eBase",
+          "vehicles": {
+            "67gt500e": "'67 Shelby GT500 Eleanor"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'89 Dodge Caravan",
+      "workshop": "3034636011",
+      "modId": "89dodgeCaravan",
+      "models": [
+        {
+          "file": "89dodgeCaravanBase",
+          "vehicles": {
+            "89dodgeCaravan": "'89 Dodge Caravan",
+            "89dodgeCaravanLE": "'89 Dodge Caravan LE"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "89dodgeCaravanNomadBase",
+          "vehicles": {
+            "89dodgeCaravanNomad": "'89 Dodge Caravan Nomad"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'63 Volkswagen Type 2 Van",
+      "workshop": "3041122351",
+      "modId": "63Type2Van",
+      "models": [
+        {
+          "file": "63Type2VanBase",
+          "vehicles": {
+            "63Type2Van": "'63 Volkswagen Type 2 Van",
+            "63Type2VanApocalypse": "'63 Volkswagen Type 2 Apocalypse Van",
+            "63Type2VanHippie": "'63 Volkswagen Type 2 Hippie Van"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "63Type2VanMilitaryBase",
+          "vehicles": {
+            "63Type2VanMilitary": "'63 Volkswagen Type 2 Military Van"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'87 Toyota MR2",
+      "workshop": "3052360250",
+      "modId": "87toyotaMR2",
+      "models": [
+        {
+          "file": "87toyotaMR2Base",
+          "vehicles": {
+            "87toyotaMR2": "'87 Toyota MR2",
+            "87toyotaMR2c": "'87 Toyota MR2 Convertible"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'93 Ford F-Series",
+      "workshop": "3073430075",
+      "modId": "93fordF350",
+      "models": [
+        {
+          "file": "93fordF150CabBase",
+          "vehicles": {
+            "93fordF150": "'93 Ford F-150 Single Cab",
+            "93fordF150S": "'93 Ford F-150 Special",
+            "93fordF250": "'93 Ford F-250 Single Cab"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "93fordF350Base",
+          "vehicles": {
+            "93fordF350": "'93 Ford F-350 Crew Cab",
+            "93fordF350dually": "'93 Ford F-350 Crew Cab Dually",
+            "93fordF350fd": "'93 Ford F-350 Crew Cab FD",
+            "93fordF350pd": "'93 Ford F-350 Crew Cab PD",
+            "93fordF350so": "'93 Ford F-350 Crew Cab SO",
+            "93fordF350utility": "'93 Ford F-350 Utility Truck",
+            "93fordF350utilityDpw": "'93 Ford F-350 DPW Utility Truck",
+            "93fordF350utilityFd": "'93 Ford F-350 FD Utility Truck"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'93 Ford Taurus",
+      "workshop": "3088951320",
+      "modId": "93fordTaurus",
+      "models": [
+        {
+          "file": "93fordTaurusBase",
+          "vehicles": {
+            "93fordTaurus": "'93 Ford Taurus"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "93fordTaurusSHOBase",
+          "vehicles": {
+            "93fordTaurusSHO": "'93 Ford Taurus SHO"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "93fordTaurusWagonBase",
+          "vehicles": {
+            "93fordTaurusWagon": "'93 Ford Taurus Wagon"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'90 BMW 3 Series (E30)",
+      "workshop": "3110913021",
+      "modId": "90bmwE30",
+      "models": [
+        {
+          "file": "90bmwE30cabrioBase",
+          "vehicles": {
+            "90bmwE30cabrio": "'90 BMW E30 Cabrio"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "90bmwE30m3Base",
+          "vehicles": {
+            "90bmwE30m3": "'90 BMW E30 M3"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "90bmwE30sedan2Base",
+          "vehicles": {
+            "90bmwE30sedan2": "'90 BMW E30 2-Door"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "90bmwE30sedan4Base",
+          "vehicles": {
+            "90bmwE30sedan4": "'90 BMW E30 4-Door"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "90bmwE30touringBase",
+          "vehicles": {
+            "90bmwE30touring": "'90 BMW E30 Touring"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'93 Chevrolet Suburban / Silverado",
+      "workshop": "3152529790",
+      "modId": "93chevySuburban",
+      "addons": [
+        "93chevySuburbanExpanded"
+      ],
+      "models": [
+        {
+          "file": "93chevySuburbanBase",
+          "vehicles": {
+            "93chevySilveradoCC": "'93 Chevrolet Silverado Crew Cab",
+            "93chevySilveradoCCdually": "'93 Chevrolet Silverado Crew Cab Dually",
+            "93chevySilveradoCClong": "'93 Chevrolet Silverado Crew Cab Long Bed",
+            "93chevySilveradoCClongfd": "'93 Chevrolet Silverado Fire Dept",
+            "93chevySilveradoK3500flatbed": "'93 Chevrolet K3500 Flatbed",
+            "93chevySilveradoSC": "'93 Chevrolet Silverado Single Cab",
+            "93chevySilveradoSCdually": "'93 Chevrolet Silverado Single Cab Dually",
+            "93chevySilveradoSClong": "'93 Chevrolet Silverado Single Cab Long Bed",
+            "93chevySilveradoSClongFossoil": "'93 Chevrolet Silverado Fossoil",
+            "93chevySilveradoXC": "'93 Chevrolet Silverado Extended Cab",
+            "93chevySilveradoXCdually": "'93 Chevrolet Silverado Extended Cab Dually",
+            "93chevySilveradoXClong": "'93 Chevrolet Silverado Extended Cab Long Bed",
+            "93chevySilveradoXClongMcCoy": "'93 Chevrolet Silverado McCoy",
+            "93chevySilveradoXClongRanger": "'93 Chevrolet Silverado Ranger",
+            "93chevySuburban": "'93 Chevrolet Suburban",
+            "93chevySuburbanDually": "'93 Chevrolet Suburban Dually",
+            "93chevySuburbanfbi": "'93 Chevrolet Suburban FBI",
+            "93chevySuburbanfd": "'93 Chevrolet Suburban Fire Chief",
+            "93chevySuburbanksp": "'93 Chevrolet Suburban KSP",
+            "93chevySuburbanpd": "'93 Chevrolet Suburban PD",
+            "93chevySuburbanpdu": "'93 Chevrolet Suburban Undercover"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'76 Chevrolet K series",
+      "workshop": "3161951724",
+      "modId": "76chevyKseries",
+      "addons": [
+        "76chevyKseriesExpanded"
+      ],
+      "models": [
+        {
+          "file": "76chevyKBase",
+          "vehicles": {
+            "76chevyBlazer": "'76 Chevrolet K5 Blazer",
+            "76chevyK10": "'76 Chevrolet K10",
+            "76chevyK10fd": "'76 Chevrolet K10 Fire Dept",
+            "76chevyK10spirit": "'76 Chevrolet K10 Spirit of 76",
+            "76chevyK20": "'76 Chevrolet K20",
+            "76chevyK20BigRed": "'76 Chevrolet K20 Big Red",
+            "76chevyK20fd": "'76 Chevrolet K30 Single Cab Fire Dept",
+            "76chevyK20utility": "'76 Chevrolet K20 Single Cab Utility Truck",
+            "76chevyK30CC": "'76 Chevrolet K30 Crew Cab",
+            "76chevyK30CCdually": "'76 Chevrolet K30 Crew Cab Dually",
+            "76chevyK30CCduallyS": "'76 Chevrolet K30 Special",
+            "76chevyK30CCfd": "'76 Chevrolet K30 Crew Cab Fire Dept",
+            "76chevyK30CCutility": "'76 Chevrolet K30 Crew Cab Utility Truck",
+            "76chevyK30SCdually": "'76 Chevrolet K30 Single Cab Dually",
+            "76chevySuburban": "'76 Chevrolet Suburban",
+            "76chevySuburban2": "'76 Chevrolet Suburban"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'87 Chevrolet Suburban",
+      "workshop": "3196180339",
+      "modId": "87chevySuburban",
+      "models": [
+        {
+          "file": "87chevySuburbanBase",
+          "vehicles": {
+            "87chevySuburban": "'87 Chevrolet Suburban",
+            "87chevySuburbanCUCV": "'87 Chevrolet Suburban CUCV",
+            "87chevySuburbanOP": "'87 Chevrolet Suburban Offroad Pack"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'75 Pontiac Grand Prix",
+      "workshop": "3213391371",
+      "modId": "75grandPrix",
+      "models": [
+        {
+          "file": "75grandPrixBase",
+          "vehicles": {
+            "75grandPrixHurst": "'75 Pontiac Grand Prix Hurst Special",
+            "75grandPrixLJ": "'75 Pontiac Grand Prix LJ",
+            "75grandPrixSJ": "'75 Pontiac Grand Prix SJ"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'89 Volvo 200 Series",
+      "workshop": "3292659291",
+      "modId": "89volvo200",
+      "models": [
+        {
+          "file": "89volvo242turboBase",
+          "vehicles": {
+            "89volvo242turbo": "'89 Volvo 242 Turbo"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "89volvo244sedanBase",
+          "vehicles": {
+            "89volvo244sedan": "'89 Volvo 244 Sedan"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "89volvo245wagonBase",
+          "vehicles": {
+            "89volvo245wagon": "'89 Volvo 245 Wagon"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'82 Porsche 911",
+      "workshop": "3379334330",
+      "modId": "82porsche911",
+      "models": [
+        {
+          "file": "82porsche911rwbBase",
+          "vehicles": {
+            "82porsche911rwb": "'82 Porsche 911 RWB"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "82porsche911SCBase",
+          "vehicles": {
+            "82porsche911sc": "'82 Porsche 911SC"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "82porsche911taBase",
+          "vehicles": {
+            "82porsche911targa": "'82 Porsche 911SC Targa"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "82porsche911turboBase",
+          "vehicles": {
+            "82porsche911turbo": "'82 Porsche 911 Turbo"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'85 Chevrolet Caprice / Impala",
+      "workshop": "3413704851",
+      "modId": "85chevyCaprice",
+      "models": [
+        {
+          "file": "85chevyCapriceBase",
+          "vehicles": {
+            "85chevyCapriceCoupe": "'85 Chevrolet Caprice Coupe",
+            "85chevyCapriceSedan": "'85 Chevrolet Caprice Sedan",
+            "85chevyCapriceWagon": "'85 Chevrolet Caprice Wagon",
+            "85chevyCapriceWagon2": "'85 Chevrolet Caprice Wagon",
+            "85chevyImpalaSedanAirport": "'85 Chevrolet Impala Airport Security",
+            "85chevyImpalaSedanBCS": "'85 Chevrolet Impala Bulletin County Sheriff",
+            "85chevyImpalaSedanCLPD": "'85 Chevrolet Impala City of Louisville PD",
+            "85chevyImpalaSedanFD": "'85 Chevrolet Impala Fire Department",
+            "85chevyImpalaSedanKSP": "'85 Chevrolet Impala KY State Trooper",
+            "85chevyImpalaSedanLCPD": "'85 Chevrolet Impala Louisville County PD",
+            "85chevyImpalaSedanMCS": "'85 Chevrolet Impala Meade County Sheriff",
+            "85chevyImpalaSedanMPD": "'85 Chevrolet Impala Muldraugh PD",
+            "85chevyImpalaSedanPD": "'85 Chevrolet Impala Police",
+            "85chevyImpalaSedanPDu": "'85 Chevrolet Impala Undercover",
+            "85chevyImpalaSedanPrison": "'85 Chevrolet Impala Prison Security",
+            "85chevyImpalaSedanRanger": "'85 Chevrolet Impala Ranger",
+            "85chevyImpalaSedanTaxi": "'85 Chevrolet Impala Taxi",
+            "85chevyImpalaSedanWPPD": "'85 Chevrolet Impala West Point PD"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'85 Pontiac Parisienne",
+      "workshop": "3413706334",
+      "modId": "85pontiacParisienne",
+      "models": [
+        {
+          "file": "85pontiacParisienneBase",
+          "vehicles": {
+            "85pontiacParisienneSedan": "'85 Pontiac Parisienne Sedan",
+            "85pontiacParisienneWagon": "'85 Pontiac Parisienne Wagon",
+            "85pontiacParisienneWagon2": "'85 Pontiac Parisienne Wagon"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'85 Buick LeSabre",
+      "workshop": "3418252689",
+      "modId": "85buickLeSabre",
+      "models": [
+        {
+          "file": "85buickLeSabreBase",
+          "vehicles": {
+            "85buickLeSabreCoupe": "'85 Buick LeSabre Coupe",
+            "85buickLeSabreSedan": "'85 Buick LeSabre Sedan",
+            "85buickLeSabreWagon": "'85 Buick LeSabre Wagon",
+            "85buickLeSabreWagon2": "'85 Buick LeSabre Wagon"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'85 Oldsmobile Delta 88",
+      "workshop": "3418253716",
+      "modId": "85oldsmobileDelta88",
+      "models": [
+        {
+          "file": "85oldsmobileDelta88Base",
+          "vehicles": {
+            "85oldsmobileDelta88Coupe": "'85 Oldsmobile Delta 88 Coupe",
+            "85oldsmobileDelta88Sedan": "'85 Oldsmobile Delta 88 Sedan",
+            "85oldsmobileDelta88Wagon": "'85 Oldsmobile Delta 88 Wagon",
+            "85oldsmobileDelta88Wagon2": "'85 Oldsmobile Delta 88 Wagon"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'86 Chevrolet CUCVs + M101A2 Trailer",
+      "workshop": "3428008364",
+      "modId": "86chevyCUCV",
+      "models": [
+        {
+          "file": "86chevyCUCVBase",
+          "vehicles": {
+            "86chevyK5blazer": "'86 Chevrolet K5 Blazer",
+            "86chevyK5ksp": "'86 Chevrolet K5 KSP",
+            "86chevyK5pd": "'86 Chevrolet K5 PD",
+            "86chevyM1008": "'86 Chevrolet M1008",
+            "86chevyM1009": "'86 Chevrolet M1009",
+            "86chevyM1009mp": "'86 Chevrolet M1009 MP",
+            "86chevyM1010": "'86 Chevrolet M1010",
+            "86chevyM1028": "'86 Chevrolet M1028",
+            "86chevyM1031": "'86 Chevrolet M1031"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'89 LAND ROVER Defender",
+      "workshop": "3570973322",
+      "modId": "89defender",
+      "models": [
+        {
+          "file": "89defender110Base",
+          "vehicles": {
+            "89defender110": "'89 LAND ROVER Defender 110",
+            "89defender110utility": "'89 LAND ROVER Defender 110 Utility"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "89defender130Base",
+          "vehicles": {
+            "89defender130": "'89 LAND ROVER Defender 130"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "89defender90Base",
+          "vehicles": {
+            "89defender90": "'89 LAND ROVER Defender 90",
+            "89defender90utility": "'89 LAND ROVER Defender 90 Utility"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "89defenderWolfBase",
+          "vehicles": {
+            "89defenderWolf": "'89 LAND ROVER Wolf"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'84 Cadillac DeVille",
+      "workshop": "3592777775",
+      "modId": "84cadillacDeVille",
+      "models": [
+        {
+          "file": "84cadillacDeVilleBase",
+          "vehicles": {
+            "84cadillacDeVilleCoupe": "'84 Cadillac DeVille Coupe",
+            "84cadillacDeVilleSedan": "'84 Cadillac DeVille Sedan"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'84 Buick Electra",
+      "workshop": "3596903773",
+      "modId": "84buickElectra",
+      "models": [
+        {
+          "file": "84buickElectraBase",
+          "vehicles": {
+            "84buickElectraCoupe": "'84 Buick Electra Coupe",
+            "84buickElectraSedan": "'84 Buick Electra Sedan"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'85 Chevrolet Step-Van",
+      "workshop": "3614034284",
+      "modId": "85chevyStepVan",
+      "addons": [
+        "85chevyStepVanexpanded"
+      ],
+      "models": [
+        {
+          "file": "85chevyStepVanBase",
+          "vehicles": {
+            "85chevyStepVan": "'85 Chevrolet Step-Van",
+            "85chevyStepVanSWAT": "'85 Chevrolet Step-Van SWAT"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'69 Dodge Charger",
+      "workshop": "3631989559",
+      "modId": "69charger",
+      "models": [
+        {
+          "file": "69chargerBase",
+          "vehicles": {
+            "69charger440": "'69 Dodge Charger 440 Pro Touring",
+            "69charger500": "'69 Dodge HEMI Charger 500",
+            "69chargerDaytona": "'69 Dodge Charger Daytona",
+            "69chargerRT": "'69 Dodge Charger RT"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "69chargerDemonBase",
+          "vehicles": {
+            "69chargerDemon": "'69 Dodge Charger Demon Love Child"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'70 Plymouth Road Runner",
+      "workshop": "3642935062",
+      "modId": "70roadRunner",
+      "models": [
+        {
+          "file": "70roadRunnerBase",
+          "vehicles": {
+            "70roadRunner": "'70 Plymouth Road Runner"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'95 Subaru Impreza WRX STI",
+      "workshop": "3647735736",
+      "modId": "95impreza",
+      "models": [
+        {
+          "file": "95imprezaBase",
+          "vehicles": {
+            "95impreza": "'95 Subaru Impreza WRX STI Imported",
+            "95imprezalhd": "'95 Subaru Impreza WRX STI Converted"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'96 Mitsubishi Lancer EVO IV",
+      "workshop": "3647736504",
+      "modId": "96lancerEVO",
+      "models": [
+        {
+          "file": "96lancerEVOBase",
+          "vehicles": {
+            "96lancerEVO": "'96 Mitsubishi Lancer EVO IV Imported",
+            "96lancerEVOlhd": "'96 Mitsubishi Lancer EVO IV Converted"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "W900 Semi-Truck",
+      "workshop": "3409472393",
+      "modId": "rSemiTruck",
+      "models": [
+        {
+          "file": "Rotators.SemiTruckBase",
+          "vehicles": {
+            "SemiTruck": "W900 Flat Top",
+            "SemiTruck_mil": "W900 Military Edition"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "Rotators.SemiTruckBoxBase",
+          "vehicles": {
+            "SemiTruckBox": "W900 Box Truck",
+            "SemiTruckBox_mil": "W900 Military Box"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "Rotators.SemiTruckLiteBase",
+          "vehicles": {
+            "SemiTruckLite": "W900 Day Cab"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'98 Nissan Stagea 260RS Autech",
+      "workshop": "3315443103",
+      "modId": "98stagea",
+      "models": [
+        {
+          "file": "98stageaBase",
+          "vehicles": {
+            "98stagea260RS": "'98 Nissan Stagea 260RS Autech Imported",
+            "98stagea260RSlhd": "'98 Nissan Stagea 260RS Autech Converted"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'87 Ford B700/F700 Trucks",
+      "workshop": "3110911330",
+      "modId": "87fordB700",
+      "models": [
+        {
+          "file": "87fordB700Base",
+          "vehicles": {
+            "87fordB700military": "'87 Ford B700 Military Bus",
+            "87fordB700prison": "'87 Ford B700 Prison Bus",
+            "87fordB700school": "'87 Ford B700 School Bus"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "87fordF700bankBase",
+          "vehicles": {
+            "87fordF700bank": "'87 Ford F700 Armored Truck"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "87fordF700boxBase",
+          "vehicles": {
+            "87fordF700box": "'87 Ford F700 Box Truck"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "87fordF700swatBase",
+          "vehicles": {
+            "87fordF700swat": "'87 Ford F700 SWAT Van"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'82 Oshkosh M911",
+      "workshop": "2618213077",
+      "modId": "82oshkoshM911",
+      "models": [
+        {
+          "file": "82oshkoshM911Base",
+          "vehicles": {
+            "82oshkoshM911": "'82 Oshkosh M911"
+          },
+          "status": "preview"
+        },
+        {
+          "file": "82oshkoshM911BBase",
+          "vehicles": {
+            "82oshkoshM911B": "'82 Oshkosh M911 Black"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'78 AM General M35 Series Trucks",
+      "workshop": "2799152995",
+      "modId": "78amgeneralM35A2",
+      "models": [
+        {
+          "file": "78amgeneralM35A2Cab",
+          "vehicles": {
+            "78amgeneralM35A2": "'78 AM General M35A2",
+            "78amgeneralM49A2C": "'78 AM General M49A2C Fuel Tanker",
+            "78amgeneralM50A3": "'78 AM General M50A3 Water Tanker",
+            "78amgeneralM62": "'78 AM General M62 Wrecker"
+          },
+          "status": "preview"
+        }
+      ]
+    },
+    {
+      "name": "'97 ADI Bushmaster",
+      "workshop": "2897390033",
+      "modId": "97bushmaster",
+      "models": [
+        {
+          "file": "97bushmasterBase",
+          "vehicles": {
+            "97bushAmbulance": "'97 Bushmaster Ambulance",
+            "97bushmaster": "'97 Bushmaster"
+          },
+          "status": "preview"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+name: MOD 車位置申請 / Modded vehicle position request
+description: 想讓某台 MOD 車的擋風玻璃也看得到感應盒；附 Workshop 連結與車名。Ask for a modded vehicle to show the tag on its windshield; include the Workshop link and vehicle name.
+title: "[ModCar] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        已支援的 MOD 車清單在 Steam 討論串「🚗 支援的 MOD 車與申請」。表上沒有的車照樣能裝感應盒、開門、充電，只是盒子未必看得到。
+        車要是 Build 42 的 MOD，而且有電瓶（拖車、腳踏車本來就不裝感應盒）。
+
+        The supported list is in the Steam thread "🚗 Supported Modded Vehicles & Requests". Vehicles not on the list still take a tag, open gates and charge; the tag just may not be visible.
+        The vehicle must be a Build 42 mod with a battery (trailers and bicycles never take a tag).
+
+  - type: input
+    id: workshop
+    attributes:
+      label: 車輛 MOD 的 Workshop 連結 / Workshop link of the vehicle mod
+      placeholder: "https://steamcommunity.com/sharedfiles/filedetails/?id=..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: vehicles
+    attributes:
+      label: 哪幾台車 / Which vehicles
+      description: 遊戲裡顯示的車名，一行一台；整個 MOD 都要就寫「全部」。Vehicle names as shown in game, one per line, or "all".
+    validations:
+      required: true
+
+  - type: upload
+    id: screenshots
+    attributes:
+      label: 截圖（建議）/ Screenshot (recommended)
+      description: 裝上感應盒後從車頭前方拍，看得出擋風玻璃。若是位置跑掉的回報，請拍出盒子目前的位置。From in front of the vehicle with the tag installed. For a misplaced tag, show where it is now.
+      accept: ".png,.jpg,.jpeg,.webp,.gif"
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: 補充（選填）/ Notes (optional)
+      description: 例如這台車已在清單上但盒子位置不對、MOD 最近更新過、Mod ID。For example: the vehicle is listed but the tag is misplaced, the mod was updated recently, or the Mod ID.
