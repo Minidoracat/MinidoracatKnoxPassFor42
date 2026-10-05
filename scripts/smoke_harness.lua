@@ -136,7 +136,7 @@ local function newWorld()
         sent = {}, sendServerCalls = 0, itemStats = 0, removeSent = 0, addSent = 0, handsRemoved = 0,
         partDeltas = 0, nilToggles = 0, refused = 0, recreated = 0, obstructChecks = 0, copyCalls = 0,
         customLockTx = 0, garageBlocked = 0, removedObjs = 0, invalidated = 0, dropped = {}, onLoadSprite = {},
-        vehicleQueries = 0,
+        vehicleQueries = 0, postTx = 0,
     }
 end
 -- MapObjects.OnLoadWithSprite（Lua/MapObjects.java:134-176）：記下回呼，loadSprites() 模擬區塊載入時逐物件呼叫
@@ -420,12 +420,28 @@ function Square:transmitRemoveItemFromSquare(o, safelyRemove)
     end
 end
 function Square:RecalcAllWithNeighbours() end
+function Square:AddTileObject(o)   -- IsoGridSquare.java:5851-5880（門柱讀頭模型用）
+    self._objects[#self._objects + 1] = o
+    o._square = self
+end
 
 -- 閘門 tile 的 sprite（只要 getName）
 local Sprite = {}
 Sprite.__index = Sprite
 function Sprite:getName() return self._name end
 local function barrierSprite(i) return setmetatable({ _name = "MinidoracatKnoxPass_barrier_" .. i }, Sprite) end
+
+-- 門柱讀頭模型：IsoObject(cell, square, spriteName)（IsoObject.java:331-336）是普通物件、沒有 modData；
+-- transmitCompleteItemToClients 只在伺服器送 AddItemToMap（:4604-4611）
+local Prop = setmetatable({}, { __index = Base })
+Prop.__index = Prop
+function Prop:hasModData() return false end
+function Prop:transmitCompleteItemToClients() if isServer() then W.postTx = W.postTx + 1 end end
+IsoObject = {
+    new = function(_, _sq, name)
+        return new("IsoObject", Prop, { _spriteObj = setmetatable({ _name = name }, Sprite), _modData = {} })
+    end,
+}
 
 -- 雙開門：第 1-4 片在 (x..x+3, y)；開著時第 2、3 片搬到 y-1 那排重建
 local function toggleDouble(o)
@@ -952,6 +968,10 @@ local FAKE_MODULES = {
             return true
         end
     end,
+    ["BuildingObjects/ISDestroyCursor"] = function()
+        ISDestroyCursor = {}
+        function ISDestroyCursor:canDestroy() return true end   -- 原版判斷（ISDestroyCursor.lua:293-362）此處一律放行
+    end,
 }
 
 -- ===== 載入受測程式碼 =====
@@ -977,7 +997,7 @@ local KP
 local MOD_FILES = {
     "MinidoracatKnoxPass/Core", "MinidoracatKnoxPass/Gates", "MinidoracatKnoxPass/Parts",
     "MinidoracatKnoxPass/Ledger", "MinidoracatKnoxPass/Sensor", "MinidoracatKnoxPass/Server",
-    "MinidoracatKnoxPass/Barrier",
+    "MinidoracatKnoxPass/Barrier", "MinidoracatKnoxPass/ReaderPost",
 }
 local CLIENT_FILES = { "MinidoracatKnoxPass/BarrierAnim" }   -- 只載不碰 UI 的 client 檔
 -- 開機：Lua 全部重載（各檔 local 狀態歸零）→ OnGameBoot → 世界載入時 OnSGlobalObjectSystemInit
@@ -986,7 +1006,7 @@ local function bootMod()
     for k in pairs(handlers) do handlers[k] = nil end
     for k in pairs(systems) do systems[k] = nil end
     MinidoracatKnoxPass, KnoxPassAPI, SGlobalObjectSystem, ISBaseObject = nil, nil, nil, nil
-    ISDismantleAction, ISDestroyStuffAction = nil, nil
+    ISDismantleAction, ISDestroyStuffAction, ISDestroyCursor = nil, nil, nil
     for _, name in ipairs(MOD_FILES) do require(name) end
     if MODE ~= "server" then
         for _, name in ipairs(CLIENT_FILES) do assert(loadfile(MEDIA .. "/client/" .. name .. ".lua"))() end
@@ -1739,7 +1759,8 @@ local function scenarioLedger()
     runMs(5500)
     check(not a.door:IsOpen() and a.door._modData.CustomLock == true, "重啟後關門並鎖回")
 
-    -- 門被拆：格子載入時滿 30 秒才刪記錄
+    -- 門沒經過移除事件就不見（例：地圖重置、存檔不同步）：格子載入時滿 30 秒才刪記錄。
+    -- 經過移除事件的拆門／打壞下一個 tick 就刪（ReaderPost.lua，scenarioReaderPost）
     local b = gate(200)
     local vb = car(b, 3, { tag = 0.5 })
     register(b, vb)
@@ -1747,7 +1768,8 @@ local function scenarioLedger()
     step()
     check(b.door:IsOpen(), "開門")
     moveCar(vb, vb._x, vb._y + 40)
-    removeObj(b.door)
+    local bsq = b.door._square._objects
+    for i, o in ipairs(bsq) do if o == b.door then table.remove(bsq, i) break end end
     runMs(5000 + 29500)
     check(rec(b) ~= nil, "門不見未滿 30 秒不刪記錄")
     runMs(1000)
@@ -2756,11 +2778,180 @@ local function scenarioDriveWarn()
     clean(from, "駕駛預警")
 end
 
+-- 門柱上的讀頭模型（server/ReaderPost.lua）：宿主格＝西北角是那根門柱的格子；變體 0 N 西端、1 N 東端、2 W 北端、3 W 南端
+local function scenarioReaderPost()
+    out("情境：門柱上的讀頭模型（位置與變體、移除、自我修復）")
+    freshWorld()
+    local from = #logLines + 1
+    local function postsAt(x, y)
+        local list = {}
+        for _, o in ipairs(square(x, y, 0)._objects) do
+            local v = KP.readerPostIndex(o)
+            if v then list[#list + 1] = v end
+        end
+        return table.concat(list, ",")
+    end
+    local function postObj(x, y)
+        for _, o in ipairs(square(x, y, 0)._objects) do if KP.readerPostIndex(o) then return o end end
+        return nil
+    end
+    local function install(obj, name)
+        local sq = obj._square
+        local p = newPlayer(name, sq._x, sq._y + 2)
+        local res = cmd(p, "install", { x = sq._x, y = sq._y, z = 0, index = obj:getObjectIndex(), itemId = p._inv:AddItem(READER):getID() })
+        return res.key, p
+    end
+    local function post(key) local r = KP.Ledger.get(key); return r and r.post end
+
+    -- 1. 各類門：放在錨點那片的外端門柱（宿主格、變體），伺服器送給客戶端
+    local single = gate(100)
+    local p0 = post(single.key)
+    check(postsAt(100, 100) == "0" and p0 and p0.x == 100 and p0.y == 100 and p0.i == 0 and W.postTx == 1,
+        "N 單門：鉸鏈（西端）門柱，宿主＝門格、變體 0，transmitCompleteItemToClients")
+    gate(110, { cls = "IsoThumpable" })
+    check(postsAt(110, 100) == "0", "玩家建造的門（IsoThumpable）：同單門")
+    local dbl = gate(120, { double = true, click = 3 })
+    check(postsAt(120, 100) == "0" and postsAt(123, 100) == "" and postsAt(124, 100) == "", "N 雙開門（點第 3 片）：錨點第 1 片西端")
+    local gar = gate(130, { garage = true, click = 3 })
+    check(postsAt(130, 100) == "0" and postsAt(132, 100) == "", "N 車庫門（點第 3 片）：第 1 片西端")
+    local half = makeDouble("IsoDoor", 140, 100)
+    removeObj(half.pieces[1])
+    half.pieces[1] = nil
+    local kHalf = install(half.pieces[4], "half")
+    check(post(kHalf) and postsAt(144, 100) == "1" and postsAt(143, 100) == "",
+        "N 雙開門只剩第 4 片：錨點第 4 片東端，宿主＝東邊那格、變體 1")
+    local w1 = makePiece("IsoDoor", 150, 100, false)
+    local kW1 = install(w1, "w1")
+    check(postsAt(150, 100) == "2", "W 單門：鉸鏈（北端）門柱、變體 2")
+    local wd = { pieces = {}, cls = "IsoDoor" }   -- W 雙開門第 1 片在最大 y（IsoDoor.java:128）
+    for i = 1, 4 do
+        local p = makePiece("IsoDoor", 160, 103 - (i - 1), false)
+        p._group, p._index = wd, i
+        wd.pieces[i] = p
+    end
+    local kWd = install(wd.pieces[2], "wd")
+    check(postsAt(160, 104) == "3" and postsAt(160, 103) == "" and postsAt(160, 100) == "",
+        "W 雙開門：錨點第 1 片（最大 y）南端，宿主＝南邊那格、變體 3")
+    local wg = {}
+    for i = 1, 3 do   -- W 車庫門第 1 片在最大 y（getGarageDoorPrev 往 y+1，IsoDoor.java:3252-3253）
+        local p = makePiece("IsoDoor", 170, 102 - (i - 1), false)
+        p._garage = i
+        wg[i] = p
+    end
+    install(wg[3], "wg")
+    check(postsAt(170, 103) == "3" and postsAt(170, 102) == "", "W 車庫門（點第 3 片）：第 1 片南端、變體 3")
+    local builder = newPlayer("builder", 301, 103)
+    buildBarrier(300, 100, true, builder)
+    step()
+    local nb = 0
+    for x = 299, 305 do for y = 99, 101 do if postsAt(x, y) ~= "" then nb = nb + 1 end end end
+    local rb = KP.Ledger.get("301,100,0N")
+    check(rb and rb.post == nil and nb == 0, "抬升閘門（機箱頂已有讀頭）不放")
+    check(KP.Ledger.get(single.key).post ~= nil and #square(100, 100, 0)._objects == 2, "反面：一般門一扇只放一個")
+
+    -- 2. 雙開門開關：第 2、3 片搬格重建，錨點與讀頭模型不動、帳本不受影響
+    local dprop = postObj(120, 100)
+    local recreated = W.recreated
+    dbl.door:ToggleDoor(dbl.owner)
+    step()
+    dbl.door:ToggleDoor(dbl.owner)
+    step()
+    check(W.recreated == recreated + 4 and postObj(120, 100) == dprop and present(dprop) and KP.Ledger.get(dbl.key) ~= nil,
+        "雙開門開關兩次：第 2、3 片重建 4 次，讀頭模型同一個物件、帳本還在")
+
+    -- 3. 拆讀頭：帳本刪除，模型一起移除（MP 送移除）
+    local removed = W.removedObjs
+    local res = cmd(single.owner, "uninstall", { key = single.key })
+    check(res.ok == true and postsAt(100, 100) == "" and W.removedObjs == removed + 1 and present(single.door),
+        "拆讀頭：模型以 transmitRemoveItemFromSquare 移除，門還在")
+
+    -- 4. 門被打壞（車庫門整條鏈 destroy）、被拆（玩家建造的門）：下一個 tick 帳本與模型一起刪
+    local forgot, forget = {}, KP.Sensor.forget
+    KP.Sensor.forget = function(key) forgot[#forgot + 1] = key; return forget(key) end
+    for i = 3, 1, -1 do local p = gar.group.pieces[i]; p._square:transmitRemoveItemFromSquare(p) end
+    check(KP.Ledger.get(gar.key) ~= nil, "移除事件當下不刪（handler 裡不能移物件，等下一個 tick 確認）")
+    step()
+    KP.Sensor.forget = forget
+    check(KP.Ledger.get(gar.key) == nil and postsAt(130, 100) == "" and forgot[1] == gar.key and logHas("gate removed", from),
+        "車庫門被打壞：下一個 tick 帳本、Sensor 狀態、門柱模型一起刪")
+    local thumpGate = KP.Ledger.get("110,100,0N")
+    ISDismantleAction.complete({ thumpable = square(110, 100, 0)._objects[1] })
+    step()
+    check(thumpGate and KP.Ledger.get("110,100,0N") == nil and postsAt(110, 100) == "", "玩家建造的門被拆：帳本與模型一起刪")
+    check(KP.Ledger.get(kWd) ~= nil and postsAt(160, 104) == "3", "反面：其他門的記錄與模型不受影響")
+    local w1b = makePiece("IsoDoor", 150, 100, false)   -- 同一 tick 換成新物件（同格同向、標記帶過去）
+    w1b._modData = w1._modData
+    removeObj(w1)
+    step()
+    check(KP.Ledger.get(kW1) ~= nil and postsAt(150, 100) == "2", "反面：移除後錨點位置上還有這扇門（G.findAt 找得到）就不刪")
+
+    -- 5. 自我修復
+    local w1prop = postObj(150, 100)
+    removeObj(w1prop)   -- 例：舊版本被大錘敲掉
+    step()
+    check(KP.Ledger.get(kW1) ~= nil and postsAt(150, 100) == "", "模型被移走不影響帳本（不是門）")
+    fire("LoadGridsquare", square(150, 100, 0))
+    check(postsAt(150, 100) == "", "LoadGridsquare 當下不改（等下一個 tick）")
+    step()
+    check(postsAt(150, 100) == "2", "宿主格載入：帳本有、格上沒有 → 補上")
+    local orphan = IsoObject.new(nil, nil, "MinidoracatKnoxPass_reader_0")
+    square(500, 500, 0):AddTileObject(orphan)
+    W.onLoadSprite["MinidoracatKnoxPass_reader_0"](orphan)
+    step()
+    check(not present(orphan) and logHas("not in ledger", from), "孤兒模型（帳本沒有）：區塊載入時移除")
+    local extra, dup = IsoObject.new(nil, nil, "MinidoracatKnoxPass_reader_2"), IsoObject.new(nil, nil, "MinidoracatKnoxPass_reader_0")
+    square(120, 100, 0):AddTileObject(extra)
+    square(120, 100, 0):AddTileObject(dup)
+    fire("LoadGridsquare", square(120, 100, 0))
+    step()
+    check(postsAt(120, 100) == "0" and present(dprop), "宿主格上變體不對、重複的移除，帳本那一個留著")
+    local lonely = postObj(144, 100)
+    KP.Ledger.get(kHalf).post = nil   -- 更新前裝的讀頭：帳本沒有 post、格上沒有模型
+    removeObj(lonely)
+    removeObj(postObj(150, 100))      -- 帳本有 post、模型不見：重開後不等 LoadGridsquare，開機對齊就補
+    restart()
+    W.unloaded["140,100,0"], W.unloaded["143,100,0"], W.unloaded["144,100,0"] = true, true, true
+    step()
+    check(KP.Ledger.get(kHalf).post == nil and postsAt(144, 100) == "", "重開：錨點格還沒載入的舊記錄先不動")
+    check(postsAt(120, 100) == "0" and postsAt(160, 104) == "3" and postsAt(150, 100) == "2" and KP.Ledger.get(kWd).post.i == 3,
+        "重開：已載入的格在帳本載入後第一個 tick 對齊（缺的補上），post 隨存檔保留、模型不重複")
+    W.unloaded["140,100,0"], W.unloaded["143,100,0"], W.unloaded["144,100,0"] = nil, nil, nil
+    fire("LoadGridsquare", square(143, 100, 0))
+    step()
+    check(KP.Ledger.get(kHalf).post and KP.Ledger.get(kHalf).post.i == 1 and postsAt(144, 100) == "1",
+        "舊記錄：錨點格載入時補算門柱位置並放上模型")
+    fire("LoadGridsquare", square(999, 999, 0))
+    step()
+    check(postsAt(999, 999) == "", "反面：載入無關的格不放")
+
+    -- 6. 大錘游標不列出讀頭模型（client UI）；其他物件照原版
+    check(ISDestroyCursor.canDestroy({}, postObj(120, 100)) == false and ISDestroyCursor.canDestroy({}, dbl.door) == true,
+        "大錘游標：讀頭模型不能選，門照原版")
+    clean(from, "門柱讀頭模型")
+
+    -- 7. SP：同樣放上，不送網路
+    freshWorld("sp")
+    from = #logLines + 1
+    local me = newPlayer("me", 100, 102)
+    W.locals = { me }
+    KP.clientReceive = function() end
+    makeDoor("IsoDoor", 100, 100)
+    fire("OnClientCommand", "MinidoracatKnoxPass", "install", me, { x = 100, y = 100, z = 0, index = 0, itemId = me._inv:AddItem(READER):getID() })
+    check(postsAt(100, 100) == "0" and W.postTx == 0, "SP：放上模型、沒有網路傳送")
+    clean(from, "門柱讀頭模型（SP）")
+
+    -- 8. MP client 也載入 server 資料夾：只掛大錘過濾，不掛伺服器事件
+    freshWorld("client")
+    check(KP.ReaderPost == nil and ISDestroyCursor.canDestroy({}, IsoObject.new(nil, nil, "MinidoracatKnoxPass_reader_3")) == false,
+        "MP client：沒有伺服器邏輯，大錘過濾照樣生效")
+end
+
 local tests = {
     scenarioParts, scenarioDetection, scenarioAutoClose, scenarioLocks, scenarioCommands,
     scenarioSinglePlayer, scenarioLedger, scenarioCharging, scenarioReopen, scenarioUninstallOpen, scenarioGarage,
     scenarioDoubleDoorway, scenarioAutoDrive, scenarioLoadGridsquare, scenarioTagScript,
     scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,
+    scenarioReaderPost,
 }
 for _, t in ipairs(tests) do t() end
 

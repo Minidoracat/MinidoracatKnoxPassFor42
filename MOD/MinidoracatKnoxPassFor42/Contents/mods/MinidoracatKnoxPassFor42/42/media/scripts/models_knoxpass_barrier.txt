@@ -43,4 +43,13 @@ module Base
         scale = 1.0,
         undoCoreScale = true,
     }
+
+    model MinidoracatKnoxPass_ReaderPost
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_reader_post,
+        texture = WorldItems/MinidoracatKnoxPassReader,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
 }

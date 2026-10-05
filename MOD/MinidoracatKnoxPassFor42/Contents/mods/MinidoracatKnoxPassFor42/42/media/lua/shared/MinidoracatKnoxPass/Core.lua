@@ -60,6 +60,18 @@ function KP.isBarrierCabinet(obj)
     return i == 6 or i == 7
 end
 
+-- 門柱上的讀頭模型（scripts/build_barrier_tiles.py 的第 2 個 tileset；變體 0-3 見 server/ReaderPost.lua R.spot）
+KP.READER_POST_TILESET = "MinidoracatKnoxPass_reader"
+
+-- 物件是哪個讀頭模型變體：回傳 0-3，不是回 nil
+function KP.readerPostIndex(obj)
+    local spr = obj and obj.getSprite and obj:getSprite()
+    local name = spr and spr:getName()
+    if not name then return nil end
+    local n = string.match(name, "^" .. KP.READER_POST_TILESET .. "_(%d+)$")
+    return n and tonumber(n) or nil
+end
+
 function KP.log(msg)
     print("[MinidoracatKnoxPassFor42] " .. tostring(msg))
 end

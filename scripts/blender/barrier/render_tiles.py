@@ -1,5 +1,7 @@
 """PZ 2x tile renders of the Knox Pass barrier + camera calibration against vanilla sprites.
-用法：blender -b --factory-startup --python render_tiles.py      (then: python assemble_previews.py)
+用法：blender -b --factory-startup --python render_tiles.py [-- step ...]   (then: python assemble_previews.py)
+steps: calibrate barrier game reader (default: all). `-- reader` re-renders only the door-post reader cells
+(no Blender canvases needed by assemble_previews.py; previews of the reader on vanilla doors: reader_previews.py).
 
 Camera = PZ 2x projection (IsoObjectModelDrawer.java:743-752, IsoUtils.java:72-76): orthographic,
 elevation 30 deg, looking toward PZ north-west; 1 tile unit = 128/sqrt(2) = 90.51 px; 1 floor level
@@ -22,8 +24,14 @@ go to an optional z+1 cell (rows 0..191 of the canvas); slicing by tile uses a w
 Cell kinds: cabinet (cabinet model, state independent), lane1..3 (arm model inside that tile),
 cabinet_arm (arm model inside the cabinet tile: the raised arm lives here), cabinet_ghost (cabinet + closed arm
 inside the cabinet tile, depth-correct: the build-cursor cell for the cabinet tile, where the lamp sits).
+
+reader:   cells/reader/reader_<i>.png, knoxpass_reader_post.glb on its host tile with the spriteModels values of
+          build_barrier_tiles.py READER (READER_XFORM here, keep both in sync), plus a holdout plane on the host
+          tile's north (i 0,1) or west (i 2,3) edge = the wall/door line: the far-face plate is hidden as the wall
+          hides it in game. The 2D cell is only the build/no-model fallback; the 3D model is what the game draws.
 """
 import math
+import sys
 from pathlib import Path
 
 import bpy
@@ -39,6 +47,11 @@ LAYOUTS = {   # spriteModels rotate, translate per tile back toward the cabinet 
 }
 GAME = {"closed": (0.0, False), "half": (43.0, True), "open": (86.0, True)}   # deg, green lamp texture
 EPS = 1e-4
+# door-post reader variants: spriteModels rotate (translate is always the host tile's NW corner, READER_T):
+# 0 N door, post at its west end (opening +x); 1 N, post at its east end (opening -x, host = tile east of the door);
+# 2 W door, post at its north end (opening +y); 3 W, post at its south end (opening -y, host = tile south of it)
+READER_XFORM = {0: (0.0, 180.0, 0.0), 1: (0.0, 0.0, 0.0), 2: (0.0, 90.0, 0.0), 3: (0.0, -90.0, 0.0)}
+READER_T = (-0.5, 0.0, -0.5)
 
 
 def pz_matrix(translate, rotate, scale=1.0):
@@ -290,7 +303,32 @@ def game():
                 render(HERE / "previews" / f"{layout}_{state}_zoom.png")
 
 
-calibrate()
-barrier()
-game()
+def holdout_wall(north):
+    """Vertical holdout plane, one floor high, on the host tile's north (scene y = +0.5) or west (x = -0.5) edge."""
+    bpy.ops.mesh.primitive_plane_add(size=1)
+    p = bpy.context.object
+    p.scale = (6.0, 2.45, 1.0)
+    if north:
+        p.location, p.rotation_euler = (0.0, 0.5, 1.225), (math.radians(90), 0.0, 0.0)
+    else:
+        p.location, p.rotation_euler = (-0.5, 0.0, 1.225), (math.radians(90), 0.0, math.radians(90))
+    mat = bpy.data.materials.new("holdout")
+    nt = mat.node_tree
+    out = next(n for n in nt.nodes if n.type == "OUTPUT_MATERIAL")
+    nt.links.new(nt.nodes.new("ShaderNodeHoldout").outputs[0], out.inputs["Surface"])
+    p.data.materials.append(mat)
+
+
+def reader():
+    for i, rotate in READER_XFORM.items():
+        reset()
+        import_glb(HERE / "export" / "knoxpass_reader_post.glb", pz_matrix(READER_T, rotate))
+        holdout_wall(i < 2)
+        aim((0, 0, 0), 64, 224, 128, 256)
+        render(HERE / "cells" / "reader" / f"reader_{i}.png")
+
+
+STEPS = {"calibrate": calibrate, "barrier": barrier, "game": game, "reader": reader}
+for step in (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else STEPS):
+    STEPS[step]()
 print("[render_tiles] done")
