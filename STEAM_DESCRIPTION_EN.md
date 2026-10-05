@@ -26,9 +26,8 @@ Put a tag in your car and a reader on your gate: drive up and the gate opens by 
 [*] [b]A real vehicle part[/b]: fits vanilla and modded cars, and moves with the tag to another car
 [*] [b]Per-gate registration[/b]: only the cars you register get through, and you can lock it to Knox Pass only
 [*] [b]Works with many gates[/b]: fence gates, double doors, garage doors and player-built doors
-[*] [b]7 shell colors[/b]: repaint tags and readers with vanilla paint and a paintbrush; registrations stay intact
+[*] [b]7 shell colors[/b]: repaint tags and readers with vanilla paint
 [*] [b]No crashes, no pinching[/b]: warns you ahead of a gate that won't open, and never closes on a car or a person
-[*] [b]Server settings[/b]: read range, close delay, power and tag battery are all adjustable
 [/list]
 
 [h2]🔗 All Minidoracat Mods[/h2]

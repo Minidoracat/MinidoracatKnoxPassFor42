@@ -18,6 +18,7 @@
     BaseVehicle.java:1756-1779 getModelScriptNameForPart、Item.java:3013-3026；原版先例 HoodOrnament），所以車上顯示的是該色的盒子。
     offset／rotate／scale 是佔位值，Parts.lua 注入時依各車型改寫（原版車查 DockSpots.lua、其他車用腳本幾何推算）；
     推算不出來或零件索引超過 127 的車型改成 setAllModelsVisible = false（不掛模型）。
+*/
 module Base
 {
     template vehicle KnoxPassParts

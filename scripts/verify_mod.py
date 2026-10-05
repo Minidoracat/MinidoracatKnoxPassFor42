@@ -37,6 +37,9 @@
                           所有中日文）、範圍內缺字畫成空白（CH/CN 的 → … ・ — “ ”）。依 TextManager
                           規則解析各語言實際載入的 .fnt 取交集；CN 漢字缺字是原版限制不計。
                           需要遊戲字型（PZ_PATH，預設 Steam 路徑），找不到則 SKIP
+ 15. 腳本區塊註解與大括號   — 註解 /* 沒有對應的 */ 時，ScriptParser.stripComments 從最後一個 */ 往回剝
+                          （ScriptParser.java:52-87），剩下的 /* 連同整個 module 被當成區塊標頭，整檔靜默不載入
+                          （Knox Pass 2026-10-06 實踩：template 不見、感應盒槽全部沒注入，只有實機看得出來）
 
 新增檢查時：同步把對應的坑記進 AGENTS.md 踩坑錄，並依「踩坑進化協議」回流到
 pz-mod-template（見 AGENTS.md）。
@@ -495,6 +498,29 @@ for m in MEDIA_DIRS:
                                  f"否則空件耗盡被靜默移除（ItemUser.java:69-72）且同樣被連坐收集")
 fail("drainable 輸入消耗語意（ItemCount/IsFull/KeepOnDeplete）", drain_bad) if drain_bad \
     else ok("drainable 輸入消耗語意（ItemCount/IsFull/KeepOnDeplete；本 MOD drainable）")
+
+# ---- 15. 腳本區塊註解與大括號 ----
+# 引擎從最後一個 */ 往回配對 /*（可巢狀），配不到就停（ScriptParser.java:52-87）；剩下的文字照大括號
+# 深度切區塊（parseTokens，:89 起）。所以只要 /* 與 */ 數量不等，或剝掉註解後大括號不平衡、沒有任何
+# module 區塊，就會整檔或部分區塊靜默消失。
+script_bad = []
+for m in MEDIA_DIRS:
+    sdir = os.path.join(m, "scripts")
+    if not os.path.isdir(sdir):
+        continue
+    for f in iter_files(sdir, {".txt"}):
+        with open(f, encoding="utf-8") as fh:
+            raw = fh.read()
+        rel = os.path.relpath(f, REPO)
+        if raw.count("/*") != raw.count("*/"):
+            script_bad.append(f"{rel}: /* {raw.count('/*')} 個、*/ {raw.count('*/')} 個（註解沒有成對）")
+            continue
+        body = re.sub(r"/\*.*?\*/", "", raw, flags=re.S)
+        if body.count("{") != body.count("}"):
+            script_bad.append(f"{rel}: 去掉註解後 {{ {body.count('{')} 個、}} {body.count('}')} 個")
+        elif not re.search(r"(?m)^\s*module\s+\w+\s*\{?", body):
+            script_bad.append(f"{rel}: 去掉註解後找不到 module 區塊")
+fail("腳本區塊註解與大括號", script_bad) if script_bad else ok("腳本區塊註解與大括號")
 
 # ---- 13. PACKS 使用者包範本 ----
 # PACKS/<Item>/ 是給服主複製、自備素材後自行上傳 Workshop 的 MOD 形狀資料夾（不是本 repo
