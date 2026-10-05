@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-"""由 scripts/blender/modcars.json 產生 Steam 討論串稿源 STEAM_DISCUSSION_modcars.md／_EN.md（支援的 MOD 車與申請）。
+"""由 scripts/blender/modcars.json 產生 Steam 討論串稿源 STEAM_DISCUSSION_modcars.md／_EN.md（支援的 MOD 車與申請），
+以及 README.md 裡 <!-- modcars:start --> 到 <!-- modcars:end --> 之間的清單。
 
 用法（repo 根目錄）：
-    python scripts/gen_modcar_list.py           # 重寫兩個稿源；同一份 modcars.json 重跑結果一致
-    python scripts/gen_modcar_list.py --check   # 只比對，稿源過期就失敗
+    python scripts/gen_modcar_list.py           # 重寫兩個稿源與 README 區塊；同一份 modcars.json 重跑結果一致
+    python scripts/gen_modcar_list.py --check   # 只比對，有過期的就失敗
 
 modcars.json 也是 DockSpots.lua MOD 區塊的來源（scripts/blender/dock_spots.py）；這裡順便核對兩邊一致，
 清單上的車在位置表裡都要有一列，免得清單寫了支援、遊戲裡卻退回公式。
@@ -21,6 +22,8 @@ DOCK = os.path.join(REPO, "MOD", "MinidoracatKnoxPassFor42", "Contents", "mods",
                     "media", "lua", "shared", "MinidoracatKnoxPass", "DockSpots.lua")
 ISSUE = "https://github.com/Minidoracat/MinidoracatKnoxPassFor42/issues/new?template=modcar-request.yml"
 DISCORD = "https://discord.gg/Gur2V67"
+README = os.path.join(REPO, "README.md")
+README_START, README_END = "<!-- modcars:start", "<!-- modcars:end -->"
 WORKSHOP = "https://steamcommunity.com/sharedfiles/filedetails/?id="
 
 TEXT = {
@@ -132,6 +135,38 @@ def render(mods, t):
     return "\n".join(out) + "\n"
 
 
+def md(s):
+    return plain(s).replace("|", "/")
+
+
+def render_readme(mods):
+    t = TEXT["CH"]
+    out = [README_START + "（由 scripts/gen_modcar_list.py 從 scripts/blender/modcars.json 產生，不要手改） -->",
+           "原版車全部支援。下表的 MOD 車已經對好擋風玻璃位置，裝上感應盒就看得到；✔＝遊戲裡實際看過，其餘看過遊戲視角的預覽圖。"
+           "其他 MOD 沿用這些車身的車也一樣支援。表上沒有的車照樣能裝感應盒、登記、開門、充電，只是盒子未必看得到；"
+           "車上加裝的配件（例如自己裝的擋風玻璃裝甲）也可能擋住盒子。",
+           "", "<details>", "<summary>已支援的 MOD 車（%d 個 MOD，點開看車款）</summary>" % len(mods), "",
+           "| MOD | 車款 |", "|---|---|"]
+    for mod in sorted(mods, key=sort_key):
+        names = {}
+        for car in mod["models"]:
+            for n in car["vehicles"].values():
+                names[n] = names.get(n) or car["status"] == "ingame"
+        cell = "[%s](%s%s)" % (md(mod["name"]), WORKSHOP, mod["workshop"])
+        if mod.get("addons"):
+            cell += t["addons"].format(ids=t["sep"].join(mod["addons"]))
+        out.append("| %s | %s |" % (cell, t["sep"].join(md(n) + (" ✔" if names[n] else "") for n in sorted(names))))
+    blocked = [t["item"].format(name=md(u["name"]), why=t["why"][u["why"]]) for mod in sorted(mods, key=sort_key)
+               for car in mod["models"] for u in car.get("unsupported", {}).values()]
+    if blocked:
+        out += ["", t["blocked"] + t["colon"] + t["sep"].join(blocked) + "。"]
+    out += ["", "</details>", "",
+            "想支援別的 MOD 車：用 GitHub 的 [「MOD 車位置申請」表單](%s)，或到 [Discord](%s) 提出；"
+            "附上車輛 MOD 的 Workshop 連結和車名，有裝上感應盒後從車頭前方拍的截圖更好。" % (ISSUE, DISCORD),
+            README_END]
+    return "\n".join(out)
+
+
 def main():
     mods = json.load(open(MANIFEST, encoding="utf-8"))["mods"]
     # DockSpots.lua MOD 區塊每列註解列出用這個 mesh 的「modId file」，以「; 」分隔
@@ -153,6 +188,16 @@ def main():
                 open(path, "w", encoding="utf-8", newline="\n").write(text)
     if check and stale:
         raise SystemExit("stale: %s (run python scripts/gen_modcar_list.py)" % stale)
+    readme = open(README, encoding="utf-8").read()
+    i, j = readme.find(README_START), readme.find(README_END)
+    if i < 0 or j < i:
+        raise SystemExit("README.md has no %s ... %s block" % (README_START, README_END))
+    text = readme[:i] + render_readme(mods) + readme[j + len(README_END):]
+    if text != readme:
+        stale.append("README.md")
+        if check:
+            raise SystemExit("stale: README.md (run python scripts/gen_modcar_list.py)")
+        open(README, "w", encoding="utf-8", newline="\n").write(text)
     print("OK" if not stale else "wrote %s" % stale)
 
 
