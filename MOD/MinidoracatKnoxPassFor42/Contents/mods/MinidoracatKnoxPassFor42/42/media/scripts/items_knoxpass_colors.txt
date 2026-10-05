@@ -18,7 +18,6 @@ module MinidoracatKnoxPass
         cantBeConsolided = true,
         WorldStaticModel = MinidoracatKnoxPass.KnoxPassTag_Black,
         StaticModel = MinidoracatKnoxPass.KnoxPassTag_Black,
-        VehiclePartModel = KnoxPassTag Dock MinidoracatKnoxPass.KnoxPassTagDock_Black,
         Tags = base:miscelectronic;base:hasmetal,
         Tooltip = Tooltip_MinidoracatKnoxPass_Tag,
     }
@@ -49,7 +48,6 @@ module MinidoracatKnoxPass
         cantBeConsolided = true,
         WorldStaticModel = MinidoracatKnoxPass.KnoxPassTag_Graphite,
         StaticModel = MinidoracatKnoxPass.KnoxPassTag_Graphite,
-        VehiclePartModel = KnoxPassTag Dock MinidoracatKnoxPass.KnoxPassTagDock_Graphite,
         Tags = base:miscelectronic;base:hasmetal,
         Tooltip = Tooltip_MinidoracatKnoxPass_Tag,
     }
@@ -80,7 +78,6 @@ module MinidoracatKnoxPass
         cantBeConsolided = true,
         WorldStaticModel = MinidoracatKnoxPass.KnoxPassTag_Olive,
         StaticModel = MinidoracatKnoxPass.KnoxPassTag_Olive,
-        VehiclePartModel = KnoxPassTag Dock MinidoracatKnoxPass.KnoxPassTagDock_Olive,
         Tags = base:miscelectronic;base:hasmetal,
         Tooltip = Tooltip_MinidoracatKnoxPass_Tag,
     }
@@ -111,7 +108,6 @@ module MinidoracatKnoxPass
         cantBeConsolided = true,
         WorldStaticModel = MinidoracatKnoxPass.KnoxPassTag_Navy,
         StaticModel = MinidoracatKnoxPass.KnoxPassTag_Navy,
-        VehiclePartModel = KnoxPassTag Dock MinidoracatKnoxPass.KnoxPassTagDock_Navy,
         Tags = base:miscelectronic;base:hasmetal,
         Tooltip = Tooltip_MinidoracatKnoxPass_Tag,
     }
@@ -142,7 +138,6 @@ module MinidoracatKnoxPass
         cantBeConsolided = true,
         WorldStaticModel = MinidoracatKnoxPass.KnoxPassTag_Orange,
         StaticModel = MinidoracatKnoxPass.KnoxPassTag_Orange,
-        VehiclePartModel = KnoxPassTag Dock MinidoracatKnoxPass.KnoxPassTagDock_Orange,
         Tags = base:miscelectronic;base:hasmetal,
         Tooltip = Tooltip_MinidoracatKnoxPass_Tag,
     }
@@ -173,7 +168,6 @@ module MinidoracatKnoxPass
         cantBeConsolided = true,
         WorldStaticModel = MinidoracatKnoxPass.KnoxPassTag_Red,
         StaticModel = MinidoracatKnoxPass.KnoxPassTag_Red,
-        VehiclePartModel = KnoxPassTag Dock MinidoracatKnoxPass.KnoxPassTagDock_Red,
         Tags = base:miscelectronic;base:hasmetal,
         Tooltip = Tooltip_MinidoracatKnoxPass_Tag,
     }

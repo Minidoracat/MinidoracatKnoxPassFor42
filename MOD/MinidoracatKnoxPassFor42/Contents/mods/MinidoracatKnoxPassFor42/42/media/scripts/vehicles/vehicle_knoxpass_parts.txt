@@ -11,13 +11,14 @@
     ISUninstallVehiclePart.lua:65-67、Vehicles.lua:1327），把這顆感應盒登記的每一扇門改記新車／未裝在車上。
     itemType：7 色感應盒都能裝，分號分隔（VehicleScript.java:926-932 拆成清單；原版同寫法 generated/vehicles/template_brake.txt:60）。
     管理員「修理車輛」對空槽會從清單隨機挑一種裝上（VehiclePart.java:956-971 repair），所以修好的車可能是任一色。
-    model Dock：擋風玻璃上的「固定座＋感應盒」。裝上感應盒時顯示、拆下就消失：引擎在 setInventoryItem
-    依 setAllModelsVisible 切換零件模型（VehiclePart.java:148-182），MP 由車輛更新封包同步（VehiclePartModels.java；
-    同一封包先解零件物品再解模型，VehicleUpdatePacket.java:132-145）。
-    不寫 file：模型改由裝上去的物品指定（物品腳本的 VehiclePartModel = KnoxPassTag Dock MinidoracatKnoxPass.KnoxPassTagDock<顏色後綴>，
-    BaseVehicle.java:1756-1779 getModelScriptNameForPart、Item.java:3013-3026；原版先例 HoodOrnament），所以車上顯示的是該色的盒子。
-    offset／rotate／scale 是佔位值，Parts.lua 注入時依各車型改寫（原版車查 DockSpots.lua、其他車用腳本幾何推算）；
-    推算不出來或零件索引超過 127 的車型改成 setAllModelsVisible = false（不掛模型）。
+    model Dock<顏色後綴>：擋風玻璃上的「固定座＋感應盒」，7 色各一個（id＝Dock＋KP.COLORS 的 suffix，米白就是 Dock），
+    file 指向該色的模型腳本（models_knoxpass*.txt，scripts/gen_colors.py --check 核對）。每個都要寫 file：
+    零件沒有 parent 時，畫面上的模型用 scriptModel.file 取動畫（BaseVehicle.java:11844-11853），file 是 null 會在
+    ScriptManager.getModelScript(null) NPE、客戶端踢回主選單（ScriptBucketCollection.java:73）；原版 HoodOrnament
+    不寫 file、改由物品的 VehiclePartModel 指定，是因為它有 parent = EngineDoor。
+    setAllModelsVisible = false：不讓引擎在 setInventoryItem 時 7 個全開（VehiclePart.java:148-182）；
+    顯示哪一個由 MinidoracatKnoxPass.syncDock 決定（Parts.lua，lua.init 與安裝／拆下的 complete、零件 update 都會呼叫）。
+    offset／rotate／scale 是佔位值，Parts.lua 注入時依各車型改寫 7 個 model（原版車查 DockSpots.lua、其他車用腳本幾何推算）。
 */
 module Base
 {
@@ -30,6 +31,7 @@ module Base
             itemType = MinidoracatKnoxPass.VehicleTag;MinidoracatKnoxPass.VehicleTag_Black;MinidoracatKnoxPass.VehicleTag_Graphite;MinidoracatKnoxPass.VehicleTag_Olive;MinidoracatKnoxPass.VehicleTag_Navy;MinidoracatKnoxPass.VehicleTag_Orange;MinidoracatKnoxPass.VehicleTag_Red,
             specificItem = false,
             mechanicRequireKey = true,
+            setAllModelsVisible = false,
             category = KnoxPass,
             durability = 2,
             table install
@@ -47,10 +49,54 @@ module Base
             lua
             {
                 create = MinidoracatKnoxPass.onPartCreate,
+                init = MinidoracatKnoxPass.syncDock,
                 update = MinidoracatKnoxPass.onPartUpdate,
             }
             model Dock
             {
+                file = MinidoracatKnoxPass.KnoxPassTagDock,
+                offset = 0.0 0.0 0.0,
+                rotate = 0.0 0.0 0.0,
+                scale = 1.0,
+            }
+            model Dock_Black
+            {
+                file = MinidoracatKnoxPass.KnoxPassTagDock_Black,
+                offset = 0.0 0.0 0.0,
+                rotate = 0.0 0.0 0.0,
+                scale = 1.0,
+            }
+            model Dock_Graphite
+            {
+                file = MinidoracatKnoxPass.KnoxPassTagDock_Graphite,
+                offset = 0.0 0.0 0.0,
+                rotate = 0.0 0.0 0.0,
+                scale = 1.0,
+            }
+            model Dock_Olive
+            {
+                file = MinidoracatKnoxPass.KnoxPassTagDock_Olive,
+                offset = 0.0 0.0 0.0,
+                rotate = 0.0 0.0 0.0,
+                scale = 1.0,
+            }
+            model Dock_Navy
+            {
+                file = MinidoracatKnoxPass.KnoxPassTagDock_Navy,
+                offset = 0.0 0.0 0.0,
+                rotate = 0.0 0.0 0.0,
+                scale = 1.0,
+            }
+            model Dock_Orange
+            {
+                file = MinidoracatKnoxPass.KnoxPassTagDock_Orange,
+                offset = 0.0 0.0 0.0,
+                rotate = 0.0 0.0 0.0,
+                scale = 1.0,
+            }
+            model Dock_Red
+            {
+                file = MinidoracatKnoxPass.KnoxPassTagDock_Red,
                 offset = 0.0 0.0 0.0,
                 rotate = 0.0 0.0 0.0,
                 scale = 1.0,

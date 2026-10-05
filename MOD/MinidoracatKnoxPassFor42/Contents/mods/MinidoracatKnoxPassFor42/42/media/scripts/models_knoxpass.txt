@@ -21,7 +21,7 @@ module MinidoracatKnoxPass
     }
 
     /*
-        車上零件模型（vehicle_knoxpass_parts.txt 的 model Dock 不寫 file，由裝上去的感應盒的 VehiclePartModel 指定這個或某色版）。vehiclewheel 是原版輪胎用的車輛著色器，
+        車上零件模型（vehicle_knoxpass_parts.txt 的 model Dock 的 file 是這個，Dock_<色> 指各色版）。vehiclewheel 是原版輪胎用的車輛著色器，
         吃模型自己的貼圖（Vehicles_Wheel，models_vehicles.txt）；不指定 texture 的零件模型會沿用車身貼圖（ModelManager.java:1144-1146）。
         各色版（KnoxPassTag_<色>、KnoxPassTagDock_<色>、KnoxPassReader_<色>）在 models_knoxpass_colors.txt：同一個網格，只換 texture。
     */
