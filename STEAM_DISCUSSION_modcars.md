@@ -14,7 +14,7 @@
 [/list]
 
 [h2]✅ 已支援的 MOD 車（47 個 MOD）[/h2]
-位置是從車輛模型算出來的，每台都看過預覽圖；標 ✔ 的也在遊戲裡實際看過。其他 MOD 沿用這些車身的車（例如同系列的擴充包）也一樣支援。
+位置是從車輛模型算出來的，用遊戲視角（由上往下斜看）避開車輛生成時可能帶的配件（車頂燈架、行李架、遮陽板等），每台都看過預覽圖；標 ✔ 的也在遊戲裡實際看過。其他 MOD 沿用這些車身的車（例如同系列的擴充包）也一樣支援。車上加裝的配件可能擋住盒子，例如自己裝的擋風玻璃裝甲。
 [list]
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2897390033]'97 ADI Bushmaster[/url][/b]：'97 Bushmaster、'97 Bushmaster Ambulance
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2799152995]'78 AM General M35 Series Trucks[/url][/b]：'78 AM General M35A2、'78 AM General M49A2C Fuel Tanker、'78 AM General M50A3 Water Tanker、'78 AM General M62 Wrecker
@@ -26,7 +26,7 @@
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3413704851]'85 Chevrolet Caprice / Impala[/url][/b]：'85 Chevrolet Caprice Coupe、'85 Chevrolet Caprice Sedan、'85 Chevrolet Caprice Wagon、'85 Chevrolet Impala Airport Security、'85 Chevrolet Impala Bulletin County Sheriff、'85 Chevrolet Impala City of Louisville PD、'85 Chevrolet Impala Fire Department、'85 Chevrolet Impala KY State Trooper、'85 Chevrolet Impala Louisville County PD、'85 Chevrolet Impala Meade County Sheriff、'85 Chevrolet Impala Muldraugh PD、'85 Chevrolet Impala Police、'85 Chevrolet Impala Prison Security、'85 Chevrolet Impala Ranger、'85 Chevrolet Impala Taxi、'85 Chevrolet Impala Undercover、'85 Chevrolet Impala West Point PD
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3428008364]'86 Chevrolet CUCVs + M101A2 Trailer[/url][/b]：'86 Chevrolet K5 Blazer、'86 Chevrolet K5 KSP、'86 Chevrolet K5 PD、'86 Chevrolet M1008、'86 Chevrolet M1009、'86 Chevrolet M1009 MP、'86 Chevrolet M1010、'86 Chevrolet M1028、'86 Chevrolet M1031
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3161951724]'76 Chevrolet K series[/url][/b]（含同一個 Workshop 項目的 76chevyKseriesExpanded）：'76 Chevrolet K10、'76 Chevrolet K10 Fire Dept、'76 Chevrolet K10 Spirit of 76、'76 Chevrolet K20、'76 Chevrolet K20 Big Red、'76 Chevrolet K20 Single Cab Utility Truck、'76 Chevrolet K30 Crew Cab、'76 Chevrolet K30 Crew Cab Dually、'76 Chevrolet K30 Crew Cab Fire Dept、'76 Chevrolet K30 Crew Cab Utility Truck、'76 Chevrolet K30 Single Cab Dually、'76 Chevrolet K30 Single Cab Fire Dept、'76 Chevrolet K30 Special、'76 Chevrolet K5 Blazer、'76 Chevrolet Suburban
-[*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3614034284]'85 Chevrolet Step-Van[/url][/b]（含同一個 Workshop 項目的 85chevyStepVanexpanded）：'85 Chevrolet Step-Van、'85 Chevrolet Step-Van SWAT
+[*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3614034284]'85 Chevrolet Step-Van[/url][/b]（含同一個 Workshop 項目的 85chevyStepVanexpanded）：'85 Chevrolet Step-Van
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3196180339]'87 Chevrolet Suburban[/url][/b]：'87 Chevrolet Suburban、'87 Chevrolet Suburban CUCV、'87 Chevrolet Suburban Offroad Pack
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3152529790]'93 Chevrolet Suburban / Silverado[/url][/b]（含同一個 Workshop 項目的 93chevySuburbanExpanded）：'93 Chevrolet K3500 Flatbed、'93 Chevrolet Silverado Crew Cab、'93 Chevrolet Silverado Crew Cab Dually、'93 Chevrolet Silverado Crew Cab Long Bed、'93 Chevrolet Silverado Extended Cab、'93 Chevrolet Silverado Extended Cab Dually、'93 Chevrolet Silverado Extended Cab Long Bed、'93 Chevrolet Silverado Fire Dept、'93 Chevrolet Silverado Fossoil、'93 Chevrolet Silverado McCoy、'93 Chevrolet Silverado Ranger、'93 Chevrolet Silverado Single Cab、'93 Chevrolet Silverado Single Cab Dually、'93 Chevrolet Silverado Single Cab Long Bed、'93 Chevrolet Suburban、'93 Chevrolet Suburban Dually、'93 Chevrolet Suburban FBI、'93 Chevrolet Suburban Fire Chief、'93 Chevrolet Suburban KSP、'93 Chevrolet Suburban PD、'93 Chevrolet Suburban Undercover
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3034636011]'89 Dodge Caravan[/url][/b]：'89 Dodge Caravan、'89 Dodge Caravan LE、'89 Dodge Caravan Nomad
@@ -50,7 +50,7 @@
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3418253716]'85 Oldsmobile Delta 88[/url][/b]：'85 Oldsmobile Delta 88 Coupe、'85 Oldsmobile Delta 88 Sedan、'85 Oldsmobile Delta 88 Wagon
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2618213077]'82 Oshkosh M911[/url][/b]：'82 Oshkosh M911、'82 Oshkosh M911 Black
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2566953935]'86 Oshkosh P19A + Military Trailers[/url][/b]：'86 Oshkosh P19A KYFD、'86 Oshkosh P19A USMC、P19A FRTR55
-[*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2942793445]'90 Pierce Arrow Pumper and Ladder Trucks[/url][/b]：'90 Pierce Arrow Pumper、'90 Pierce Arrow Quint Ladder Truck
+[*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2942793445]'90 Pierce Arrow Pumper and Ladder Trucks[/url][/b]：'90 Pierce Arrow Pumper
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3642935062]'70 Plymouth Road Runner[/url][/b]：'70 Plymouth Road Runner
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3213391371]'75 Pontiac Grand Prix[/url][/b]：'75 Pontiac Grand Prix Hurst Special、'75 Pontiac Grand Prix LJ、'75 Pontiac Grand Prix SJ
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3413706334]'85 Pontiac Parisienne[/url][/b]：'85 Pontiac Parisienne Sedan、'85 Pontiac Parisienne Wagon
@@ -77,4 +77,5 @@
 [h3]哪些車做不到[/h3]
 [list]
 [*] 擋風玻璃不在車頭正中間（例如裝甲車偏一側的觀察窗）：盒子只能放在中線，會落在車殼上。
+[*] 同車身但遊戲裡看不到盒子（功能照常）：'85 Chevrolet Step-Van SWAT（出廠就裝了擋風玻璃裝甲）、'90 Pierce Arrow Quint Ladder Truck（雲梯架在駕駛室上方，擋住擋風玻璃）
 [/list]
