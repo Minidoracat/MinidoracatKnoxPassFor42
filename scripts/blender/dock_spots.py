@@ -59,6 +59,10 @@ SEEN = 0.003      # 獨立玻璃：正面射線先打到的面離玻璃不到幾
 VIEW_ELEV = 30.0              # 鏡頭仰角
 VIEW_AZ = (-45.0, 0.0, 45.0)  # 鏡頭方位：車頭正前方左右 45° 內（車可以朝任何方向停，這段是看得到擋風玻璃的方向）
 VIS_MIN = 0.6                 # 每個方向，盒子朝鏡頭那幾面的投影面積至少要露出幾成（細條護網擋一部分可以）
+# 配件位置的安全邊際：配件整體再往下 ACC_SLACK 裡每個距離也都要看得到（只試一個距離不夠：配件降得夠低反而落到視線下面）。
+# 離線幾何對遊戲截圖差幾公分（models-mp 1005j 的 F150：車頂行李架前橫桿在截圖裡比離線預測低 4–10 cm，
+# 盒子剛好落在橫桿後面；離線只差 3 cm 就判定看得到）。
+ACC_SLACK = (0.03, 0.06, 0.10)
 WINDOW = ((0.5, 0.0, 0.0), (0.0, 0.5, 0.0))   # textureMask 的車窗色：vehicle.frag colZone11（Window T）、colZone12（Window H）
 
 
@@ -537,12 +541,13 @@ def mod_glass_spot(L, tris, tuv, mask, G, gtris, accs):
     if top is None:
         return None, dict(msg="no windshield found", s=None)
     worst = [mesh for _, mesh in accs]
-    occ = bvh_of((L, tris), *(((G, gtris),) if G else ()), *worst)
+    shell = ((L, tris),) + (((G, gtris),) if G else ())
+    occs = [bvh_of(*shell, *[([v - Vector((0, d, 0)) for v in V], T) for V, T in worst]) for d in (0.0,) + (ACC_SLACK if worst else ())]
     y, best = top, (0.0, None, None)
     while y - DROP - 0.07 > lo:
         if glass(y) and glass(y - DROP - 0.06):
             s = placement(front, y, 0.0)
-            fr = s and visibility(occ, s)
+            fr = s and [min(f) for f in zip(*(visibility(o, s) for o in occs))]
             if fr and min(fr) >= VIS_MIN:
                 return s, dict(top=top, at=y, vis=fr, worst=worst)
             if fr and min(fr) > best[0]:
@@ -594,7 +599,8 @@ def preview(name, verts, faces, k, s, glass=None):
 def game_preview(name, body, glass, accs, s):
     """MOD 車的檢查圖＝遊戲視角：正交、仰角 VIEW_ELEV、車頭左右 45° 與正前方三張近景＋一張遠景。
     車身灰、擋風玻璃藍、配件（最壞情況，全部疊上）紅褐、固定座橘；畫的就是 visibility() 判斷用的同一份幾何。
-    模型座標 (x, y 上, z 車頭) → Blender (-x, z, y)（轉動、不鏡射，左右跟遊戲一致）。"""
+    模型座標 (x, y 上, z 車頭) → Blender (-x, z, y)。遊戲裡的車是這份幾何左右鏡像後的樣子（ModelCamera.java:36 的 scale(-1.5, 1.5, 1.5)；
+    1005j 的 F150 截圖：油桶與帳篷捲左右對調）；車頭朝南、從東南方看的截圖，構圖對 az+45。判斷用 ±45° 成對，鏡像不影響結果。"""
     bpy.ops.wm.read_factory_settings(use_empty=True)
     sc = bpy.context.scene
     B = lambda p: (-p[0], p[2], p[1])
