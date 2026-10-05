@@ -22,6 +22,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]Installing[/b]: install or remove it from the "Knox Pass" category of the mechanics panel. No tools or skills needed, but you need the car key or an unlocked door, so nobody can steal it from a locked car.
 [*] [b]Battery[/b]: the tag has a built-in battery. It recharges slowly while installed in a car whose engine is running and whose battery is above 10%; each gate opening uses a little charge. An empty tag opens nothing.
 [*] [b]Moves with the tag[/b]: the gate registers this tag, not the car. Move the tag to another car and it still opens the same gate. When you remove or install it in the mechanics panel, the car name in the management window updates right away; a removed tag shows as "Not in a vehicle".
+[*] [b]You can see it[/b]: once installed, the tag shows at the top of the windshield on vanilla cars. On most modded cars it can't be seen, but it works the same.
 [/list]
 
 [h3]Gate Reader[/h3]
@@ -32,12 +33,21 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]Removing[/b]: the owner can take the reader back. If Knox Pass has the gate open, it closes it first and restores the original lock.
 [/list]
 
+[h3]Boom Barrier[/h3]
+[list]
+[*] [b]Building[/b]: craft a "Knox Pass Boom Barrier Kit" and place it on the road from the build menu. It takes 4 tiles: 1 for the cabinet and 3 for the lane; rotate it to run north–south or east–west.
+[*] [b]Built-in reader[/b]: whoever builds it owns it, and registration, the lock, power and the management window all work like a gate. The reader can't be removed on its own.
+[*] [b]Easy to read[/b]: when closed, the pivot lamp is red and a STOP sign hangs from the arm; when it opens for a registered car, the arm lifts over about 4 seconds and the lamp turns green. Stop lines and KNOX PASS lettering are painted on the lane on both sides.
+[*] [b]Removing and damage[/b]: dismantling the cabinet removes the whole barrier and gives the kit back. If the cabinet or the lane gets broken, the whole barrier is destroyed with no refund.
+[/list]
+
 [h3]Hands-free opening and closing[/h3]
 [list]
 [*] [b]Who opens it[/b]: the driver of a car carrying a registered, charged tag. Passengers, unregistered cars and empty tags open nothing.
 [*] [b]Opens early[/b]: the server predicts where the car is heading from its actual movement, so the faster you drive the earlier it opens; driving past in another direction doesn't. When a car under Minidoracat AutoDrive heads for the gate, the gate opens while it is still out of the car's sight; newer AutoDrive versions also know in advance that the gate will open for them, so they never slow down or detour for it.
 [*] [b]Closes by itself[/b]: it only closes gates Knox Pass opened, after no registered, driven car has been in range for a while.
 [*] [b]Never closes on anything[/b]: it waits while a car, a person or a zombie is in the doorway, and tries again two seconds later.
+[*] [b]Warning before you reach it[/b]: when you drive toward a Knox Pass gate or barrier that won't open for you, you get a message above your head and in the top-right corner about 20 tiles before it, saying why (no tag installed, the tag isn't registered at that gate, an empty tag, an unpowered reader), so you don't drive straight into it.
 [/list]
 
 [h3]Gate lock and opening on foot[/h3]
@@ -51,6 +61,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [list]
 [*] [b]Vehicle Tag[/b]: Electrical 2. Use a screwdriver to build it from a pager or TV remote, 2 electronics scrap and 1 battery. Also found in gas station storage, car supply stores, mechanic electrical shelves and electronics stores.
 [*] [b]Gate Reader[/b]: Electrical 4. Use a screwdriver to build it from a radio receiver, 3 electronics scrap and 2 electric wires. Also found in electrician tool boxes, electronics crates, hardware stores and mechanics.
+[*] [b]Boom Barrier Kit[/b]: Electrical 4. Use a screwdriver to build it from 1 Gate Reader, 2 metal pipes, 1 sheet of metal and 2 electric wires. Crafting only; it isn't found as loot.
 [/list]
 
 [h2]⚙️ Server settings (sandbox page "Knox Pass")[/h2]
@@ -72,7 +83,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] When a self-driving car passes along another road heading almost straight at the gate (for example a parallel road a few dozen tiles away), the gate may open early and close again a few seconds later.
 [*] The server can only open a gate once it has loaded that part of the map (roughly 60–130 tiles ahead of the car). With older AutoDrive versions a self-driving car may now and then see the gate closed a moment before it opens and slow down or drive around; newer versions are not affected. If the gate never opens, the self-driving car stops in front of it and waits or hands control back, just like at any closed gate; when the reason is something like an unpowered reader or a tag that isn't registered at that gate, newer AutoDrive versions tell you why in the top-right corner and with a voice line.
 [*] Low fence gates can always be climbed over; the lock doesn't stop climbing.
-[*] This first version borrows vanilla models for the tag and the reader; dedicated models come later.
+[*] The boom barrier's cabinet always sits at one end (west for north–south, south for east–west); it can't be mirrored yet. Its lamp is just a color and doesn't glow at night.
 [/list]
 
 [h2]📜 Where the name comes from[/h2]

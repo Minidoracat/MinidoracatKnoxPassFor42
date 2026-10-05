@@ -2670,6 +2670,7 @@ local function scenarioDriveWarn()
     local behind = gate(140)
     local ad = gate(160)
     local unknown = gate(180)
+    local pairL, pairR = gate(200), gate(202)   -- 並排、都沒登記：一次開過去只該跳一則
     assert(loadfile(MEDIA .. "/client/MinidoracatKnoxPass/DriveWarn.lua"))()
     local said = {}
     KP.Client = { say = function(_, text, bad, halo) said[#said + 1] = { text = text, bad = bad, halo = halo } end }
@@ -2740,6 +2741,9 @@ local function scenarioDriveWarn()
     _, cnt = drive(180.5, 130.5, 101.5)
     check(cnt == 0 and unknown.key ~= nil, "還沒收到這顆感應盒的推送（不帶原因）不提示")
     KP.passes = { tag = got[1].tag, keys = (keySet(got[1])) }
+
+    _, cnt = drive(201.5, 130.5, 101.5)
+    check(cnt == 1 and pairL.key ~= pairR.key, "並排兩座不會開的門：同一次接近只提示一則（" .. cnt .. " 則）")
 
     local nOpen = #said
     n.door:ToggleDoor(n.owner)

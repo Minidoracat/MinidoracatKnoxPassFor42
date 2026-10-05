@@ -29,20 +29,25 @@ local function autoDriving(playerNum)
     return ok and yes == true
 end
 
-local function warn(player, st, v, adapter, anchor, key)
-    if G.isOpen(adapter, anchor) then return end
+-- 回傳 true＝這扇門會擋住這台車（關著、不會開、有原因）。quiet＝同一輪已經提示過更近的門，只記下不再提示：
+-- 並排的閘門或大門一次開過去只跳一則（訊息本來就是「前方的大門」）
+local function warn(player, st, v, adapter, anchor, key, quiet)
+    if G.isOpen(adapter, anchor) then return false end
     local ok, why = KnoxPassAPI.willOpenFor(v, anchor)
-    if ok or not why then return end
+    if ok or not why then return false end
     local sq = anchor:getSquare()
     st.warned[key] = { x = sq:getX() + 0.5, y = sq:getY() + 0.5 }
-    KP.log("drive warn " .. key .. " why=" .. tostring(why))
-    KP.Client.say(player, getText("IGUI_KnoxPass_AheadWarn", KnoxPassAPI.whyText(why)), true, true)
+    KP.log("drive warn " .. key .. " why=" .. tostring(why) .. (quiet and " quiet" or ""))
+    if not quiet then
+        KP.Client.say(player, getText("IGUI_KnoxPass_AheadWarn", KnoxPassAPI.whyText(why)), true, true)
+    end
+    return true
 end
 
 local function scan(player, st, v, ux, uy)
     local cell = getCell()
     local x, y, z = v:getX(), v:getY(), math.floor(v:getZ())
-    local seen = {}
+    local seen, said = {}, false
     for d = 1, D.AHEAD do
         for s = -D.HALF_WIDTH, D.HALF_WIDTH do
             local sq = cell:getGridSquare(math.floor(x + ux * d - uy * s), math.floor(y + uy * d + ux * s), z)
@@ -53,7 +58,7 @@ local function scan(player, st, v, ux, uy)
                     local key = G.key(anchor)
                     if not seen[key] and not st.warned[key] then
                         seen[key] = true
-                        warn(player, st, v, adapter, anchor, key)
+                        if warn(player, st, v, adapter, anchor, key, said) then said = true end
                     end
                 end
             end

@@ -21,12 +21,12 @@ Put a tag in your car and a reader on your gate: drive up and the gate opens by 
 [h2]✨ Features[/h2]
 [list]
 [*] [b]Hands-free gates[/b]: drive up from the driver's seat and the gate opens, then closes after you leave
+[*] [b]Boom barriers[/b]: build your own lift-arm barrier; red means stop, green means go
 [*] [b]Reads on the move[/b]: the faster you drive, the earlier it opens; self-driving cars find it already open
 [*] [b]A real vehicle part[/b]: fits vanilla and modded cars, and moves with the tag to another car
-[*] [b]Per-gate registration[/b]: only the cars you register can open your gate
-[*] [b]Gate lock[/b]: optionally only Knox Pass can open it
+[*] [b]Per-gate registration[/b]: only the cars you register get through, and you can lock it to Knox Pass only
 [*] [b]Works with many gates[/b]: fence gates, double doors, garage doors and player-built doors
-[*] [b]Never closes on you[/b]: it waits while a car or a person is in the doorway
+[*] [b]No crashes, no pinching[/b]: warns you ahead of a gate that won't open, and never closes on a car or a person
 [*] [b]Server settings[/b]: read range, close delay, power and tag battery are all adjustable
 [/list]
 
