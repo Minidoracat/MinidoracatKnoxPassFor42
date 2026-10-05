@@ -4,6 +4,8 @@
 
 Project Zomboid Build 42 MOD。
 
+名稱取自遊戲舞台肯塔基州的 Knox 郡，加上美國電子收費卡的命名習慣（E-ZPass、TollTag）：遊戲開局 24 天後，紐約州啟用了 E-ZPass。典故與原始資料見 [docs/name-origin.md](docs/name-origin.md)。
+
 ## 需要
 
 - [Minidoracat UI Library for B42](https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701)（管理視窗）
