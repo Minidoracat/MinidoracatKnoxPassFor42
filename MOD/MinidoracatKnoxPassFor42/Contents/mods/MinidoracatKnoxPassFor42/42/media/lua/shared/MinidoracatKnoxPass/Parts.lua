@@ -14,9 +14,11 @@ local MAX_MODEL_INDEX = 127
 local injected = {}
 
 -- 擋風玻璃上的「固定座＋感應盒」：模型原點＝黏貼墊上緣中心，盒子往車內方向厚 1.75 cm（scripts/blender/build_models.py）。
--- 原版車：查 KP.DOCK_SPOTS（scripts/blender/dock_spots.py 從原版網格烘出，鍵＝車輛腳本 model 的 file），
--- 放在擋風玻璃外表面上緣中央：原版車窗是不透明貼圖，裝在內側看不到。
--- 表裡沒有的車（MOD 車）用車輛腳本的幾何推算（加載後已乘車輛 scale，單位公尺，相對車身原點）：
+-- 原版車：查 KP.DOCK_SPOTS（scripts/blender/dock_spots.py 從原版網格烘出，鍵＝車輛腳本 model 的 file）；
+-- 常見 MOD 車：查 KP.DOCK_SPOTS_MOD（清單 scripts/blender/modcars.json，鍵＝模型腳本的 mesh，
+-- getModelScript(file):getMeshName()：不同 MOD 撞同一個 model 名時 mesh 不同，不會誤用）。
+-- 放在擋風玻璃外表面上緣中央：原版與 MOD 車的車窗都是不透明的，裝在內側看不到。
+-- 兩張表都沒有的車用車輛腳本的幾何推算（加載後已乘車輛 scale，單位公尺，相對車身原點）：
 --   高度＝extents 頂（centerOfMassOffset.y + extents.y/2）往下 ROOF_DROP
 --   前後＝駕駛座 inside 位置 z ＋ PER_HEIGHT×車高 ＋ AHEAD
 -- 係數用原版有網格的車型擬合，取「最多貼到玻璃內側、不穿出去」的保守值（中位數在玻璃後約 0.18 m），傾角 TILT 度。
@@ -34,6 +36,11 @@ function KP.dockPlacement(script)
     if not mo or not seat or not vs or vs <= 0 then return nil end
     local file = script:getModel():getFile()   -- model 區塊沒寫 file 時是 null
     local spot = file and KP.DOCK_SPOTS[file]
+    if not spot and file then
+        local ms = getScriptManager():getModelScript(file)   -- 不含點只查 Base 模組，MOD 車在別的模組會寫全名
+        local mesh = ms and ms:getMeshName()
+        spot = mesh and KP.DOCK_SPOTS_MOD[mesh]
+    end
     if spot then return 0, spot[1], spot[2], 1 / vs, -spot[3] end
     local ext, com = script:getExtents(), script:getCenterOfMassOffset()
     local d = KP.DOCK

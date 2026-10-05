@@ -1,9 +1,9 @@
--- 由 scripts/blender/dock_spots.py 從原版車輛網格產生，不要手改；PZ 更新換了車輛網格後重跑。
--- 鍵＝車輛腳本 model 區塊的 file；值＝{ 高, 前後, 玻璃後傾角(度) }：零件模型 offset 的 y、z
--- （車輛模型的未縮放單位）與 rotate.x 的大小，固定座放在擋風玻璃外表面上緣中央。
--- 原版車窗是不透明貼圖，裝在玻璃內側的模型看不到，所以畫在玻璃外表面上。
+-- 由 scripts/blender/dock_spots.py 從車輛網格產生，不要手改；PZ 更新換了車輛網格、MOD 車更新或改了 modcars.json 後重跑。
+-- 值＝{ 高, 前後, 玻璃後傾角(度) }：零件模型 offset 的 y、z（車輛模型的未縮放單位）與 rotate.x 的大小，
+-- 固定座放在擋風玻璃外表面上緣中央。原版與 MOD 車的車窗都是不透明的，裝在玻璃內側的模型看不到，所以畫在玻璃外表面上。
 require "MinidoracatKnoxPass/Core"
 local KP = MinidoracatKnoxPass
+-- 原版：鍵＝車輛腳本 model 區塊的 file
 KP.DOCK_SPOTS = {
     ["Vehicle_StepVan"] = { 0.3082, 0.7741, 16.8 },
     ["Vehicle_StepVan_NoRandom"] = { 0.3082, 0.7741, 16.8 },
@@ -100,4 +100,89 @@ KP.DOCK_SPOTS = {
     ["Vehicles_VanSeats"] = { 0.3311, 0.6677, 38.6 },
     ["Vehicles_VanSeats_NoRandom"] = { 0.3311, 0.6677, 38.6 },
     ["Vehicles_Van_NoRandom"] = { 0.3311, 0.6677, 38.6 },
+}
+-- MOD 車（scripts/blender/modcars.json）：鍵＝模型腳本的 mesh（getModelScript(file):getMeshName()），
+-- 不同 MOD 撞同一個 model 名時 mesh 不同，不會誤用
+KP.DOCK_SPOTS_MOD = {
+    ["vehicles/Vehicles_49powerWagon_Body|power_body"] = { 0.9853, 0.8093, 25.1 },   -- 49powerWagon 49powerWagonBase
+    ["vehicles/Vehicles_49powerWagon_Body|power_body_apoc"] = { 0.9853, 0.8093, 25.1 },   -- 49powerWagon 49powerWagonPABase
+    ["vehicles/Vehicles_63Type2Van_Body|type2_body"] = { 0.8231, 1.6891, 32.0 },   -- 63Type2Van 63Type2VanBase
+    ["vehicles/Vehicles_63Type2Van_Body|type2_body_m"] = { 0.8231, 1.6891, 32.0 },   -- 63Type2Van 63Type2VanMilitaryBase
+    ["vehicles/Vehicles_63beetle_Body|63beetle_body"] = { 0.5655, 0.4122, 35.8 },   -- 63beetle 63beetleBase
+    ["vehicles/Vehicles_63beetle_Body|63beetle_body_buggy"] = { 0.5655, 0.4122, 35.8 },   -- 63beetle 63beetleBuggyBase
+    ["vehicles/Vehicles_63beetle_Body|63beetle_body_hp"] = { 0.5655, 0.4122, 35.8 },   -- 63beetle 63beetleHPBase
+    ["vehicles/Vehicles_67gt500_Body|gt500e_body"] = { 0.7407, 0.2152, 56.6 },   -- 67gt500 67gt500eBase
+    ["vehicles/Vehicles_67gt500_Body|gt500s_body"] = { 0.7407, 0.2152, 56.6 },   -- 67gt500 67gt500Base
+    ["vehicles/Vehicles_69charger_Body|common_body"] = { 0.6911, 0.5621, 53.0 },   -- 69charger 69chargerBase
+    ["vehicles/Vehicles_69charger_Body|demon_body"] = { 0.6911, 0.5621, 53.0 },   -- 69charger 69chargerDemonBase
+    ["vehicles/Vehicles_69mini_Body|mini_body"] = { 0.5856, 0.5085, 39.1 },   -- 69mini 69miniBase
+    ["vehicles/Vehicles_69mini_Body|mini_body_pb"] = { 0.5856, 0.5085, 39.1 },   -- 69mini 69miniPSBase
+    ["vehicles/Vehicles_70roadRunner_Body|runner_body"] = { 0.6859, 0.6492, 49.4 },   -- 70roadRunner 70roadRunnerBase
+    ["vehicles/Vehicles_75grandPrix_Body|75pontiac_body"] = { 0.7711, 0.3557, 56.6 },   -- 75grandPrix 75grandPrixBase
+    ["vehicles/Vehicles_76chevyKseries_Body|76chevyK_body"] = { 0.9445, 0.8529, 34.7 },   -- 76chevyKseries 76chevyKBase
+    ["vehicles/Vehicles_78amgeneralM35A2_Body|m35_cab"] = { 1.4919, 0.9229, 0.0 },   -- 78amgeneralM35A2 78amgeneralM35A2Cab
+    ["vehicles/Vehicles_82oshkoshM911_mk3_Body|m911_body"] = { 1.4025, 2.1389, 0.0 },   -- 82oshkoshM911 82oshkoshM911Base
+    ["vehicles/Vehicles_82oshkoshM911_mk3_Body|m911_body_black"] = { 1.4025, 2.1389, 0.0 },   -- 82oshkoshM911 82oshkoshM911BBase
+    ["vehicles/Vehicles_82porsche911_Body|p911_body"] = { 0.5733, 0.1918, 53.0 },   -- 82porsche911 82porsche911turboBase
+    ["vehicles/Vehicles_82porsche911_Body|p911rwb_body"] = { 0.5733, 0.1918, 53.0 },   -- 82porsche911 82porsche911rwbBase
+    ["vehicles/Vehicles_82porsche911_Body|p911sc_body"] = { 0.5733, 0.1918, 53.0 },   -- 82porsche911 82porsche911SCBase
+    ["vehicles/Vehicles_82porsche911_Body|p911ta_body"] = { 0.5733, 0.1918, 53.0 },   -- 82porsche911 82porsche911taBase
+    ["vehicles/Vehicles_84buickElectra_Body|electra_body"] = { 0.4955, 0.4438, 49.5 },   -- 84buickElectra 84buickElectraBase
+    ["vehicles/Vehicles_84cadillacDeVille_Body|deville_body"] = { 0.4955, 0.4438, 49.5 },   -- 84cadillacDeVille 84cadillacDeVilleBase
+    ["vehicles/Vehicles_84mercW460_Body|w460_lwb2_body"] = { 0.9147, 0.4080, 28.6 },   -- 84merc W460L2Base
+    ["vehicles/Vehicles_84mercW460_Body|w460_lwb4_body"] = { 0.9147, 0.4080, 28.6 },   -- 84merc W460L4Base
+    ["vehicles/Vehicles_84mercW460_Body|w460_swb_body"] = { 0.9147, 0.4080, 28.6 },   -- 84merc W460SBase
+    ["vehicles/Vehicles_85buickLeSabre_Body|85b-lesabre_body"] = { 0.5259, 0.4033, 53.5 },   -- 85buickLeSabre 85buickLeSabreBase
+    ["vehicles/Vehicles_85chevyCaprice_Body|85b-caprice_body"] = { 0.5259, 0.4033, 53.5 },   -- 85chevyCaprice 85chevyCapriceBase
+    ["vehicles/Vehicles_85chevyStepVan_Body|85stepvan_body"] = { 1.7220, 1.5445, 16.0 },   -- 85chevyStepVan 85chevyStepVanBase
+    ["vehicles/Vehicles_85oldsmobileDelta88_Body|85b-delta_body"] = { 0.5259, 0.4033, 53.5 },   -- 85oldsmobileDelta88 85oldsmobileDelta88Base
+    ["vehicles/Vehicles_85pontiacParisienne_Body|85b-parisienne_body"] = { 0.5259, 0.4033, 53.5 },   -- 85pontiacParisienne 85pontiacParisienneBase
+    ["vehicles/Vehicles_86chevyCUCV_Body|86cucv_body"] = { 0.9565, 0.8054, 38.1 },   -- 86chevyCUCV 86chevyCUCVBase
+    ["vehicles/Vehicles_86fordE150_Body|e150_body_long"] = { 1.0841, 1.1059, 38.9 },   -- 86fordE150 86fordE150longBase
+    ["vehicles/Vehicles_86fordE150_Body|e150_body_long_windows"] = { 1.0841, 1.1059, 38.9 },   -- 86fordE150 86fordE150longWBase
+    ["vehicles/Vehicles_86fordE150_Body|e150_body_short"] = { 1.0841, 1.1059, 38.9 },   -- 86fordE150 86fordE150Base
+    ["vehicles/Vehicles_86oshkoshP19A_Body|p19a_body_mk2"] = { 1.0217, 3.8570, 19.5 },   -- 86oshkoshP19A 86oshkoshUSMCBase
+    ["vehicles/Vehicles_87chevySuburban_Body|87sub_body"] = { 0.9565, 0.8054, 38.1 },   -- 87chevySuburban 87chevySuburbanBase
+    ["vehicles/Vehicles_87fordB700_Body|b700_body"] = { 1.1800, 2.4448, 0.0 },   -- 87fordB700 87fordB700Base
+    ["vehicles/Vehicles_87fordB700_Body|f700_body_bank"] = { 1.0649, 2.3461, 13.2 },   -- 87fordB700 87fordF700bankBase
+    ["vehicles/Vehicles_87fordB700_Body|f700_body_box"] = { 0.9313, 2.2692, 40.9 },   -- 87fordB700 87fordF700boxBase
+    ["vehicles/Vehicles_87fordB700_Body|f700_body_swat"] = { 1.0835, 2.4128, 13.2 },   -- 87fordB700 87fordF700swatBase
+    ["vehicles/Vehicles_87toyotaMR2_Body|mr2_body"] = { 0.7617, 0.2517, 60.1 },   -- 87toyotaMR2 87toyotaMR2Base
+    ["vehicles/Vehicles_89defender_Body|defender_110_body"] = { 1.1699, 0.5768, 23.8 },   -- 89defender 89defender110Base
+    ["vehicles/Vehicles_89defender_Body|defender_130_body"] = { 1.1699, 0.5768, 23.8 },   -- 89defender 89defender130Base
+    ["vehicles/Vehicles_89defender_Body|defender_90_body"] = { 1.1699, 0.5768, 23.8 },   -- 89defender 89defender90Base
+    ["vehicles/Vehicles_89defender_Body|wolf_body"] = { 1.1699, 0.5768, 23.8 },   -- 89defender 89defenderWolfBase
+    ["vehicles/Vehicles_89dodgeCaravan_Body|caravan_body"] = { 1.0592, 0.5589, 51.0 },   -- 89dodgeCaravan 89dodgeCaravanBase; 89dodgeCaravan 89dodgeCaravanNomadBase
+    ["vehicles/Vehicles_89trooper_Body|trooperRS_body"] = { 0.9333, 0.6261, 35.6 },   -- 89trooper 89trooperRSBase
+    ["vehicles/Vehicles_89trooper_Body|trooper_body"] = { 0.9333, 0.6261, 35.6 },   -- 89trooper 89trooperBase
+    ["vehicles/Vehicles_89volvo200_Body|volvo_coupe_body"] = { 0.8004, 0.5291, 51.2 },   -- 89volvo200 89volvo242turboBase
+    ["vehicles/Vehicles_89volvo200_Body|volvo_sedan_body"] = { 0.8004, 0.5291, 51.2 },   -- 89volvo200 89volvo244sedanBase
+    ["vehicles/Vehicles_89volvo200_Body|volvo_wagon_body"] = { 0.8004, 0.5291, 51.2 },   -- 89volvo200 89volvo245wagonBase
+    ["vehicles/Vehicles_90bmwE30_Body|e30_2door_body"] = { 0.7787, 0.4099, 55.7 },   -- 90bmwE30 90bmwE30sedan2Base
+    ["vehicles/Vehicles_90bmwE30_Body|e30_4door_body"] = { 0.7787, 0.4099, 55.7 },   -- 90bmwE30 90bmwE30sedan4Base
+    ["vehicles/Vehicles_90bmwE30_Body|e30_cabrio_body"] = { 0.7787, 0.4099, 55.7 },   -- 90bmwE30 90bmwE30cabrioBase
+    ["vehicles/Vehicles_90bmwE30_Body|e30_m3_body"] = { 0.7787, 0.4099, 55.7 },   -- 90bmwE30 90bmwE30m3Base
+    ["vehicles/Vehicles_90bmwE30_Body|e30_touring_body"] = { 0.7787, 0.4099, 55.7 },   -- 90bmwE30 90bmwE30touringBase
+    ["vehicles/Vehicles_90fordF350ambulance_Body|f350_body"] = { 0.9463, 0.4994, 40.9 },   -- 90fordF350ambulance 90fordF350ambulanceBase
+    ["vehicles/Vehicles_90pierceArrow_Body|pierce_body_cab"] = { 1.1852, 3.8121, 15.1 },   -- 90pierceArrow 90pierceArrowBase
+    ["vehicles/Vehicles_91geoMetro_Body|geo_body"] = { 0.5775, 0.2905, 59.4 },   -- 91geoMetro 91geoMetroBase
+    ["vehicles/Vehicles_91range_Body_mk2|range_2door_body"] = { 0.8855, 0.4402, 44.6 },   -- 91range 91range2Base
+    ["vehicles/Vehicles_91range_Body_mk2|range_4door_body"] = { 0.8855, 0.4402, 44.6 },   -- 91range 91rangeBase
+    ["vehicles/Vehicles_92amgeneralM998_Body|HMMWV_body"] = { 0.7556, 0.8965, 5.0 },   -- 92amgeneralM998 92amgeneralM998Base
+    ["vehicles/Vehicles_92fordCVPI_Body|vic92_body"] = { 0.5940, 0.3660, 59.8 },   -- 92fordCVPI 92fordCVPIBase
+    ["vehicles/Vehicles_92nissanGTR_Body|gtr_body"] = { 0.6429, 0.2957, 62.9 },   -- 92nissanGTR 92nissanGTRBase
+    ["vehicles/Vehicles_93chevySuburban_Body|sub93_body"] = { 0.9131, 0.7974, 51.9 },   -- 93chevySuburban 93chevySuburbanBase
+    ["vehicles/Vehicles_93fordElgin_Body|cf8k_body"] = { 1.3928, 2.8086, 19.2 },   -- 93fordElgin 93fordElginBase
+    ["vehicles/Vehicles_93fordF350_Body|f350_crewcab_body"] = { 1.0134, 1.1541, 43.2 },   -- 93fordF350 93fordF350Base
+    ["vehicles/Vehicles_93fordF350_Body|fx50_singlecab"] = { 1.0134, 1.1541, 43.2 },   -- 93fordF350 93fordF150CabBase
+    ["vehicles/Vehicles_93fordTaurus_Body|taurusSHO_body"] = { 0.6740, 0.5433, 58.0 },   -- 93fordTaurus 93fordTaurusSHOBase
+    ["vehicles/Vehicles_93fordTaurus_Body|taurusSedan_body"] = { 0.6740, 0.5433, 58.0 },   -- 93fordTaurus 93fordTaurusBase
+    ["vehicles/Vehicles_93fordTaurus_Body|taurusWagon_body"] = { 0.6740, 0.5433, 58.0 },   -- 93fordTaurus 93fordTaurusWagonBase
+    ["vehicles/Vehicles_95impreza_Body|95impreza_body"] = { 0.8120, 0.2542, 60.7 },   -- 95impreza 95imprezaBase
+    ["vehicles/Vehicles_96lancerEVO_Body|96lancer_body"] = { 0.8172, 0.2498, 60.5 },   -- 96lancerEVO 96lancerEVOBase
+    ["vehicles/Vehicles_97bushmaster_Body|bush_body"] = { 1.4270, 1.5266, 49.5 },   -- 97bushmaster 97bushmasterBase
+    ["vehicles/Vehicles_98stagea_Body|stagea_body"] = { 0.7872, 0.3977, 59.6 },   -- 98stagea 98stageaBase
+    ["vehicles/vehicles_SemiTruckBox_Body|Body_mesh"] = { 0.7173, 1.7203, 12.9 },   -- rSemiTruck Rotators.SemiTruckBoxBase
+    ["vehicles/vehicles_SemiTruckLite_Body|Body_mesh"] = { 0.7167, 1.7217, 12.9 },   -- rSemiTruck Rotators.SemiTruckLiteBase
+    ["vehicles/vehicles_SemiTruck_Body|Body_mesh"] = { 0.7167, 1.7217, 12.9 },   -- rSemiTruck Rotators.SemiTruckBase
 }

@@ -852,6 +852,12 @@ function getScriptManager()
             return nil
         end,
         getAllVehicleScripts = function() return javaList(W.scripts) end,
+        -- 模型腳本 → mesh（W.modelScripts[名稱]＝mesh 字串；true＝有腳本但沒寫 mesh）
+        getModelScript = function(_, name)
+            local m = W.modelScripts and W.modelScripts[name]
+            if not m then return nil end
+            return { getMeshName = function() if m ~= true then return m end end }
+        end,
     }
 end
 
@@ -1114,7 +1120,11 @@ local function scenarioParts()
     end
     local sedan = newScript("Base.CarNormal", { "SeatFrontLeft" }, { { "Battery", "Engine" } }, nil, geoFile("Vehicles_CarNormal"))
     local modCar = newScript("Mod.Car", { "SeatFrontLeft" }, { { "Battery", "Engine" } }, nil, geoFile("ModCar_Body"))
-    W.scripts = { car1, noSeat, van, weird, bike, foreign, big, huge, noArea, edge127, edge128, nose, sedan, modCar }
+    -- MOD 車：93fordF350 的模型腳本 93fordF350Base → mesh（E2E 範本伺服器有載入，實機可對照）
+    local F350_MESH = "vehicles/Vehicles_93fordF350_Body|f350_crewcab_body"
+    local f350 = newScript("Base.93fordF350", { "SeatFrontLeft" }, { { "Battery", "Engine" } }, nil, geoFile("93fordF350Base"))
+    W.modelScripts = { ["93fordF350Base"] = F350_MESH }
+    W.scripts = { car1, noSeat, van, weird, bike, foreign, big, huge, noArea, edge127, edge128, nose, sedan, modCar, f350 }
     from = #logLines + 1
     fire("OnGameBoot")
     local function area(s)
@@ -1149,6 +1159,22 @@ local function scenarioParts()
     vis, off, sc, rot = dock(modCar)
     check(vis == true and close(off[2], off2[2]) and close(off[3], off2[3]) and close(rot[1], -20),
         "表裡沒有的 model file（MOD 車）退回腳本幾何公式")
+    -- MOD 車查表：鍵＝模型腳本的 mesh（Parts.lua KP.dockPlacement → KP.DOCK_SPOTS_MOD）
+    local want = KP.DOCK_SPOTS_MOD[F350_MESH]
+    vis, off, sc, rot = dock(f350)
+    check(want ~= nil and vis == true and close(off[1], 0) and close(off[2], want[1]) and close(off[3], want[2])
+        and close(sc, 1 / 1.82) and close(rot[1], -want[3]), "MOD 車：model file → 模型腳本 mesh 查 DOCK_SPOTS_MOD（93fordF350）")
+    local function formula(s)   -- 同一份幾何走公式的結果（modCar 的 file 沒有模型腳本）
+        local _, y, z, _, rx = KP.dockPlacement(s)
+        return close(y, off2[2]) and close(z, off2[3]) and close(rx, -20)
+    end
+    W.modelScripts = { ["93fordF350Base"] = "vehicles/SomeOtherMod_Body|body" }
+    check(formula(f350), "同名不同 MOD：model 名一樣但 mesh 不同 → 不用表、退回公式")
+    W.modelScripts = {}
+    check(formula(f350), "MOD 車的 model 名查不到模型腳本 → 退回公式")
+    W.modelScripts = { ["93fordF350Base"] = true }
+    check(formula(f350), "模型腳本沒有 mesh（getMeshName 回 nil）→ 退回公式、不炸")
+    W.modelScripts = { ["93fordF350Base"] = F350_MESH }
     vis, off = dock(van)
     check(vis == true and close(off[2], (0.6599 + 0.66 - 0.15 - 0.6699) / 1.82) and close(off[3], (0.77 + 0.264 + 0.043) / 1.82),
         "廂型車：每個車型有自己的 offset（template 改寫後各自複製）")

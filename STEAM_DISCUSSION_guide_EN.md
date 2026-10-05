@@ -22,7 +22,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]Installing[/b]: install or remove it from the "Knox Pass" category of the mechanics panel. No tools or skills needed, but you need the car key or an unlocked door, so nobody can steal it from a locked car.
 [*] [b]Battery[/b]: the tag has a built-in battery. It recharges slowly while installed in a car whose engine is running and whose battery is above 10%; each gate opening uses a little charge. An empty tag opens nothing.
 [*] [b]Moves with the tag[/b]: the gate registers this tag, not the car. Move the tag to another car and it still opens the same gate. When you remove or install it in the mechanics panel, the car name in the management window updates right away; a removed tag shows as "Not in a vehicle".
-[*] [b]You can see it[/b]: once installed, the tag shows at the top of the windshield on vanilla cars. On most modded cars it can't be seen, but it works the same.
+[*] [b]You can see it[/b]: once installed, the tag shows at the top of the windshield on vanilla cars and on the listed modded vehicles (list and requests: [url={KP_MODCARS_EN}]🚗 Supported Modded Vehicles & Requests[/url]). On other modded vehicles it may not be visible, but it works the same.
 [/list]
 
 [h3]Gate Reader[/h3]
