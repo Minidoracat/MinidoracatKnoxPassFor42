@@ -22,6 +22,7 @@ KP.BARRIER_TILESET = "MinidoracatKnoxPass_barrier"
 KP.BARRIER_KIT = "MinidoracatKnoxPass.BoomBarrierKit"
 KP.BARRIER_ANIM_MS = 4000                         -- 臂的 clip 6 s ÷ speedDelta 1.5（IsoObjectAnimations.java:~281）
 KP.BARRIER_POSES = 8                              -- 靜態姿勢 0..8（animationTime k/8）
+KP.BARRIER_CLOSE_POSES = 32                       -- 放下用（紅燈）姿勢＝抬起用（綠燈）＋32（build_barrier_tiles.py CLOSE_OFFSET）
 
 -- 物件是閘門的哪一張 tile：回傳索引，不是閘門回 nil
 function KP.barrierIndex(obj)

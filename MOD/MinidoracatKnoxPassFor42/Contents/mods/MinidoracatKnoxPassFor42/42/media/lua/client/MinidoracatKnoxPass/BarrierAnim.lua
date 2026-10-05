@@ -2,8 +2,9 @@
 -- 臂模型的 Open／Close clip 只在 IsoDoor 收到同步封包時播，而且只播被同步的那一片（IsoDoor.java:1795-1805）；
 -- 車庫門在本機 toggle 的分支完全不播（:1582-1596）。所以 SP、或 MP 有人手點車道 2、3 時，錨點會直接跳到開／關。
 -- 這裡偵測「錨點開關變了但引擎沒在播」（PlayAnimation 會先 setAnimating(true)，:1657-1664），
--- 在 4 秒內依時間把錨點切到 spriteModels 裡的靜態姿勢（MinidoracatKnoxPass_barrier_16-24／32-40，animationTime k/8；
--- 沒有 sprite 也照樣登錄成 SpriteModel 腳本，SpriteModels.java:81-96）。只改本機顯示，不經網路、不進存檔。
+-- 在 4 秒內依時間把錨點切到 spriteModels 裡的靜態姿勢（animationTime k/8；抬起用 MinidoracatKnoxPass_barrier_16-24／32-40
+-- 帶綠燈貼圖，放下用 48-56／64-72 是紅燈；沒有 sprite 也照樣登錄成 SpriteModel 腳本，SpriteModels.java:81-96）。
+-- 燈色跟著 spriteModel 的 texture 走（IsoObjectModelDrawer.java:134-139），所以放下中要用紅燈那組。只改本機顯示，不經網路、不進存檔。
 require "MinidoracatKnoxPass/Core"
 local KP = MinidoracatKnoxPass
 
@@ -58,9 +59,10 @@ function A.tick()
                     finish(obj, s)
                 else
                     local pose = math.floor((open and t or 1 - t) * KP.BARRIER_POSES + 0.5)
-                    if pose ~= s.pose then
-                        s.pose = pose
-                        obj:setSpriteModelName(KP.BARRIER_TILESET .. "_" .. (s.base + pose))
+                    local idx = s.base + pose + (open and 0 or KP.BARRIER_CLOSE_POSES)
+                    if idx ~= s.pose then
+                        s.pose = idx
+                        obj:setSpriteModelName(KP.BARRIER_TILESET .. "_" .. idx)
                     end
                 end
             end

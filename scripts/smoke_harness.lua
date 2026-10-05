@@ -2605,7 +2605,7 @@ local function scenarioBarrierAnim()
     check(a._smName == "MinidoracatKnoxPass_barrier_20", "約 2 秒：中間姿勢（20）")
     a:ToggleDoor(me)
     step()
-    check(a._smName == "MinidoracatKnoxPass_barrier_20", "抬到一半改成放下：從目前姿勢接著走，不跳回端點")
+    check(a._smName == "MinidoracatKnoxPass_barrier_52", "抬到一半改成放下：從目前姿勢接著走（換紅燈那組 52），不跳回端點")
     local inv = W.invalidated
     runMs(2000)
     check(a._smName == nil and not a:isAnimating() and W.invalidated > inv, "走完：清掉姿勢、停止 animating、重畫 chunk")
@@ -2635,8 +2635,8 @@ local function scenarioBarrierAnim()
     lanes[0]:setAnimating(false)
     lanes[2]:ToggleDoor(p)       -- 有人點車道 3：錨點只在片段迴圈裡換 sprite、不播（D:1812-1834）
     step()
-    check(lanes[0]:isAnimating() and lanes[0]._smName == "MinidoracatKnoxPass_barrier_24" and lanes[1]._smName == nil,
-        "非錨點被同步、錨點沒播：補播（從開的姿勢 24 往下放），非錨點不動")
+    check(lanes[0]:isAnimating() and lanes[0]._smName == "MinidoracatKnoxPass_barrier_56" and lanes[1]._smName == nil,
+        "非錨點被同步、錨點沒播：補播（從開的姿勢往下放，紅燈那組 56），非錨點不動")
     square(201, 100, 0):transmitRemoveItemFromSquare(lanes[0])
     step()
     check(lanes[0]._smName == nil and not lanes[0]:isAnimating(), "錨點被移走：停止追蹤並還原")
