@@ -32,6 +32,24 @@ function KP.barrierIndex(obj)
     return n and tonumber(n) or nil
 end
 
+-- 車道 tile 的 DoorWallN／W（關著時車輛的 WallN／WallW 物理形狀 IsoChunk.java:2071-2091、AutoDrive 的 closedDoor）
+-- 不寫在 .tiles：從 .tiles 載入會連帶設 sprite.cutN／cutW（IsoWorld.java:928-941），車道變成 cutaway 的外牆，
+-- 玩家在閘線附近時車庫門只畫 2D sprite、不畫 3D 臂（IsoGridSquare.java:1318-1319、2301-2309、2392-2394），
+-- 開著與動畫中的臂整支看不到（barrier-mp 2026-10-05 實踩）。這裡只補旗標與鍵，不設 cutN／cutW
+Events.OnLoadedTileDefinitions.Add(function()
+    for _, base in ipairs({ 0, 8 }) do
+        for i = 0, 5 do
+            local spr = getSprite(KP.BARRIER_TILESET .. "_" .. (base + i))
+            if spr then
+                local edge = i < 3 and "N" or "W"
+                local props = spr:getProperties()
+                props:set(IsoFlagType["DoorWall" .. edge])
+                props:set("DoorWall" .. edge, "", false)
+            end
+        end
+    end
+end)
+
 function KP.isBarrier(obj)
     return KP.barrierIndex(obj) ~= nil
 end

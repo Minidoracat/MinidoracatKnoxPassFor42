@@ -24,7 +24,7 @@ local function finish(obj, s)
     s.start, s.pose = nil, nil
     obj:setSpriteModelName(nil)
     obj:setAnimating(false)
-    obj:invalidateRenderChunkLevel(256)   -- 靜止時模型烘在 chunk 貼圖裡，換回 sprite 自己的姿勢要重畫（IsoObject.java:6060）
+    obj:invalidateRenderChunkLevel(256)   -- 同引擎播完時的收尾（IsoObjectAnimations.java:76-78）；帶 doorTrans 的門本來就每幀畫（FBORenderCell.java:1835-1837）
 end
 
 local function nearPlayer(sq)
@@ -49,7 +49,7 @@ function A.tick()
                     -- 反向中途改變（還在抬就要放下）：從目前姿勢接著走，不跳回端點
                     local done = s.start and math.min(1, (now - s.start) / KP.BARRIER_ANIM_MS) or 1
                     s.start = now - (1 - done) * KP.BARRIER_ANIM_MS
-                    obj:setAnimating(true)   -- 每幀重畫、不烘進 chunk（FBORenderCell.java:1766-1767）
+                    obj:setAnimating(true)   -- 標成「在播」：同引擎 PlayAnimation（IsoDoor.java:1657-1664），反向中途接手時據此判斷
                 end
             end
             if s.start then

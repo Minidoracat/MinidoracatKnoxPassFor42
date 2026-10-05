@@ -56,8 +56,12 @@ CELL_W, CELL_H = 128, 256
 NAME = "Knox Pass Boom Barrier"
 
 # closed: doorN/doorW (tile type -> IsoDoor on load, IsoWorld.java:752-764; CellLoader.java:93-105),
-# DoorWallN/W (vehicle WallN/WallW shape while !open, IsoChunk.java:2068-2092; AutoDrive closedDoor),
 # GarageDoor k (chain, IsoDoor.java:3212-3238), doorTrans (sight passes, IsoDoor.java:1107).
+# DoorWallN/W (vehicle WallN/WallW shape while !open, IsoChunk.java:2068-2092; AutoDrive closedDoor) is NOT
+# written here: loading it from a .tiles also sets sprite.cutN/cutW (IsoWorld.java:928-941), the lanes become an
+# exterior wall for cutaway, and a cut-away garage door draws only its 2D sprite, never the 3D arm
+# (IsoGridSquare.java:1318-1319, 2301-2309, 2392-2394; barrier-mp 2026-10-05: open/animating arm invisible near
+# the line). Core.lua sets the DoorWall flag and key at OnLoadedTileDefinitions instead, without cutN/cutW.
 # NO WallN/WallW/collide/solid on chain pieces: shouldHaveCollision would make AutoDrive treat it as a wall
 # (MDAD_Sensor.lua:425 before :436-437) and solid would make isDoorObstructed true (IsoDoor.java:2743).
 # open: same + GarageDoor k+3 (setOpenDoorProperties adds the open flag, IsoWorld.java:1488-1493).
@@ -66,7 +70,6 @@ NAME = "Knox Pass Boom Barrier"
 def lane_props(edge: str, k: int, is_open: bool) -> dict:
     return {
         f"door{edge}": "",
-        f"DoorWall{edge}": "",
         "GarageDoor": str(k + 3 if is_open else k),
         "doorTrans": "",
         "CustomName": NAME,
@@ -355,7 +358,8 @@ def check() -> None:
     for i in (0, 1, 2, 3, 4, 5):
         c, o = ts["tiles"][i], ts["tiles"][i + 8]
         assert int(o["GarageDoor"]) == int(c["GarageDoor"]) + 3
-        assert not ({"WallN", "WallW", "collideN", "collideW", "solid", "solidtrans"} & c.keys())
+        assert not ({"WallN", "WallW", "collideN", "collideW", "solid", "solidtrans", "DoorWallN", "DoorWallW",
+                     "cutN", "cutW"} & c.keys())
     # spriteModels: every referenced closed/open/cabinet index exists in the tiledef; model names are scripted
     sm = (COMMON / "spriteModels.txt").read_text(encoding="ascii")
     assert sm == sprite_models(), "spriteModels.txt is stale: rerun the builder"

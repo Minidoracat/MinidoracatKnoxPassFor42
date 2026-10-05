@@ -407,7 +407,10 @@ function Square:AddSpecialObject(o)
     o._square = self
 end
 function Square:RemoveTileObject(o) if o._square == self then removeObj(o) end end
-function Square:transmitRemoveItemFromSquare(o)
+-- safelyRemove 預設 true：entity 建出的多格物件要先找齊整組（IsoObjectUtils.safelyRemoveTileObjectFromSquare，
+-- IsoGridSquare.java:5942-5968），閘門的車道已換成 IsoDoor、找不齊，引擎回 -1、什麼都不移（barrier-mp 1005f 實踩）
+function Square:transmitRemoveItemFromSquare(o, safelyRemove)
+    if o._entityMulti and safelyRemove ~= false then return -1 end
     if o._square == self then
         removeObj(o)
         W.removedObjs = W.removedObjs + 1
@@ -2471,10 +2474,11 @@ local function buildBarrier(x, y, north, builder)
         or { { 0, 0, 5 }, { 0, 1, 4 }, { 0, 2, 3 }, { 0, 3, 7 } }
     local made = {}
     for _, t in ipairs(tiles) do
+        -- _north 一律 false：entity 游標不更新 self.north，create 收到的 north 永遠是 false（barrier-mp 2026-10-05 實踩）
         local th = new("IsoThumpable", Thump, {
-            _open = false, _locked = false, _lockedByKey = false, _keyId = -1, _modData = {}, _north = north,
+            _open = false, _locked = false, _lockedByKey = false, _keyId = -1, _modData = {}, _north = false,
             _obstructed = false, _view = { modData = {} }, _spriteObj = barrierSprite(t[3]),
-            _isDoor = t[3] ~= 6 and t[3] ~= 7, _buildMaterials = { [KIT] = 1 },
+            _isDoor = t[3] ~= 6 and t[3] ~= 7, _buildMaterials = { [KIT] = 1 }, _entityMulti = true,
         })
         syncView(th)
         square(x + t[1], y + t[2], 0):AddSpecialObject(th)

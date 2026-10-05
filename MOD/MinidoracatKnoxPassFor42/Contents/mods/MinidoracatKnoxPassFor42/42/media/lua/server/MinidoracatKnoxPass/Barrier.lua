@@ -61,12 +61,14 @@ function B.parts(obj)
 end
 
 -- 移除整座閘門與帳本記錄。已經被移走的物件（getObjectIndex 為 -1）略過：
--- 原版拆除／大錘自己會移走目標（ISDismantleAction.lua:84-94；IsoThumpable.java:1201-1203 也是先查 index）
+-- 原版拆除／大錘自己會移走目標（ISDismantleAction.lua:84-94；IsoThumpable.java:1201-1203 也是先查 index）。
+-- safelyRemove 要給 false：預設的 true 會把 entity 建的機箱當多格物件找齊整組，車道已換成 IsoDoor 找不齊，
+-- 引擎回 -1、什麼都不移（IsoGridSquare.java:5942-5968、IsoObjectUtils.java:20-48；barrier-mp 1005f 實踩：原版拆除也因此留下機箱）
 function B.remove(list, key)
     if not list then return end
     for _, o in ipairs(list) do
         local sq = o:getSquare()
-        if sq and o:getObjectIndex() ~= -1 then sq:transmitRemoveItemFromSquare(o) end
+        if sq and o:getObjectIndex() ~= -1 then sq:transmitRemoveItemFromSquare(o, false) end
     end
     local L = KP.Ledger
     if key and L and L.get(key) then
@@ -84,7 +86,10 @@ function B.onCreate(params)
     local idx = KP.barrierIndex(thump)
     if not idx or idx == 6 or idx == 7 then return nil end
     local sq = thump:getSquare()
-    local door = IsoDoor.new(getCell(), sq, thump:getSprite(), thump:getNorth())
+    -- 朝向看 tile（0-2＝N 向車道、3-5＝W 向），不看 thump:getNorth()：entity 游標的 render 不呼叫 getSprite，
+    -- self.north 停在建構時的 false（ISBuildingObject.lua:448、:482-510；ISBuildIsoEntity.lua:70-109），
+    -- create 收到的 north 也就一律 false（barrier-mp 2026-10-05 實踩：N 向閘門的門片變成 W 向）
+    local door = IsoDoor.new(getCell(), sq, thump:getSprite(), idx <= 2)
     -- sprite 建構子會照沙盒 lockedHouses 隨機上鎖（IsoDoor.java:820-840）；車庫門的 locked 對玩家是看站位
     -- （:1568-1580），閘門一律不鎖，門鎖只用 Knox Pass 的 CustomLock
     door:setLocked(false)
