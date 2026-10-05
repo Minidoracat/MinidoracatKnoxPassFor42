@@ -414,7 +414,7 @@
             "93fordF150S": "'93 Ford F-150 Special",
             "93fordF250": "'93 Ford F-250 Single Cab"
           },
-          "status": "preview"
+          "status": "ingame"
         },
         {
           "file": "93fordF350Base",
@@ -428,7 +428,7 @@
             "93fordF350utilityDpw": "'93 Ford F-350 DPW Utility Truck",
             "93fordF350utilityFd": "'93 Ford F-350 FD Utility Truck"
           },
-          "status": "preview"
+          "status": "ingame"
         }
       ]
     },
@@ -938,7 +938,7 @@
             "SemiTruck": "W900 Flat Top",
             "SemiTruck_mil": "W900 Military Edition"
           },
-          "status": "preview"
+          "status": "ingame"
         },
         {
           "file": "Rotators.SemiTruckBoxBase",
@@ -946,7 +946,7 @@
             "SemiTruckBox": "W900 Box Truck",
             "SemiTruckBox_mil": "W900 Military Box"
           },
-          "status": "preview"
+          "status": "ingame"
         },
         {
           "file": "Rotators.SemiTruckLiteBase",

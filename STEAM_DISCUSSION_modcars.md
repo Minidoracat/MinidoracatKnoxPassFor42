@@ -36,7 +36,7 @@
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2969343830]'93 Ford CF8000 Elgin Street Sweeper[/url][/b]：'93 Ford CF8000 Elgin Special Street Sweeper、'93 Ford CF8000 Elgin Street Sweeper
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2962175696]'92 Ford Crown Victoria Police Interceptor[/url][/b]：'92 Ford Crown Victoria、'92 Ford Crown Victoria KC Fire Rescue、'92 Ford Crown Victoria KYSP Interceptor、'92 Ford Crown Victoria Patrol Supervisor、'92 Ford Crown Victoria Police Interceptor、'92 Ford Crown Victoria Taxi、'92 Ford Crown Victoria Undercover、'92 Ford Crown Victoria Unmarked、The Sheriff
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2870394916]'86 Ford Econoline E150[/url][/b]（含同一個 Workshop 項目的 86fordE150expanded）：'86 Ford E-150 KY State Police、'86 Ford E-150 Knox County Medical Examiner、'86 Ford E-150 Knox County Sheriff、'86 Ford Econoline E-150、'86 Ford Econoline E-150 Escape Van、'86 Ford Econoline E-150 McCoy、'86 Ford Econoline E-150 Spiffo、'86 Ford Econoline E-150 long variant、'86 Ford Econoline E-150 with sliding door、'86 Ford Econoline E-150 with windows、The Mystery Machine
-[*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3073430075]'93 Ford F-Series[/url][/b]：'93 Ford F-150 Single Cab、'93 Ford F-150 Special、'93 Ford F-250 Single Cab、'93 Ford F-350 Crew Cab、'93 Ford F-350 Crew Cab Dually、'93 Ford F-350 Crew Cab FD、'93 Ford F-350 Crew Cab PD、'93 Ford F-350 Crew Cab SO、'93 Ford F-350 DPW Utility Truck、'93 Ford F-350 FD Utility Truck、'93 Ford F-350 Utility Truck
+[*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3073430075]'93 Ford F-Series[/url][/b]：'93 Ford F-150 Single Cab ✔、'93 Ford F-150 Special ✔、'93 Ford F-250 Single Cab ✔、'93 Ford F-350 Crew Cab ✔、'93 Ford F-350 Crew Cab Dually ✔、'93 Ford F-350 Crew Cab FD ✔、'93 Ford F-350 Crew Cab PD ✔、'93 Ford F-350 Crew Cab SO ✔、'93 Ford F-350 DPW Utility Truck ✔、'93 Ford F-350 FD Utility Truck ✔、'93 Ford F-350 Utility Truck ✔
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2952802178]'90 Ford F350 Ambulance Type 1[/url][/b]：'90 Ford F350 Ambulance、'90 Ford F350 S.W.A.T.
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3088951320]'93 Ford Taurus[/url][/b]：'93 Ford Taurus、'93 Ford Taurus SHO、'93 Ford Taurus Wagon
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3008795514]'91 Geo Metro[/url][/b]：'91 Geo Metro
@@ -62,7 +62,7 @@
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3005903549]'63 Volkswagen 1300 Beetle[/url][/b]：'63 Volkswagen 1300 Beetle、'63 Volkswagen Beetle Dune Buggy、'63 Volkswagen Beetle High Performance
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3041122351]'63 Volkswagen Type 2 Van[/url][/b]：'63 Volkswagen Type 2 Apocalypse Van、'63 Volkswagen Type 2 Hippie Van、'63 Volkswagen Type 2 Military Van、'63 Volkswagen Type 2 Van
 [*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3292659291]'89 Volvo 200 Series[/url][/b]：'89 Volvo 242 Turbo、'89 Volvo 244 Sedan、'89 Volvo 245 Wagon
-[*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3409472393]W900 Semi-Truck[/url][/b]：W900 Box Truck、W900 Day Cab、W900 Flat Top、W900 Military Box、W900 Military Edition
+[*] [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3409472393]W900 Semi-Truck[/url][/b]：W900 Box Truck ✔、W900 Day Cab、W900 Flat Top ✔、W900 Military Box ✔、W900 Military Edition ✔
 [/list]
 
 [h2]📮 申請新車[/h2]
