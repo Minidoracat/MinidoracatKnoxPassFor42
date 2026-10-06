@@ -101,7 +101,7 @@ Knox Pass 讓你開車回基地不必下車：車上裝感應盒、大門裝讀�
 [*] 遊戲開局是 1993 年 7 月 9 日。24 天後的 1993 年 8 月 2 日，紐約州高速公路 Spring Valley 收費站啟用電子收費，這是 E-ZPass 的起點（[url=https://rosap.ntl.bts.gov/view/dot/3157/dot_3157_DS1.pdf]E-ZPass 評估報告，2000[/url]）。
 [*] 更早之前，1987 年挪威、1989 年達拉斯、1991 年奧克拉荷馬都已經有電子收費；1990 年代，同一張 TollTag 已經可以進出門禁社區的大門（[url=https://transcore.com/wp-content/uploads/2017/01/History-of-RFID-White-Paper.pdf]TransCore 的 RFID 歷史白皮書[/url]）。
 [*] 1989 年第一代 TollTag 是信用卡大小、約 0.6 公分厚的塑膠盒，掛在擋風玻璃上，換車也能帶著走（[url=https://www.dallasnews.com/news/transportation/2014/08/07/as-tolltags-turn-25-originals-hang-on-for-dallas-area-motorists/]Dallas News，2014[/url]）。Knox Pass 的感應盒就是照這個樣子設計的。
-[*] 原文摘錄、頁碼與存檔連結整理在 [url=https://github.com/Minidoracat/MinidoracatKnoxPassFor42/blob/main/docs/name-origin.md]GitHub：名稱由來與資料來源[/url]。
+[*] 原文摘錄、原文截圖、頁碼與存檔連結整理在 [url=https://github.com/Minidoracat/MinidoracatKnoxPassFor42/blob/main/docs/name-origin.md]GitHub：名稱由來與資料來源[/url]。
 [/list]
 
 [h2]❓ 常見問題[/h2]

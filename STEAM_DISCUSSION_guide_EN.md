@@ -101,7 +101,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] The game starts on July 9, 1993. 24 days later, on August 2, 1993, the New York State Thruway opened electronic tolling at Spring Valley, the start of E-ZPass ([url=https://rosap.ntl.bts.gov/view/dot/3157/dot_3157_DS1.pdf]E-ZPass evaluation report, 2000[/url]).
 [*] Electronic tolling was already running in Norway in 1987, Dallas in 1989 and Oklahoma in 1991, and in the 1990s the same TollTag could open gated communities ([url=https://transcore.com/wp-content/uploads/2017/01/History-of-RFID-White-Paper.pdf]TransCore's RFID history white paper[/url]).
 [*] The first TollTag in 1989 was a credit-card-sized plastic box about 6 mm thick that hung on the windshield and could move to another car ([url=https://www.dallasnews.com/news/transportation/2014/08/07/as-tolltags-turn-25-originals-hang-on-for-dallas-area-motorists/]Dallas News, 2014[/url]). The Knox Pass tag is modelled on it.
-[*] The original quotes, page numbers and archived links are collected on [url=https://github.com/Minidoracat/MinidoracatKnoxPassFor42/blob/main/docs/name-origin.md]GitHub (in Chinese, quotes in the original English)[/url].
+[*] The original quotes with screenshots of the source pages, page numbers and archived links are collected on [url=https://github.com/Minidoracat/MinidoracatKnoxPassFor42/blob/main/docs/name-origin.md]GitHub (in Chinese, quotes in the original English)[/url].
 [/list]
 
 [h2]❓ FAQ[/h2]

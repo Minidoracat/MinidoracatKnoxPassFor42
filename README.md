@@ -38,7 +38,7 @@ Project Zomboid Build 42 MOD。
 | 雙開門：讀頭在外端門柱上 | 柵欄門 |
 |---|---|
 | ![雙開門的讀頭](docs/screenshots/readme/reader-double.jpg) | ![柵欄門的讀頭](docs/screenshots/readme/reader-fence.jpg) |
-| **車庫門** | **右鍵選單：管理、上鎖、步行開門** |
+| **車庫門** | **右鍵選單：管理、上鎖、步行開門、重新上色** |
 | ![車庫門的讀頭](docs/screenshots/readme/reader-garage.jpg) | ![右鍵選單](docs/screenshots/steam/zh/06-gate-menu-zh.jpg) |
 
 ### 車用感應盒
