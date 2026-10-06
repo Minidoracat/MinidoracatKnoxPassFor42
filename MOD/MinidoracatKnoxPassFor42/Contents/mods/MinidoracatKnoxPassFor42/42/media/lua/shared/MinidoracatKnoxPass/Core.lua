@@ -101,7 +101,8 @@ end
 
 -- ── 外殼顏色 ────────────────────────────────────────────────────────────
 -- 順序就是顏色索引 0-6（帳本 rec.color、門柱 tile 顏色×8＋變體）；米白是原本的物品，type 不帶後綴。
--- 換色用原版油漆一格＋油漆刷（Server.lua H.recolor／recolorReader）；搜刮與配方只出米白
+-- 換色用原版油漆一格＋油漆刷（Server.lua H.recolor／recolorReader）；各色配方用同一罐油漆（scripts/gen_colors.py 照這張表產生）；
+-- 搜刮生成後隨機換色（server/Items/MinidoracatKnoxPass_Distributions.lua）
 KP.COLORS = {
     { id = "Cream", suffix = "", paint = "Base.PaintWhite" },
     { id = "Black", suffix = "_Black", paint = "Base.PaintBlack" },

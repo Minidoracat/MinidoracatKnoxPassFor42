@@ -1,0 +1,294 @@
+module Base
+{
+    /*
+        由 scripts/gen_colors.py 產生，不要手改：色表在 scripts/blender/build.py COLORS，
+        照 recipes_knoxpass.txt 的米白配方，多一格該色油漆與油漆刷；那兩個配方改了就重跑產生器。
+    */
+    craftRecipe CraftKnoxPassVehicleTag_Black
+    {
+        timedAction = MakingElectrical,
+        time = 80,
+        SkillRequired = Electricity:2,
+        OnTest = MinidoracatKnoxPass.canCraft,
+        Tags = AnySurfaceCraft,
+        category = Electrical,
+        xpAward = Electricity:5,
+        inputs
+        {
+            item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
+            item 1 [Base.Pager;Base.Remote] flags[NoBrokenItems],
+            item 2 [Base.ElectronicsScrap] flags[NoBrokenItems],
+            item 1 [Base.Battery] mode:destroy flags[ItemCount],
+            item 1 tags[base:paintbrush] mode:keep,
+            item 1 [Base.PaintBlack],
+        }
+        outputs
+        {
+            item 1 MinidoracatKnoxPass.VehicleTag_Black,
+        }
+    }
+
+    craftRecipe CraftKnoxPassVehicleTag_Graphite
+    {
+        timedAction = MakingElectrical,
+        time = 80,
+        SkillRequired = Electricity:2,
+        OnTest = MinidoracatKnoxPass.canCraft,
+        Tags = AnySurfaceCraft,
+        category = Electrical,
+        xpAward = Electricity:5,
+        inputs
+        {
+            item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
+            item 1 [Base.Pager;Base.Remote] flags[NoBrokenItems],
+            item 2 [Base.ElectronicsScrap] flags[NoBrokenItems],
+            item 1 [Base.Battery] mode:destroy flags[ItemCount],
+            item 1 tags[base:paintbrush] mode:keep,
+            item 1 [Base.PaintGrey],
+        }
+        outputs
+        {
+            item 1 MinidoracatKnoxPass.VehicleTag_Graphite,
+        }
+    }
+
+    craftRecipe CraftKnoxPassVehicleTag_Olive
+    {
+        timedAction = MakingElectrical,
+        time = 80,
+        SkillRequired = Electricity:2,
+        OnTest = MinidoracatKnoxPass.canCraft,
+        Tags = AnySurfaceCraft,
+        category = Electrical,
+        xpAward = Electricity:5,
+        inputs
+        {
+            item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
+            item 1 [Base.Pager;Base.Remote] flags[NoBrokenItems],
+            item 2 [Base.ElectronicsScrap] flags[NoBrokenItems],
+            item 1 [Base.Battery] mode:destroy flags[ItemCount],
+            item 1 tags[base:paintbrush] mode:keep,
+            item 1 [Base.PaintGreen],
+        }
+        outputs
+        {
+            item 1 MinidoracatKnoxPass.VehicleTag_Olive,
+        }
+    }
+
+    craftRecipe CraftKnoxPassVehicleTag_Navy
+    {
+        timedAction = MakingElectrical,
+        time = 80,
+        SkillRequired = Electricity:2,
+        OnTest = MinidoracatKnoxPass.canCraft,
+        Tags = AnySurfaceCraft,
+        category = Electrical,
+        xpAward = Electricity:5,
+        inputs
+        {
+            item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
+            item 1 [Base.Pager;Base.Remote] flags[NoBrokenItems],
+            item 2 [Base.ElectronicsScrap] flags[NoBrokenItems],
+            item 1 [Base.Battery] mode:destroy flags[ItemCount],
+            item 1 tags[base:paintbrush] mode:keep,
+            item 1 [Base.PaintBlue],
+        }
+        outputs
+        {
+            item 1 MinidoracatKnoxPass.VehicleTag_Navy,
+        }
+    }
+
+    craftRecipe CraftKnoxPassVehicleTag_Orange
+    {
+        timedAction = MakingElectrical,
+        time = 80,
+        SkillRequired = Electricity:2,
+        OnTest = MinidoracatKnoxPass.canCraft,
+        Tags = AnySurfaceCraft,
+        category = Electrical,
+        xpAward = Electricity:5,
+        inputs
+        {
+            item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
+            item 1 [Base.Pager;Base.Remote] flags[NoBrokenItems],
+            item 2 [Base.ElectronicsScrap] flags[NoBrokenItems],
+            item 1 [Base.Battery] mode:destroy flags[ItemCount],
+            item 1 tags[base:paintbrush] mode:keep,
+            item 1 [Base.PaintOrange],
+        }
+        outputs
+        {
+            item 1 MinidoracatKnoxPass.VehicleTag_Orange,
+        }
+    }
+
+    craftRecipe CraftKnoxPassVehicleTag_Red
+    {
+        timedAction = MakingElectrical,
+        time = 80,
+        SkillRequired = Electricity:2,
+        OnTest = MinidoracatKnoxPass.canCraft,
+        Tags = AnySurfaceCraft,
+        category = Electrical,
+        xpAward = Electricity:5,
+        inputs
+        {
+            item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
+            item 1 [Base.Pager;Base.Remote] flags[NoBrokenItems],
+            item 2 [Base.ElectronicsScrap] flags[NoBrokenItems],
+            item 1 [Base.Battery] mode:destroy flags[ItemCount],
+            item 1 tags[base:paintbrush] mode:keep,
+            item 1 [Base.PaintRed],
+        }
+        outputs
+        {
+            item 1 MinidoracatKnoxPass.VehicleTag_Red,
+        }
+    }
+
+    craftRecipe CraftKnoxPassGateReader_Black
+    {
+        timedAction = MakingElectrical,
+        time = 150,
+        SkillRequired = Electricity:4,
+        OnTest = MinidoracatKnoxPass.canCraft,
+        Tags = AnySurfaceCraft,
+        category = Electrical,
+        xpAward = Electricity:10,
+        inputs
+        {
+            item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
+            item 1 [Base.RadioReceiver] flags[NoBrokenItems],
+            item 3 [Base.ElectronicsScrap] flags[NoBrokenItems],
+            item 2 [Base.ElectricWire] flags[NoBrokenItems],
+            item 1 tags[base:paintbrush] mode:keep,
+            item 1 [Base.PaintBlack],
+        }
+        outputs
+        {
+            item 1 MinidoracatKnoxPass.GateReader_Black,
+        }
+    }
+
+    craftRecipe CraftKnoxPassGateReader_Graphite
+    {
+        timedAction = MakingElectrical,
+        time = 150,
+        SkillRequired = Electricity:4,
+        OnTest = MinidoracatKnoxPass.canCraft,
+        Tags = AnySurfaceCraft,
+        category = Electrical,
+        xpAward = Electricity:10,
+        inputs
+        {
+            item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
+            item 1 [Base.RadioReceiver] flags[NoBrokenItems],
+            item 3 [Base.ElectronicsScrap] flags[NoBrokenItems],
+            item 2 [Base.ElectricWire] flags[NoBrokenItems],
+            item 1 tags[base:paintbrush] mode:keep,
+            item 1 [Base.PaintGrey],
+        }
+        outputs
+        {
+            item 1 MinidoracatKnoxPass.GateReader_Graphite,
+        }
+    }
+
+    craftRecipe CraftKnoxPassGateReader_Olive
+    {
+        timedAction = MakingElectrical,
+        time = 150,
+        SkillRequired = Electricity:4,
+        OnTest = MinidoracatKnoxPass.canCraft,
+        Tags = AnySurfaceCraft,
+        category = Electrical,
+        xpAward = Electricity:10,
+        inputs
+        {
+            item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
+            item 1 [Base.RadioReceiver] flags[NoBrokenItems],
+            item 3 [Base.ElectronicsScrap] flags[NoBrokenItems],
+            item 2 [Base.ElectricWire] flags[NoBrokenItems],
+            item 1 tags[base:paintbrush] mode:keep,
+            item 1 [Base.PaintGreen],
+        }
+        outputs
+        {
+            item 1 MinidoracatKnoxPass.GateReader_Olive,
+        }
+    }
+
+    craftRecipe CraftKnoxPassGateReader_Navy
+    {
+        timedAction = MakingElectrical,
+        time = 150,
+        SkillRequired = Electricity:4,
+        OnTest = MinidoracatKnoxPass.canCraft,
+        Tags = AnySurfaceCraft,
+        category = Electrical,
+        xpAward = Electricity:10,
+        inputs
+        {
+            item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
+            item 1 [Base.RadioReceiver] flags[NoBrokenItems],
+            item 3 [Base.ElectronicsScrap] flags[NoBrokenItems],
+            item 2 [Base.ElectricWire] flags[NoBrokenItems],
+            item 1 tags[base:paintbrush] mode:keep,
+            item 1 [Base.PaintBlue],
+        }
+        outputs
+        {
+            item 1 MinidoracatKnoxPass.GateReader_Navy,
+        }
+    }
+
+    craftRecipe CraftKnoxPassGateReader_Orange
+    {
+        timedAction = MakingElectrical,
+        time = 150,
+        SkillRequired = Electricity:4,
+        OnTest = MinidoracatKnoxPass.canCraft,
+        Tags = AnySurfaceCraft,
+        category = Electrical,
+        xpAward = Electricity:10,
+        inputs
+        {
+            item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
+            item 1 [Base.RadioReceiver] flags[NoBrokenItems],
+            item 3 [Base.ElectronicsScrap] flags[NoBrokenItems],
+            item 2 [Base.ElectricWire] flags[NoBrokenItems],
+            item 1 tags[base:paintbrush] mode:keep,
+            item 1 [Base.PaintOrange],
+        }
+        outputs
+        {
+            item 1 MinidoracatKnoxPass.GateReader_Orange,
+        }
+    }
+
+    craftRecipe CraftKnoxPassGateReader_Red
+    {
+        timedAction = MakingElectrical,
+        time = 150,
+        SkillRequired = Electricity:4,
+        OnTest = MinidoracatKnoxPass.canCraft,
+        Tags = AnySurfaceCraft,
+        category = Electrical,
+        xpAward = Electricity:10,
+        inputs
+        {
+            item 1 tags[base:screwdriver] mode:keep flags[NoBrokenItems],
+            item 1 [Base.RadioReceiver] flags[NoBrokenItems],
+            item 3 [Base.ElectronicsScrap] flags[NoBrokenItems],
+            item 2 [Base.ElectricWire] flags[NoBrokenItems],
+            item 1 tags[base:paintbrush] mode:keep,
+            item 1 [Base.PaintRed],
+        }
+        outputs
+        {
+            item 1 MinidoracatKnoxPass.GateReader_Red,
+        }
+    }
+}

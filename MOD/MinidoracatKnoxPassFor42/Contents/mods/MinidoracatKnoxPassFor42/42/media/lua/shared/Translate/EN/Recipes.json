@@ -1,5 +1,17 @@
 {
     "CraftKnoxPassVehicleTag": "Craft Knox Pass Vehicle Tag",
+    "CraftKnoxPassVehicleTag_Black": "Craft Knox Pass Vehicle Tag (Black)",
+    "CraftKnoxPassVehicleTag_Graphite": "Craft Knox Pass Vehicle Tag (Graphite)",
+    "CraftKnoxPassVehicleTag_Olive": "Craft Knox Pass Vehicle Tag (Olive)",
+    "CraftKnoxPassVehicleTag_Navy": "Craft Knox Pass Vehicle Tag (Navy)",
+    "CraftKnoxPassVehicleTag_Orange": "Craft Knox Pass Vehicle Tag (Safety Orange)",
+    "CraftKnoxPassVehicleTag_Red": "Craft Knox Pass Vehicle Tag (Red)",
     "CraftKnoxPassGateReader": "Craft Knox Pass Gate Reader",
+    "CraftKnoxPassGateReader_Black": "Craft Knox Pass Gate Reader (Black)",
+    "CraftKnoxPassGateReader_Graphite": "Craft Knox Pass Gate Reader (Graphite)",
+    "CraftKnoxPassGateReader_Olive": "Craft Knox Pass Gate Reader (Olive)",
+    "CraftKnoxPassGateReader_Navy": "Craft Knox Pass Gate Reader (Navy)",
+    "CraftKnoxPassGateReader_Orange": "Craft Knox Pass Gate Reader (Safety Orange)",
+    "CraftKnoxPassGateReader_Red": "Craft Knox Pass Gate Reader (Red)",
     "CraftKnoxPassBoomBarrierKit": "Craft Knox Pass Boom Barrier Kit"
 }

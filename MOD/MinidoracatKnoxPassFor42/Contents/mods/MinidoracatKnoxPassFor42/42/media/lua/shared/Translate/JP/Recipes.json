@@ -1,5 +1,17 @@
 {
     "CraftKnoxPassVehicleTag": "Knox Pass 車載タグを作る",
+    "CraftKnoxPassVehicleTag_Black": "Knox Pass 車載タグ（ブラック）を作る",
+    "CraftKnoxPassVehicleTag_Graphite": "Knox Pass 車載タグ（グラファイト）を作る",
+    "CraftKnoxPassVehicleTag_Olive": "Knox Pass 車載タグ（オリーブ）を作る",
+    "CraftKnoxPassVehicleTag_Navy": "Knox Pass 車載タグ（ネイビー）を作る",
+    "CraftKnoxPassVehicleTag_Orange": "Knox Pass 車載タグ（セーフティオレンジ）を作る",
+    "CraftKnoxPassVehicleTag_Red": "Knox Pass 車載タグ（レッド）を作る",
     "CraftKnoxPassGateReader": "Knox Pass ゲートリーダーを作る",
+    "CraftKnoxPassGateReader_Black": "Knox Pass ゲートリーダー（ブラック）を作る",
+    "CraftKnoxPassGateReader_Graphite": "Knox Pass ゲートリーダー（グラファイト）を作る",
+    "CraftKnoxPassGateReader_Olive": "Knox Pass ゲートリーダー（オリーブ）を作る",
+    "CraftKnoxPassGateReader_Navy": "Knox Pass ゲートリーダー（ネイビー）を作る",
+    "CraftKnoxPassGateReader_Orange": "Knox Pass ゲートリーダー（セーフティオレンジ）を作る",
+    "CraftKnoxPassGateReader_Red": "Knox Pass ゲートリーダー（レッド）を作る",
     "CraftKnoxPassBoomBarrierKit": "Knox Pass 遮断機キットを作る"
 }

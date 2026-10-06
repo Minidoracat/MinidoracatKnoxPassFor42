@@ -35,8 +35,9 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 
 [h3]Shell Colors and Repainting[/h3]
 [list]
-[*] [b]7 colors[/b]: tags and readers come in Cream, Black, Graphite, Olive, Navy, Safety Orange and Red. Crafted and looted ones are Cream.
-[*] [b]What you need[/b]: a paintbrush plus one use of the matching vanilla paint: white paint for Cream, gray for Graphite, green for Olive, blue for Navy, and the same-named paint for Black, Safety Orange and Red.
+[*] [b]7 colors[/b]: tags and readers come in Cream, Black, Graphite, Olive, Navy, Safety Orange and Red. Looted ones come in a random color.
+[*] [b]Which paint[/b]: a paintbrush plus one use of the matching vanilla paint: white paint for Cream, gray for Graphite, green for Olive, blue for Navy, and the same-named paint for Black, Safety Orange and Red.
+[*] [b]Craft it in color[/b]: the crafting list has one entry per color (for example "Craft Knox Pass Vehicle Tag (Black)"). It takes the usual materials plus one use of that paint, and you need a paintbrush (it isn't used up). Without paint you craft a Cream one.
 [*] [b]In your inventory[/b]: right-click a tag or reader you carry (bags count) → [b]Repaint[/b] → pick a color. Colors you lack paint or a paintbrush for are grayed out; hover to see what's missing. A tag keeps its charge and its registration at every gate, so it opens the same gates after repainting.
 [*] [b]A reader on a gate[/b]: the owner or an admin right-clicks the gate → Knox Pass → [b]Repaint[/b]; your character walks to the gate and paints it, and registrations stay as they are.
 [*] [b]A tag in a car[/b]: the windshield shows its color. To repaint it, remove it in the mechanics panel first, then install it again. A boom barrier's built-in reader can't be repainted.
@@ -68,8 +69,8 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 
 [h3]Getting them[/h3]
 [list]
-[*] [b]Vehicle Tag[/b]: Electrical 2. Use a screwdriver to build it from a pager or TV remote, 2 electronics scrap and 1 battery. Also found in gas station storage, car supply stores, mechanic electrical shelves and electronics stores.
-[*] [b]Gate Reader[/b]: Electrical 4. Use a screwdriver to build it from a radio receiver, 3 electronics scrap and 2 electric wires. Also found in electrician tool boxes, electronics crates, hardware stores and mechanics.
+[*] [b]Vehicle Tag[/b]: Electrical 2. Use a screwdriver to build it from a pager or TV remote, 2 electronics scrap and 1 battery; add one use of paint and a paintbrush to craft it in that color (see "Shell Colors" above). Also found in gas station storage, car supply stores, mechanic electrical shelves and electronics stores, in a random color.
+[*] [b]Gate Reader[/b]: Electrical 4. Use a screwdriver to build it from a radio receiver, 3 electronics scrap and 2 electric wires; it can be crafted in color the same way. Also found in electrician tool boxes, electronics crates, hardware stores and mechanics, in a random color.
 [*] [b]Boom Barrier Kit[/b]: Electrical 4. Use a screwdriver to build it from 1 Gate Reader (any color), 2 metal pipes, 1 sheet of metal and 2 electric wires. Crafting only; it isn't found as loot.
 [/list]
 

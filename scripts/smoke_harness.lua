@@ -204,7 +204,8 @@ local cell = {
 function getCell() return cell end
 function getGameTime() return { getWorldAgeHours = function() return W.hours end } end
 function getSteamModeActive() return W.steam end
-function ZombRand(a, b)
+function ZombRand(a, b)   -- ZombRand(n)＝0..n-1；ZombRand(a, b)＝a..b-1
+    if b == nil then a, b = 0, a end
     W.rand = (W.rand * 1103515245 + 12345) % 2147483648
     return a + W.rand % (b - a)
 end
@@ -299,6 +300,7 @@ function Container:DoRemoveItem(item)
         end
     end
 end
+function Container:getItems() return javaList(self._items) end   -- 活的清單（ItemContainer.getItems 回內部 ArrayList）
 function Container:getItemWithIDRecursiv(id)
     for _, it in ipairs(self._items) do if it._id == id then return it end end
     return nil
@@ -1087,7 +1089,7 @@ local KP
 local MOD_FILES = {
     "MinidoracatKnoxPass/Core", "MinidoracatKnoxPass/Gates", "MinidoracatKnoxPass/Parts",
     "MinidoracatKnoxPass/Ledger", "MinidoracatKnoxPass/Sensor", "MinidoracatKnoxPass/Server",
-    "MinidoracatKnoxPass/Barrier", "MinidoracatKnoxPass/ReaderPost",
+    "MinidoracatKnoxPass/Barrier", "MinidoracatKnoxPass/ReaderPost", "Items/MinidoracatKnoxPass_Distributions",
 }
 local CLIENT_FILES = { "MinidoracatKnoxPass/BarrierAnim" }   -- 只載不碰 UI 的 client 檔
 -- 開機：Lua 全部重載（各檔 local 狀態歸零）→ OnGameBoot → 世界載入時 OnSGlobalObjectSystemInit
@@ -3351,12 +3353,110 @@ local function scenarioColors()
     clean(from, "外殼顏色與重新上色（SP）")
 end
 
+-- 搜刮（server/Items/MinidoracatKnoxPass_Distributions.lua）：表裡只放米白一筆、權重不拆；生成後米白隨機換成 7 色之一，
+-- 電量與狀態照抄；搜刮關掉時任何顏色都移除；MP client 與壞掉的 event 參數不動
+local function scenarioLoot()
+    out("情境：搜刮表與生成後隨機換色")
+    freshWorld()
+    local from = #logLines + 1
+    local LISTS = { "GasStorageMechanics", "GasStorageCombo", "CarSupplyTools", "MechanicShelfElectric", "ElectronicStoreMisc",
+        "ElectricianTools", "CrateElectronics", "ToolStoreMisc" }
+    ProceduralDistributions = { list = {} }
+    for _, n in ipairs(LISTS) do ProceduralDistributions.list[n] = { items = { "Base.Wrench", 4 } } end
+    fire("OnPostDistributionMerge")
+    fire("OnPostDistributionMerge")   -- 回主選單換存檔再合併一次：不疊加
+    local seen, colored, wrench = {}, 0, 0
+    for _, n in ipairs(LISTS) do
+        local items = ProceduralDistributions.list[n].items
+        for i = 1, #items, 2 do
+            local t = items[i]
+            if t == TAG or t == READER then seen[n .. "|" .. t] = (seen[n .. "|" .. t] or 0) + 1
+            elseif t == "Base.Wrench" then wrench = wrench + 1
+            elseif string.find(t, "MinidoracatKnoxPass", 1, true) then colored = colored + 1 end
+        end
+    end
+    local mse = ProceduralDistributions.list.MechanicShelfElectric.items
+    check(colored == 0 and wrench == #LISTS and seen["GasStorageMechanics|" .. TAG] == 1 and seen["ElectricianTools|" .. READER] == 1
+        and seen["MechanicShelfElectric|" .. TAG] == 1 and seen["MechanicShelfElectric|" .. READER] == 1
+        and mse[4] == 2 and mse[6] == 0.5, "搜刮表只放米白各一筆、權重照原值（不拆成 7 色）、重複合併不疊加")
+
+    -- 1. 生成後隨機換色：數量不變、7 色都出現、米白約 1/7；電量與狀態照抄；已經是彩色的與其他物品不動
+    SandboxVars.MinidoracatKnoxPass.SpawnLoot = true
+    local crate = newContainer()
+    local hammer = crate:AddItem("Base.Hammer")
+    local preBlack = crate:AddItem(newItem(TAG .. "_Black", 0.9))
+    for _ = 1, 350 do
+        crate:AddItem(newItem(TAG, 0.37)):setCondition(64)
+        crate:AddItem(READER)
+    end
+    fire("OnFillContainer", "garagestorage", "crate", crate)
+    local tags, readers, kept, n = {}, {}, true, 0
+    for _, it in ipairs(crate._items) do
+        local c = KP.colorOf(it)
+        if KP.isTag(it) then
+            tags[c] = (tags[c] or 0) + 1
+            n = n + 1
+            if it ~= preBlack then kept = kept and near(it:getCurrentUsesFloat(), 0.37) and it:getCondition() == 64 end
+        elseif KP.isReader(it) then
+            readers[c] = (readers[c] or 0) + 1
+            n = n + 1
+        end
+    end
+    local every = true
+    for c = 0, 6 do every = every and (tags[c] or 0) > 0 and (readers[c] or 0) > 0 end
+    check(n == 701 and every and hammer._container == crate and preBlack._container == crate and preBlack._type == TAG .. "_Black",
+        "生成的感應盒與讀頭數量不變、7 色都出現；鐵鎚與原本就是黑色的不動")
+    check((tags[0] or 0) >= 20 and (tags[0] or 0) <= 90 and (readers[0] or 0) >= 20 and (readers[0] or 0) <= 90,
+        "米白也是 7 選 1（350 個裡約 50 個）")
+    check(kept, "換色後電量與狀態照抄")
+
+    -- 2. 巢狀背包一起處理
+    local shelf = newContainer()
+    local bag = new("InventoryContainer", Item, { _id = 9, _type = "Base.Bag_Schoolbag", _inv = newContainer() })
+    bag.getInventory = function(self) return self._inv end
+    shelf:AddItem(bag)
+    for _ = 1, 70 do bag._inv:AddItem(READER) end
+    fire("OnFillContainer", "garagestorage", "shelf", shelf)
+    local bagColors, bagCount = {}, 0
+    for _, it in ipairs(bag._inv._items) do
+        if KP.isReader(it) then bagColors[KP.colorOf(it)] = true; bagCount = bagCount + 1 end
+    end
+    local distinct = 0
+    for _ in pairs(bagColors) do distinct = distinct + 1 end
+    check(bagCount == 70 and distinct >= 4, "巢狀背包裡的讀頭也隨機換色")
+
+    -- 3. 搜刮關掉：任何顏色都移除（含巢狀背包），其他物品留著
+    SandboxVars.MinidoracatKnoxPass.SpawnLoot = false
+    local off = newContainer()
+    local wrenchItem = off:AddItem("Base.Wrench")
+    off:AddItem(newItem(TAG, 1))
+    off:AddItem(READER .. "_Navy")
+    local bag2 = new("InventoryContainer", Item, { _id = 10, _type = "Base.Bag_Schoolbag", _inv = newContainer() })
+    bag2.getInventory = function(self) return self._inv end
+    off:AddItem(bag2)
+    bag2._inv:AddItem(newItem(TAG .. "_Orange", 1))
+    fire("OnFillContainer", "garagestorage", "crate", off)
+    check(#off._items == 2 and wrenchItem._container == off and bag2._container == off and #bag2._inv._items == 0,
+        "搜刮關掉：任何顏色的感應盒與讀頭都移除（含背包裡的），其他物品留著")
+
+    -- 4. 反面：MP client 不處理（伺服器才生成）；背包分支傳來的不是 ItemContainer 時直接略過
+    SandboxVars.MinidoracatKnoxPass.SpawnLoot = true
+    local raw = newContainer()
+    local cream = raw:AddItem(READER)
+    local ok = pcall(fire, "OnFillContainer", "garagestorage", "bag", {})
+    MODE = "client"
+    fire("OnFillContainer", "garagestorage", "crate", raw)
+    MODE = "server"
+    check(ok and cream._container == raw and cream._type == READER, "MP client 不換色、壞掉的 event 參數不出錯")
+    clean(from, "搜刮與隨機換色")
+end
+
 local tests = {
     scenarioParts, scenarioDock, scenarioDetection, scenarioAutoClose, scenarioLocks, scenarioCommands,
     scenarioSinglePlayer, scenarioLedger, scenarioCharging, scenarioReopen, scenarioUninstallOpen, scenarioGarage,
     scenarioDoubleDoorway, scenarioAutoDrive, scenarioLoadGridsquare, scenarioTagScript,
     scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,
-    scenarioReaderPost, scenarioColors,
+    scenarioReaderPost, scenarioColors, scenarioLoot,
 }
 for _, t in ipairs(tests) do t() end
 

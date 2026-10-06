@@ -1,5 +1,17 @@
 {
     "CraftKnoxPassVehicleTag": "製作 Knox Pass 車用感應盒",
+    "CraftKnoxPassVehicleTag_Black": "製作 Knox Pass 車用感應盒（黑色）",
+    "CraftKnoxPassVehicleTag_Graphite": "製作 Knox Pass 車用感應盒（石墨灰）",
+    "CraftKnoxPassVehicleTag_Olive": "製作 Knox Pass 車用感應盒（軍綠）",
+    "CraftKnoxPassVehicleTag_Navy": "製作 Knox Pass 車用感應盒（深藍）",
+    "CraftKnoxPassVehicleTag_Orange": "製作 Knox Pass 車用感應盒（安全橘）",
+    "CraftKnoxPassVehicleTag_Red": "製作 Knox Pass 車用感應盒（紅色）",
     "CraftKnoxPassGateReader": "製作 Knox Pass 大門讀頭",
+    "CraftKnoxPassGateReader_Black": "製作 Knox Pass 大門讀頭（黑色）",
+    "CraftKnoxPassGateReader_Graphite": "製作 Knox Pass 大門讀頭（石墨灰）",
+    "CraftKnoxPassGateReader_Olive": "製作 Knox Pass 大門讀頭（軍綠）",
+    "CraftKnoxPassGateReader_Navy": "製作 Knox Pass 大門讀頭（深藍）",
+    "CraftKnoxPassGateReader_Orange": "製作 Knox Pass 大門讀頭（安全橘）",
+    "CraftKnoxPassGateReader_Red": "製作 Knox Pass 大門讀頭（紅色）",
     "CraftKnoxPassBoomBarrierKit": "製作 Knox Pass 抬升閘門組件"
 }
