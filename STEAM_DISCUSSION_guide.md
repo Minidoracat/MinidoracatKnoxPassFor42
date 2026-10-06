@@ -1,8 +1,8 @@
 <!-- Steam 討論區貼文稿源（繁中）；簡介只放摘要，詳細內容以本串為準 -->
-<!-- 討論串網址：（待建立，首發後補進 STEAM_DESCRIPTION*.md 的完整說明連結） -->
+<!-- 討論串網址：https://steamcommunity.com/workshop/filedetails/discussion/3814684002/586187800874015409/ -->
 <!-- 標題：📖 Knox Pass 完整說明：感應盒、讀頭與自動開門 -->
 
-[b]English version:[/b] [url={KP_GUIDE_EN}]Knox Pass Guide: Tags, Readers & Hands-free Gates[/url]
+[b]English version:[/b] [url=https://steamcommunity.com/workshop/filedetails/discussion/3814684002/586187800874015404/]Knox Pass Guide: Tags, Readers & Hands-free Gates[/url]
 
 Knox Pass 讓你開車回基地不必下車：車上裝感應盒、大門裝讀頭，登記過的車開近大門就自動打開，開走後自動關上。本串整理每項功能的細節、伺服器設定與常見問題。
 
@@ -22,7 +22,7 @@ Knox Pass 讓你開車回基地不必下車：車上裝感應盒、大門裝讀�
 [*] [b]拆裝[/b]：從車輛維修面板的「Knox Pass」分類安裝或拆下，不需要工具也不需要技能。要有車鑰匙或車門沒鎖，鎖好的車偷不走感應盒。
 [*] [b]電池[/b]：感應盒有內建電池。裝在車上、引擎發動而且電瓶高於 10% 時會慢慢充電；每次觸發開門會用掉一點電。沒電的感應盒不會開門。
 [*] [b]換車照樣通行[/b]：登記的是這一顆感應盒，不是車。把它拆下裝到別台車，照樣能開同一扇門。用車輛維修面板拆下或裝上時，管理視窗上的車名會立刻更新，拆下來的顯示「未裝在車上」。
-[*] [b]看得到[/b]：裝上後，原版車和清單上的 MOD 車擋風玻璃上緣會出現這個感應盒（清單與申請方式見 [url={KP_MODCARS_CH}]🚗 支援的 MOD 車與申請[/url]）；清單外的 MOD 車未必看得到，但功能一樣。
+[*] [b]看得到[/b]：裝上後，原版車和清單上的 MOD 車擋風玻璃上緣會出現這個感應盒（清單與申請方式見 [url=https://steamcommunity.com/workshop/filedetails/discussion/3814684002/586187800874015399/]🚗 支援的 MOD 車與申請[/url]）；清單外的 MOD 車未必看得到，但功能一樣。
 [/list]
 
 [h3]大門讀頭[/h3]

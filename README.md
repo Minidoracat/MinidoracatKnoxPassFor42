@@ -134,7 +134,7 @@ Project Zomboid Build 42 MOD。
 
 ## 安裝
 
-- Steam Workshop：（首次上傳後補上連結）
+- Steam Workshop：[Minidoracat Knox Pass for B42](https://steamcommunity.com/sharedfiles/filedetails/?id=3814684002)（ID 3814684002）
 - 手動安裝：把 `MOD/MinidoracatKnoxPassFor42/Contents/mods/MinidoracatKnoxPassFor42` 複製到 `%USERPROFILE%\Zomboid\mods\` 並將資料夾改名為 `MinidoracatKnoxPassFor42`
 
 ## 開發

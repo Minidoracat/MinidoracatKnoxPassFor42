@@ -29,6 +29,7 @@
 [*] [b]7 種外殼顏色[/b]：用原版油漆直接做出該色，或替現有的重新上色
 [*] [b]不撞也不夾[/b]：開不了的門提前提醒，門口有車或人不關門
 [/list]
+📖 [b]安裝讀頭、登記車輛、外殼顏色、抬升閘門、取得方式與常見問題：[/b][url=https://steamcommunity.com/workshop/filedetails/discussion/3814684002/586187800874015409/]Knox Pass 完整說明：感應盒、讀頭與自動開門[/url]
 
 [h2]🔗 Minidoracat 全系列[/h2]
 其他作品都在[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3809297109]Minidoracat 全系列收藏[/url]，依需求自選訂閱。
@@ -46,5 +47,5 @@ MOD 永遠免費。喜歡的話可以請我喝杯咖啡，贊助會用在伺服�
 
 [b]#Minidoracat[/b]
 
-Workshop ID: 尚未指派
+Workshop ID: 3814684002
 Mod ID: MinidoracatKnoxPassFor42

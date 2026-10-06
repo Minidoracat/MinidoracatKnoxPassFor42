@@ -29,6 +29,7 @@ Put a tag in your car and a reader on your gate: drive up and the gate opens by 
 [*] [b]7 shell colors[/b]: craft tags and readers in color with vanilla paint, or repaint the ones you have
 [*] [b]No crashes, no pinching[/b]: warns you ahead of a gate that won't open, and never closes on a car or a person
 [/list]
+📖 [b]Installing readers, registering cars, shell colors, boom barriers, getting the items and FAQ:[/b] [url=https://steamcommunity.com/workshop/filedetails/discussion/3814684002/586187800874015404/]Knox Pass Guide: Tags, Readers & Hands-free Gates[/url]
 
 [h2]🔗 All Minidoracat Mods[/h2]
 Browse the rest in the [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3809297109]Minidoracat collection[/url] and subscribe to what you need.
@@ -46,5 +47,5 @@ The mod is always free. If you like it, you can buy me a coffee; donations go to
 
 [b]#Minidoracat[/b]
 
-Workshop ID: not assigned yet
+Workshop ID: 3814684002
 Mod ID: MinidoracatKnoxPassFor42

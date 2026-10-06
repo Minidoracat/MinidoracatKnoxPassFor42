@@ -1,4 +1,5 @@
 version=1
+id=3814684002
 title=Minidoracat Knox Pass for B42
 description=[h1]📡 Minidoracat Knox Pass for B42[/h1]
 description=[h3]By Minidoracat[/h3]
@@ -31,6 +32,7 @@ description=[*] [b]Works with many gates[/b]: fence gates, double doors, garage 
 description=[*] [b]7 shell colors[/b]: craft tags and readers in color with vanilla paint, or repaint the ones you have
 description=[*] [b]No crashes, no pinching[/b]: warns you ahead of a gate that won't open, and never closes on a car or a person
 description=[/list]
+description=📖 [b]Installing readers, registering cars, shell colors, boom barriers, getting the items and FAQ:[/b] [url=https://steamcommunity.com/workshop/filedetails/discussion/3814684002/586187800874015404/]Knox Pass Guide: Tags, Readers & Hands-free Gates[/url]
 description=
 description=[h2]🔗 All Minidoracat Mods[/h2]
 description=Browse the rest in the [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3809297109]Minidoracat collection[/url] and subscribe to what you need.
@@ -48,7 +50,7 @@ description=[url=https://ko-fi.com/minidoracat][img]https://raw.githubuserconten
 description=
 description=[b]#Minidoracat[/b]
 description=
-description=Workshop ID: not assigned yet
+description=Workshop ID: 3814684002
 description=Mod ID: MinidoracatKnoxPassFor42
-tags=Build 42;Vehicles;QoL;Multiplayer
+tags=Build 42;Multiplayer;Vehicles;QoL
 visibility=public

@@ -1,9 +1,9 @@
 <!-- 由 scripts/gen_modcar_list.py 從 scripts/blender/modcars.json 產生，不要手改；改清單請改 modcars.json 再重跑 -->
 <!-- Steam 討論區貼文稿源（繁中）：有擋風玻璃位置表的 MOD 車與申請方式；完整說明串的感應盒段落連到這裡 -->
-<!-- 討論串網址：（待建立，首發後補進 STEAM_DISCUSSION_guide*.md） -->
+<!-- 討論串網址：https://steamcommunity.com/workshop/filedetails/discussion/3814684002/586187800874015399/ -->
 <!-- 標題：🚗 支援的 MOD 車與申請 -->
 
-[b]English version:[/b] [url={KP_MODCARS_EN}]🚗 Supported Modded Vehicles & Requests[/url]
+[b]English version:[/b] [url=https://steamcommunity.com/workshop/filedetails/discussion/3814684002/586187800874015388/]🚗 Supported Modded Vehicles & Requests[/url]
 
 車上裝了感應盒，擋風玻璃上緣看得到固定座和盒子。原版車全部支援；MOD 車要先知道它的擋風玻璃在哪裡，所以只有下面這些車對好了位置。
 
