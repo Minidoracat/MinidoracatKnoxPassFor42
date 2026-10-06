@@ -300,16 +300,9 @@ end
 
 Events.OnTick.Add(S.tick)
 
--- 伺服器剛載入一格有讀頭的大門（錨點 modData 帶讀頭標記，Server.lua mark）：下一個 tick 就掃描，不等 250 ms 節流。
+-- 伺服器剛載入有讀頭大門的 chunk（ReaderPost.lua 的 LoadChunk）：下一個 tick 就掃描，不等 250 ms 節流。
 -- 自駕車看得到的區塊是伺服器載入後才送過去的，越早掃描，它就越可能一開始就看到開著的門。
--- 這裡只歸零節流、不直接開門：載入途中（ServerMap.java:950-969）相鄰格的門片還沒 addToWorld，雙開門重建會出錯
-Events.LoadGridsquare.Add(function(sq)
-    local list = sq:getSpecialObjects()
-    for i = 0, list:size() - 1 do
-        local o = list:get(i)
-        if o:hasModData() and o:getModData()[KP.MARKER_OWNER] ~= nil then
-            lastScan = 0
-            return
-        end
-    end
-end)
+-- 只歸零節流、不直接開門：雙開門的門片可能跨到還沒載入的相鄰 chunk，這時開門重建會出錯
+function S.wake()
+    lastScan = 0
+end

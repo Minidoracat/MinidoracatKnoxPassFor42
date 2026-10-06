@@ -201,6 +201,15 @@ local cell = {
         return square(x, y, z)
     end,
 }
+-- 載入 (x, y) 所在的 chunk：LoadChunk(chunk)（IsoChunk.java:3969）。Lua 拿得到的只有 chunk 內座標的 getGridSquare 與樓層範圍
+local function loadChunk(x, y)
+    local ox, oy = math.floor(x / 8) * 8, math.floor(y / 8) * 8
+    fire("LoadChunk", {
+        getGridSquare = function(_, lx, ly, z) return cell:getGridSquare(ox + lx, oy + ly, z) end,
+        getMinLevel = function() return 0 end,
+        getMaxLevel = function() return 0 end,
+    })
+end
 function getCell() return cell end
 function getGameTime() return { getWorldAgeHours = function() return W.hours end } end
 function getSteamModeActive() return W.steam end
@@ -2360,9 +2369,9 @@ local function scenarioAutoDrive()
     clean(from, "AutoDrive")
 end
 
--- 伺服器剛載入有讀頭的大門格（LoadGridsquare，IsoChunk.java:3835）：節流歸零，下一個 tick 就掃描
-local function scenarioLoadGridsquare()
-    out("情境：載入有讀頭的格子立刻掃描")
+-- 伺服器剛載入有讀頭大門的 chunk（LoadChunk，IsoChunk.java:3969）：節流歸零，下一個 tick 就掃描
+local function scenarioLoadChunk()
+    out("情境：載入有讀頭大門的 chunk 立刻掃描")
     freshWorld()
     local from = #logLines + 1
     local auto = {}
@@ -2380,11 +2389,11 @@ local function scenarioLoadGridsquare()
         for _ = 1, 12 do step(function() moveCar(v, v._x, v._y - SPEED / 4) end) end
         return v
     end
-    -- 時間只前進 ms，期間觸發 LoadGridsquare(sq)，再跑一次 OnTick
+    -- 時間只前進 ms，期間載入 sq 所在的 chunk，再跑一次 OnTick
     local function tickAfter(v, ms, sq)
         nowMs = nowMs + ms
         moveCar(v, v._x, v._y - SPEED * ms / 1000)
-        if sq then fire("LoadGridsquare", sq) end
+        if sq then loadChunk(sq:getX(), sq:getY()) end
         fire("OnTick")
     end
 
@@ -2394,18 +2403,25 @@ local function scenarioLoadGridsquare()
     check(not a.door:IsOpen() and va._y - a.cy > 150, "最後一次掃描時在 150 格外，門關著")
     tickAfter(va, TICK, a.door:getSquare())
     check(a.door:IsOpen() and va._y - a.cy < 150,
-        "載入錨點格後下一個 tick（33 ms）就掃描並開門（" .. string.format("%.1f", va._y - a.cy) .. " 格）")
+        "載入錨點所在的 chunk 後下一個 tick（33 ms）就掃描並開門（" .. string.format("%.1f", va._y - a.cy) .. " 格）")
 
     local b = gate(300)
     local vb = approach(b)
     tickAfter(vb, TICK, plain:getSquare())
-    check(not b.door:IsOpen(), "反面：載入的是沒有讀頭標記的門格 → 33 ms 後不掃描、不開")
+    check(not b.door:IsOpen(), "反面：載入的 chunk 只有沒裝讀頭的門 → 33 ms 後不掃描、不開")
     tickAfter(vb, TICK, square(1000, 1000, 0))
-    check(not b.door:IsOpen(), "反面：載入空格 → 66 ms 後仍不掃描")
+    check(not b.door:IsOpen(), "反面：載入空的 chunk → 66 ms 後仍不掃描")
     tickAfter(vb, 250 - 2 * TICK)
     check(b.door:IsOpen(), "滿 250 ms 照常掃描並開門")
+
+    local c = gate(500)
+    local vc = approach(c)
+    W.unloaded["496,96,0"] = true   -- 這個 chunk 的 (0, 0, 0) 格不存在
+    tickAfter(vc, TICK, c.door:getSquare())
+    W.unloaded["496,96,0"] = nil
+    check(c.door:IsOpen(), "chunk 的 (0, 0, 0) 格不存在：用其他格算出 chunk，照樣下一個 tick 就掃描")
     MDAD = nil
-    clean(from, "LoadGridsquare")
+    clean(from, "LoadChunk")
 end
 
 -- 感應盒換車：登記清單顯示「最後一次看到這顆感應盒時所在的車」（Server.lua buildState、Sensor.lua S.open 兩個更新點）
@@ -2775,9 +2791,13 @@ local function scenarioBarrier()
     local v = makeVehicle(202.5, 103.5, { tag = 0.5 })
     check(register(g, v).ok == true, "擁有者登記車輛")
     driver(v)
-    step()
-    check(n[0]:IsOpen() and n[1]:IsOpen() and n[2]:IsOpen() and KP.barrierIndex(n[0]) == 8 and KP.barrierIndex(n[2]) == 10,
-        "已登記的車接近：三片一起開，換成開啟 sprite（＋8）")
+    nowMs = nowMs + 33
+    fire("OnTick")
+    local early = n[0]:IsOpen()
+    loadChunk(201, 100)
+    fire("OnTick")
+    check(not early and n[0]:IsOpen() and n[1]:IsOpen() and n[2]:IsOpen() and KP.barrierIndex(n[0]) == 8 and KP.barrierIndex(n[2]) == 10,
+        "已登記的車接近：閘門所在的 chunk 載入後下一個 tick 就掃描（不等 250 ms），三片一起開，換成開啟 sprite（＋8）")
     local blocker = makeVehicle(202.5, 100.0)
     blocker._cover = { ["202,100,0"] = true, ["202,99,0"] = true }
     moveCar(v, v._x, v._y + 40)
@@ -3116,8 +3136,8 @@ local function scenarioReaderPost()
     removeObj(w1prop)   -- 例：舊版本被大錘敲掉
     step()
     check(KP.Ledger.get(kW1) ~= nil and postsAt(150, 100) == "", "模型被移走不影響帳本（不是門）")
-    fire("LoadGridsquare", square(150, 100, 0))
-    check(postsAt(150, 100) == "", "LoadGridsquare 當下不改（等下一個 tick）")
+    loadChunk(150, 100)
+    check(postsAt(150, 100) == "", "LoadChunk 當下不改（等下一個 tick）")
     step()
     check(postsAt(150, 100) == "2", "宿主格載入：帳本有、格上沒有 → 補上")
     local orphan = IsoObject.new(nil, nil, "MinidoracatKnoxPass_reader_0")
@@ -3128,13 +3148,13 @@ local function scenarioReaderPost()
     local extra, dup = IsoObject.new(nil, nil, "MinidoracatKnoxPass_reader_2"), IsoObject.new(nil, nil, "MinidoracatKnoxPass_reader_0")
     square(120, 100, 0):AddTileObject(extra)
     square(120, 100, 0):AddTileObject(dup)
-    fire("LoadGridsquare", square(120, 100, 0))
+    loadChunk(120, 100)
     step()
     check(postsAt(120, 100) == "0" and present(dprop), "宿主格上變體不對、重複的移除，帳本那一個留著")
     local lonely = postObj(144, 100)
     KP.Ledger.get(kHalf).post = nil   -- 更新前裝的讀頭：帳本沒有 post、格上沒有模型
     removeObj(lonely)
-    removeObj(postObj(150, 100))      -- 帳本有 post、模型不見：重開後不等 LoadGridsquare，開機對齊就補
+    removeObj(postObj(150, 100))      -- 帳本有 post、模型不見：重開後不等 LoadChunk，開機對齊就補
     restart()
     W.unloaded["140,100,0"], W.unloaded["143,100,0"], W.unloaded["144,100,0"] = true, true, true
     step()
@@ -3142,11 +3162,11 @@ local function scenarioReaderPost()
     check(postsAt(120, 100) == "0" and postsAt(160, 104) == "3" and postsAt(150, 100) == "2" and KP.Ledger.get(kWd).post.i == 3,
         "重開：已載入的格在帳本載入後第一個 tick 對齊（缺的補上），post 隨存檔保留、模型不重複")
     W.unloaded["140,100,0"], W.unloaded["143,100,0"], W.unloaded["144,100,0"] = nil, nil, nil
-    fire("LoadGridsquare", square(143, 100, 0))
+    loadChunk(143, 100)
     step()
     check(KP.Ledger.get(kHalf).post and KP.Ledger.get(kHalf).post.i == 1 and postsAt(144, 100) == "1",
         "舊記錄：錨點格載入時補算門柱位置並放上模型")
-    fire("LoadGridsquare", square(999, 999, 0))
+    loadChunk(999, 999)
     step()
     check(postsAt(999, 999) == "", "反面：載入無關的格不放")
 
@@ -3323,7 +3343,7 @@ local function scenarioColors()
 
     -- 7. 對齊（heal）把顏色不對的模型換掉；孤兒的彩色 tile 也認得
     rec(gd).color = 3   -- 例：存檔不同步，帳本是軍綠、格上是黑色
-    fire("LoadGridsquare", square(300, 100, 0))
+    loadChunk(300, 100)
     step()
     check(postsAt(300, 100) == "24" and logHas("not in ledger", from), "宿主格載入：黑色換成帳本的軍綠（3×8＋0）")
     local orphan = IsoObject.new(nil, nil, "MinidoracatKnoxPass_reader_49")   -- 紅色（6）變體 1
@@ -3454,7 +3474,7 @@ end
 local tests = {
     scenarioParts, scenarioDock, scenarioDetection, scenarioAutoClose, scenarioLocks, scenarioCommands,
     scenarioSinglePlayer, scenarioLedger, scenarioCharging, scenarioReopen, scenarioUninstallOpen, scenarioGarage,
-    scenarioDoubleDoorway, scenarioAutoDrive, scenarioLoadGridsquare, scenarioTagScript,
+    scenarioDoubleDoorway, scenarioAutoDrive, scenarioLoadChunk, scenarioTagScript,
     scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,
     scenarioReaderPost, scenarioColors, scenarioLoot,
 }

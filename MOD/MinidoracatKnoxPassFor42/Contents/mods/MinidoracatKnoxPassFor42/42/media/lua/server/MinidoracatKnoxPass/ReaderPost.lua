@@ -4,9 +4,10 @@
 -- 帳本是唯一依據，世界上的物件只是顯示，全部只在伺服器（含 SP）改：
 --   放上：KP.registerReader → R.attach（帳本記 post＝宿主格與變體）；抬升閘門與其他 MOD 的門不放
 --   拿掉：L.remove → R.detach（拆讀頭、門不見了、閘門移除都走 L.remove）
---   自我修復：宿主格（與還沒記 post 的舊記錄的錨點格）載入時，下一個 tick 對齊：帳本有、格上沒有就補；
+--   自我修復：宿主格（與還沒記 post 的舊記錄的錨點格）所在的 chunk 載入時，下一個 tick 對齊：帳本有、格上沒有就補；
 --   格上有、帳本沒有（或變體、顏色不對、重複）就移除。更新前已裝的讀頭因此在門所在的格子載入時補上
 --   改色：帳本 rec.color 改完呼叫 R.refresh，對齊把舊顏色的換成新顏色（rec.color 沒有＝米白，舊記錄）
+-- 同一個 LoadChunk 也叫醒大門掃描（Sensor.lua S.wake）：有讀頭大門（含閘門與其他 MOD 的門）的 chunk 載入時下一個 tick 就掃
 -- media/lua/server 的檔 MP client 也會載入：大錘游標的過濾（client UI）在檔頭，其餘只在 server／SP 掛
 require "MinidoracatKnoxPass/Core"
 require "BuildingObjects/ISDestroyCursor"
@@ -52,34 +53,54 @@ function R.spot(adapter, anchor)
     return x, y, 2
 end
 
--- 格座標 → 數字鍵（LoadGridsquare 每格都查，不組字串）。地圖座標 < 65536、z 在 -64..63
+-- 格座標 → 數字鍵（不組字串）。地圖座標 < 65536、z 在 -64..63
 local function cell(x, y, z)
     return (z + 64) * 4294967296 + y * 65536 + x
 end
 
+-- 格座標 → 所在 chunk（8×8 格）的數字鍵
+local function chunkKey(x, y)
+    return math.floor(y / 8) * 65536 + math.floor(x / 8)
+end
+
 local hosts = nil     -- 格 → { [變體] = 帳本 key }（宿主格）
 local legacy = nil    -- 格 → { [帳本 key] = true }（還沒記 post 的舊記錄的錨點格）
+local chunks = nil    -- chunk 鍵 → { wake = 有大門錨點, cells = { [格] = { x, y, z } } }：這個 chunk 載入時要做的事。
+                      -- 只增不減：記錄刪掉後留下的項目只會多對齊一次、多掃描一次，伺服器重開時重建
 local queue = {}      -- 等下一個 tick 對齊的格 { x, y, z }
 
+local function chunkAt(x, y)
+    local k = chunkKey(x, y)
+    local c = chunks[k]
+    if not c then
+        c = { cells = {} }
+        chunks[k] = c
+    end
+    return c
+end
+
 local function index(key, rec)
+    chunkAt(rec.x, rec.y).wake = true
     local p = rec.post
     if p then
         local c = cell(p.x, p.y, rec.z)
         hosts[c] = hosts[c] or {}
         hosts[c][p.i] = key
+        chunkAt(p.x, p.y).cells[c] = { p.x, p.y, rec.z }
     elseif DOOR_ADAPTERS[rec.adapter] and rec.kind ~= "Barrier" then
         local c = cell(rec.x, rec.y, rec.z)
         legacy[c] = legacy[c] or {}
         legacy[c][key] = true
+        chunkAt(rec.x, rec.y).cells[c] = { rec.x, rec.y, rec.z }
     end
 end
 
--- 帳本載入後第一次用到時建索引，並把每筆記錄排一次對齊：帳本載入前就載入的格子（開機順序）不會再觸發 LoadGridsquare
+-- 帳本載入後第一次用到時建索引，並把每筆記錄排一次對齊：帳本載入前就載入的 chunk（開機順序）不會再觸發 LoadChunk
 local function ready()
     if hosts then return true end
     local gates = L.gates()
     if not gates then return false end
-    hosts, legacy = {}, {}
+    hosts, legacy, chunks = {}, {}, {}
     for key, rec in pairs(gates) do
         index(key, rec)
         local p = rec.post
@@ -140,16 +161,17 @@ local function heal(x, y, z)
     end
 end
 
--- 帳本剛寫入讀頭（rec 已在帳本裡）：記下門柱位置並放上模型
+-- 帳本剛寫入讀頭（rec 已在帳本裡）：登記 chunk（載入時叫醒掃描，閘門與其他 MOD 的門也要）；門再記下門柱位置並放上模型
 function R.attach(key, rec, adapter, anchor)
     if not ready() then return end
     local x, y, v = R.spot(adapter, anchor)
-    if not x then return end
-    local old = legacy[cell(rec.x, rec.y, rec.z)]
-    if old then old[key] = nil end
-    rec.post = { x = x, y = y, i = v }
+    if x then
+        local old = legacy[cell(rec.x, rec.y, rec.z)]
+        if old then old[key] = nil end
+        rec.post = { x = x, y = y, i = v }
+    end
     index(key, rec)
-    heal(x, y, rec.z)
+    if x then heal(x, y, rec.z) end
 end
 
 -- 帳本要刪這筆記錄（L.remove，刪之前呼叫）：拿掉模型。宿主格沒載入時留著，載入時由對齊移除
@@ -169,13 +191,32 @@ function R.refresh(key, rec)
     if p then heal(p.x, p.y, rec.z) end
 end
 
--- LoadGridsquare（伺服器載入一格，IsoChunk.java:3835、ServerMap.java:950-969）：只記下來，下一個 tick 整個 chunk
--- 都載入完才對齊（同 Sensor.lua 的理由：載入途中相鄰格的物件還沒 addToWorld）
-Events.LoadGridsquare.Add(function(sq)
+-- 任一格就算得出 chunk 位置（同一 chunk 的格 floor(x/8)、floor(y/8) 相同）。(0, 0, 0) 那格可能不存在，就掃其他格
+local function anySquare(chunk)
+    local sq = chunk:getGridSquare(0, 0, 0)
+    if sq then return sq end
+    for z = chunk:getMinLevel(), chunk:getMaxLevel() do
+        for x = 0, 7 do
+            for y = 0, 7 do
+                sq = chunk:getGridSquare(x, y, z)
+                if sq then return sq end
+            end
+        end
+    end
+end
+
+-- LoadChunk：伺服器與 SP 每載入一個 chunk 觸發一次，在這個 chunk 的物件都 addToWorld 之後（IsoChunk.java:3695-3969；
+-- 伺服器一次載入 64×64 格、逐 chunk 呼叫，ServerMap.java:950-956）。有讀頭大門的錨點就叫醒掃描（Sensor.lua S.wake），
+-- 有要對齊的格就排到下一個 tick（雙開門的門片可能跨到還沒載入的相鄰 chunk）。不用每格觸發一次的 LoadGridsquare：
+-- 地圖載入是所有 MOD 共用的負擔，每格都進一次 Lua 太貴
+Events.LoadChunk.Add(function(chunk)
     if not ready() then return end
-    local x, y, z = sq:getX(), sq:getY(), sq:getZ()
-    local c = cell(x, y, z)
-    if hosts[c] or legacy[c] then queue[#queue + 1] = { x, y, z } end
+    local sq = anySquare(chunk)
+    if not sq then return end
+    local c = chunks[chunkKey(sq:getX(), sq:getY())]
+    if not c then return end
+    if c.wake then KP.Sensor.wake() end
+    for _, q in pairs(c.cells) do queue[#queue + 1] = q end
 end)
 
 -- 格上已有的讀頭模型（帳本被清掉、存檔不同步時的孤兒）：chunk 載入時逐物件回呼（Lua/MapObjects.java:134-216，
