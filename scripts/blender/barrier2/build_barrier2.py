@@ -1,5 +1,7 @@
 """Knox Pass double boom barrier (barrier2): one animated model per width, exported to export/*.glb.
 用法：blender -b --factory-startup --python build_barrier2.py      (rebuild order: README.md)
+    KNOXPASS_FAST=1 blender -b --factory-startup --python build_barrier2.py   # export/knoxpass_barrier2_boom{6,9}_fast.glb:
+                                                                    # 每扇門可選的「加速」，clip 3.75 s（build_barrier.py FAST）
 
 export/knoxpass_barrier2_boom{6,9}.glb  skinned, armature Dummy01:
     DoorBone  = boom A (pivot at the end-A cabinet, tip toward +X), same 0.16 x 0.10 red/white boom, end cap and
@@ -178,7 +180,7 @@ def add_rig(sc, obj, L):
 
 
 def build(L):
-    name = f"knoxpass_barrier2_boom{L}"
+    name = f"knoxpass_barrier2_boom{L}" + ("_fast" if B.FAST else "")   # KNOXPASS_FAST=1：同一個模型，clip 用 B.F1 的加速版
     bpy.ops.wm.read_factory_settings(use_empty=True)
     sc = bpy.context.scene
     sc.render.fps, sc.render.fps_base = B.FPS, 1.0

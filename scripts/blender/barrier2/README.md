@@ -6,6 +6,7 @@
 
 ```bash
 blender -b --factory-startup --python build_barrier2.py    # export/*.glb
+KNOXPASS_FAST=1 blender -b --factory-startup --python build_barrier2.py   # export/*_fast.glb（每扇門可選的「加速」，clip 3.75 s）
 blender -b --factory-startup --python verify_barrier2.py   # export/verify.txt（重新匯入：骨架、clip、兩臂角度、尺寸，失敗即中止）
 blender -b --factory-startup --python render_barrier2.py   # cells/<寬><向>/*.png、previews/*.png
 uv run --with pillow python manifest.py                    # icons/boom_barrier_{6,9}.png、manifest.json

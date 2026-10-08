@@ -8,6 +8,7 @@
 python spec.py                                                  # 自我檢查：block 編號、translate、格位
 uv run --with pillow python atlas.py                            # textures/MinidoracatKnoxPass_gate_{A..E}.png
 blender -b --factory-startup --python build_gate.py             # export/*.glb（門扇、門柱、讀頭掛柱）
+KNOXPASS_FAST=1 blender -b --factory-startup --python build_gate.py   # export/*_fast.glb（只有門扇；「加速」，clip 3.75 s）
 blender -b --factory-startup --python verify_gate.py            # export/verify.txt，失敗 exit 1
 blender -b --factory-startup --python render_gate.py            # cells/、previews/、icons/_render/（-- cells game icons reader 可單跑）
 uv run --with pillow python assemble.py                         # icons/*.png（64×64）、預覽拼圖、manifest.json
@@ -20,6 +21,7 @@ uv run --with pillow python assemble.py                         # icons/*.png（
 | 檔案 | 內容 |
 |---|---|
 | `export/MinidoracatKnoxPass_gate_<外觀><寬>.glb` | 門扇模型，骨架 `Dummy01`：`PostBone`、`DoorBoneA`、`DoorBoneB`；clip `Open`／`Close` 各 6 秒（遊戲內約 4 秒） |
+| `export/MinidoracatKnoxPass_gate_<外觀><寬>_fast.glb` | 同一個門扇模型，clip 各 3.75 秒（遊戲內 2.5 秒）：讀頭管理視窗選「加速」的門用它（`build_model_gates.py` 的加速版虛擬 tileset） |
 | `export/MinidoracatKnoxPass_gatepost_<外觀>.glb` | 門柱（兩端共用，對 x 對稱） |
 | `export/knoxpass_reader_pillar_<外觀>.glb` | 讀頭掛在 end A 門柱的兩個車道向柱面上（讀頭物品貼圖） |
 | `textures/MinidoracatKnoxPass_gate_<外觀>.png` | 512×512 atlas；只有 A 的鐵網有透明（二值 alpha） |

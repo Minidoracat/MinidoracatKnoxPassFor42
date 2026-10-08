@@ -63,8 +63,8 @@ def tris(mesh):
     return sum(len(p.vertices) - 2 for p in mesh.data.polygons)
 
 
-def leaf(look, L):
-    glb = HERE / "export" / f"{S.leaf_model(look, L)}.glb"
+def leaf(look, L, suffix=""):
+    glb = HERE / "export" / f"{S.leaf_model(look, L)}{suffix}.glb"
     j, size = gltf(glb)
     out(f"\n== {glb.name} ({size} bytes)")
     anims = {a["name"]: (min(j["accessors"][s["input"]]["min"][0] for s in a["samplers"]),
@@ -72,8 +72,10 @@ def leaf(look, L):
     out(f"glTF animations {anims}  alphaMode {[m.get('alphaMode', 'OPAQUE') for m in j['materials']]}"
         f"  images {[i.get('name') for i in j['images']]}")
     assert set(anims) == {"Open", "Close"}, anims
-    # barrier convention: keys from frame 1 (t = 1/24 s, export_anim_slide_to_zero=False), 6.0 s long
-    assert all(abs(t0 - 1 / S.FPS) < 1e-4 and abs(t1 - t0 - 6.0) < 1e-3 for t0, t1 in anims.values()), anims
+    # barrier convention: keys from frame 1 (t = 1/24 s, export_anim_slide_to_zero=False), 6.0 s long (*_fast: 3.75 s,
+    # KNOXPASS_FAST=1 spec.py CLIP_S)
+    clip_s = 3.75 if suffix == "_fast" else 6.0
+    assert all(abs(t0 - 1 / S.FPS) < 1e-4 and abs(t1 - t0 - clip_s) < 1e-3 for t0, t1 in anims.values()), anims
     if look == "A":
         assert j["materials"][0].get("alphaMode") == "MASK", j["materials"]
     sc, rig, mesh = load(glb)
@@ -179,6 +181,7 @@ for look in S.LOOKS:
     check(static, HERE / "export" / f"knoxpass_reader_pillar_{look}.glb", look, True)
     for L in S.WIDTHS:
         check(leaf, look, L)
+        check(leaf, look, L, "_fast")
 out(f"\n{'FAILED ' + str(failed) if failed else 'ALL OK'}")
 (HERE / "export" / "verify.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
 sys.exit(1 if failed else 0)

@@ -7,6 +7,7 @@ Knox Pass r4 的兩層樓捲門（tileset `MinidoracatKnoxPass_roll2f`，編號 
 ```bash
 uv run --with pillow python atlas.py                              # textures/knoxpass_roll2f_{industry,green,white}.png
 blender -b --factory-startup --python build_roll2f.py             # export/knoxpass_roll2f_{3,4,6,9}.glb
+KNOXPASS_FAST=1 blender -b --factory-startup --python build_roll2f.py   # export/knoxpass_roll2f_{3,4,6,9}_fast.glb（「加速」，clip 3.75 s）
 blender -b --factory-startup --python verify_roll2f.py            # export/knoxpass_roll2f_verify.txt（FAIL 時 exit 1）
 blender -b --factory-startup --python render_roll2f.py            # cells/_canvas、previews/icon_*、previews/game_*
 uv run assemble_roll2f.py                                         # cells/、icons/、previews/sheet_*、ghost_*、manifest.json

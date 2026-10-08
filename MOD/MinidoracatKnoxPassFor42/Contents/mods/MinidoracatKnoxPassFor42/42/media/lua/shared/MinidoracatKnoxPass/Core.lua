@@ -47,10 +47,10 @@ function KP.barrierIndex(obj)
     return n and tonumber(n) or nil
 end
 
--- 每扇門可選的開關速度：錨點要有加速版 spriteModel（build_barrier_tiles.py FAST_TILESET 的虛擬 tileset）。
--- 2026-10-08 先在單臂閘門試做
+-- 每扇門可選的開關速度：錨點要有加速版 spriteModel（虛擬 tileset：單臂閘門 build_barrier_tiles.py FAST_TILESET、
+-- 模型門 build_model_gates.py fast_tileset）。一層樓車庫捲門與原版的門是 2D 門片或原版模型，沒有加速版
 function KP.speedSupported(anchor)
-    return KP.barrierIndex(anchor) ~= nil
+    return KP.barrierIndex(anchor) ~= nil or KP.modelGate(anchor) ~= nil
 end
 
 -- 加速版 spriteModel 的名稱：同一個索引，tileset 前綴換成 MinidoracatKnoxPassFast_

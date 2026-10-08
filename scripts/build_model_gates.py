@@ -22,6 +22,11 @@ index = block * 64 + slot, block = widthIdx * len(faces) + faceIdx. Slots (Lua C
 Entity faces: N / S one row west -> east [A] P1 .. PL [B]; W / E rows north -> south [B] PL .. P1 [A]. Doors exist only
 on N / W square edges, so the S / E real lanes sit one row south / column east of the placed row (Barrier.lua).
 Lane tiles carry no DoorWall in the .tiles (Core.lua adds the flag at runtime, see build_barrier_tiles.py lane_props).
+
+Speed (per gate, Lua KP.fastTwin): every animated model has a <name>Fast twin (Blender KNOXPASS_FAST=1 *_fast.glb, same
+model, clips 3.75 s instead of 6.0 s -> 2.5 s / 4 s in game). Virtual tilesets MinidoracatKnoxPassFast_<style> (no
+tiledef, spriteModels only) hold lane 1 closed / open with the twin; BarrierAnim.lua sets them as the anchor's
+spriteModel override, and the engine plays the clip of whatever getSpriteModel() returns.
 """
 from __future__ import annotations
 
@@ -46,6 +51,29 @@ PLACEHOLDER = 16
 POSE_OPEN, POSE_CLOSE, POSES = 32, 48, 8
 ONCREATE = "MinidoracatKnoxPass.ModelGate.onCreate"
 FIRE = "900000"
+# 加速版：車道 1 關／開兩格（錨點靜止時的 sprite），clip 秒數（Blender CLIP_S；KNOXPASS_FAST=1）
+FAST_SLOTS = (0, OPEN)
+CLIP_S, FAST_CLIP_S = 6.0, 3.75
+
+
+def fast_tileset(name: str) -> str:
+    """Virtual tileset of the fast twins: same index, prefix MinidoracatKnoxPassFast_ (Lua KP.fastTwin)."""
+    return name.replace("MinidoracatKnoxPass_", "MinidoracatKnoxPassFast_", 1)
+
+
+def _fast_model(m: tuple) -> tuple:
+    name, mesh, tex, animated, src, ship = m
+    return (name + "Fast", mesh + "_fast", tex, animated, src.with_name(src.stem + "_fast.glb"),
+            ship.removesuffix(".glb") + "_fast.glb")
+
+
+def clip_seconds(glb: Path) -> set[float]:
+    """Length of each animation clip in a .glb (seconds: last key - first key over its samplers)."""
+    raw = glb.read_bytes()
+    j = json.loads(raw[20:20 + int.from_bytes(raw[12:16], "little")])
+    acc = j["accessors"]
+    return {round(max(acc[s["input"]]["max"][0] for s in a["samplers"])
+                  - min(acc[s["input"]]["min"][0] for s in a["samplers"]), 3) for a in j.get("animations", [])}
 
 
 @dataclass
@@ -155,7 +183,10 @@ def _gate() -> Kind:
 
 @cache
 def kinds() -> tuple[Kind, ...]:
-    return _barrier2(), _roll2f(), _gate()
+    out = _barrier2(), _roll2f(), _gate()
+    for kind in out:
+        kind.models += [_fast_model(m) for m in kind.models if m[3]]
+    return out
 
 
 def variant_of(kind: Kind, tileset: str):
@@ -306,7 +337,8 @@ def _sm_tile(i: int, model, tr, rot, tex, anim, t) -> str:
 
 
 def sprite_model_tilesets() -> list[str]:
-    """One spriteModels 'tileset' block per tileset (same text layout as build_barrier_tiles.sm_tile)."""
+    """One spriteModels 'tileset' block per tileset (same text layout as build_barrier_tiles.sm_tile), then the fast
+    virtual tilesets (lane 1 closed / open only, model -> <model>Fast)."""
     blocks = []
     for kind in kinds():
         for name, _, _ in kind.tilesets:
@@ -316,6 +348,12 @@ def sprite_model_tilesets() -> list[str]:
             blocks.append(f"    tileset\n    {{\n        name = {name},\n\n" + "".join(tiles) + "    }\n")
     tiles = [_sm_tile(i, *v) for i, v in sorted(pillar_tiles().items())]
     blocks.append(f"    tileset\n    {{\n        name = {PILLAR_TILESET},\n\n" + "".join(tiles) + "    }\n")
+    for kind in kinds():
+        for name, _, _ in kind.tilesets:
+            tiles = [_sm_tile(b.block * STRIDE + slot, b.sm[slot][0] + "Fast", *b.sm[slot][1:])
+                     for b in sorted((b for b in kind.blocks if b.tileset == name), key=lambda b: b.block)
+                     for slot in FAST_SLOTS]
+            blocks.append(f"    tileset\n    {{\n        name = {fast_tileset(name)},\n\n" + "".join(tiles) + "    }\n")
     return blocks
 
 
@@ -455,7 +493,14 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     assert TILE_GEOMETRY.read_text(encoding="ascii") == tile_geometry(), "tileGeometry.txt is stale"
     names = set(re.findall(r"^    model (\w+)", ms, re.M))
     used = {v[0] for kind in kinds() for b in kind.blocks for v in b.sm.values()}
+    used |= {b.sm[s][0] + "Fast" for kind in kinds() for b in kind.blocks for s in FAST_SLOTS}
     assert used <= names | {"MinidoracatKnoxPass_BarrierCabinet"}, used - names
+    # 加速：每個有動畫的模型都有 <名稱>Fast；clip 正常 6.0 s、加速 3.75 s（引擎 1.5 倍速：4 s／2.5 s）
+    animated = [m for kind in kinds() for m in kind.models if m[3]]
+    fast = {m[0] for m in animated if m[0].endswith("Fast")}
+    assert fast == {m[0] + "Fast" for m in animated if m[0] not in fast}, sorted(fast)
+    for name, _, _, _, src, _ in animated:
+        assert clip_seconds(src) == {FAST_CLIP_S if name in fast else CLIP_S}, (name, clip_seconds(src))
     for src, dst in assets():
         assert dst.read_bytes() == src.read_bytes(), f"{dst} differs from {src}"
     # entities: faces per the contract, recipe header, icon 64 px
@@ -472,6 +517,8 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     lua_sets = dict(re.findall(r"^    (MinidoracatKnoxPass_\w+) = (\w+),", lua, re.M))
     assert set(lua_sets) == {n for n, _, _ in specs} - {PILLAR_TILESET}, sorted(lua_sets)
     assert f'KP.READER_PILLAR_TILESET = "{PILLAR_TILESET}"' in lua and f"KP.READER_PILLAR_STRIDE = {PILLAR_STRIDE}" in lua
+    assert ('string.match(spriteName, "^MinidoracatKnoxPass_(.+)$")' in lua
+            and '"MinidoracatKnoxPassFast_" .. rest' in lua), "Lua KP.fastTwin no longer matches fast_tileset()"
     assert re.search(r'KP\.GATE_LOOKS = \{ ' + ", ".join(f'"{t}"' for t, _, _ in kinds()[2].tilesets) + r" \}", lua)
     for kind in kinds():
         for name, _, _ in kind.tilesets:

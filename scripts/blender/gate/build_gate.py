@@ -1,5 +1,7 @@
 """Knox Pass two-story double-leaf gate: build the leaf models (per look x width) and post models (per look), export .glb.
 用法：blender -b --factory-startup --python build_gate.py [-- A C ...]      (default: all looks)
+    KNOXPASS_FAST=1 blender -b --factory-startup --python build_gate.py   # export/MinidoracatKnoxPass_gate_<look><L>_fast.glb：
+                                                                     # 每扇門可選的「加速」，只匯出門扇，clip 3.75 s（spec.py）
 Idempotent: every model starts from an empty factory scene and overwrites export/<name>.glb.
 
 export/MinidoracatKnoxPass_gate_<look><L>.glb   skinned: armature Dummy01; PostBone (origin, no geometry),
@@ -451,8 +453,9 @@ def reader_name(look):
 
 looks = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else list(S.LOOKS)
 for look in looks:
-    build_variant(S.post_model(look), post(look), look)
-    build_variant(reader_name(look), reader_pillar(look), look, builder=B.Builder,
-                  material=lambda: B.build_material(B.READER_TEX))
+    if not S.FAST:   # 加速版只換門扇的 clip；門柱與讀頭掛柱是靜態的
+        build_variant(S.post_model(look), post(look), look)
+        build_variant(reader_name(look), reader_pillar(look), look, builder=B.Builder,
+                      material=lambda: B.build_material(B.READER_TEX))
     for L in S.WIDTHS:
-        build_variant(S.leaf_model(look, L), leaves(look, L), look, L)
+        build_variant(S.leaf_model(look, L) + ("_fast" if S.FAST else ""), leaves(look, L), look, L)

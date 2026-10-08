@@ -9,6 +9,8 @@ Model space (Blender, 1 unit = 1 tile, one story = STORY units), shared by leaf 
   symmetric about x = 0, so end A and end B use the same transform.
 """
 
+import os
+
 LOOKS = "ABCDE"
 WIDTHS = (6, 9)
 FACES = "NWSE"
@@ -19,7 +21,10 @@ PLANE_Y = 0.36                       # leaf centre plane, 0.14 inside the door l
 GAP = 0.015                          # half the gap where the two leaves meet
 Z0 = 0.05                            # leaf bottom clearance
 FPS = 24
-F0, F1 = 1, 1 + 6 * FPS              # 6.0 s clips like the barrier arm; engine speedDelta 1.5 -> ~4.0 s
+# KNOXPASS_FAST=1（build_gate.py 只匯出門扇，檔名加 _fast）：每扇門可選的「加速」，clip 3.75 s → 遊戲裡 2.5 s
+FAST = os.environ.get("KNOXPASS_FAST") == "1"
+CLIP_S = 3.75 if FAST else 6.0
+F0, F1 = 1, 1 + round(CLIP_S * FPS)  # 6.0 s clips like the barrier arm; engine speedDelta 1.5 -> ~4.0 s
 OPEN_DEG = 90.0
 POSE_FRAMES = 8                      # BarrierAnim stepper poses: animationTime k/8, k = 0..8
 

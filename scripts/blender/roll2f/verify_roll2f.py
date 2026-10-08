@@ -1,4 +1,5 @@
-"""Re-import every export/knoxpass_roll2f_<W>.glb into an empty scene and check the animation.
+"""Re-import every export/knoxpass_roll2f_<W>.glb (and the KNOXPASS_FAST=1 *_fast.glb) into an empty scene and check
+the animation.
 用法：blender -b --factory-startup --python verify_roll2f.py      (writes export/knoxpass_roll2f_verify.txt, exit 1 on FAIL)
 
 Per glb: glTF structure (skin joints, animations, channel paths, key count, duration), re-imported bones, bone
@@ -63,10 +64,12 @@ def verify(glb, width):
         tmin = min(j["accessors"][s["input"]]["min"][0] for s in a["samplers"])
         tmax = max(j["accessors"][s["input"]]["max"][0] for s in a["samplers"])
         keys = max(j["accessors"][s["input"]]["count"] for s in a["samplers"])
-        # keys run frame 1 -> 145 = 0.042 .. 6.042 s, same as the shipped barrier arm (knoxpass_barrier_verify.txt)
+        # keys run frame 1 -> 145 = 0.042 .. 6.042 s, same as the shipped barrier arm (knoxpass_barrier_verify.txt);
+        # the *_fast model frame 1 -> 91 = 3.75 s (build_roll2f.py CLIP_S)
         out(f"animation {a['name']}: channels={len(a['channels'])} paths={paths} keys<={keys} "
             f"time {tmin:.3f}..{tmax:.3f} s")
-        check(abs(tmax - tmin - 6.0) < 1e-3, f"{a['name']} length {tmax - tmin}")
+        clip_s = 3.75 if glb.stem.endswith("_fast") else 6.0
+        check(abs(tmax - tmin - clip_s) < 1e-3, f"{a['name']} length {tmax - tmin}")
 
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.import_scene.gltf(filepath=str(glb))
@@ -147,7 +150,8 @@ def verify(glb, width):
 
 
 for w in A.WIDTHS:
-    verify(HERE / "export" / f"knoxpass_roll2f_{w}.glb", w)
+    for suffix in ("", "_fast"):
+        verify(HERE / "export" / f"knoxpass_roll2f_{w}{suffix}.glb", w)
 out(f"\n{'ALL OK' if not fails else f'{len(fails)} FAIL'}")
 (HERE / "export" / "knoxpass_roll2f_verify.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
 sys.exit(1 if fails else 0)

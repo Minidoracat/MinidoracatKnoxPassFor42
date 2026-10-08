@@ -15,6 +15,22 @@ Close: Slat00 travel monotonic=True; t=0.1 4.1836 (ease 4.1840, linear 3.8871); 
   Close t=0.5 frame 73: slat zmin=2.159 inside housing 132/280 | Slat00 head=(y 0.400, z 2.159) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 4.399) axis=(y 0.00, z 1.00); Slat31 head=(y 0.002, z 4.563) axis=(y 0.46, z -0.89)
   Close t=1.0 frame 145: slat zmin=0.000 inside housing 12/280 | Slat00 head=(y 0.400, z 0.000) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 2.240) axis=(y 0.00, z 1.00); Slat31 head=(y 0.400, z 4.340) axis=(y 0.00, z 1.00)
 
+==================== knoxpass_roll2f_3_fast.glb (158292 bytes)
+skin joints 33: PostBone, Slat00 .. Slat31
+animation Close: channels=99 paths=['rotation', 'scale', 'translation'] keys<=46 time 0.042..3.792 s
+animation Open: channels=99 paths=['rotation', 'scale', 'translation'] keys<=46 time 0.042..3.792 s
+re-import: armature Dummy01, bones 33, mesh verts 370 tris 188, fps 24
+Open: frames 1-91, every frame checked (0 violations)
+Open: Slat00 travel monotonic=True; t=0.1 0.1366 (ease 0.1350, linear 0.4319); t=0.5 2.1595 (ease 2.1595, linear 2.1595); t=0.9 4.1823 (ease 4.1840, linear 3.8871)
+  Open t=0.0 frame 1: slat zmin=0.000 inside housing 12/280 | Slat00 head=(y 0.400, z 0.000) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 2.240) axis=(y 0.00, z 1.00); Slat31 head=(y 0.400, z 4.340) axis=(y 0.00, z 1.00)
+  Open t=0.5 frame 46: slat zmin=2.159 inside housing 132/280 | Slat00 head=(y 0.400, z 2.159) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 4.399) axis=(y -0.00, z 1.00); Slat31 head=(y 0.010, z 4.565) axis=(y 0.46, z -0.89)
+  Open t=1.0 frame 91: slat zmin=4.319 inside housing 280/280 | Slat00 head=(y 0.400, z 4.319) axis=(y 0.00, z 1.00); Slat16 head=(y 0.018, z 4.506) axis=(y 0.70, z -0.71); Slat31 head=(y 0.214, z 4.788) axis=(y -0.96, z -0.28)
+Close: frames 1-91, every frame checked (0 violations)
+Close: Slat00 travel monotonic=True; t=0.1 4.1823 (ease 4.1840, linear 3.8871); t=0.5 2.1595 (ease 2.1595, linear 2.1595); t=0.9 0.1366 (ease 0.1350, linear 0.4319)
+  Close t=0.0 frame 1: slat zmin=4.319 inside housing 280/280 | Slat00 head=(y 0.400, z 4.319) axis=(y 0.00, z 1.00); Slat16 head=(y 0.018, z 4.506) axis=(y 0.70, z -0.71); Slat31 head=(y 0.214, z 4.788) axis=(y -0.96, z -0.28)
+  Close t=0.5 frame 46: slat zmin=2.159 inside housing 132/280 | Slat00 head=(y 0.400, z 2.159) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 4.399) axis=(y -0.00, z 1.00); Slat31 head=(y 0.010, z 4.565) axis=(y 0.46, z -0.89)
+  Close t=1.0 frame 91: slat zmin=0.000 inside housing 12/280 | Slat00 head=(y 0.400, z 0.000) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 2.240) axis=(y 0.00, z 1.00); Slat31 head=(y 0.400, z 4.340) axis=(y 0.00, z 1.00)
+
 ==================== knoxpass_roll2f_4.glb (206076 bytes)
 skin joints 33: PostBone, Slat00 .. Slat31
 animation Close: channels=99 paths=['rotation', 'scale', 'translation'] keys<=73 time 0.042..6.042 s
@@ -30,6 +46,22 @@ Close: Slat00 travel monotonic=True; t=0.1 4.1836 (ease 4.1840, linear 3.8871); 
   Close t=0.0 frame 1: slat zmin=4.319 inside housing 280/280 | Slat00 head=(y 0.400, z 4.319) axis=(y 0.00, z 1.00); Slat16 head=(y 0.018, z 4.506) axis=(y 0.70, z -0.71); Slat31 head=(y 0.214, z 4.788) axis=(y -0.96, z -0.28)
   Close t=0.5 frame 73: slat zmin=2.159 inside housing 132/280 | Slat00 head=(y 0.400, z 2.159) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 4.399) axis=(y 0.00, z 1.00); Slat31 head=(y 0.002, z 4.563) axis=(y 0.46, z -0.89)
   Close t=1.0 frame 145: slat zmin=0.000 inside housing 12/280 | Slat00 head=(y 0.400, z 0.000) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 2.240) axis=(y 0.00, z 1.00); Slat31 head=(y 0.400, z 4.340) axis=(y 0.00, z 1.00)
+
+==================== knoxpass_roll2f_4_fast.glb (158356 bytes)
+skin joints 33: PostBone, Slat00 .. Slat31
+animation Close: channels=99 paths=['rotation', 'scale', 'translation'] keys<=46 time 0.042..3.792 s
+animation Open: channels=99 paths=['rotation', 'scale', 'translation'] keys<=46 time 0.042..3.792 s
+re-import: armature Dummy01, bones 33, mesh verts 370 tris 188, fps 24
+Open: frames 1-91, every frame checked (0 violations)
+Open: Slat00 travel monotonic=True; t=0.1 0.1366 (ease 0.1350, linear 0.4319); t=0.5 2.1595 (ease 2.1595, linear 2.1595); t=0.9 4.1823 (ease 4.1840, linear 3.8871)
+  Open t=0.0 frame 1: slat zmin=0.000 inside housing 12/280 | Slat00 head=(y 0.400, z 0.000) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 2.240) axis=(y 0.00, z 1.00); Slat31 head=(y 0.400, z 4.340) axis=(y 0.00, z 1.00)
+  Open t=0.5 frame 46: slat zmin=2.159 inside housing 132/280 | Slat00 head=(y 0.400, z 2.159) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 4.399) axis=(y -0.00, z 1.00); Slat31 head=(y 0.010, z 4.565) axis=(y 0.46, z -0.89)
+  Open t=1.0 frame 91: slat zmin=4.319 inside housing 280/280 | Slat00 head=(y 0.400, z 4.319) axis=(y 0.00, z 1.00); Slat16 head=(y 0.018, z 4.506) axis=(y 0.70, z -0.71); Slat31 head=(y 0.214, z 4.788) axis=(y -0.96, z -0.28)
+Close: frames 1-91, every frame checked (0 violations)
+Close: Slat00 travel monotonic=True; t=0.1 4.1823 (ease 4.1840, linear 3.8871); t=0.5 2.1595 (ease 2.1595, linear 2.1595); t=0.9 0.1366 (ease 0.1350, linear 0.4319)
+  Close t=0.0 frame 1: slat zmin=4.319 inside housing 280/280 | Slat00 head=(y 0.400, z 4.319) axis=(y 0.00, z 1.00); Slat16 head=(y 0.018, z 4.506) axis=(y 0.70, z -0.71); Slat31 head=(y 0.214, z 4.788) axis=(y -0.96, z -0.28)
+  Close t=0.5 frame 46: slat zmin=2.159 inside housing 132/280 | Slat00 head=(y 0.400, z 2.159) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 4.399) axis=(y -0.00, z 1.00); Slat31 head=(y 0.010, z 4.565) axis=(y 0.46, z -0.89)
+  Close t=1.0 frame 91: slat zmin=0.000 inside housing 12/280 | Slat00 head=(y 0.400, z 0.000) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 2.240) axis=(y 0.00, z 1.00); Slat31 head=(y 0.400, z 4.340) axis=(y 0.00, z 1.00)
 
 ==================== knoxpass_roll2f_6.glb (206076 bytes)
 skin joints 33: PostBone, Slat00 .. Slat31
@@ -47,6 +79,22 @@ Close: Slat00 travel monotonic=True; t=0.1 4.1836 (ease 4.1840, linear 3.8871); 
   Close t=0.5 frame 73: slat zmin=2.159 inside housing 132/280 | Slat00 head=(y 0.400, z 2.159) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 4.399) axis=(y 0.00, z 1.00); Slat31 head=(y 0.002, z 4.563) axis=(y 0.46, z -0.89)
   Close t=1.0 frame 145: slat zmin=0.000 inside housing 12/280 | Slat00 head=(y 0.400, z 0.000) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 2.240) axis=(y 0.00, z 1.00); Slat31 head=(y 0.400, z 4.340) axis=(y 0.00, z 1.00)
 
+==================== knoxpass_roll2f_6_fast.glb (158356 bytes)
+skin joints 33: PostBone, Slat00 .. Slat31
+animation Close: channels=99 paths=['rotation', 'scale', 'translation'] keys<=46 time 0.042..3.792 s
+animation Open: channels=99 paths=['rotation', 'scale', 'translation'] keys<=46 time 0.042..3.792 s
+re-import: armature Dummy01, bones 33, mesh verts 370 tris 188, fps 24
+Open: frames 1-91, every frame checked (0 violations)
+Open: Slat00 travel monotonic=True; t=0.1 0.1366 (ease 0.1350, linear 0.4319); t=0.5 2.1595 (ease 2.1595, linear 2.1595); t=0.9 4.1823 (ease 4.1840, linear 3.8871)
+  Open t=0.0 frame 1: slat zmin=0.000 inside housing 12/280 | Slat00 head=(y 0.400, z 0.000) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 2.240) axis=(y 0.00, z 1.00); Slat31 head=(y 0.400, z 4.340) axis=(y 0.00, z 1.00)
+  Open t=0.5 frame 46: slat zmin=2.159 inside housing 132/280 | Slat00 head=(y 0.400, z 2.159) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 4.399) axis=(y -0.00, z 1.00); Slat31 head=(y 0.010, z 4.565) axis=(y 0.46, z -0.89)
+  Open t=1.0 frame 91: slat zmin=4.319 inside housing 280/280 | Slat00 head=(y 0.400, z 4.319) axis=(y 0.00, z 1.00); Slat16 head=(y 0.018, z 4.506) axis=(y 0.70, z -0.71); Slat31 head=(y 0.214, z 4.788) axis=(y -0.96, z -0.28)
+Close: frames 1-91, every frame checked (0 violations)
+Close: Slat00 travel monotonic=True; t=0.1 4.1823 (ease 4.1840, linear 3.8871); t=0.5 2.1595 (ease 2.1595, linear 2.1595); t=0.9 0.1366 (ease 0.1350, linear 0.4319)
+  Close t=0.0 frame 1: slat zmin=4.319 inside housing 280/280 | Slat00 head=(y 0.400, z 4.319) axis=(y 0.00, z 1.00); Slat16 head=(y 0.018, z 4.506) axis=(y 0.70, z -0.71); Slat31 head=(y 0.214, z 4.788) axis=(y -0.96, z -0.28)
+  Close t=0.5 frame 46: slat zmin=2.159 inside housing 132/280 | Slat00 head=(y 0.400, z 2.159) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 4.399) axis=(y -0.00, z 1.00); Slat31 head=(y 0.010, z 4.565) axis=(y 0.46, z -0.89)
+  Close t=1.0 frame 91: slat zmin=0.000 inside housing 12/280 | Slat00 head=(y 0.400, z 0.000) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 2.240) axis=(y 0.00, z 1.00); Slat31 head=(y 0.400, z 4.340) axis=(y 0.00, z 1.00)
+
 ==================== knoxpass_roll2f_9.glb (206012 bytes)
 skin joints 33: PostBone, Slat00 .. Slat31
 animation Close: channels=99 paths=['rotation', 'scale', 'translation'] keys<=73 time 0.042..6.042 s
@@ -62,5 +110,21 @@ Close: Slat00 travel monotonic=True; t=0.1 4.1836 (ease 4.1840, linear 3.8871); 
   Close t=0.0 frame 1: slat zmin=4.319 inside housing 280/280 | Slat00 head=(y 0.400, z 4.319) axis=(y 0.00, z 1.00); Slat16 head=(y 0.018, z 4.506) axis=(y 0.70, z -0.71); Slat31 head=(y 0.214, z 4.788) axis=(y -0.96, z -0.28)
   Close t=0.5 frame 73: slat zmin=2.159 inside housing 132/280 | Slat00 head=(y 0.400, z 2.159) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 4.399) axis=(y 0.00, z 1.00); Slat31 head=(y 0.002, z 4.563) axis=(y 0.46, z -0.89)
   Close t=1.0 frame 145: slat zmin=0.000 inside housing 12/280 | Slat00 head=(y 0.400, z 0.000) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 2.240) axis=(y 0.00, z 1.00); Slat31 head=(y 0.400, z 4.340) axis=(y 0.00, z 1.00)
+
+==================== knoxpass_roll2f_9_fast.glb (158292 bytes)
+skin joints 33: PostBone, Slat00 .. Slat31
+animation Close: channels=99 paths=['rotation', 'scale', 'translation'] keys<=46 time 0.042..3.792 s
+animation Open: channels=99 paths=['rotation', 'scale', 'translation'] keys<=46 time 0.042..3.792 s
+re-import: armature Dummy01, bones 33, mesh verts 370 tris 188, fps 24
+Open: frames 1-91, every frame checked (0 violations)
+Open: Slat00 travel monotonic=True; t=0.1 0.1366 (ease 0.1350, linear 0.4319); t=0.5 2.1595 (ease 2.1595, linear 2.1595); t=0.9 4.1823 (ease 4.1840, linear 3.8871)
+  Open t=0.0 frame 1: slat zmin=0.000 inside housing 12/280 | Slat00 head=(y 0.400, z 0.000) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 2.240) axis=(y 0.00, z 1.00); Slat31 head=(y 0.400, z 4.340) axis=(y 0.00, z 1.00)
+  Open t=0.5 frame 46: slat zmin=2.159 inside housing 132/280 | Slat00 head=(y 0.400, z 2.159) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 4.399) axis=(y -0.00, z 1.00); Slat31 head=(y 0.010, z 4.565) axis=(y 0.46, z -0.89)
+  Open t=1.0 frame 91: slat zmin=4.319 inside housing 280/280 | Slat00 head=(y 0.400, z 4.319) axis=(y 0.00, z 1.00); Slat16 head=(y 0.018, z 4.506) axis=(y 0.70, z -0.71); Slat31 head=(y 0.214, z 4.788) axis=(y -0.96, z -0.28)
+Close: frames 1-91, every frame checked (0 violations)
+Close: Slat00 travel monotonic=True; t=0.1 4.1823 (ease 4.1840, linear 3.8871); t=0.5 2.1595 (ease 2.1595, linear 2.1595); t=0.9 0.1366 (ease 0.1350, linear 0.4319)
+  Close t=0.0 frame 1: slat zmin=4.319 inside housing 280/280 | Slat00 head=(y 0.400, z 4.319) axis=(y 0.00, z 1.00); Slat16 head=(y 0.018, z 4.506) axis=(y 0.70, z -0.71); Slat31 head=(y 0.214, z 4.788) axis=(y -0.96, z -0.28)
+  Close t=0.5 frame 46: slat zmin=2.159 inside housing 132/280 | Slat00 head=(y 0.400, z 2.159) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 4.399) axis=(y -0.00, z 1.00); Slat31 head=(y 0.010, z 4.565) axis=(y 0.46, z -0.89)
+  Close t=1.0 frame 91: slat zmin=0.000 inside housing 12/280 | Slat00 head=(y 0.400, z 0.000) axis=(y 0.00, z 1.00); Slat16 head=(y 0.400, z 2.240) axis=(y 0.00, z 1.00); Slat31 head=(y 0.400, z 4.340) axis=(y 0.00, z 1.00)
 
 ALL OK

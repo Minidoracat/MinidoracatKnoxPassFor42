@@ -1,6 +1,7 @@
-"""Re-import export/knoxpass_barrier2_boom*.glb into an empty scene and check what the engine will get: glTF nodes,
-skin joints, clips, both boom angles at clip start / middle / end, closed / open boxes, per-part boxes (atlas
-classify, as scripts/blender/barrier/verify_export.py). Fails on any mismatch.
+"""Re-import export/knoxpass_barrier2_boom*.glb (and the KNOXPASS_FAST=1 *_fast.glb) into an empty scene and check what
+the engine will get: glTF nodes, skin joints, clips (6.0 s; *_fast 3.75 s), both boom angles at clip start / middle /
+end, closed / open boxes, per-part boxes (atlas classify, as scripts/blender/barrier/verify_export.py). Fails on any
+mismatch.
 用法：blender -b --factory-startup --python verify_barrier2.py   (writes export/verify.txt)
 """
 import json
@@ -61,7 +62,8 @@ def verify(glb, L):
     out(f"images {[(i['name'], i['mimeType']) for i in j['images']]}")
     assert sorted(joints) == ["DoorBone", "DoorBoneB", "PostBone"], joints
     assert any(n.get("name") == "Dummy01" and "children" in n for n in j["nodes"]), "no Dummy01 root"
-    assert set(clips) == {"Open", "Close"} and all(abs(t[0] - 6.0) < 1e-3 and len(t) == 1 for t in clips.values()), clips
+    clip_s = 3.75 if glb.stem.endswith("_fast") else 6.0   # build_barrier.py CLIP_S (KNOXPASS_FAST=1 -> *_fast)
+    assert set(clips) == {"Open", "Close"} and all(abs(t[0] - clip_s) < 1e-3 and len(t) == 1 for t in clips.values()), clips
 
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.import_scene.gltf(filepath=str(glb))
@@ -142,7 +144,8 @@ def verify(glb, L):
 
 
 for L in (6, 9):
-    verify(HERE / "export" / f"knoxpass_barrier2_boom{L}.glb", L)
+    for suffix in ("", "_fast"):
+        verify(HERE / "export" / f"knoxpass_barrier2_boom{L}{suffix}.glb", L)
 (HERE / "export" / "verify.txt").write_text("\n".join(log) + "\n", encoding="utf-8")
 print("[verify] OK")
 sys.exit(0)

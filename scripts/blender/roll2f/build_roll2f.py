@@ -1,5 +1,7 @@
 """Knox Pass two-story roll-up door: build the animated model per width, export .glb.
 用法：blender -b --factory-startup --python build_roll2f.py      (after atlas.py; writes export/knoxpass_roll2f_<W>.glb)
+    KNOXPASS_FAST=1 blender -b --factory-startup --python build_roll2f.py   # export/knoxpass_roll2f_<W>_fast.glb：
+                                                                  # 每扇門可選的「加速」，同一個模型，clip 3.75 s
 Idempotent: every width starts from an empty factory scene and overwrites its output.
 
 export/knoxpass_roll2f_<W>.glb (W = 3, 4, 6, 9), one skinned mesh, one material (knoxpass_roll2f_industry.png; the
@@ -28,6 +30,7 @@ Rig conventions = scripts/blender/barrier/build_barrier.py (vanilla fixtures_doo
 Model space: atlas.py docstring (origin = lane 1 tile centre on the floor, +X along the lanes, door line y = +0.5).
 """
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -42,7 +45,10 @@ import atlas as A  # noqa: E402
 from ease import ease  # noqa: E402
 
 FPS = 24
-F0, F1 = 1, 1 + 6 * FPS
+# KNOXPASS_FAST=1：每扇門可選的「加速」版，clip 3.75 s（引擎以 speedDelta 1.5 播：正常 4.0 s、加速 2.5 s），檔名加 _fast
+FAST = os.environ.get("KNOXPASS_FAST") == "1"
+CLIP_S = 3.75 if FAST else 6.0
+F0, F1 = 1, 1 + round(CLIP_S * FPS)
 FRAME_STEP = 2
 TEX = HERE / "textures" / "knoxpass_roll2f_industry.png"
 POST = 0                                   # vertex group index; slat i = 1 + i
@@ -213,7 +219,7 @@ def build(width):
     sc.render.fps, sc.render.fps_base = FPS, 1.0
     sc.frame_start, sc.frame_end = F0, F1
     bpy.context.preferences.edit.keyframe_new_interpolation_type = "LINEAR"
-    name = f"knoxpass_roll2f_{width}"
+    name = f"knoxpass_roll2f_{width}" + ("_fast" if FAST else "")
     m = Builder()
     door(m, width)
     me = m.to_mesh(name)

@@ -4383,6 +4383,10 @@ local function scenarioModelGates()
     owner._inv:AddItem("Base.Paintbrush")
     check(cmd(owner, "recolorReader", { key = key, color = 3 }).ok == true and readersAt(400, 100) == "pillar_106",
         "改成橄欖綠：柱面讀頭換成 3×32＋10")
+    local st
+    res, st = cmd(owner, "settings", { key = key, speed = "fast" })
+    check(res.ok == true and st.speedSupported == true and st.speed == "fast" and KP.Ledger.get(key).speed == "fast"
+        and gc.lanes[1]._modData[KP.MARKER_SPEED] == "fast", "大門可以設加速：帳本、錨點標記，state 寫可以調")
 
     -- 感應：登記的車接近，六片一起開；開走後關上
     local v = makeVehicle(404.0, 104.5, { tag = 0.5 })
@@ -4434,6 +4438,18 @@ local function scenarioModelGates()
         "2 秒時改成關：放下那組（＋48）的通道，從目前姿勢（0.5）接著往回走")
     runMs(2250)
     check(a._smName == nil and not a:isAnimating(), "走完：清掉姿勢、停止 animating")
+    -- 加速（Server.lua mark 的標記）：靜止時錨點換成同索引的加速版（MinidoracatKnoxPassFast_roll2f_white），補播 2.5 秒
+    a._modData[KP.MARKER_SPEED] = "fast"
+    runMs(1000)   -- BarrierAnim 每秒對一次標記
+    check(a._smName == "MinidoracatKnoxPassFast_roll2f_white_128", "加速的兩層樓捲門：靜止時換成加速版（關的那張）")
+    a:ToggleDoor(me)
+    step()
+    runMs(1250)
+    check(a._smName == "MinidoracatKnoxPass_roll2f_white_160" and math.abs(smTime(a) - 0.5) < 0.011,
+        "加速補播 1.25 秒：同一組通道、時間 0.5（1.25／2.5）")
+    runMs(1350)
+    check(a._smName == "MinidoracatKnoxPassFast_roll2f_white_136" and not a:isAnimating(),
+        "2.5 秒走完（正常要 4 秒）：換成加速版（開的那張）")
     clean(from, "模型門動畫（SP）")
 end
 
