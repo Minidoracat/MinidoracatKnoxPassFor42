@@ -9,7 +9,7 @@
 [list]
 [*] UIフレームワーク（必須）：[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library for B42[/url]
 [*] [b]途中追加・削除：[/b]追加は可能。外す前にガイドをお読みください。そのままだと施錠した門が開かなくなります
-[*] [b]対応言語：[/b]繁體中文、简体中文、English、日本語
+[*] [b]対応言語：[/b]繁體中文、简体中文、English、日本語、한국어、Русский、Español、Português、Türkçe、Français、Polski、Deutsch（中国語・英語・日本語以外は AI 翻訳です。誤りがあればお知らせください）
 [/list]
 
 [h2]🚀 クイックスタート[/h2]

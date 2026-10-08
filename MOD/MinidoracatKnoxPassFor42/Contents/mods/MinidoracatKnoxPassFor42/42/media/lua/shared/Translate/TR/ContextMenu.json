@@ -1,0 +1,11 @@
+{
+    "ContextMenu_KnoxPass": "Knox Pass",
+    "ContextMenu_KnoxPass_Install": "Knox Pass okuyucusu tak",
+    "ContextMenu_KnoxPass_Manage": "Okuyucuyu yönet...",
+    "ContextMenu_KnoxPass_Lock": "Kilitle (yalnızca Knox Pass açar)",
+    "ContextMenu_KnoxPass_Open": "Knox Pass ile aç",
+    "ContextMenu_KnoxPass_Close": "Knox Pass ile kapat",
+    "ContextMenu_KnoxPass_Remove": "Okuyucuyu sök",
+    "ContextMenu_KnoxPass_OtherOwner": "Okuyucu başka bir oyuncuya ait",
+    "ContextMenu_KnoxPass_Recolor": "Yeniden boya"
+}

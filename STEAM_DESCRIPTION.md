@@ -9,7 +9,7 @@
 [list]
 [*] 必裝 UI 框架：[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library for B42[/url]
 [*] [b]中途加入／移除：[/b]可加入；移除前請先看說明串，否則上鎖的門會打不開
-[*] [b]介面語言：[/b]繁體中文、简体中文、English、日本語
+[*] [b]介面語言：[/b]繁體中文、简体中文、English、日本語、한국어、Русский、Español、Português、Türkçe、Français、Polski、Deutsch（中英日以外為 AI 翻譯，歡迎回報）
 [/list]
 
 [h2]🚀 快速上手[/h2]

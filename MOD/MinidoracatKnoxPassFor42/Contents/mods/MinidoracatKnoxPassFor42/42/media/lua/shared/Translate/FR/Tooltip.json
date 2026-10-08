@@ -1,0 +1,5 @@
+{
+    "Tooltip_MinidoracatKnoxPass_Tag": "Installez-le depuis le panneau de mécanique du véhicule, catégorie \"Knox Pass\" (clé du véhicule ou portière déverrouillée nécessaire) ; il se recharge sur le véhicule. Enregistrez le véhicule sur un lecteur de portail Knox Pass pour que ce portail s'ouvre pour lui.",
+    "Tooltip_MinidoracatKnoxPass_Reader": "Clic droit sur un portail avec un tournevis pour l'installer. Clic droit à nouveau sur le portail pour gérer les véhicules enregistrés et le verrou optionnel.",
+    "Tooltip_MinidoracatKnoxPass_BarrierKit": "Placez-le en travers d'une route depuis le menu de construction (pivotez-le pour changer de sens) ; il occupe 4 tiles : le boîtier plus 3 tiles de voie. La barrière a un lecteur intégré appartenant à celui qui la construit et suit la règle d'alimentation du lecteur. Démontez le boîtier pour récupérer le kit."
+}

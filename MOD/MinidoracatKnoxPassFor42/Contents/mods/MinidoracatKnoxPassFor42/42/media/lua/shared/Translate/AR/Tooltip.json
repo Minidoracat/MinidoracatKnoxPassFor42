@@ -1,0 +1,5 @@
+{
+    "Tooltip_MinidoracatKnoxPass_Tag": "Instálala desde el panel de mecánica del vehículo, en la categoría \"Knox Pass\" (requiere la llave del vehículo o una puerta desbloqueada); se carga con el vehículo. Registra el vehículo en un Lector de portón Knox Pass para que ese portón se abra para él.",
+    "Tooltip_MinidoracatKnoxPass_Reader": "Haz clic derecho en un portón con un destornillador para instalarlo. Vuelve a hacer clic derecho en el portón para gestionar los vehículos registrados y el bloqueo opcional.",
+    "Tooltip_MinidoracatKnoxPass_BarrierKit": "Colócalo atravesando una carretera desde el menú de construcción (rota para cambiar la dirección); ocupa 4 casillas: el gabinete más 3 casillas de carril. La barrera tiene un lector integrado cuyo propietario es quien la construye y sigue la regla de energía del lector. Desarma el gabinete para recuperar el kit."
+}

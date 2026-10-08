@@ -1,0 +1,17 @@
+{
+    "MinidoracatKnoxPass.VehicleTag": "Knox Pass Kfz-Transponder",
+    "MinidoracatKnoxPass.GateReader": "Knox Pass Torleser",
+    "MinidoracatKnoxPass.BoomBarrierKit": "Knox Pass Schranken-Bausatz",
+    "MinidoracatKnoxPass.VehicleTag_Black": "Knox Pass Kfz-Transponder (Schwarz)",
+    "MinidoracatKnoxPass.VehicleTag_Graphite": "Knox Pass Kfz-Transponder (Graphit)",
+    "MinidoracatKnoxPass.VehicleTag_Olive": "Knox Pass Kfz-Transponder (Oliv)",
+    "MinidoracatKnoxPass.VehicleTag_Navy": "Knox Pass Kfz-Transponder (Marineblau)",
+    "MinidoracatKnoxPass.VehicleTag_Orange": "Knox Pass Kfz-Transponder (Signalorange)",
+    "MinidoracatKnoxPass.VehicleTag_Red": "Knox Pass Kfz-Transponder (Rot)",
+    "MinidoracatKnoxPass.GateReader_Black": "Knox Pass Torleser (Schwarz)",
+    "MinidoracatKnoxPass.GateReader_Graphite": "Knox Pass Torleser (Graphit)",
+    "MinidoracatKnoxPass.GateReader_Olive": "Knox Pass Torleser (Oliv)",
+    "MinidoracatKnoxPass.GateReader_Navy": "Knox Pass Torleser (Marineblau)",
+    "MinidoracatKnoxPass.GateReader_Orange": "Knox Pass Torleser (Signalorange)",
+    "MinidoracatKnoxPass.GateReader_Red": "Knox Pass Torleser (Rot)"
+}

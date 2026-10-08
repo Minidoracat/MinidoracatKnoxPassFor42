@@ -1,0 +1,11 @@
+{
+    "ContextMenu_KnoxPass": "Knox Pass",
+    "ContextMenu_KnoxPass_Install": "Knox Pass 리더기 설치",
+    "ContextMenu_KnoxPass_Manage": "리더기 관리...",
+    "ContextMenu_KnoxPass_Lock": "잠금 (Knox Pass로만 열림)",
+    "ContextMenu_KnoxPass_Open": "Knox Pass로 열기",
+    "ContextMenu_KnoxPass_Close": "Knox Pass로 닫기",
+    "ContextMenu_KnoxPass_Remove": "리더기 제거",
+    "ContextMenu_KnoxPass_OtherOwner": "다른 플레이어의 리더기입니다",
+    "ContextMenu_KnoxPass_Recolor": "다시 칠하기"
+}

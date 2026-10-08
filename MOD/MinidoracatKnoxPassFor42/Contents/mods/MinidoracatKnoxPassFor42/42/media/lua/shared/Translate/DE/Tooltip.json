@@ -1,0 +1,5 @@
+{
+    "Tooltip_MinidoracatKnoxPass_Tag": "Bau ihn über das Kfz-Mechanik-Fenster in der Kategorie \"Knox Pass\" ein (benötigt den Autoschlüssel oder eine unverschlossene Tür); er lädt sich über das Fahrzeug auf. Registriere das Fahrzeug an einem Knox Pass Torleser, damit sich dieses Tor dafür öffnet.",
+    "Tooltip_MinidoracatKnoxPass_Reader": "Rechtsklicke mit einem Schraubenzieher auf ein Tor, um ihn einzubauen. Rechtsklicke erneut auf das Tor, um registrierte Fahrzeuge und die optionale Sperre zu verwalten.",
+    "Tooltip_MinidoracatKnoxPass_BarrierKit": "Platziere ihn über das Baumenü quer über eine Straße (drehen, um die Richtung zu wechseln); er belegt 4 Kacheln: den Schaltschrank plus 3 Fahrbahnkacheln. Die Schranke hat einen eingebauten Leser, der dem Erbauer gehört, und folgt der Stromregel des Lesers. Nimm den Schaltschrank auseinander, um den Bausatz zurückzubekommen."
+}
