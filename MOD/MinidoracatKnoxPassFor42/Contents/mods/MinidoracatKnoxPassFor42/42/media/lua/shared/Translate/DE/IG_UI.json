@@ -6,7 +6,7 @@
     "IGUI_KnoxPass_Uninstalled": "Knox Pass-Leser entfernt",
     "IGUI_KnoxPass_NeedScrewdriver": "Benötigt einen Schraubenzieher.",
     "IGUI_KnoxPass_OpenTip": "Du brauchst im Inventar einen Knox Pass-Transponder, der an diesem Leser registriert ist und noch Ladung hat.",
-    "IGUI_KnoxPass_NeedFramework": "Das Verwaltungsfenster benötigt ein neueres Minidoracat UI framework (MinidoracatUIFor42).",
+    "IGUI_KnoxPass_NeedFramework": "Das Verwaltungsfenster benötigt eine neuere Version des Frameworks Minidoracat UI (MinidoracatUIFor42).",
     "IGUI_KnoxPass_Kind": "Typ",
     "IGUI_KnoxPass_Owner": "Eigentümer",
     "IGUI_KnoxPass_Power": "Strom",
