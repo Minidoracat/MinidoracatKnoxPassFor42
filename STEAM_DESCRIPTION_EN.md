@@ -8,6 +8,8 @@ Put a tag in your car and a reader on your gate: drive up and the gate opens by 
 [h2]📦 Requirements[/h2]
 [list]
 [*] Requires the UI framework: [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library for B42[/url]
+[*] [b]Add/remove mid-save:[/b] safe to add; read the guide before removing it, or locked gates stay locked
+[*] [b]Languages:[/b] 繁體中文, 简体中文, English, 日本語
 [/list]
 
 [h2]🚀 Quick Start[/h2]

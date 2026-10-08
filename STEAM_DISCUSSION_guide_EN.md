@@ -130,6 +130,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]Can other players open my gate?[/b] Only the tags you registered can. Once locked, neither bare hands nor zombies can open it, except someone holding that door's original key; an unlocked gate can still be opened by hand as usual.
 [*] [b]Can zombies open my gate?[/b] Not one with the Knox Pass lock on. An unlocked gate can be opened by zombies when the server lets zombies open doors, as in vanilla.
 [*] [b]Is it safe in multiplayer?[/b] Opening, closing, locking and registering are all checked by the server, and the registrations live only on the server.
+[*] [b]Removing this mod?[/b] First turn off "Lock (only Knox Pass opens it)" on every locked gate, or take its reader back; otherwise the gate stays locked after removal and can only be broken down unless someone has its original key. Also dismantle Knox Pass barriers, roll-up doors and gates first, as they may not display or work after removal. Tags in cars and all other Knox Pass items disappear.
 [/list]
 
 [h2]💬 Feedback[/h2]
