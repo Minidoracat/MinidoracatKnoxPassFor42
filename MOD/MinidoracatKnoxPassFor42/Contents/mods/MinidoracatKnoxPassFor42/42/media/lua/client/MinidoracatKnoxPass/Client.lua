@@ -280,20 +280,83 @@ local function recolorMenu(menu, player, current, addTip, target)
     end
 end
 
+-- 右鍵點到的門。原版右鍵只把滑鼠下那一個物件交給選單：引擎照 2D 遮罩選（FBORenderObjectPicker.java:79），
+-- 放開時 doRClick 只交出它（ISObjectClickHandler.lua:23-63）；原版的「門」另外掃它所在的格（ISWorldObjectContextMenuLogic.java:576-579）。
+-- 閘門與模型門畫的是 3D 模型（2026-10-08 正式服回報雙桿閘門右鍵只有原版「門」；menupick-sp 1008d 實點）：
+-- 1. 點門下的路面選到地板 → 照原版掃同格
+-- 2. 點機箱或門柱選到那一端 → 沿整座找車道（KP.Barrier 在 server/Barrier.lua，客戶端也會載入 server 目錄，GameLoadingState.java:148）
+-- 3. 模型門的車道片沒有 2D 圖，點在桿子或門扇上選到的是門線後面的地板（北邊 2 格）→ 從點到的格往鏡頭方向（+x +y）找車道門片，
+--    滑鼠落在門線往上 BODY_FLOORS 層的範圍內就算。高度取關著時的外形加一點餘量；抬起的桿子上半段點不到，點機箱即可
+local BODY_FLOORS = { Barrier = 0.6, Gate = 2.0, Garage = 2.2 }
+local function onBody(door, floors, mx, my)
+    local x, y, z = door:getX(), door:getY(), door:getZ()
+    local x2, y2 = x + 1, y
+    if not door:getNorth() then x2, y2 = x, y + 1 end
+    local ax, ay = isoToScreenX(0, x, y, z), isoToScreenY(0, x, y, z)
+    local bx, by = isoToScreenX(0, x2, y2, z), isoToScreenY(0, x2, y2, z)
+    if mx < math.min(ax, bx) or mx > math.max(ax, bx) then return false end
+    local base = ay + (by - ay) * (mx - ax) / (bx - ax)
+    return my <= base + 4 and my >= base + isoToScreenY(0, x, y, z + floors) - ay
+end
+local function gateBody(squares, mx, my)
+    for _, sq in ipairs(squares) do
+        local x0, y0, z = sq:getX(), sq:getY(), sq:getZ()
+        for d = 0, 7 do
+            for _, o in ipairs({ { d, d }, { d + 1, d }, { d, d + 1 } }) do
+                local s = getCell():getGridSquare(x0 + o[1], y0 + o[2], z)
+                local objects = s and s:getObjects()
+                for i = 0, (objects and objects:size() or 0) - 1 do
+                    local obj = objects:get(i)
+                    local floors = instanceof(obj, "IsoDoor") and BODY_FLOORS[KP.gateKind(obj)]
+                    if floors and onBody(obj, floors, mx, my) then
+                        local adapter, anchor = G.resolve(obj)
+                        if adapter then return obj, adapter, anchor end
+                    end
+                end
+            end
+        end
+    end
+    return nil
+end
+local function findGate(playerIndex, worldobjects)
+    local list, seen, squares, onSquare = {}, {}, {}, {}
+    local function push(o)
+        if o and not seen[o] then seen[o] = true; list[#list + 1] = o end
+    end
+    for _, o in ipairs(worldobjects) do push(o) end
+    for _, o in ipairs(worldobjects) do
+        local sq = o.getSquare and o:getSquare()
+        if sq and not onSquare[sq] then
+            onSquare[sq] = true
+            squares[#squares + 1] = sq
+            local objects = sq:getObjects()
+            for i = 0, objects:size() - 1 do push(objects:get(i)) end
+        end
+    end
+    for _, o in ipairs(list) do
+        local adapter, anchor = G.resolve(o)
+        if adapter then return o, adapter, anchor end
+    end
+    for _, o in ipairs(list) do
+        if KP.isGateEnd(o) then
+            for _, piece in ipairs(KP.Barrier.parts(o) or {}) do
+                local adapter, anchor = G.resolve(piece)
+                if adapter then return piece, adapter, anchor end
+            end
+        end
+    end
+    -- 滑鼠只屬於第 1 位玩家；手把開的選單（JoypadState，同原版 ISWorldObjectContextMenu.lua:956）不看滑鼠
+    if playerIndex == 0 and not JoypadState.players[1] then return gateBody(squares, getMouseX(), getMouseY()) end
+    return nil
+end
+
 -- 事件簽名 (playerIndex, context, worldobjects, test)：ISWorldObjectContextMenu.lua:213；
 -- 別人的保險屋內本來就不觸發（同檔 :211）
 local function onFillMenu(playerIndex, context, worldobjects, test)
     if test then return end
     local player = getSpecificPlayer(playerIndex)
     if not player then return end
-    local door, adapter, anchor
-    for _, o in ipairs(worldobjects) do
-        adapter, anchor = G.resolve(o)
-        if adapter then
-            door = o
-            break
-        end
-    end
+    local door, adapter, anchor = findGate(playerIndex, worldobjects)
     if not door then return end
 
     local md = anchor:getModData()
