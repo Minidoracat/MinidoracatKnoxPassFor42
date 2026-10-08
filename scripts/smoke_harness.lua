@@ -139,7 +139,7 @@ local function newWorld()
         sent = {}, sendServerCalls = 0, itemStats = 0, removeSent = 0, addSent = 0, handsRemoved = 0,
         partDeltas = 0, nilToggles = 0, refused = 0, recreated = 0, obstructChecks = 0, copyCalls = 0,
         customLockTx = 0, garageBlocked = 0, removedObjs = 0, invalidated = 0, dropped = {}, onLoadSprite = {},
-        vehicleQueries = 0, postTx = 0, paintUses = 0, modelFlags = 0, npe = {},
+        vehicleQueries = 0, postTx = 0, paintUses = 0, modelFlags = 0, npe = {}, echoClosed = 0,
     }
 end
 -- MapObjects.OnLoadWithSprite（Lua/MapObjects.java:134-176）：記下回呼，loadSprites() 模擬區塊載入時逐物件呼叫
@@ -562,17 +562,23 @@ local function garageChain(o)
 end
 -- client 收到 SyncIsoObject（D:1772-1774）：車庫門另外逐片 setOpen＋setLockedByKey(bLockedByKey)（D:1811-1822），
 -- setLockedByKey 會連帶設 locked（D:2013-2016）。所以車庫門只有鑰匙鎖送得到 client，只有 locked 的會被蓋成 false。
--- 鏈上其他片在 client 的鑰匙鎖因此改變時，client 的 setLockedByKey 會 sync，把那片的狀態送回伺服器（D:2017-2022）；
--- 回送下一個 tick 才到（step 套用）
+-- 鏈上其他片在 client 的鑰匙鎖因此改變時，client 的 setLockedByKey 會 sync，把那片當下的狀態（含開關）送回伺服器
+-- （D:2017-2022、1681-1694）；回送下一個 tick 才到（step 套用）
+local function echoChain(o, open, byKey)
+    if not isServer() then return end
+    for _, p in ipairs(garageChain(o)) do
+        if p ~= o and p._view.lockedByKey ~= byKey then
+            W.echo = W.echo or {}
+            W.echo[#W.echo + 1] = { p, byKey, open }
+        end
+    end
+end
 function Door:syncIsoObject(bRemote)
     if bRemote then return end
     syncView(self)
     if self._garage then
+        echoChain(self, self._open, self._lockedByKey)
         for _, p in ipairs(garageChain(self)) do
-            if p ~= self and p._view.lockedByKey ~= self._lockedByKey and isServer() then
-                W.echo = W.echo or {}
-                W.echo[#W.echo + 1] = { p, self._lockedByKey }
-            end
             p._view.open, p._view.locked, p._view.lockedByKey = self._open, self._lockedByKey, self._lockedByKey
         end
     end
@@ -589,6 +595,7 @@ local function garageStraddled(o)   -- D:3396-3457：任一片的格子與門線
     end
     return false
 end
+-- 引擎逐片翻開關並清鎖（D:3344-3366），再 sync 被點的那片（D:3384-3386）：client 照上面的語意更新整條鏈並回送
 local function toggleGarage(o)
     local chain = garageChain(o)
     for _, p in ipairs(chain) do
@@ -596,6 +603,7 @@ local function toggleGarage(o)
         p:setLockedByKey(false)
         if p._closedName then p._spriteObj = namedSprite(p._open and p._openName or p._closedName) end
     end
+    echoChain(o, o._open, false)
     for _, p in ipairs(chain) do
         p._view.open, p._view.locked, p._view.lockedByKey = p._open, false, false
     end
@@ -1233,11 +1241,17 @@ end
 
 local function step(fn)
     nowMs = nowMs + 250
-    -- 車庫門 client 回送的狀態到伺服器：伺服器照單全收，整條鏈 setLockedByKey（GameServer.java:2969-2987、D:1772-1774、1811-1822）
+    -- 車庫門 client 回送的狀態到伺服器：伺服器照單全收，整條鏈照回送的開關與鑰匙鎖改（GameServer.java:2969-2987、
+    -- D:1772-1774、1798-1822）。回送把開著的門關上的次數記在 W.echoClosed
     local echo = W.echo
     W.echo = nil
     for _, e in ipairs(echo or {}) do
-        for _, p in ipairs(garageChain(e[1])) do p._locked, p._lockedByKey = e[2], e[2] end
+        local chain = garageChain(e[1])
+        if chain[1]._open and not e[3] then W.echoClosed = W.echoClosed + 1 end
+        for _, p in ipairs(chain) do
+            p._locked, p._lockedByKey, p._open = e[2], e[2], e[3]
+            if p._closedName then p._spriteObj = namedSprite(p._open and p._openName or p._closedName) end
+        end
     end
     if fn then fn() end
     fire("OnTick")
@@ -2152,13 +2166,25 @@ local function scenarioReopen()
     check(a.door:IsOpen() and near(charge(va), 0.49), "開門扣一次電")
     a.door:ToggleDoor(newPlayer("closer", 99, 101))
     check(not a.door:IsOpen() and rec(a).open == true, "玩家手動關上（帳本仍記開著）")
-    local tx, deltas = W.customLockTx, W.partDeltas
+    local deltas = W.partDeltas
     step()
-    check(W.customLockTx - tx == 4, "下一次掃描先照關好的規則鎖回：四片都送出 CustomLock")
-    check(a.door:IsOpen() and rec(a).open == true, "接著重新開門，帳本仍記開著")
+    check(a.door:IsOpen() and rec(a).open == true, "下一次掃描重新開門，帳本仍記開著")
     check(near(charge(va), 0.48) and W.partDeltas == deltas + 1, "重開扣電一次並同步")
     runMs(2000)
     check(near(charge(va), 0.48) and a.door:IsOpen(), "之後的掃描不再扣電")
+
+    -- 重開不成（沒供電）：照關好的規則鎖回，帳本不再記開著
+    local c = gate(300)
+    cmd(c.owner, "lock", { key = c.key, on = true })
+    local vc = car(c, 3, { tag = 0.5 })
+    register(c, vc)
+    driver(vc)
+    step()
+    c.door:ToggleDoor(newPlayer("closer2", 299, 101))
+    square(300, 100, 0)._grid = false
+    step()
+    check(not c.door:IsOpen() and c.door:isLockedByKey() and c.door._modData.CustomLock == true and rec(c).open == nil,
+        "重開不成（沒供電）：照關好的規則鎖回，帳本不再記開著")
 
     local b = gate(200)
     b.door:ToggleDoor(newPlayer("hand", 200, 101))
@@ -2269,6 +2295,7 @@ local function scenarioGarage()
     local holder = newPlayer("holder", 101, 103)
     holder._inv:AddItem(newKey(keyId))
     orig[2]:ToggleDoor(holder)
+    step()   -- 開與關之間至少隔一個 tick：開門的回送先到
     orig[2]:ToggleDoor(holder)
     check(not a.door:IsOpen() and not a.door:isLockedByKey() and not a.door:isLocked(), "（引擎）有鑰匙的人用手開關：鎖被清掉")
     runMs(5250)
@@ -4132,6 +4159,41 @@ local function scenarioZombieLock()
     clean(from, "會開門的殭屍與 Knox Pass 門鎖")
 end
 
+-- 實機回報（2026-10-08）：上鎖的閘門被登記車撐著時連續重開、感應盒電量瞬間用完，AutoDrive 卡在門前。
+-- 車庫門鏈的鎖一同步，client 就把鏈上其他片當下的開關回送伺服器（echoChain、step）：開門前先同步解鎖，回送的是「關著」，
+-- 伺服器把剛開的門關上，Sensor 下一輪又開、又扣電。被人用手關上後先鎖回再重開也一樣
+local function scenarioLockHold()
+    out("情境：上鎖的閘門被登記車撐著")
+    freshWorld()
+    local from = #logLines + 1
+    local builder = newPlayer("builder", 201, 103)
+    local n = buildBarrier(200, 100, "N", builder)
+    step()
+    local key = "201,100,0N"
+    check(cmd(builder, "lock", { key = key, on = true }).ok == true and n[2]._view.lockedByKey == true, "閘門開啟門鎖")
+    local r = KP.Ledger.get(key)
+    square(201, 100, 0)._grid = true
+    local v = makeVehicle(r.cx, r.cy + 6, { tag = 1 })
+    check(cmd(builder, "register", { key = key, vehicleId = v:getId() }).ok == true, "登記停在 6 格外的車")
+    step()   -- 上鎖時 client 回送的鑰匙鎖先到（門關著，回送的也是關著）
+    driver(v)
+    runMs(10000)
+    check(W.echoClosed == 0 and n[0]:IsOpen() and n[0]._view.open,
+        "駕駛坐在範圍內 10 秒：門一直開著，client 的回送沒有把它關上（" .. W.echoClosed .. " 次）")
+    check(math.abs(charge(v) - 0.99) < 1e-4, string.format("只開一次、只扣一次電（%.3f）", charge(v)))
+    n[1]:ToggleDoor(newPlayer("passer", 202, 101))
+    check(not n[0]:IsOpen(), "（引擎）有人用手把門關上")
+    runMs(2000)
+    check(W.echoClosed == 0 and n[0]:IsOpen() and n[0]._view.open,
+        "下一輪直接重開、不先鎖回：之後門一直開著（回送關門 " .. W.echoClosed .. " 次）")
+    check(math.abs(charge(v) - 0.98) < 1e-4, string.format("重開再扣一次電（%.3f）", charge(v)))
+    moveCar(v, v._x, v._y + 40)
+    runMs(5000)
+    check(not n[0]:IsOpen() and n[0]:isLockedByKey() and n[2]:isLockedByKey() and n[2]._view.lockedByKey == true
+        and W.echoClosed == 0, "開走後照延遲關上並鎖回，client 也看到鎖")
+    clean(from, "上鎖的閘門被登記車撐著")
+end
+
 -- 模型門（Core.lua KP.MODEL_GATES、Barrier.lua KP.ModelGate）：entity 建造照 build_model_gates.py faces_rows——
 -- N／S 一列沿 +x [A] 車道 1..L [B]，W／E 沿 +y [B] 車道 L..1 [A]；車道放替代 tile（格位 16＋k−1），兩端是格位 3／4。
 -- 回傳 { lanes = { [k] = 物件 }, A = 端 A, B = 端 B }
@@ -4301,7 +4363,7 @@ local tests = {
     scenarioDoubleDoorway, scenarioAutoDrive, scenarioLoadChunk, scenarioTagScript,
     scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,
     scenarioReaderPost, scenarioColors, scenarioLoot, scenarioBarrierMirror, scenarioRollDoor, scenarioSettings,
-    scenarioPassThrough, scenarioZombieLock, scenarioModelGates,
+    scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates,
 }
 for _, t in ipairs(tests) do t() end
 

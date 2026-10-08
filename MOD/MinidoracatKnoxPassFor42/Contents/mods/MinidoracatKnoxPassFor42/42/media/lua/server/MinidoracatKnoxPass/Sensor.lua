@@ -146,20 +146,29 @@ function S.open(key, rec, who, tag, part, vehicle, now)
     if info then info.script = vehicle:getScriptName() end
     -- 開著：Knox Pass 開的就延長；別人用手開著的不接手，也不替它關
     if G.isOpen(adapter, anchor) then return true end
-    -- Knox Pass 開的門被人用手關上了：先照關好的規則鎖回，再重新開
-    if rec.open then settleClosed(key, rec, adapter, anchor) end
-    if now < r.failAt then return false, "Busy" end
+    -- Knox Pass 開的門被人用手關上了（rec.open 卻關著）：直接重開，原本的鎖別沿用 rec.keyed；開不成才照關好的規則鎖回。
+    -- 不先鎖再開：車庫門上鎖的同步會讓客戶端把「關著」回送伺服器，蓋掉同一個 tick 的重開（Gates.lua doorAdapter.unlock）
+    local reopen = rec.open
+    local function fail(why)
+        if reopen then settleClosed(key, rec, adapter, anchor) end
+        return false, why
+    end
+    if now < r.failAt then return fail("Busy") end
     local pieces = G.pieces(adapter, anchor)
     if KP.sandbox("RequirePower") == true and not G.powered(pieces) then
         r.failAt = now + S.FAIL_MS
-        return false, "NoPower"
+        return fail("NoPower")
     end
     rec.doorway = doorwayOf(pieces)   -- 門還關著：記下各片的門口格
-    local keyed = nil
-    if G.supportsLock(adapter) then keyed = G.unlock(adapter, anchor, pieces) end
+    local keyed = reopen and rec.keyed or nil
+    if G.supportsLock(adapter) then keyed = G.unlock(adapter, anchor, pieces) or keyed end
     if not G.setOpen(adapter, anchor, true, who) then
-        if G.supportsLock(adapter) then G.lock(adapter, anchor, pieces, rec.lock, keyed) end
         r.failAt = now + S.FAIL_MS
+        if reopen then
+            rec.keyed = keyed
+            return fail("Blocked")
+        end
+        if G.supportsLock(adapter) then G.lock(adapter, anchor, pieces, rec.lock, keyed) end
         return false, "Blocked"
     end
     rec.keyed = keyed or nil

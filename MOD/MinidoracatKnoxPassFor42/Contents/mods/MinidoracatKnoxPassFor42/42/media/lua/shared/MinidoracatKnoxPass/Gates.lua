@@ -118,9 +118,13 @@ local doorAdapter = {
     -- 開門前解除整組的鑰匙鎖與 Knox Pass 門鎖，回傳原本的鎖別（關好後照原樣鎖回）：
     -- 2＝鑰匙鎖；1＝只有 locked（地圖車庫門預設如此，內側能開、外側要鑰匙，IsoDoor.java:1568-1580、CellLoader.java:101-104）。
     -- locked 也要清：ToggleDoorActual 會把「locked 且有 keyId」補成 lockedByKey（IsoDoor.java:1529-1532）。
-    -- Knox Pass 補過鎖的片，原本的鎖看 KNOX_LOCKED
+    -- Knox Pass 補過鎖的片，原本的鎖看 KNOX_LOCKED。
+    -- 車庫門只改伺服器上的值、不另外同步：接著開門的 toggleGarageDoor 會送整條鏈開著、沒鎖（IsoDoor.java:3352,3384-3386）。
+    -- 先同步的話，客戶端解開鏈上其他片的鑰匙鎖時會把那片「關著」回送伺服器（IsoDoor.java:1811-1822、2017-2022），
+    -- 伺服器照單全收、把剛開的門關上，Sensor 下一輪又開、又扣一次電（2026-10-08 玩家回報：上鎖的閘門連續重開、電量瞬間用完）
     unlock = function(anchor, pieces)
         local was = nil
+        local sync = not isGarage(anchor)
         each(pieces, function(p)
             local md = p:getModData()
             local own = md[KNOX_LOCKED]
@@ -132,7 +136,7 @@ local doorAdapter = {
             if own == 2 then was = 2 elseif own == 1 and was == nil then was = 1 end
             p:setLocked(false)
             p:setLockedByKey(false)
-            syncDoor(p)
+            if sync then syncDoor(p) end
             if md.CustomLock ~= nil or md[KNOX_LOCKED] ~= nil then
                 md.CustomLock, md[KNOX_LOCKED] = nil, nil
                 p:transmitModData()
