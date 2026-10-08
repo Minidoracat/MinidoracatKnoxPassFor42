@@ -29,8 +29,9 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [list]
 [*] [b]Where it fits[/b]: map doors, fence gates, double doors, garage doors, player-built doors and gates, and Knox Pass's own roll-up garage doors, two-story roll-up doors and two-story gates (see "Build your own gates" below).
 [*] [b]Installing[/b]: right-click the gate with the reader and a screwdriver. Whoever installs it owns it. Once installed, the reader shows on the gate post (on the face of the pillar for two-story gates; boom barriers and double boom barriers have theirs on top of the cabinet); it doesn't block people or cars.
-[*] [b]Management window[/b]: shows the gate type, owner, power, lock, this gate's read range and close delay, registered cars (charge, last pass) and nearby cars with a tag. While it's open, an amber circle on the ground shows this gate's read range (the range for a car standing still; faster cars open it sooner).
+[*] [b]Management window[/b]: shows the gate type, owner, power, lock, this gate's read range, close delay and speed, registered cars (charge, last pass) and nearby cars with a tag. While it's open, an amber circle on the ground shows this gate's read range (the range for a car standing still; faster cars open it sooner).
 [*] [b]Per-gate settings[/b]: the owner or an admin picks this gate's read range and close delay from two dropdowns in the window, limited to what the server allows (2–30 tiles and 0–30 seconds by default); "Server default" follows the sandbox setting. If the server later narrows the limits, gates that were set follow the new limits and keep their value.
+[*] [b]Opening speed[/b]: boom barriers, double boom barriers, two-story roll-up doors and two-story gates can be set to [b]Normal (4 s)[/b] or [b]Fast (2.5 s)[/b] under "Speed" in the window, and every player sees the same speed. One-story roll-up doors and vanilla doors can't be changed; the dropdown says "Not adjustable".
 [*] [b]Removing[/b]: the owner can take the reader back. If Knox Pass has the gate open, it closes it first and restores the original lock.
 [/list]
 
@@ -60,7 +61,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]Two-story gates[/b]: 6 or 9 tiles wide double gates in five looks: Chain-link, Steel Plate, Iron Bars (Welding 5), Ranch Wood (Carpentry 5) and Medieval Oak (Carpentry 5, plus Welding 2 for its iron bands). Rotating while building picks which side the leaves swing to. No reader built in; once installed, the reader hangs on the face of the post.
 [*] [b]Durability[/b]: a one-car door (3 or 4 wide) has 1000, two cars (6 wide) 1500 and three cars (9 wide) 2000; two-story ones get 500 more.
 [*] [b]Removing and damage[/b]: dismantling either end (cabinet or post) of a double boom barrier or two-story gate removes the whole thing and refunds only that end's materials. If any door piece gets broken, the whole thing is destroyed with no refund.
-[*] [b]Animation[/b]: arms, roll-up curtains and gate leaves ease in and out as they move, and several gates moving at once each run on their own.
+[*] [b]Animation[/b]: arms, roll-up curtains and gate leaves ease in and out as they move, taking about 4 seconds each way (about 2.5 with "Fast" in the window), and several gates moving at once each run on their own.
 [/list]
 
 [h3]Hands-free opening and closing[/h3]

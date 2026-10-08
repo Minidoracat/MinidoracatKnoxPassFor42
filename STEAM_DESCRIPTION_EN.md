@@ -26,7 +26,7 @@ Put a tag in your car and a reader on your gate: drive up and the gate opens by 
 [*] [b]Build your own gates[/b]: boom barriers, roll-up garage doors and two-story gates, wide enough for several cars side by side
 [*] [b]Reads on the move[/b]: the faster you drive, the earlier it opens; self-driving cars find it already open
 [*] [b]A real vehicle part[/b]: fits vanilla and modded cars, and moves with the tag to another car
-[*] [b]Per-gate registration[/b]: only the cars you register get through, and each gate has its own range, close delay and lock; built barriers and two-story doors and gates can also open faster
+[*] [b]Per-gate registration[/b]: only the cars you register get through, and each gate has its own range, close delay, speed and lock
 [*] [b]Works with many gates[/b]: fence gates, double doors, garage doors and player-built doors
 [*] [b]7 shell colors[/b]: craft tags and readers in color with vanilla paint, or repaint the ones you have
 [*] [b]No crashes, no pinching[/b]: warns you ahead of a gate that won't open, and never closes on a car or a person
