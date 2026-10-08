@@ -27,9 +27,10 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 
 [h3]Gate Reader[/h3]
 [list]
-[*] [b]Where it fits[/b]: map doors, fence gates, double doors, garage doors, and player-built doors and gates.
-[*] [b]Installing[/b]: right-click the gate with the reader and a screwdriver. Whoever installs it owns it. Once installed, the reader shows on the gate post (a boom barrier has its reader on top of the cabinet); it doesn't block people or cars.
-[*] [b]Management window[/b]: shows the gate type, owner, power, lock, registered cars (charge, last pass) and nearby cars with a tag.
+[*] [b]Where it fits[/b]: map doors, fence gates, double doors, garage doors, player-built doors and gates, and Knox Pass's own roll-up garage doors, two-story roll-up doors and two-story gates (see "Build your own gates" below).
+[*] [b]Installing[/b]: right-click the gate with the reader and a screwdriver. Whoever installs it owns it. Once installed, the reader shows on the gate post (on the face of the pillar for two-story gates; boom barriers and double boom barriers have theirs on top of the cabinet); it doesn't block people or cars.
+[*] [b]Management window[/b]: shows the gate type, owner, power, lock, this gate's read range and close delay, registered cars (charge, last pass) and nearby cars with a tag. While it's open, an amber circle on the ground shows this gate's read range (the range for a car standing still; faster cars open it sooner).
+[*] [b]Per-gate settings[/b]: the owner or an admin picks this gate's read range and close delay from two dropdowns in the window, limited to what the server allows (2–30 tiles and 0–30 seconds by default); "Server default" follows the sandbox setting. If the server later narrows the limits, gates that were set follow the new limits and keep their value.
 [*] [b]Removing[/b]: the owner can take the reader back. If Knox Pass has the gate open, it closes it first and restores the original lock.
 [/list]
 
@@ -40,46 +41,62 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]Craft it in color[/b]: the crafting list has one entry per color (for example "Craft Knox Pass Vehicle Tag (Black)"). It takes the usual materials plus one use of that paint, and you need a paintbrush (it isn't used up). Without paint you craft a Cream one.
 [*] [b]In your inventory[/b]: right-click a tag or reader you carry (bags count) → [b]Repaint[/b] → pick a color. Colors you lack paint or a paintbrush for are grayed out; hover to see what's missing. A tag keeps its charge and its registration at every gate, so it opens the same gates after repainting.
 [*] [b]A reader on a gate[/b]: the owner or an admin right-clicks the gate → Knox Pass → [b]Repaint[/b]; your character walks to the gate and paints it, and registrations stay as they are.
-[*] [b]A tag in a car[/b]: the windshield shows its color. To repaint it, remove it in the mechanics panel first, then install it again. A boom barrier's built-in reader can't be repainted.
+[*] [b]A tag in a car[/b]: the windshield shows its color. To repaint it, remove it in the mechanics panel first, then install it again. The built-in reader of a boom barrier or double boom barrier can't be repainted.
 [/list]
 
 [h3]Boom Barrier[/h3]
 [list]
-[*] [b]Building[/b]: craft a "Knox Pass Boom Barrier Kit" and place it on the road from the build menu. It takes 4 tiles: 1 for the cabinet and 3 for the lane; rotate it to run north–south or east–west.
+[*] [b]Building[/b]: craft a "Knox Pass Boom Barrier Kit" and place it on the road from the build menu. It takes 4 tiles: 1 for the cabinet and 3 for the lane; rotate it while building to face any of four directions, with the cabinet at either end of the lane.
 [*] [b]Built-in reader[/b]: whoever builds it owns it, and registration, the lock, power and the management window all work like a gate. The reader can't be removed on its own.
-[*] [b]Easy to read[/b]: when closed, the pivot lamp is red and a STOP sign hangs from the arm; when it opens for a registered car, the arm lifts over about 4 seconds and the lamp turns green. Stop lines and KNOX PASS lettering are painted on the lane on both sides.
-[*] [b]Removing and damage[/b]: dismantling the cabinet removes the whole barrier and gives the kit back. If the cabinet or the lane gets broken, the whole barrier is destroyed with no refund.
+[*] [b]Easy to read[/b]: when closed, the pivot lamp is red and a STOP sign hangs from the arm; when it opens for a registered car, the arm lifts over about 4 seconds, easing in and out, and the lamp turns green. Stop lines and KNOX PASS lettering are painted on the lane on both sides.
+[*] [b]Removing and damage[/b]: dismantling the cabinet removes the whole barrier and gives the kit back. If the cabinet or the lane gets broken, the whole barrier is destroyed with no refund. New barriers have 1000 durability on the cabinet and lane; barriers built before this update keep their old durability.
+[/list]
+
+[h3]Build your own gates[/h3]
+[list]
+[*] [b]Roll-up garage doors[/b]: search the build menu for "Roll-up Garage Door". Vanilla look in Industrial White, Green and White, each 3, 4, 6 or 9 tiles wide (6 fits two cars side by side, 9 fits three). Needs Welding 3 plus a welding torch, welding rods, steel sheets, iron pipes and door hinges; wider doors take more. No reader built in: install one like on any gate.
+[*] [b]Two-story roll-up doors[/b]: the same three colors, 3, 4, 6 or 9 wide; the curtain rolls all the way up into the box on top, so vans fit through. Needs Welding 4 and twice the materials of the one-story door of the same width. No reader built in.
+[*] [b]Double boom barrier[/b]: 6 or 9 tiles wide, with a cabinet at each end and two arms that meet in the middle. Build it with a screwdriver from 1 boom barrier kit plus iron pipes, steel sheets and wire (6 wide: 4, 2 and 2; 9 wide: 6, 3 and 2); no skill needed. It comes with a built-in reader, and the builder owns it.
+[*] [b]Two-story gates[/b]: 6 or 9 tiles wide double gates in five looks: Chain-link, Steel Plate, Iron Bars (Welding 5), Ranch Wood (Carpentry 5) and Medieval Oak (Carpentry 5, plus Welding 2 for its iron bands). Rotating while building picks which side the leaves swing to. No reader built in; once installed, the reader hangs on the face of the post.
+[*] [b]Durability[/b]: a one-car door (3 or 4 wide) has 1000, two cars (6 wide) 1500 and three cars (9 wide) 2000; two-story ones get 500 more.
+[*] [b]Removing and damage[/b]: dismantling either end (cabinet or post) of a double boom barrier or two-story gate removes the whole thing and refunds only that end's materials. If any door piece gets broken, the whole thing is destroyed with no refund.
+[*] [b]Animation[/b]: arms, roll-up curtains and gate leaves ease in and out as they move, and several gates moving at once each run on their own.
 [/list]
 
 [h3]Hands-free opening and closing[/h3]
 [list]
 [*] [b]Who opens it[/b]: the driver of a car carrying a registered, charged tag. Passengers, unregistered cars and empty tags open nothing.
 [*] [b]Opens early[/b]: the server predicts where the car is heading from its actual movement, so the faster you drive the earlier it opens; driving past in another direction doesn't. When a car under Minidoracat AutoDrive heads for the gate, the gate opens while it is still out of the car's sight; newer AutoDrive versions also know in advance that the gate will open for them, so they never slow down or detour for it.
-[*] [b]Closes by itself[/b]: it only closes gates Knox Pass opened, after no registered, driven car has been in range for a while.
-[*] [b]Never closes on anything[/b]: it waits while a car, a person or a zombie is in the doorway, and tries again two seconds later.
+[*] [b]Closes by itself[/b]: it only closes gates Knox Pass opened. Once a registered car, including any trailer it tows, has fully passed through the gateway, the close countdown starts; it doesn't wait for the car to leave the read range, and a car parked inside doesn't hold it open. Turning back toward the gate opens it again.
+[*] [b]Never closes on anything[/b]: it waits while a car or a person is in the doorway and tries again two seconds later. Zombies alone don't hold it open, so zombies following a car in can't keep the gate open.
 [*] [b]Warning before you reach it[/b]: when you drive toward a Knox Pass gate or barrier that won't open for you, you get a message above your head and in the top-right corner about 20 tiles before it, saying why (no tag installed, the tag isn't registered at that gate, an empty tag, an unpowered reader), so you don't drive straight into it.
 [/list]
 
 [h3]Gate lock and opening on foot[/h3]
 [list]
-[*] [b]Lock[/b]: the owner can turn on "Lock (only Knox Pass opens it)" in the right-click menu or the window. A locked gate can't be opened bare-handed; Knox Pass unlocks it to open and locks it again once closed. A house door's original key keeps working, so whoever holds that key can still open it.
+[*] [b]Lock[/b]: the owner can turn on "Lock (only Knox Pass opens it)" in the right-click menu or the window. A locked gate can't be opened bare-handed, and zombies that open doors can't open it either; Knox Pass unlocks it to open and locks it again once closed. A house door's original key keeps working, so whoever holds that key can still open it.
 [*] [b]Your old locks stay intact[/b]: a map door that was locked goes back to exactly the same kind of lock after closing, so its original key still works.
-[*] [b]On foot[/b]: right-click → Knox Pass → [b]Open with Knox Pass[/b]. The owner, admins, and anyone carrying a registered, charged tag can use it.
+[*] [b]On foot[/b]: right-click → Knox Pass → [b]Open with Knox Pass[/b]. The owner, admins, and anyone carrying a registered, charged tag can use it. A gate opened on foot stays open at least 5 seconds, so you can walk through even with a very short close delay.
+[*] [b]Close with Knox Pass[/b]: while the gate stands open (for example after someone opened it with the original key), right-click → Knox Pass → [b]Close with Knox Pass[/b]; it closes and locks again. The same people who can open it on foot can use it.
+[*] [b]Gates locked before this update[/b]: they get the new lock automatically; there's nothing to set again.
 [/list]
 
 [h3]Getting them[/h3]
 [list]
 [*] [b]Vehicle Tag[/b]: Electrical 2. Use a screwdriver to build it from a pager or TV remote, 2 electronics scrap and 1 battery; add one use of paint and a paintbrush to craft it in that color (see "Shell Colors" above). Also found in gas station storage, car supply stores, mechanic electrical shelves and electronics stores, in a random color.
-[*] [b]Gate Reader[/b]: Electrical 4. Use a screwdriver to build it from a radio receiver, 3 electronics scrap and 2 electric wires; it can be crafted in color the same way. Also found in electrician tool boxes, electronics crates, hardware stores and mechanics, in a random color.
-[*] [b]Boom Barrier Kit[/b]: Electrical 4. Use a screwdriver to build it from 1 Gate Reader (any color), 2 metal pipes, 1 sheet of metal and 2 electric wires. Crafting only; it isn't found as loot.
+[*] [b]Gate Reader[/b]: Electrical 4. Use a screwdriver to build it from a radio receiver, 3 electronics scrap and 2 electrical wires; it can be crafted in color the same way. Also found in electrician tool boxes, electronics crates, hardware stores and mechanics, in a random color.
+[*] [b]Boom Barrier Kit[/b]: Electrical 4. Use a screwdriver to build it from 1 Gate Reader (any color), 2 iron pipes, 1 steel sheet and 2 electrical wires. Crafting only; it isn't found as loot.
+[*] [b]Gates you build[/b]: roll-up garage doors, two-story roll-up doors, two-story gates and double boom barriers all come from the build menu; see "Build your own gates" above for materials and skills.
 [/list]
 
 [h2]⚙️ Server settings (sandbox page "Knox Pass")[/h2]
 [list]
-[*] [b]Read range[/b]: 8 tiles by default (2–30). The range around the gate while the car stands still.
+[*] [b]Read range[/b]: 8 tiles by default (2–50). The range around the gate while the car stands still; owners can set each gate to a value within the limits.
+[*] [b]Read range minimum / maximum[/b]: 2 / 30 tiles by default (2–50). The window's dropdown only lists this range, and each gate's effective value is kept inside it.
 [*] [b]Look-ahead seconds[/b]: 2 by default (0–5). How far ahead along the car's movement to look; 0 uses the plain range only.
 [*] [b]Self-driving early open distance[/b]: 150 tiles by default (0–250). When a car under Minidoracat AutoDrive heads for the gate (the gate within about 12 degrees of its direction of travel), the gate opens once the car is this close; the server must have the gate's area loaded first, so in practice it opens about 70–130 tiles out. 0 treats it like any other car.
-[*] [b]Auto-close delay[/b]: 5 seconds by default (0–120).
+[*] [b]Auto-close delay[/b]: 2 seconds by default (0–120).
+[*] [b]Auto-close delay minimum / maximum[/b]: 0 / 30 seconds by default (0–120); they work like the read range limits.
 [*] [b]Reader needs power[/b]: on by default. Grid power or a generator both count, and outdoor gates do get grid power.
 [*] [b]Tag battery drain[/b]: 100% by default (0–500%, 0 means it never runs out).
 [*] [b]Allow crafting[/b] and [b]Spawn as loot[/b]: on by default.
@@ -88,12 +105,13 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [h2]⚠️ Known limitations[/h2]
 [list]
 [*] Modded gates built some other way (for example ones that fake opening by swapping textures in code) aren't supported automatically. Mod authors can hook them in through the public interface, and players can ask for support in the feedback section.
-[*] Player-built garage doors aren't supported (the game itself doesn't open them as a group).
+[*] Garage doors built from the vanilla build menu aren't supported (the game itself doesn't open them as a group); for a garage door that opens by itself, build a Knox Pass roll-up garage door instead.
+[*] The door pieces of the barriers, roll-up doors and two-story gates you build are garage doors, which the game doesn't let you barricade.
 [*] A parked car with nobody in it and the engine off doesn't recharge its tag.
 [*] When a self-driving car passes along another road heading almost straight at the gate (for example a parallel road a few dozen tiles away), the gate may open early and close again a few seconds later.
 [*] The server can only open a gate once it has loaded that part of the map (roughly 60–130 tiles ahead of the car). With older AutoDrive versions a self-driving car may now and then see the gate closed a moment before it opens and slow down or drive around; newer versions are not affected. If the gate never opens, the self-driving car stops in front of it and waits or hands control back, just like at any closed gate; when the reason is something like an unpowered reader or a tag that isn't registered at that gate, newer AutoDrive versions tell you why in the top-right corner and with a voice line.
 [*] Low fence gates can always be climbed over; the lock doesn't stop climbing.
-[*] The boom barrier's cabinet always sits at one end (west for north–south, south for east–west); it can't be mirrored yet. Its lamp is just a color and doesn't glow at night.
+[*] Barrier lamps are just a color and don't glow at night.
 [/list]
 
 [h2]📜 Where the name comes from[/h2]
@@ -108,8 +126,9 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [h2]❓ FAQ[/h2]
 [list]
 [*] [b]I drove up and nothing opened.[/b] Check that you're in the driver's seat, the tag has charge, this tag is registered at this gate, and the reader has power (the window shows it).
-[*] [b]The gate won't close.[/b] It waits while a car, a person or a zombie is in the doorway, and while a registered car with a driver is still in range.
-[*] [b]Can other players open my gate?[/b] Only the tags you registered can. Once locked it can't be opened bare-handed either, except by someone holding that door's original key; an unlocked gate can still be opened by hand as usual.
+[*] [b]The gate won't close.[/b] It waits while a car or a person is in the doorway (zombies don't count). It also stays open until a registered car has fully passed through, then closes after the close delay.
+[*] [b]Can other players open my gate?[/b] Only the tags you registered can. Once locked, neither bare hands nor zombies can open it, except someone holding that door's original key; an unlocked gate can still be opened by hand as usual.
+[*] [b]Can zombies open my gate?[/b] Not one with the Knox Pass lock on. An unlocked gate can be opened by zombies when the server lets zombies open doors, as in vanilla.
 [*] [b]Is it safe in multiplayer?[/b] Opening, closing, locking and registering are all checked by the server, and the registrations live only on the server.
 [/list]
 

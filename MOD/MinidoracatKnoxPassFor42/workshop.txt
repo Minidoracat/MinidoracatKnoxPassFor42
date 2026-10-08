@@ -24,15 +24,15 @@ description=
 description=[h2]✨ Features[/h2]
 description=[list]
 description=[*] [b]Hands-free gates[/b]: drive up from the driver's seat and the gate opens, then closes after you leave
-description=[*] [b]Boom barriers[/b]: build your own lift-arm barrier; red means stop, green means go
+description=[*] [b]Build your own gates[/b]: boom barriers, roll-up garage doors and two-story gates, wide enough for several cars side by side
 description=[*] [b]Reads on the move[/b]: the faster you drive, the earlier it opens; self-driving cars find it already open
 description=[*] [b]A real vehicle part[/b]: fits vanilla and modded cars, and moves with the tag to another car
-description=[*] [b]Per-gate registration[/b]: only the cars you register get through, and you can lock it to Knox Pass only
+description=[*] [b]Per-gate registration[/b]: only the cars you register get through, and each gate has its own range, close delay and lock
 description=[*] [b]Works with many gates[/b]: fence gates, double doors, garage doors and player-built doors
 description=[*] [b]7 shell colors[/b]: craft tags and readers in color with vanilla paint, or repaint the ones you have
 description=[*] [b]No crashes, no pinching[/b]: warns you ahead of a gate that won't open, and never closes on a car or a person
 description=[/list]
-description=📖 [b]Installing readers, registering cars, shell colors, boom barriers, getting the items and FAQ:[/b] [url=https://steamcommunity.com/workshop/filedetails/discussion/3814684002/586187800874015404/]Knox Pass Guide: Tags, Readers & Hands-free Gates[/url]
+description=📖 [b]Installing readers, registering cars, building gates, per-gate settings, shell colors, getting the items and FAQ:[/b] [url=https://steamcommunity.com/workshop/filedetails/discussion/3814684002/586187800874015404/]Knox Pass Guide: Tags, Readers & Hands-free Gates[/url]
 description=
 description=[h2]🔗 All Minidoracat Mods[/h2]
 description=Browse the rest in the [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3809297109]Minidoracat collection[/url] and subscribe to what you need.
