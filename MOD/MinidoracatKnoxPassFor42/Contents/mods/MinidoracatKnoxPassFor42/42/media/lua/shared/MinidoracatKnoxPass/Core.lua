@@ -10,6 +10,7 @@ KP.PART_ID = "KnoxPassTag"
 KP.MARKER_OWNER = "KnoxPassReader"                -- 大門錨點 modData：讀頭擁有者名稱（只給右鍵選單用，伺服器不信它）
 KP.MARKER_LOCK = "KnoxPassLock"                   -- 大門錨點 modData：Knox Pass 門鎖是否開啟（同上）
 KP.MARKER_COLOR = "KnoxPassColor"                 -- 大門錨點 modData：讀頭顏色索引（同上；沒有＝米白）
+KP.MARKER_SPEED = "KnoxPassSpeed"                 -- 大門錨點 modData：開關速度 "fast"（沒有＝正常；client 據此選動畫）
 KP.MANAGE_RANGE = 3                               -- 操作讀頭要站在大門幾格內（同樓層）
 KP.REGISTER_RANGE = 15                            -- 登記時車要在大門幾格內
 KP.CHARGE_PER_HOUR = 0.2                          -- 裝在車上、車在跑、電瓶高於 10% 時每遊戲小時充電量
@@ -29,6 +30,7 @@ KP.BARRIER_MIRROR = 80
 KP.BARRIER_PLACEHOLDER = 160
 KP.BARRIER_HEALTH = 1000                          -- 新蓋閘門：機箱（entity health）與每片車道（setHealth）。IsoDoor 預設 500
 KP.BARRIER_ANIM_MS = 4000                         -- 臂的 clip 6 s ÷ speedDelta 1.5（IsoObjectAnimations.java:~281）
+KP.BARRIER_ANIM_FAST_MS = 2500                    -- 「加速」：*_fast 模型的 clip 3.75 s ÷ 1.5（build_barrier_tiles.py FAST_TILESET）
 KP.BARRIER_POSES = 8                              -- 靜態姿勢 0..8（animationTime k/8）
 KP.BARRIER_CLOSE_POSES = 32                       -- 放下用（紅燈）姿勢＝抬起用（綠燈）＋32（build_barrier_tiles.py CLOSE_OFFSET）
 
@@ -43,6 +45,18 @@ function KP.barrierIndex(obj)
     if not name then return nil end
     local n = string.match(name, "^" .. KP.BARRIER_TILESET .. "_(%d+)$")
     return n and tonumber(n) or nil
+end
+
+-- 每扇門可選的開關速度：錨點要有加速版 spriteModel（build_barrier_tiles.py FAST_TILESET 的虛擬 tileset）。
+-- 2026-10-08 先在單臂閘門試做
+function KP.speedSupported(anchor)
+    return KP.barrierIndex(anchor) ~= nil
+end
+
+-- 加速版 spriteModel 的名稱：同一個索引，tileset 前綴換成 MinidoracatKnoxPassFast_
+function KP.fastTwin(spriteName)
+    local rest = spriteName and string.match(spriteName, "^MinidoracatKnoxPass_(.+)$")
+    return rest and ("MinidoracatKnoxPassFast_" .. rest) or nil
 end
 
 -- 模型門（scripts/build_model_gates.py 產生）：雙桿閘門、兩層樓捲門（三款）、兩層樓大門（五種外觀）。MOD 的 tiledef

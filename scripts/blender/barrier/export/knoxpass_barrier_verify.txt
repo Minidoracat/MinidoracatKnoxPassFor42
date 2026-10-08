@@ -46,6 +46,53 @@ rest (closed) bbox ([0.15, 0.212, 0.0], [3.49, 0.388, 1.275])
   rest part navy         min [3.235, 0.235, 0.0] max [3.365, 0.365, 0.915] size [0.13, 0.13, 0.915]
   rest part white        min [0.27, 0.244, 0.725] max [3.46, 0.356, 1.275] size [3.19, 0.112, 0.55]
 
+==================== knoxpass_barrier_arm_fast.glb (47528 bytes)
+asset {'generator': 'Khronos glTF Blender I/O v5.2.40', 'version': '2.0'}
+node 0 {'name': 'DoorBone', 'translation': [0.27000001072883606, 1, -0.30000001192092896]}
+node 1 {'name': 'PostBone'}
+node 2 {'mesh': 0, 'name': 'knoxpass_barrier_arm_fast', 'skin': 0}
+node 3 {'children': [2, 0, 1], 'name': 'Dummy01'}
+skins [{'inverseBindMatrices': 6, 'joints': [0, 1], 'name': 'Dummy01'}]
+animation Close: channels=6 time [0.041666666666666664]..[3.7916666666666665] s
+animation Open: channels=6 time [0.041666666666666664]..[3.7916666666666665] s
+materials [{'doubleSided': True, 'name': 'knoxpass_barrier', 'pbrMetallicRoughness': {'baseColorTexture': {'index': 0}, 'metallicFactor': 0, 'roughnessFactor': 0.5}}]
+images [{'bufferView': 6, 'mimeType': 'image/png', 'name': 'knoxpass_barrier'}]
+mesh knoxpass_barrier_arm_fast attrs=['JOINTS_0', 'NORMAL', 'POSITION', 'TEXCOORD_0', 'WEIGHTS_0'] POSITION(glTF Y-up) min=[0.15, 0, -0.388] max=[3.49, 1.275, -0.212]
+-- re-import: objects [('Dummy01', 'ARMATURE'), ('knoxpass_barrier_arm_fast', 'MESH'), ('Icosphere', 'MESH')] (Icosphere = importer bone shape)
+vertex groups ['DoorBone', 'PostBone'] verts=384 tris=280 uv=['UVMap'] images=[('knoxpass_barrier', (512, 512))]
+bone DoorBone head=(0.27, 0.3, 1.0)
+bone PostBone head=(0.0, 0.0, 0.0)
+action Open: frames 1-91 @ 24 fps = 3.750 s, arm angle (t, deg, ease deg) [(0.0, 0.0, 0.0), (0.1, 2.69, 2.69), (0.5, 43.0, 43.0), (0.9, 83.31, 83.31), (1.0, 86.0, 86.0)], monotonic, first/last frame step 0.0332/0.0332 deg, bbox at last frame ([0.1084, 0.212, 0.0], [3.375, 0.388, 4.2181])
+  Open last frame part ARM          min [0.19, 0.25, 0.994] max [0.572, 0.35, 4.188] size [0.382, 0.1, 3.194]
+  Open last frame part ARM_TOP      min [0.19, 0.25, 0.994] max [0.572, 0.35, 4.188] size [0.382, 0.1, 3.194]
+  Open last frame part SIGN         min [0.108, 0.244, 2.444] max [0.673, 0.356, 3.008] size [0.565, 0.112, 0.564]
+  Open last frame part amber        min [3.225, 0.225, 0.855] max [3.375, 0.375, 0.915] size [0.15, 0.15, 0.06]
+  Open last frame part cap          min [0.15, 0.22, 0.88] max [0.39, 0.38, 1.12] size [0.24, 0.16, 0.24]
+  Open last frame part dark         min [0.408, 0.236, 0.895] max [3.315, 0.364, 4.218] size [2.907, 0.128, 3.323]
+  Open last frame part lamp         min [0.175, 0.212, 0.905] max [0.365, 0.388, 1.095] size [0.19, 0.176, 0.19]
+  Open last frame part navy         min [3.235, 0.235, 0.0] max [3.365, 0.365, 0.915] size [0.13, 0.13, 0.915]
+  Open last frame part white        min [0.108, 0.244, 0.994] max [0.673, 0.356, 4.188] size [0.565, 0.112, 3.194]
+action Close: frames 1-91 @ 24 fps = 3.750 s, arm angle (t, deg, ease deg) [(0.0, 86.0, 86.0), (0.1, 83.31, 83.31), (0.5, 43.0, 43.0), (0.9, 2.69, 2.69), (1.0, 0.0, 0.0)], monotonic, first/last frame step 0.0332/0.0332 deg, bbox at last frame ([0.15, 0.212, 0.0], [3.49, 0.388, 1.275])
+  Close last frame part ARM          min [0.27, 0.25, 0.92] max [3.46, 0.35, 1.08] size [3.19, 0.1, 0.16]
+  Close last frame part ARM_TOP      min [0.27, 0.25, 0.92] max [3.46, 0.35, 1.08] size [3.19, 0.1, 0.16]
+  Close last frame part SIGN         min [1.725, 0.244, 0.725] max [2.275, 0.356, 1.275] size [0.55, 0.112, 0.55]
+  Close last frame part amber        min [3.225, 0.225, 0.855] max [3.375, 0.375, 0.915] size [0.15, 0.15, 0.06]
+  Close last frame part cap          min [0.15, 0.22, 0.88] max [0.39, 0.38, 1.12] size [0.24, 0.16, 0.24]
+  Close last frame part dark         min [3.285, 0.236, 0.895] max [3.49, 0.364, 1.085] size [0.205, 0.128, 0.19]
+  Close last frame part lamp         min [0.175, 0.212, 0.905] max [0.365, 0.388, 1.095] size [0.19, 0.176, 0.19]
+  Close last frame part navy         min [3.235, 0.235, 0.0] max [3.365, 0.365, 0.915] size [0.13, 0.13, 0.915]
+  Close last frame part white        min [0.27, 0.244, 0.725] max [3.46, 0.356, 1.275] size [3.19, 0.112, 0.55]
+rest (closed) bbox ([0.15, 0.212, 0.0], [3.49, 0.388, 1.275])
+  rest part ARM          min [0.27, 0.25, 0.92] max [3.46, 0.35, 1.08] size [3.19, 0.1, 0.16]
+  rest part ARM_TOP      min [0.27, 0.25, 0.92] max [3.46, 0.35, 1.08] size [3.19, 0.1, 0.16]
+  rest part SIGN         min [1.725, 0.244, 0.725] max [2.275, 0.356, 1.275] size [0.55, 0.112, 0.55]
+  rest part amber        min [3.225, 0.225, 0.855] max [3.375, 0.375, 0.915] size [0.15, 0.15, 0.06]
+  rest part cap          min [0.15, 0.22, 0.88] max [0.39, 0.38, 1.12] size [0.24, 0.16, 0.24]
+  rest part dark         min [3.285, 0.236, 0.895] max [3.49, 0.364, 1.085] size [0.205, 0.128, 0.19]
+  rest part lamp         min [0.175, 0.212, 0.905] max [0.365, 0.388, 1.095] size [0.19, 0.176, 0.19]
+  rest part navy         min [3.235, 0.235, 0.0] max [3.365, 0.365, 0.915] size [0.13, 0.13, 0.915]
+  rest part white        min [0.27, 0.244, 0.725] max [3.46, 0.356, 1.275] size [3.19, 0.112, 0.55]
+
 ==================== knoxpass_barrier_cabinet.glb (22792 bytes)
 asset {'generator': 'Khronos glTF Blender I/O v5.2.40', 'version': '2.0'}
 node 0 {'mesh': 0, 'name': 'knoxpass_barrier_cabinet'}

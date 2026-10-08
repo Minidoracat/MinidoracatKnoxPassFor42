@@ -120,7 +120,7 @@ Win.__index = Win
 KP.Window = Win
 
 local LABELS = { "IGUI_KnoxPass_Kind", "IGUI_KnoxPass_Owner", "IGUI_KnoxPass_Power", "IGUI_KnoxPass_Door",
-    "IGUI_KnoxPass_Range", "IGUI_KnoxPass_Delay" }
+    "IGUI_KnoxPass_Range", "IGUI_KnoxPass_Delay", "IGUI_KnoxPass_Speed" }
 
 -- 地上的感應範圍圈（同原版除錯工具畫半徑的做法，ISSpawnHordeUI.lua:397-402；setScaleCircleTexture 讓 size＝半徑格數）。
 -- 圓心＝整組門的中心（帳本 cx／cy，Sensor 也從這裡量），標記只能放在整格上，雙開門會偏半格。伺服器上回 nil，只在 client 畫
@@ -153,8 +153,8 @@ function Win.new()
         self.labelW = math.max(self.labelW, getTextManager():MeasureStringX(FS, self.labels[i]))
     end
     self.labelW = self.labelW + 16
-    -- 高度跟字型走：資訊四列＋門鎖與兩列設定＋說明＋兩段（標題列＋清單）＋頁尾
-    local bodyH = PAD + self.lineH * 4 + (ch + GAP) * 3 + self.lineH + GAP + (ch + GAP + self.listH + PAD) * 2 + ch + PAD
+    -- 高度跟字型走：資訊四列＋門鎖與三列設定＋說明＋兩段（標題列＋清單）＋頁尾
+    local bodyH = PAD + self.lineH * 4 + (ch + GAP) * 4 + self.lineH + GAP + (ch + GAP + self.listH + PAD) * 2 + ch + PAD
     local sw, sh = getCore():getScreenWidth(), getCore():getScreenHeight()
     self.win = UI.Window.new({ x = math.floor((sw - W) / 2), y = math.floor((sh - bodyH) / 2) - 20, width = W,
         height = bodyH + 40, title = getText("IGUI_KnoxPass_Title"), theme = theme,
@@ -176,17 +176,22 @@ function Win.new()
     body:addChild(self.lock)
     y = y + ch + GAP
 
-    -- 每扇門的感應距離與關門延遲：下拉選單只列沙盒上下限內的值；框架沒有 Dropdown 時 draw 只寫數字
-    self.rangeY, self.delayY = y, y + ch + GAP
+    -- 每扇門的感應距離、關門延遲與開關速度：距離與延遲只列沙盒上下限內的值；框架沒有 Dropdown 時 draw 只寫目前的值
+    self.rangeY, self.delayY, self.speedY = y, y + ch + GAP, y + (ch + GAP) * 2
     if CAPS.dropdown then
         self.rangeDD = UI.Dropdown.new({ x = PAD + self.labelW, y = self.rangeY, width = DD_W, height = ch, font = FS,
             theme = theme, target = self, onChange = Win.onRange })
         self.delayDD = UI.Dropdown.new({ x = PAD + self.labelW, y = self.delayY, width = DD_W, height = ch, font = FS,
             theme = theme, target = self, onChange = Win.onDelay })
+        self.speedDD = UI.Dropdown.new({ x = PAD + self.labelW, y = self.speedY, width = DD_W, height = ch, font = FS,
+            theme = theme, target = self, onChange = Win.onSpeed })
+        self.speedDD:setOptions({ { id = "default", label = getText("IGUI_KnoxPass_SpeedNormal") },
+            { id = "fast", label = getText("IGUI_KnoxPass_SpeedFast") } })
         body:addChild(self.rangeDD)
         body:addChild(self.delayDD)
+        body:addChild(self.speedDD)
     end
-    y = self.delayY + ch + GAP
+    y = self.speedY + ch + GAP
     self.hintY = y
     self.hint = fit(getText("IGUI_KnoxPass_RangeHint"), W - PAD * 2)
     y = y + self.lineH + GAP
@@ -242,22 +247,28 @@ local function settingOptions(lo, hi, default, unit)
     return opts
 end
 
--- 設定兩列跟著 state 走（被拒時也用來回到伺服器的值）：設了值就選生效值（上下限縮小後是夾過的值），沒設選預設
+-- 設定三列跟著 state 走（被拒時也用來回到伺服器的值）：設了值就選生效值（上下限縮小後是夾過的值），沒設選預設。
+-- 開關速度只有錨點有加速版模型的門能選（state.speedSupported），其他門停用並寫明
 function Win:applySettings(s)
     local rb = getText("IGUI_KnoxPass_CellsRange", tostring(s.rangeMin), tostring(s.rangeMax))
     local db = getText("IGUI_KnoxPass_SecondsRange", tostring(s.delayMin), tostring(s.delayMax))
+    local fast = s.speed == "fast"
+    local sb = s.speedSupported and "" or getText("IGUI_KnoxPass_SpeedUnsupported")
     if not self.rangeDD then
         self.rangeAside = getText("IGUI_KnoxPass_Cells", tostring(s.range)) .. "   " .. rb
         self.delayAside = getText("IGUI_KnoxPass_Seconds", tostring(s.delay)) .. "   " .. db
+        self.speedAside = getText(fast and "IGUI_KnoxPass_SpeedFast" or "IGUI_KnoxPass_SpeedNormal") .. "   " .. sb
         return
     end
-    self.rangeAside, self.delayAside = rb, db
+    self.rangeAside, self.delayAside, self.speedAside = rb, db, sb
     self.rangeDD:setOptions(settingOptions(s.rangeMin, s.rangeMax, s.rangeDefault, "IGUI_KnoxPass_Cells"))
     self.rangeDD:setSelected(s.rangeSet ~= nil and s.range or "default", true)
     self.rangeDD:setEnabled(s.manager == true)
     self.delayDD:setOptions(settingOptions(s.delayMin, s.delayMax, s.delayDefault, "IGUI_KnoxPass_Seconds"))
     self.delayDD:setSelected(s.delaySet ~= nil and s.delay or "default", true)
     self.delayDD:setEnabled(s.manager == true)
+    self.speedDD:setSelected(fast and "fast" or "default", true)
+    self.speedDD:setEnabled(s.manager == true and s.speedSupported == true)
 end
 
 -- state 到達時算好資訊列字串（draw 每幀只畫）
@@ -302,13 +313,15 @@ function Win:draw(el)
         text(el, self.labels[i], PAD, y, "textMuted")
         text(el, self.rows[i], valueX, y, i == 3 and self.powerToken or "text")
     end
-    -- 設定兩列與下拉選單同高（高 fh+10，文字下移 5 置中）；有下拉選單時右邊寫上下限，沒有時寫「生效值   上下限」
+    -- 設定三列與下拉選單同高（高 fh+10，文字下移 5 置中）；有下拉選單時右邊寫上下限，沒有時寫「生效值   上下限」
     local asideX, asideToken = valueX, "text"
     if self.rangeDD then asideX, asideToken = valueX + DD_W + 10, "textFaint" end
     text(el, self.labels[5], PAD, self.rangeY + 5, "textMuted")
     text(el, self.rangeAside, asideX, self.rangeY + 5, asideToken)
     text(el, self.labels[6], PAD, self.delayY + 5, "textMuted")
     text(el, self.delayAside, asideX, self.delayY + 5, asideToken)
+    text(el, self.labels[7], PAD, self.speedY + 5, "textMuted")
+    text(el, self.speedAside, asideX, self.speedY + 5, asideToken)
     text(el, self.hint, PAD, self.hintY, "textFaint")
     -- 段落標題與右側按鈕同高（按鈕高 fh+10，文字下移 5 置中）
     text(el, self.tagsHead, PAD, self.tagsHeadY + 5, "accent")
@@ -336,6 +349,11 @@ end
 
 function Win:onDelay(id)
     C.send(self.player, "settings", { key = self.key, delay = id })
+end
+
+-- 開關速度：id＝"fast"（加速）或 "default"（正常）
+function Win:onSpeed(id)
+    C.send(self.player, "settings", { key = self.key, speed = id })
 end
 
 function Win:onUnregister()
@@ -388,6 +406,7 @@ function Win.open(player, anchor, key)
     if w.rangeDD then
         w.rangeDD:setEnabled(false)
         w.delayDD:setEnabled(false)
+        w.speedDD:setEnabled(false)
     end
     hideRange(w)   -- 換一扇門開視窗：等新 state 再畫這扇門的範圍
     w:refreshButtons()

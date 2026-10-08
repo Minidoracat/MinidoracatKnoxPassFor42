@@ -10,6 +10,9 @@
 -- （紅燈；S／E 向各＋80）；模型門是區塊起點＋32-40／48-56（Core.lua KP.GATE_SLOT）。燈色跟著 spriteModel 的 texture 走
 -- （IsoObjectModelDrawer.java:134-139）。每組 9 個通道，同款同方向同時在動的門各用一個，不會互相蓋掉。
 -- 只改本機顯示，不經網路、不進存檔。閒置時每幀只問一次 IsOpen；移除與距離每秒掃一次
+-- 每扇門的開關速度（Server.lua mark 的 KP.MARKER_SPEED）：加速的門靜止時把錨點換成加速版 spriteModel（KP.fastTwin，
+-- *_fast 模型、clip 3.75 s）。多人收到開關同步時引擎照錨點當下的 getSpriteModel() 播（IsoDoor.PlayAnimation，
+-- 逐物件覆寫優先，IsoObject.java:6280-6287），所以播的是加速版；通道姿勢是 clip 的比例時間，兩種速度共用，只換補播時長
 require "MinidoracatKnoxPass/Core"
 local KP = MinidoracatKnoxPass
 
@@ -24,9 +27,29 @@ local FAR = 120                                                  -- 離本機玩
 local STEPS = 96                                                 -- 4 秒 96 格＝每秒 24 格
 local SWEEP_MS = 1000                                            -- 多久查一次移除與距離
 
-local tracked = {}   -- 錨點物件 → { open, start, q, chan, tileset, base, close }
+local tracked = {}   -- 錨點物件 → { open, start, q, chan, tileset, base, close, fast, sm }
 local channels = {}  -- 通道名稱 → { sm = SpriteModel 腳本物件, user = 正在用的錨點 }
 local lastSweep = 0
+
+local function isFast(obj)
+    return obj:hasModData() and obj:getModData()[KP.MARKER_SPEED] == "fast"
+end
+local function animMs(s) return s.fast and KP.BARRIER_ANIM_FAST_MS or KP.BARRIER_ANIM_MS end
+
+-- 錨點的 spriteModel 覆寫：沒變就不重設（setSpriteModelName 會清掉引擎的快取）
+local function setSm(obj, s, name)
+    if name ~= s.sm then
+        s.sm = name
+        obj:setSpriteModelName(name)
+    end
+end
+-- 不在補播時該用的覆寫：加速的門用目前 sprite 的加速版（沒登錄就不覆寫），正常的門不覆寫
+local function restName(obj, s)
+    if not s.fast then return nil end
+    local spr = obj:getSprite()
+    local twin = spr and KP.fastTwin(spr:getName())
+    return twin and getScriptManager():getSpriteModel(twin) and twin or nil
+end
 
 -- 錨點 → 姿勢的 tileset、抬起姿勢起點、放下姿勢相對抬起的位移；不是錨點回 nil
 local function poses(obj)
@@ -41,7 +64,10 @@ end
 function A.track(obj)
     if tracked[obj] then return end
     local ts, base, close = poses(obj)
-    if ts then tracked[obj] = { open = obj:IsOpen(), tileset = ts, base = base, close = close } end
+    if not ts then return end
+    local s = { open = obj:IsOpen(), tileset = ts, base = base, close = close, fast = isFast(obj) }
+    tracked[obj] = s
+    setSm(obj, s, restName(obj, s))
 end
 
 -- 這個方向的一個空通道（同一座換方向時先放掉舊的）；9 個都在用就共用第一個（同款同方向同時動 10 座以上才會）
@@ -70,7 +96,7 @@ end
 local function finish(obj, s)
     if s.chan and channels[s.chan].user == obj then channels[s.chan].user = nil end
     s.start, s.q, s.chan = nil, nil, nil
-    obj:setSpriteModelName(nil)
+    setSm(obj, s, restName(obj, s))
     obj:setAnimating(false)
     obj:invalidateRenderChunkLevel(256)   -- 同引擎播完時的收尾（IsoObjectAnimations.java:76-78）；帶 doorTrans 的門本來就每幀畫（FBORenderCell.java:1835-1837）
 end
@@ -83,15 +109,20 @@ end
 -- 開關變了：引擎沒在播（或已經是我們在播）就從目前進度接著走；反向中途改變（還在抬就要放下）不跳回端點
 local function toggled(obj, s, open, now)
     s.open = open
-    if obj:isAnimating() and not s.start then return end   -- 引擎自己在播原生 clip
-    local done = s.start and math.min(1, (now - s.start) / KP.BARRIER_ANIM_MS) or 1
-    s.start, s.q = now - (1 - done) * KP.BARRIER_ANIM_MS, nil
+    if obj:isAnimating() and not s.start then   -- 引擎自己在播原生 clip：加速的門換成新狀態的加速版（播完的靜態姿勢）
+        setSm(obj, s, restName(obj, s))
+        return
+    end
+    local ms = animMs(s)
+    local done = s.start and math.min(1, (now - s.start) / ms) or 1
+    s.start, s.q = now - (1 - done) * ms, nil
     acquire(obj, s, open)
     if not s.chan then
         s.start = nil
+        setSm(obj, s, restName(obj, s))
         return
     end
-    obj:setSpriteModelName(s.chan)
+    setSm(obj, s, s.chan)
     obj:setAnimating(true)   -- 標成「在播」：同引擎 PlayAnimation（IsoDoor.java:1657-1664），反向中途接手時據此判斷；也讓它每幀畫
 end
 
@@ -107,10 +138,15 @@ function A.tick()
             gone = gone or {}
             gone[#gone + 1] = obj
         else
+            -- 擁有者改了速度（錨點標記隨 transmitModData 到）：每秒對一次，不在補播中就換覆寫
+            if sweep and isFast(obj) ~= s.fast then
+                s.fast = not s.fast
+                if not s.start then setSm(obj, s, restName(obj, s)) end
+            end
             local open = obj:IsOpen()
             if open ~= s.open then toggled(obj, s, open, now) end
             if s.start then
-                local t = (now - s.start) / KP.BARRIER_ANIM_MS
+                local t = (now - s.start) / animMs(s)
                 if t >= 1 then
                     finish(obj, s)
                 else

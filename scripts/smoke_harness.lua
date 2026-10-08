@@ -1047,6 +1047,22 @@ local function templateHook(key)
     for seg in string.gmatch(string.match(TEMPLATE_SRC, key .. " = ([%w_.]+),") or "", "[^.]+") do f = f and f[seg] end
     return f ~= _G and f or nil
 end
+-- 加速版 spriteModel（虛擬 tileset MinidoracatKnoxPassFast_*）只認真正登錄在 spriteModels.txt 的名稱
+-- （build_barrier_tiles.py FAST_TILESET；名稱＝tileset_索引，SpriteModels.java:81-96）。檔案不在（植入破壞的暫存複本）就一個都沒有
+local FAST_SM = (function()
+    local set = {}
+    local f = io.open(MEDIA .. "/../../../common/media/spriteModels.txt", "r")
+    if not f then return set end
+    local src = f:read("*a")
+    f:close()
+    for block in string.gmatch(src, "tileset%s*{(.-)\n    }") do
+        local name = string.match(block, "name = (MinidoracatKnoxPassFast_[%w_]+),")
+        if name then
+            for c, r in string.gmatch(block, "xy = (%d+) (%d+),") do set[name .. "_" .. (tonumber(c) + 8 * tonumber(r))] = true end
+        end
+    end
+    return set
+end)()
 function getScriptManager()
     return {
         getVehicleTemplate = function(_, name)
@@ -1063,7 +1079,7 @@ function getScriptManager()
         -- spriteModels.txt 的每個 tile 都登錄成名稱「tileset_索引」的 SpriteModel 腳本物件（SpriteModels.java:81-96）；
         -- 同名回同一個物件。setAnimationTime 改的就是畫面用的那個（IsoObject.getSpriteModel 照名稱取，IsoObject.java:6280-6286）
         getSpriteModel = function(_, name)
-            if not string.match(name, "^MinidoracatKnoxPass_") then return nil end
+            if not string.match(name, "^MinidoracatKnoxPass_") and not FAST_SM[name] then return nil end
             W.spriteModels = W.spriteModels or {}
             local sm = W.spriteModels[name]
             if not sm then
@@ -3092,6 +3108,28 @@ local function scenarioBarrierAnim()
     local q = smTime(sa) * 96
     check(math.abs(q - math.floor(q + 0.5)) < 1e-9 and W.smSets - sets <= 1,
         "時間量化成 1/96（引擎的骨架矩陣快取每個模型最多 97 筆），同一格的幾幀不重複設定")
+
+    -- 每扇門的開關速度（加速）：靜止時錨點換成加速版 spriteModel，補播照 2.5 秒走（正常 4 秒）
+    local fa = buildBarrier(260, 100, "N", me)[0]
+    step()
+    me._x, me._y = 261.5, 102.5
+    cmd(me, "settings", { key = "261,100,0N", speed = "fast" })   -- SP 的回覆直接呼叫 client（不經 sendServerCommand），驗帳本
+    check(KP.Ledger.get("261,100,0N").speed == "fast" and fa._modData[KP.MARKER_SPEED] == "fast",
+        "擁有者設加速：帳本記 fast、錨點標記")
+    runMs(1000)   -- BarrierAnim 每秒對一次標記
+    check(fa._smName == "MinidoracatKnoxPassFast_barrier_0", "靜止的加速門：錨點換成加速版 spriteModel（關的那張）")
+    fa:ToggleDoor(me)
+    step()
+    check(fa._smName == "MinidoracatKnoxPass_barrier_16" and fa:isAnimating(), "補播期間用共用的通道（比例時間，兩種速度同一組姿勢）")
+    runMs(2250)
+    local mid = fa:isAnimating()
+    runMs(250)
+    check(mid and not fa:isAnimating() and fa._smName == "MinidoracatKnoxPassFast_barrier_8",
+        "2.25 秒還在動、2.5 秒走完（正常要 4 秒）：換回加速版（開的那張）")
+    cmd(me, "settings", { key = "261,100,0N", speed = "default" })
+    check(KP.Ledger.get("261,100,0N").speed == nil and fa._modData[KP.MARKER_SPEED] == nil, "改回正常：帳本不存值、拿掉標記")
+    runMs(1000)
+    check(fa._smName == nil, "正常的門不覆寫 spriteModel")
     clean(from, "閘門動畫（SP）")
 
     freshWorld("client")
@@ -3142,6 +3180,26 @@ local function scenarioBarrierAnim()
     local idle = W.smSets
     runMs(2000)
     check(d2._smName == nil and W.smSets == idle, "動畫走完：閒置時不再設定時間")
+
+    -- 加速的門（錨點標記由伺服器 transmitModData 送到）：同步開門時引擎照錨點當下的覆寫播加速版 clip，之後換成開的那張
+    local fl = {}
+    for i = 0, 2 do
+        local d = IsoDoor.new(nil, nil, barrierSprite(i), true)
+        d._locked, d._lockedByKey = false, false
+        square(261 + i, 100, 0):AddSpecialObject(d)
+        fl[i] = d
+    end
+    fl[0]._modData[KP.MARKER_SPEED] = "fast"
+    cb(fl[0])
+    check(fl[0]._smName == "MinidoracatKnoxPassFast_barrier_0", "載入加速的門：錨點先換成加速版（關），之後的同步就播加速 clip")
+    fl[0]:ToggleDoor(p)
+    fl[0]:setAnimating(true)   -- 引擎照覆寫播（IsoDoor.PlayAnimation → getSpriteModel，IsoObject.java:6280-6287）
+    step()
+    check(fl[0]._smName == "MinidoracatKnoxPassFast_barrier_8" and fl[0]:isAnimating(),
+        "原生 clip 播放中不插手補播，只把覆寫換成開的那張加速版（播完的靜態姿勢）")
+    fl[0]:setAnimating(false)
+    runMs(1000)
+    check(fl[0]._smName == "MinidoracatKnoxPassFast_barrier_8", "播完：維持開的加速版")
     clean(from, "閘門動畫（MP client）")
 end
 
@@ -3941,6 +3999,28 @@ local function scenarioSettings()
     moveCar(ve, ve._x, ve._y + 40)
     step()
     check(not e.door:IsOpen(), "關門延遲 0：車一離開範圍，下一輪就關")
+
+    -- 開關速度（2026-10-08 先只開放單臂閘門）：存帳本，也標在錨點給 client 選動畫；門鎖、重新上色重寫標記時保留
+    local nd = gate(600)
+    res = cmd(nd.owner, "settings", { key = nd.key, speed = "fast" })
+    check(res.ok == false and res.why == "NoSpeedSupport" and rec(nd).speed == nil and nd.door._modData[KP.MARKER_SPEED] == nil,
+        "一般門不能加速：NoSpeedSupport，帳本與標記不動")
+    res, st = cmd(nd.owner, "settings", { key = nd.key, range = 9 })
+    check(st.speed == "default" and st.speedSupported == false, "state 帶速度與能不能調（一般門不能）")
+    local bo = newPlayer("bowner", 701, 103)
+    local bl = buildBarrier(700, 100, "N", bo)
+    step()
+    res, st = cmd(bo, "settings", { key = "701,100,0N", speed = "fast" })
+    check(res.ok == true and KP.Ledger.get("701,100,0N").speed == "fast" and bl[0]._modData[KP.MARKER_SPEED] == "fast"
+        and bl[0]._view.modData[KP.MARKER_SPEED] == "fast" and st.speed == "fast" and st.speedSupported == true,
+        "閘門設加速：帳本、錨點標記（同步給 client）、state")
+    check(cmd(bo, "settings", { key = "701,100,0N", speed = "turbo" }).why == "BadArgs"
+        and KP.Ledger.get("701,100,0N").speed == "fast", "不認得的值：BadArgs，帳本不動")
+    cmd(bo, "lock", { key = "701,100,0N", on = true })
+    check(bl[0]._modData[KP.MARKER_SPEED] == "fast", "開門鎖重寫標記時保留速度")
+    res, st = cmd(bo, "settings", { key = "701,100,0N", speed = "default" })
+    check(res.ok == true and KP.Ledger.get("701,100,0N").speed == nil and bl[0]._modData[KP.MARKER_SPEED] == nil
+        and st.speed == "default", "\"default\"：改回正常，帳本不存值、拿掉標記")
     clean(from, "每扇門設定")
 end
 

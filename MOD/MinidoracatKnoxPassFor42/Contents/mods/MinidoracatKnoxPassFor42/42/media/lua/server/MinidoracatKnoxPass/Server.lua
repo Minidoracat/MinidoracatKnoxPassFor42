@@ -80,11 +80,12 @@ local function nearGate(player, rec)
     return KP.near(player, rec.x, rec.y, rec.z, KP.MANAGE_RANGE)
 end
 
-local function mark(anchor, owner, lock, color)
+local function mark(anchor, owner, lock, color, speed)
     local md = anchor:getModData()
     md[KP.MARKER_OWNER] = owner
     md[KP.MARKER_LOCK] = lock or nil
     md[KP.MARKER_COLOR] = owner and color ~= 0 and color or nil   -- 只給右鍵選單列出「其他顏色」用
+    md[KP.MARKER_SPEED] = owner and speed == "fast" and "fast" or nil   -- client 選開關動畫（BarrierAnim.lua）
     anchor:transmitModData()
 end
 
@@ -144,11 +145,13 @@ local function buildState(player, key, rec)
         rangeDefault = KP.clampSetting("ReadRange", tonumber(KP.sandbox("ReadRange")) or 8),
         delay = KP.gateDelay(rec), delaySet = rec.closeDelay, delayMin = delayLo, delayMax = delayHi,
         delayDefault = KP.clampSetting("CloseDelay", tonumber(KP.sandbox("CloseDelay")) or 2),
+        speed = rec.speed == "fast" and "fast" or "default",
     }
     local adapter, anchor = G.findAt(rec)
     if adapter then
         state.powered = G.powered(G.pieces(adapter, anchor))
         state.lockSupported = G.supportsLock(adapter)
+        state.speedSupported = KP.speedSupported(anchor)
     end
     if not manager then return state end
     local now = getGameTime():getWorldAgeHours()
@@ -312,17 +315,24 @@ function H.lock(player, args)
         local pieces = G.pieces(adapter, anchor)
         if rec.lock then G.lock(adapter, anchor, pieces, true, false) else G.unlockKnox(adapter, anchor, pieces) end
     end
-    mark(anchor, rec.owner or "", rec.lock, rec.color)
+    mark(anchor, rec.owner or "", rec.lock, rec.color, rec.speed)
     result(player, cmd, true, nil, args.key)
     KP.sendState(player, args.key)
 end
 
--- 每扇門的感應距離與關門延遲（擁有者或管理員、站在門邊）。值：整數＝新值（夾在沙盒上下限內），
+-- 每扇門的感應距離、關門延遲與開關速度（擁有者或管理員、站在門邊）。值：整數＝新值（夾在沙盒上下限內），
 -- "default"＝改回跟著沙盒預設，沒送＝不改。回傳 ok, 值（false＝改回預設、nil＝不改）
 local function settingArg(v)
     if v == nil then return true, nil end
     if v == "default" then return true, false end
     return KP.isInt(v), v
+end
+
+-- 開關速度："fast"＝加速、"default"＝改回正常、沒送＝不改
+local function speedArg(v)
+    if v == nil then return true, nil end
+    if v == "default" then return true, false end
+    return v == "fast", v
 end
 
 function H.settings(player, args)
@@ -332,11 +342,23 @@ function H.settings(player, args)
     if not canManage(player, rec) then return result(player, cmd, false, "NotOwner", args.key) end
     local okR, range = settingArg(args.range)
     local okD, delay = settingArg(args.delay)
-    if not (okR and okD) then return result(player, cmd, false, "BadArgs", args.key) end
+    local okS, speed = speedArg(args.speed)
+    if not (okR and okD and okS) then return result(player, cmd, false, "BadArgs", args.key) end
+    -- 速度存在帳本，也標在錨點給 client 選動畫，所以門要載入
+    local adapter, anchor = nil, nil
+    if speed ~= nil then
+        adapter, anchor = G.findAt(rec)
+        if not adapter then return result(player, cmd, false, "NotLoaded", args.key) end
+        if speed and not KP.speedSupported(anchor) then return result(player, cmd, false, "NoSpeedSupport", args.key) end
+    end
     if range ~= nil then rec.range = range and KP.clampSetting("ReadRange", range) or nil end
     if delay ~= nil then rec.closeDelay = delay and KP.clampSetting("CloseDelay", delay) or nil end
+    if speed ~= nil then
+        rec.speed = speed or nil
+        mark(anchor, rec.owner or "", rec.lock, rec.color, rec.speed)
+    end
     KP.log("settings key=" .. args.key .. " range=" .. tostring(rec.range) .. " delay=" .. tostring(rec.closeDelay)
-        .. " by=" .. tostring(player:getUsername()))
+        .. " speed=" .. tostring(rec.speed) .. " by=" .. tostring(player:getUsername()))
     result(player, cmd, true, nil, args.key)
     KP.sendState(player, args.key)
 end
@@ -399,7 +421,7 @@ function H.recolorReader(player, args)
     rec.color = args.color
     KP.ReaderPost.refresh(args.key, rec)
     local adapter, anchor = G.findAt(rec)
-    if adapter then mark(anchor, rec.owner or "", rec.lock, rec.color) end
+    if adapter then mark(anchor, rec.owner or "", rec.lock, rec.color, rec.speed) end
     KP.log("reader recolor key=" .. args.key .. " color=" .. KP.COLORS[rec.color + 1].id .. " by=" .. tostring(player:getUsername()))
     result(player, cmd, true, nil, args.key)
 end

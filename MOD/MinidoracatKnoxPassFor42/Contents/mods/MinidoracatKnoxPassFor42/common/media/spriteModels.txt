@@ -1268,6 +1268,96 @@ spriteModel
 
     tileset
     {
+        name = MinidoracatKnoxPassFast_barrier,
+
+        tile
+        {
+            xy = 0 0,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArmFast,
+            translate = -1.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 0 1,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArmFast,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
+            translate = -1.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 3 0,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArmFast,
+            translate = 0.0000 0.0000 1.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 3 1,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArmFast,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
+            translate = 0.0000 0.0000 1.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 0 10,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArmFast,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 0 11,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArmFast,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 3 10,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArmFast,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 3 11,
+            modelScript = Base.MinidoracatKnoxPass_BarrierArmFast,
+            texture = IsoObject/MinidoracatKnoxPass_barrier_green,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+    }
+
+    tileset
+    {
         name = MinidoracatKnoxPass_barrier2,
 
         tile

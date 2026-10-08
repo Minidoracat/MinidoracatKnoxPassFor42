@@ -6,6 +6,8 @@ Full rebuild, run inside scripts/blender/barrier/ ("blender" = Blender 5.2 blend
     uv run --with pillow python atlas.py                          # textures/knoxpass_barrier{,_green}.png (Barlow, OFL)
     blender -b --factory-startup --python build_barrier.py        # .blend + export/*.glb
     blender -b --factory-startup --python verify_export.py        # export/knoxpass_barrier_verify.txt
+    KNOXPASS_FAST=1 blender -b --factory-startup --python build_barrier.py   # export/knoxpass_barrier_arm_fast.glb：
+                                                                  # 每扇門可選的「加速」，只重做有動畫的臂，不存 .blend
     uv run --with pillow python extract_vanilla_sprites.py        # vanilla_dump/sprites (calibration, gitignored)
     blender -b --factory-startup --python render_tiles.py         # cells/_canvas + previews (+ vanilla calibration)
                                                                   # + cells/reader/ (`-- reader` renders only those)
@@ -39,6 +41,7 @@ tile on the floor, +X = along the lane (arm direction), +Y = toward the gate edg
 -Y = cabinet front (nameplate). Footprint: cabinet tile x in [-0.5, 0.5], lane tiles 1..3 up to x = 3.5.
 """
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -58,7 +61,11 @@ GATE_Y = 0.5                          # gate line (tile edge of the door)
 FONT = HERE / "fonts" / "Barlow-SemiBold.ttf"
 OPEN_DEG = 86.0
 FPS = 24
-F0, F1 = 1, 1 + 6 * FPS               # 6.0 s clip; engine plays at speedDelta 1.5 -> ~4.0 s (IsoObjectAnimations.java:281)
+# KNOXPASS_FAST=1：每扇門可選的「加速」版，clip 3.75 s；引擎以 speedDelta 1.5 播（IsoObjectAnimations.java:281），
+# 遊戲裡正常 4.0 s、加速 2.5 s。只匯出有動畫的模型、檔名加 _fast（build_variant）
+FAST = os.environ.get("KNOXPASS_FAST") == "1"
+CLIP_S = 3.75 if FAST else 6.0
+F0, F1 = 1, 1 + round(CLIP_S * FPS)
 TEX = HERE / "textures" / "knoxpass_barrier.png"
 # reader item texture and its layout (pixels, top-left origin): same numbers as scripts/blender/build.py
 # READER_FACE / READER_JLBL / READER_SW (that script needs PIL, which Blender's Python does not ship)
@@ -344,6 +351,10 @@ def add_rig(sc, obj):
 
 
 def build_variant(name, parts, rigged, blend=None, tex=TEX):
+    if FAST:
+        if not rigged:
+            return
+        name, blend = name + "_fast", None
     bpy.ops.wm.read_factory_settings(use_empty=True)
     sc = bpy.context.scene
     sc.render.fps, sc.render.fps_base = FPS, 1.0

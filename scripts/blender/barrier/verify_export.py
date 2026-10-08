@@ -1,7 +1,7 @@
 """Re-import every export/knoxpass_barrier_*.glb into an empty scene; print glTF structure, bones, clips,
 arm angle at clip start/middle/end, bounding boxes, and per-part boxes (parts = atlas region / swatch the UVs hit:
 SIGN = STOP plate, lamp = lens, ARM = arm sides, FRONT/SIDE = cabinet faces, paint_white/amber = road paint).
-Arm clips: only Open / Close, 6.0 s, Open = OPEN_DEG * ease(t) and Close its exact reverse (scripts/blender/ease.py),
+Arm clips: only Open / Close, 6.0 s (the *_fast arm 3.75 s), Open = OPEN_DEG * ease(t) and Close its exact reverse (scripts/blender/ease.py),
 monotonic, at rest at both ends.
 用法：blender -b --factory-startup --python verify_export.py   (writes export/knoxpass_barrier_verify.txt)
 """
@@ -20,7 +20,7 @@ sys.path.insert(0, str(HERE.parent))
 import atlas as A  # noqa: E402
 from ease import ease  # noqa: E402
 
-OPEN_DEG, CLIP_S = 86.0, 6.0   # build_barrier.py OPEN_DEG, clip length F1 - F0 at FPS
+OPEN_DEG, CLIP_S, CLIP_FAST_S = 86.0, 6.0, 3.75   # build_barrier.py OPEN_DEG, CLIP_S (normal, KNOXPASS_FAST=1 -> *_fast)
 
 lines = []
 
@@ -118,7 +118,8 @@ def verify(glb):
         if hasattr(ad, "action_slot") and act.slots:
             ad.action_slot = act.slots[0]
         f0, f1 = (int(f) for f in act.frame_range)
-        assert abs((f1 - f0) / sc.render.fps - CLIP_S) < 1e-6, (act.name, f0, f1)
+        clip_s = CLIP_FAST_S if glb.stem.endswith("_fast") else CLIP_S
+        assert abs((f1 - f0) / sc.render.fps - clip_s) < 1e-6, (act.name, f0, f1)
 
         def angle_at(f):
             sc.frame_set(int(f), subframe=f - int(f))

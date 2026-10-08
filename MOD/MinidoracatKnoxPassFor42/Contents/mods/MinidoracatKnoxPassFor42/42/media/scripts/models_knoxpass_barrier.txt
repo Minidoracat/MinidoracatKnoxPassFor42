@@ -17,6 +17,23 @@ module Base
         keepMeshAnimations = true,
     }
 
+    model MinidoracatKnoxPass_BarrierArmFast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_barrier_arm_fast,
+        animationsMesh = MinidoracatKnoxPass_BarrierArmFast,
+        texture = IsoObject/MinidoracatKnoxPass_barrier,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_BarrierArmFast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_barrier_arm_fast,
+        keepMeshAnimations = true,
+    }
+
     model MinidoracatKnoxPass_BarrierCabinet
     {
         mesh = IsoObject/MinidoracatKnoxPass_barrier_cabinet,

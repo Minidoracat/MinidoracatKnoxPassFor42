@@ -114,6 +114,10 @@ FILE_NUMBER = 7430                           # 100..8189, unique across enabled 
                                              # ZomboidFileSystem.java:1000-1002); not used by any of the 418
                                              # local Workshop items; family Economy uses 7429
 TILESET = "MinidoracatKnoxPass_barrier"
+# 每扇門可選的「加速」（Lua KP.fastTwin）：車道 1 關／開的 spriteModel 換成 *_fast 臂（clip 3.75 s→遊戲裡 2.5 s），
+# 登錄在沒有 tiledef 的虛擬 tileset：spriteModel 名稱就是 tileset_索引（SpriteModels.java:81-96），
+# initSprites 只套到已存在的 sprite（SpriteModelsFile.java:271-279），不會多出 tile
+FAST_TILESET = "MinidoracatKnoxPassFast_barrier"
 CELL_W, CELL_H = 128, 256
 NAME = "Knox Pass Boom Barrier"
 READER_TILESET = "MinidoracatKnoxPass_reader"
@@ -275,9 +279,14 @@ def sprite_models() -> str:
                                 "Open", f / FRAMES, tex)
     tiles = "".join(sm_tile(i, READER_MODEL, READER_T, READER_XFORM[v], None, texture=reader_tex(c))
                     for i, (c, v) in READER_TILES.items())
+    fast = "".join(sm_tile(base, "MinidoracatKnoxPass_BarrierArmFast", XFORM[e]["arm"], XFORM[e]["rotate"], "Open")
+                   + sm_tile(base + 8, "MinidoracatKnoxPass_BarrierArmFast", XFORM[e]["arm"], XFORM[e]["rotate"], "Close",
+                             texture=GREEN)
+                   for e, (base, _, _) in EDGES.items())
     return ("spriteModel\n{\n    VERSION = 1,\n\n    tileset\n    {\n"
             f"        name = {TILESET},\n\n" + body + "    }\n\n    tileset\n    {\n"
-            f"        name = {READER_TILESET},\n\n" + tiles + "    }\n"
+            f"        name = {READER_TILESET},\n\n" + tiles + "    }\n\n    tileset\n    {\n"
+            f"        name = {FAST_TILESET},\n\n" + fast + "    }\n"
             + "".join("\n" + t for t in MG.sprite_model_tilesets()) + "}\n")
 
 
@@ -297,6 +306,23 @@ MODEL_SCRIPT = """module Base
     animationsMesh MinidoracatKnoxPass_BarrierArm
     {
         meshFile = IsoObject/MinidoracatKnoxPass_barrier_arm,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_BarrierArmFast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_barrier_arm_fast,
+        animationsMesh = MinidoracatKnoxPass_BarrierArmFast,
+        texture = IsoObject/MinidoracatKnoxPass_barrier,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_BarrierArmFast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_barrier_arm_fast,
         keepMeshAnimations = true,
     }
 
@@ -629,7 +655,7 @@ KIT_ICON = MEDIA / "textures" / "Item_MinidoracatKnoxPassBarrierKit.png"
 def assets() -> list[tuple[Path, Path]]:
     out = [(BLENDER / "export" / f"knoxpass_barrier_{p}.glb",
             MEDIA / "models_X" / "IsoObject" / f"MinidoracatKnoxPass_barrier_{p}.glb")
-           for p in ("arm", "cabinet", "lines", "empty")]
+           for p in ("arm", "arm_fast", "cabinet", "lines", "empty")]
     for suffix in ("", "_green"):
         out.append((BLENDER / "textures" / f"knoxpass_barrier{suffix}.png",
                     MEDIA / "textures" / "IsoObject" / f"MinidoracatKnoxPass_barrier{suffix}.png"))
@@ -742,8 +768,8 @@ def check() -> None:
     sm_all = (COMMON / "spriteModels.txt").read_text(encoding="ascii")
     assert sm_all == sprite_models(), "spriteModels.txt is stale: rerun the builder"
     assert sm_all.count("{") == sm_all.count("}") and "VERSION = 1" in sm_all
-    _, sm, sm_reader, *_ = sm_all.split("    tileset\n")    # per-tileset blocks: indices restart at 0 in each
-    assert f"name = {TILESET}," in sm and f"name = {READER_TILESET}," in sm_reader
+    _, sm, sm_reader, sm_fast, *_ = sm_all.split("    tileset\n")    # per-tileset blocks: indices restart at 0 in each
+    assert f"name = {TILESET}," in sm and f"name = {READER_TILESET}," in sm_reader and f"name = {FAST_TILESET}," in sm_fast
 
     def smw(model, t, r, anim=None, at=0.0, tex=None):
         d = {"modelScript": f"Base.MinidoracatKnoxPass_{model}", "translate": fmt3(t), "rotate": fmt3(r),
@@ -767,6 +793,11 @@ def check() -> None:
     assert {b["modelScript"].split(".")[1] for b in want_sm.values()} <= models
     assert MODELS_SCRIPT.read_text(encoding="ascii") == MODEL_SCRIPT, "model script is stale"
     assert (MEDIA / "textures" / f"{GREEN}.png").exists()
+    # 加速：只有車道 1 的關／開，其餘欄位跟正常版一樣，只換成 *_fast 臂
+    anchors = (0, 8, 3, 11, 80, 88, 83, 91)
+    assert sm_blocks(sm_fast) == {i: want_sm[i] | {"modelScript": "Base.MinidoracatKnoxPass_BarrierArmFast"} for i in anchors}
+    assert re.search(r"model MinidoracatKnoxPass_BarrierArmFast\s*\{[^}]*mesh = IsoObject/MinidoracatKnoxPass_barrier_arm_fast,"
+                     r"[^}]*animationsMesh = MinidoracatKnoxPass_BarrierArmFast,", MODEL_SCRIPT)
     # reader: one static model per tile on the post (host NW corner), rotated per variant, colour texture, no animation
     assert sm_blocks(sm_reader) == {i: {"modelScript": f"Base.{READER_MODEL}", "texture": reader_tex(c),
                                         "translate": fmt3(READER_T), "rotate": fmt3(READER_XFORM[v]), "scale": "1.0000"}
