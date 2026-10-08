@@ -1,0 +1,731 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_MinidoracatKnoxPassRollDoorIndustry3
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_RollDoor_Industry3,
+            Icon = media/ui/MinidoracatKnoxPass/rolldoor_industry_3.png,
+        }
+
+        entity ES_MinidoracatKnoxPassRollDoorIndustry4
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_RollDoor_Industry4,
+            Icon = media/ui/MinidoracatKnoxPass/rolldoor_industry_4.png,
+        }
+
+        entity ES_MinidoracatKnoxPassRollDoorIndustry6
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_RollDoor_Industry6,
+            Icon = media/ui/MinidoracatKnoxPass/rolldoor_industry_6.png,
+        }
+
+        entity ES_MinidoracatKnoxPassRollDoorIndustry9
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_RollDoor_Industry9,
+            Icon = media/ui/MinidoracatKnoxPass/rolldoor_industry_9.png,
+        }
+
+        entity ES_MinidoracatKnoxPassRollDoorGreen3
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_RollDoor_Green3,
+            Icon = media/ui/MinidoracatKnoxPass/rolldoor_green_3.png,
+        }
+
+        entity ES_MinidoracatKnoxPassRollDoorGreen4
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_RollDoor_Green4,
+            Icon = media/ui/MinidoracatKnoxPass/rolldoor_green_4.png,
+        }
+
+        entity ES_MinidoracatKnoxPassRollDoorGreen6
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_RollDoor_Green6,
+            Icon = media/ui/MinidoracatKnoxPass/rolldoor_green_6.png,
+        }
+
+        entity ES_MinidoracatKnoxPassRollDoorGreen9
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_RollDoor_Green9,
+            Icon = media/ui/MinidoracatKnoxPass/rolldoor_green_9.png,
+        }
+
+        entity ES_MinidoracatKnoxPassRollDoorWhite3
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_RollDoor_White3,
+            Icon = media/ui/MinidoracatKnoxPass/rolldoor_white_3.png,
+        }
+
+        entity ES_MinidoracatKnoxPassRollDoorWhite4
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_RollDoor_White4,
+            Icon = media/ui/MinidoracatKnoxPass/rolldoor_white_4.png,
+        }
+
+        entity ES_MinidoracatKnoxPassRollDoorWhite6
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_RollDoor_White6,
+            Icon = media/ui/MinidoracatKnoxPass/rolldoor_white_6.png,
+        }
+
+        entity ES_MinidoracatKnoxPassRollDoorWhite9
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_RollDoor_White9,
+            Icon = media/ui/MinidoracatKnoxPass/rolldoor_white_9.png,
+        }
+    }
+
+    entity MinidoracatKnoxPassRollDoorIndustry3
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassRollDoorIndustry3,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.RollDoor.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_0 MinidoracatKnoxPass_rolldoor_1 MinidoracatKnoxPass_rolldoor_2,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_5,
+                    row = MinidoracatKnoxPass_rolldoor_4,
+                    row = MinidoracatKnoxPass_rolldoor_3,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 300,
+            category = Welding,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:30,
+            inputs
+            {
+                item 6 [Base.BlowTorch] flags[DontRecordInput],
+                item 6 [Base.WeldingRods] flags[DontRecordInput],
+                item 4 [Base.SheetMetal],
+                item 4 [Base.MetalPipe],
+                item 4 [Base.Hinge],
+            }
+        }
+    }
+
+    entity MinidoracatKnoxPassRollDoorIndustry4
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassRollDoorIndustry4,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.RollDoor.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_8 MinidoracatKnoxPass_rolldoor_9 MinidoracatKnoxPass_rolldoor_10 MinidoracatKnoxPass_rolldoor_11,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_15,
+                    row = MinidoracatKnoxPass_rolldoor_14,
+                    row = MinidoracatKnoxPass_rolldoor_13,
+                    row = MinidoracatKnoxPass_rolldoor_12,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 400,
+            category = Welding,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:40,
+            inputs
+            {
+                item 8 [Base.BlowTorch] flags[DontRecordInput],
+                item 8 [Base.WeldingRods] flags[DontRecordInput],
+                item 5 [Base.SheetMetal],
+                item 5 [Base.MetalPipe],
+                item 5 [Base.Hinge],
+            }
+        }
+    }
+
+    entity MinidoracatKnoxPassRollDoorIndustry6
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassRollDoorIndustry6,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.RollDoor.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_16 MinidoracatKnoxPass_rolldoor_17 MinidoracatKnoxPass_rolldoor_18 MinidoracatKnoxPass_rolldoor_19 MinidoracatKnoxPass_rolldoor_20 MinidoracatKnoxPass_rolldoor_21,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_27,
+                    row = MinidoracatKnoxPass_rolldoor_26,
+                    row = MinidoracatKnoxPass_rolldoor_25,
+                    row = MinidoracatKnoxPass_rolldoor_24,
+                    row = MinidoracatKnoxPass_rolldoor_23,
+                    row = MinidoracatKnoxPass_rolldoor_22,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 600,
+            category = Welding,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:60,
+            inputs
+            {
+                item 12 [Base.BlowTorch] flags[DontRecordInput],
+                item 12 [Base.WeldingRods] flags[DontRecordInput],
+                item 8 [Base.SheetMetal],
+                item 8 [Base.MetalPipe],
+                item 8 [Base.Hinge],
+            }
+        }
+    }
+
+    entity MinidoracatKnoxPassRollDoorIndustry9
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassRollDoorIndustry9,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.RollDoor.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_32 MinidoracatKnoxPass_rolldoor_33 MinidoracatKnoxPass_rolldoor_34 MinidoracatKnoxPass_rolldoor_35 MinidoracatKnoxPass_rolldoor_36 MinidoracatKnoxPass_rolldoor_37 MinidoracatKnoxPass_rolldoor_38 MinidoracatKnoxPass_rolldoor_39 MinidoracatKnoxPass_rolldoor_40,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_49,
+                    row = MinidoracatKnoxPass_rolldoor_48,
+                    row = MinidoracatKnoxPass_rolldoor_47,
+                    row = MinidoracatKnoxPass_rolldoor_46,
+                    row = MinidoracatKnoxPass_rolldoor_45,
+                    row = MinidoracatKnoxPass_rolldoor_44,
+                    row = MinidoracatKnoxPass_rolldoor_43,
+                    row = MinidoracatKnoxPass_rolldoor_42,
+                    row = MinidoracatKnoxPass_rolldoor_41,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 900,
+            category = Welding,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:90,
+            inputs
+            {
+                item 18 [Base.BlowTorch] flags[DontRecordInput],
+                item 18 [Base.WeldingRods] flags[DontRecordInput],
+                item 12 [Base.SheetMetal],
+                item 12 [Base.MetalPipe],
+                item 12 [Base.Hinge],
+            }
+        }
+    }
+
+    entity MinidoracatKnoxPassRollDoorGreen3
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassRollDoorGreen3,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.RollDoor.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_64 MinidoracatKnoxPass_rolldoor_65 MinidoracatKnoxPass_rolldoor_66,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_69,
+                    row = MinidoracatKnoxPass_rolldoor_68,
+                    row = MinidoracatKnoxPass_rolldoor_67,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 300,
+            category = Welding,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:30,
+            inputs
+            {
+                item 6 [Base.BlowTorch] flags[DontRecordInput],
+                item 6 [Base.WeldingRods] flags[DontRecordInput],
+                item 4 [Base.SheetMetal],
+                item 4 [Base.MetalPipe],
+                item 4 [Base.Hinge],
+            }
+        }
+    }
+
+    entity MinidoracatKnoxPassRollDoorGreen4
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassRollDoorGreen4,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.RollDoor.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_72 MinidoracatKnoxPass_rolldoor_73 MinidoracatKnoxPass_rolldoor_74 MinidoracatKnoxPass_rolldoor_75,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_79,
+                    row = MinidoracatKnoxPass_rolldoor_78,
+                    row = MinidoracatKnoxPass_rolldoor_77,
+                    row = MinidoracatKnoxPass_rolldoor_76,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 400,
+            category = Welding,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:40,
+            inputs
+            {
+                item 8 [Base.BlowTorch] flags[DontRecordInput],
+                item 8 [Base.WeldingRods] flags[DontRecordInput],
+                item 5 [Base.SheetMetal],
+                item 5 [Base.MetalPipe],
+                item 5 [Base.Hinge],
+            }
+        }
+    }
+
+    entity MinidoracatKnoxPassRollDoorGreen6
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassRollDoorGreen6,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.RollDoor.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_80 MinidoracatKnoxPass_rolldoor_81 MinidoracatKnoxPass_rolldoor_82 MinidoracatKnoxPass_rolldoor_83 MinidoracatKnoxPass_rolldoor_84 MinidoracatKnoxPass_rolldoor_85,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_91,
+                    row = MinidoracatKnoxPass_rolldoor_90,
+                    row = MinidoracatKnoxPass_rolldoor_89,
+                    row = MinidoracatKnoxPass_rolldoor_88,
+                    row = MinidoracatKnoxPass_rolldoor_87,
+                    row = MinidoracatKnoxPass_rolldoor_86,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 600,
+            category = Welding,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:60,
+            inputs
+            {
+                item 12 [Base.BlowTorch] flags[DontRecordInput],
+                item 12 [Base.WeldingRods] flags[DontRecordInput],
+                item 8 [Base.SheetMetal],
+                item 8 [Base.MetalPipe],
+                item 8 [Base.Hinge],
+            }
+        }
+    }
+
+    entity MinidoracatKnoxPassRollDoorGreen9
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassRollDoorGreen9,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.RollDoor.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_96 MinidoracatKnoxPass_rolldoor_97 MinidoracatKnoxPass_rolldoor_98 MinidoracatKnoxPass_rolldoor_99 MinidoracatKnoxPass_rolldoor_100 MinidoracatKnoxPass_rolldoor_101 MinidoracatKnoxPass_rolldoor_102 MinidoracatKnoxPass_rolldoor_103 MinidoracatKnoxPass_rolldoor_104,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_113,
+                    row = MinidoracatKnoxPass_rolldoor_112,
+                    row = MinidoracatKnoxPass_rolldoor_111,
+                    row = MinidoracatKnoxPass_rolldoor_110,
+                    row = MinidoracatKnoxPass_rolldoor_109,
+                    row = MinidoracatKnoxPass_rolldoor_108,
+                    row = MinidoracatKnoxPass_rolldoor_107,
+                    row = MinidoracatKnoxPass_rolldoor_106,
+                    row = MinidoracatKnoxPass_rolldoor_105,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 900,
+            category = Welding,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:90,
+            inputs
+            {
+                item 18 [Base.BlowTorch] flags[DontRecordInput],
+                item 18 [Base.WeldingRods] flags[DontRecordInput],
+                item 12 [Base.SheetMetal],
+                item 12 [Base.MetalPipe],
+                item 12 [Base.Hinge],
+            }
+        }
+    }
+
+    entity MinidoracatKnoxPassRollDoorWhite3
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassRollDoorWhite3,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.RollDoor.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_128 MinidoracatKnoxPass_rolldoor_129 MinidoracatKnoxPass_rolldoor_130,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_133,
+                    row = MinidoracatKnoxPass_rolldoor_132,
+                    row = MinidoracatKnoxPass_rolldoor_131,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 300,
+            category = Welding,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:30,
+            inputs
+            {
+                item 6 [Base.BlowTorch] flags[DontRecordInput],
+                item 6 [Base.WeldingRods] flags[DontRecordInput],
+                item 4 [Base.SheetMetal],
+                item 4 [Base.MetalPipe],
+                item 4 [Base.Hinge],
+            }
+        }
+    }
+
+    entity MinidoracatKnoxPassRollDoorWhite4
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassRollDoorWhite4,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.RollDoor.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_136 MinidoracatKnoxPass_rolldoor_137 MinidoracatKnoxPass_rolldoor_138 MinidoracatKnoxPass_rolldoor_139,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_143,
+                    row = MinidoracatKnoxPass_rolldoor_142,
+                    row = MinidoracatKnoxPass_rolldoor_141,
+                    row = MinidoracatKnoxPass_rolldoor_140,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 400,
+            category = Welding,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:40,
+            inputs
+            {
+                item 8 [Base.BlowTorch] flags[DontRecordInput],
+                item 8 [Base.WeldingRods] flags[DontRecordInput],
+                item 5 [Base.SheetMetal],
+                item 5 [Base.MetalPipe],
+                item 5 [Base.Hinge],
+            }
+        }
+    }
+
+    entity MinidoracatKnoxPassRollDoorWhite6
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassRollDoorWhite6,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.RollDoor.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_144 MinidoracatKnoxPass_rolldoor_145 MinidoracatKnoxPass_rolldoor_146 MinidoracatKnoxPass_rolldoor_147 MinidoracatKnoxPass_rolldoor_148 MinidoracatKnoxPass_rolldoor_149,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_155,
+                    row = MinidoracatKnoxPass_rolldoor_154,
+                    row = MinidoracatKnoxPass_rolldoor_153,
+                    row = MinidoracatKnoxPass_rolldoor_152,
+                    row = MinidoracatKnoxPass_rolldoor_151,
+                    row = MinidoracatKnoxPass_rolldoor_150,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 600,
+            category = Welding,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:60,
+            inputs
+            {
+                item 12 [Base.BlowTorch] flags[DontRecordInput],
+                item 12 [Base.WeldingRods] flags[DontRecordInput],
+                item 8 [Base.SheetMetal],
+                item 8 [Base.MetalPipe],
+                item 8 [Base.Hinge],
+            }
+        }
+    }
+
+    entity MinidoracatKnoxPassRollDoorWhite9
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassRollDoorWhite9,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.RollDoor.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_160 MinidoracatKnoxPass_rolldoor_161 MinidoracatKnoxPass_rolldoor_162 MinidoracatKnoxPass_rolldoor_163 MinidoracatKnoxPass_rolldoor_164 MinidoracatKnoxPass_rolldoor_165 MinidoracatKnoxPass_rolldoor_166 MinidoracatKnoxPass_rolldoor_167 MinidoracatKnoxPass_rolldoor_168,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_rolldoor_177,
+                    row = MinidoracatKnoxPass_rolldoor_176,
+                    row = MinidoracatKnoxPass_rolldoor_175,
+                    row = MinidoracatKnoxPass_rolldoor_174,
+                    row = MinidoracatKnoxPass_rolldoor_173,
+                    row = MinidoracatKnoxPass_rolldoor_172,
+                    row = MinidoracatKnoxPass_rolldoor_171,
+                    row = MinidoracatKnoxPass_rolldoor_170,
+                    row = MinidoracatKnoxPass_rolldoor_169,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 900,
+            category = Welding,
+            SkillRequired = MetalWelding:3,
+            xpAward = MetalWelding:90,
+            inputs
+            {
+                item 18 [Base.BlowTorch] flags[DontRecordInput],
+                item 18 [Base.WeldingRods] flags[DontRecordInput],
+                item 12 [Base.SheetMetal],
+                item 12 [Base.MetalPipe],
+                item 12 [Base.Hinge],
+            }
+        }
+    }
+}

@@ -1,9 +1,9 @@
 """Split render canvases into PZ 2x cells, rebuild composites from the cells and check them against the
 full renders; compare the vanilla calibration renders with the shipped 2D sprites.
 用法：python assemble_previews.py      (after render_tiles.py; needs Pillow)
-Outputs: cells/<N|W>/{cabinet,cabinet_arm,lane1,lane2,lane3}_<state>.png (128x256, tile top corner (64,192),
+Outputs: cells/<N|W|S|E>/{cabinet,cabinet_arm,lane1,lane2,lane3}_<state>.png (128x256, tile top corner (64,192),
 floor diamond bottom vertex (64,255)), *_z1.png (same tile one level up, only when the geometry is taller
-than one level), cells/<N|W>/cabinet_ghost_closed.png (build-cursor cell), previews/<layout>_<state>_cells.png,
+than one level), cells/<N|W|S|E>/cabinet_ghost_closed.png (build-cursor cell), previews/<layout>_<state>_cells.png,
 cells/cells.txt.
 """
 from pathlib import Path
@@ -12,8 +12,10 @@ from PIL import Image, ImageChops, ImageDraw
 
 HERE = Path(__file__).resolve().parent
 STATES = ("closed", "a30", "a60", "open")
-OFFSETS = {"N": lambda k: (k, 0), "W": lambda k: (0, -k)}   # PZ (dx, dy) of tile k from the cabinet tile
-OX, OY, CW, CH = 128, 480, 448, 704                           # full render: tile 0 top corner, canvas size
+# PZ (dx, dy) of lane k (1..3) from the cabinet tile; S/E = N/W turned 180 deg (lane1 farthest from the cabinet)
+OFFSETS = {"N": lambda k: (k, 0), "W": lambda k: (0, -k), "S": lambda k: (-(4 - k), 0), "E": lambda k: (0, 4 - k)}
+OX = {"N": 128, "W": 128, "S": 320, "E": 320}               # full render: cabinet top corner x (render_tiles LAYOUTS)
+OY, CW, CH = 480, 448, 704                                   # full render: cabinet top corner y, canvas size
 report = []
 
 
@@ -52,7 +54,9 @@ for name in (f"fixtures_doors_fences_01_{i}" for i in range(4)):   # 1/0 = N/W c
 
 # 2. cells + rebuilt composites
 say("\n== cells: 128x256, tile top corner (64,192); bbox = opaque rect inside the cell")
-for layout, off in OFFSETS.items():
+for layout, lane_off in OFFSETS.items():
+    ox = OX[layout]
+    off = lambda k: lane_off(k) if k else (0, 0)  # noqa: E731
     for state in STATES:
         comp = Image.new("RGBA", (CW, CH), (0, 0, 0, 0))
         for name, k, src in (("cabinet", 0, "cabinet"), ("cabinet_arm", 0, f"cabinet_arm_{state}"),
@@ -72,7 +76,7 @@ for layout, off in OFFSETS.items():
                 z1.unlink()
             say(f"{layout} {name}_{state}: bbox {alpha_bbox(lower)}" + (f"  z+1 bbox {up_box}" if up_box else ""))
             dx, dy = off(k)
-            tx, ty = OX + (dx - dy) * 64, OY + (dx + dy) * 32
+            tx, ty = ox + (dx - dy) * 64, OY + (dx + dy) * 32
             comp.alpha_composite(lower, (tx - 64, ty - 192))
             if up_box:
                 comp.alpha_composite(upper, (tx - 64, ty - 384))
@@ -81,12 +85,12 @@ for layout, off in OFFSETS.items():
         say(f"   {layout} {state}: cells vs full render -> {sum(1 for p in diff.getdata() if p)} alpha-mismatch px")
         bg = Image.new("RGBA", (CW, CH), (58, 60, 64, 255))
         d = ImageDraw.Draw(bg)
-        for gx in range(-1, 5):
-            for gy in range(-4, 2):
-                diamond(d, OX + (gx - gy) * 64, OY + (gx + gy) * 32, (80, 84, 90, 255))
+        for gx in range(-4, 5):
+            for gy in range(-4, 5):
+                diamond(d, ox + (gx - gy) * 64, OY + (gx + gy) * 32, (80, 84, 90, 255))
         for k in range(4):
             dx, dy = off(k)
-            diamond(d, OX + (dx - dy) * 64, OY + (dx + dy) * 32, (200, 170, 60, 255))
+            diamond(d, ox + (dx - dy) * 64, OY + (dx + dy) * 32, (200, 170, 60, 255))
         bg.alpha_composite(comp)
         bg.save(HERE / "previews" / f"{layout}_{state}_cells.png")
     ghost = Image.open(HERE / "cells" / "_canvas" / f"{layout}_cabinet_ghost.png").convert("RGBA")

@@ -1,0 +1,117 @@
+
+== MinidoracatKnoxPass_gatepost_A.glb (54700 bytes) static, verts=168 tris=84 bbox ([-0.24, 0.12, 0.0], [0.24, 0.6, 4.74]) images ['MinidoracatKnoxPass_gate_A']
+
+== knoxpass_reader_pillar_A.glb (31740 bytes) static, verts=240 tris=120 bbox ([-0.18, 0.14, 0.0], [0.18, 0.58, 1.1]) images ['MinidoracatKnoxPassReader']
+reader: min |y - PLANE_Y| 0.1750 (post face 0.170 + 0.005), x -0.18..0.18, faces y 0.185 / 0.535
+
+== MinidoracatKnoxPass_gate_A6.glb (102384 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_gate_A']
+bones [('DoorBoneA', (0.23, 0.36, 0.0)), ('DoorBoneB', (6.77, 0.36, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  groups ['DoorBoneA', 'DoorBoneB', 'PostBone']  verts=712 tris=356
+clip Open: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, -0.0, 0.0, 0.0), (0.1, 2.82, 2.82, 2.81), (0.5, 45.0, 45.0, 45.0), (0.9, 87.18, 87.18, 87.19), (1.0, 90.0, 90.0, 90.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+clip Close: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, 90.0, 90.0, 90.0), (0.1, 87.18, 87.18, 87.19), (0.5, 45.0, 45.0, 45.0), (0.9, 2.82, 2.82, 2.81), (1.0, -0.0, 0.0, 0.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+open bbox ([0.19, -2.895, 0.05], [6.81, 0.415, 4.45])
+open: leaf A min x 0.190 (post / reader edge 0.180), leaf B max x 6.810 (post edge 6.830)
+rest (closed) bbox ([0.175, 0.32, 0.05], [6.825, 0.4, 4.45])  height 4.450 = 1.82 stories
+
+== MinidoracatKnoxPass_gate_A9.glb (106784 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_gate_A']
+bones [('DoorBoneA', (0.23, 0.36, 0.0)), ('DoorBoneB', (9.77, 0.36, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  groups ['DoorBoneA', 'DoorBoneB', 'PostBone']  verts=792 tris=396
+clip Open: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, -0.0, 0.0, 0.0), (0.1, 2.82, 2.82, 2.81), (0.5, 45.0, 45.0, 45.0), (0.9, 87.18, 87.18, 87.19), (1.0, 90.0, 90.0, 90.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+clip Close: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, 90.0, 90.0, 90.0), (0.1, 87.18, 87.18, 87.19), (0.5, 45.0, 45.0, 45.0), (0.9, 2.82, 2.82, 2.81), (1.0, -0.0, 0.0, 0.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+open bbox ([0.19, -4.395, 0.05], [9.81, 0.415, 4.45])
+open: leaf A min x 0.190 (post / reader edge 0.180), leaf B max x 9.810 (post edge 9.830)
+rest (closed) bbox ([0.175, 0.32, 0.05], [9.825, 0.4, 4.45])  height 4.450 = 1.82 stories
+
+== MinidoracatKnoxPass_gatepost_B.glb (9696 bytes) static, verts=168 tris=84 bbox ([-0.24, 0.12, 0.0], [0.24, 0.6, 4.74]) images ['MinidoracatKnoxPass_gate_B']
+
+== knoxpass_reader_pillar_B.glb (31740 bytes) static, verts=240 tris=120 bbox ([-0.18, 0.14, 0.0], [0.18, 0.58, 1.1]) images ['MinidoracatKnoxPassReader']
+reader: min |y - PLANE_Y| 0.1750 (post face 0.170 + 0.005), x -0.18..0.18, faces y 0.185 / 0.535
+
+== MinidoracatKnoxPass_gate_B6.glb (68384 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_gate_B']
+bones [('DoorBoneA', (0.235, 0.36, 0.0)), ('DoorBoneB', (6.765, 0.36, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  groups ['DoorBoneA', 'DoorBoneB', 'PostBone']  verts=912 tris=456
+clip Open: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, -0.0, 0.0, 0.0), (0.1, 2.82, 2.82, 2.81), (0.5, 45.0, 45.0, 45.0), (0.9, 87.18, 87.18, 87.19), (1.0, 90.0, 90.0, 90.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+clip Close: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, 90.0, 90.0, 90.0), (0.1, 87.18, 87.18, 87.19), (0.5, 45.0, 45.0, 45.0), (0.9, 2.82, 2.82, 2.81), (1.0, -0.0, 0.0, 0.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+open bbox ([0.19, -2.89, 0.05], [6.81, 0.42, 4.45])
+open: leaf A min x 0.190 (post / reader edge 0.180), leaf B max x 6.810 (post edge 6.830)
+rest (closed) bbox ([0.175, 0.315, 0.05], [6.825, 0.405, 4.45])  height 4.450 = 1.82 stories
+
+== MinidoracatKnoxPass_gate_B9.glb (73228 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_gate_B']
+bones [('DoorBoneA', (0.235, 0.36, 0.0)), ('DoorBoneB', (9.765, 0.36, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  groups ['DoorBoneA', 'DoorBoneB', 'PostBone']  verts=1000 tris=500
+clip Open: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, -0.0, 0.0, 0.0), (0.1, 2.82, 2.82, 2.81), (0.5, 45.0, 45.0, 45.0), (0.9, 87.18, 87.18, 87.19), (1.0, 90.0, 90.0, 90.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+clip Close: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, 90.0, 90.0, 90.0), (0.1, 87.18, 87.18, 87.19), (0.5, 45.0, 45.0, 45.0), (0.9, 2.82, 2.82, 2.81), (1.0, -0.0, 0.0, 0.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+open bbox ([0.19, -4.39, 0.05], [9.81, 0.42, 4.45])
+open: leaf A min x 0.190 (post / reader edge 0.180), leaf B max x 9.810 (post edge 9.830)
+rest (closed) bbox ([0.175, 0.315, 0.05], [9.825, 0.405, 4.45])  height 4.450 = 1.82 stories
+
+== MinidoracatKnoxPass_gatepost_C.glb (9508 bytes) static, verts=168 tris=84 bbox ([-0.24, 0.12, 0.0], [0.24, 0.6, 4.74]) images ['MinidoracatKnoxPass_gate_C']
+
+== knoxpass_reader_pillar_C.glb (31740 bytes) static, verts=240 tris=120 bbox ([-0.18, 0.14, 0.0], [0.18, 0.58, 1.1]) images ['MinidoracatKnoxPassReader']
+reader: min |y - PLANE_Y| 0.1750 (post face 0.170 + 0.005), x -0.18..0.18, faces y 0.185 / 0.535
+
+== MinidoracatKnoxPass_gate_C6.glb (105908 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_gate_C']
+bones [('DoorBoneA', (0.23, 0.36, 0.0)), ('DoorBoneB', (6.77, 0.36, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  groups ['DoorBoneA', 'DoorBoneB', 'PostBone']  verts=1608 tris=708
+clip Open: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, -0.0, 0.0, 0.0), (0.1, 2.82, 2.82, 2.81), (0.5, 45.0, 45.0, 45.0), (0.9, 87.18, 87.18, 87.19), (1.0, 90.0, 90.0, 90.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+clip Close: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, 90.0, 90.0, 90.0), (0.1, 87.18, 87.18, 87.19), (0.5, 45.0, 45.0, 45.0), (0.9, 2.82, 2.82, 2.81), (1.0, -0.0, 0.0, 0.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+open bbox ([0.19, -2.895, 0.05], [6.81, 0.415, 4.66])
+open: leaf A min x 0.190 (post / reader edge 0.180), leaf B max x 6.810 (post edge 6.830)
+rest (closed) bbox ([0.175, 0.32, 0.05], [6.825, 0.4, 4.66])  height 4.660 = 1.90 stories
+
+== MinidoracatKnoxPass_gate_C9.glb (139540 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_gate_C']
+bones [('DoorBoneA', (0.23, 0.36, 0.0)), ('DoorBoneB', (9.77, 0.36, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  groups ['DoorBoneA', 'DoorBoneB', 'PostBone']  verts=2224 tris=972
+clip Open: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, -0.0, 0.0, 0.0), (0.1, 2.82, 2.82, 2.81), (0.5, 45.0, 45.0, 45.0), (0.9, 87.18, 87.18, 87.19), (1.0, 90.0, 90.0, 90.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+clip Close: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, 90.0, 90.0, 90.0), (0.1, 87.18, 87.18, 87.19), (0.5, 45.0, 45.0, 45.0), (0.9, 2.82, 2.82, 2.81), (1.0, -0.0, 0.0, 0.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+open bbox ([0.19, -4.395, 0.05], [9.81, 0.415, 4.66])
+open: leaf A min x 0.190 (post / reader edge 0.180), leaf B max x 9.810 (post edge 9.830)
+rest (closed) bbox ([0.175, 0.32, 0.05], [9.825, 0.4, 4.66])  height 4.660 = 1.90 stories
+
+== MinidoracatKnoxPass_gatepost_D.glb (10540 bytes) static, verts=156 tris=76 bbox ([-0.28, 0.08, 0.0], [0.28, 0.64, 4.66]) images ['MinidoracatKnoxPass_gate_D']
+
+== knoxpass_reader_pillar_D.glb (31740 bytes) static, verts=240 tris=120 bbox ([-0.18, 0.11, 0.0], [0.18, 0.61, 1.1]) images ['MinidoracatKnoxPassReader']
+reader: min |y - PLANE_Y| 0.2050 (post face 0.200 + 0.005), x -0.18..0.18, faces y 0.155 / 0.565
+
+== MinidoracatKnoxPass_gate_D6.glb (85512 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_gate_D']
+bones [('DoorBoneA', (0.295, 0.36, 0.0)), ('DoorBoneB', (6.705, 0.36, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  groups ['DoorBoneA', 'DoorBoneB', 'PostBone']  verts=1200 tris=600
+clip Open: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, -0.0, 0.0, 0.0), (0.1, 2.82, 2.82, 2.81), (0.5, 45.0, 45.0, 45.0), (0.9, 87.18, 87.18, 87.19), (1.0, 90.0, 90.0, 90.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+clip Close: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, 90.0, 90.0, 90.0), (0.1, 87.18, 87.18, 87.19), (0.5, 45.0, 45.0, 45.0), (0.9, 2.82, 2.82, 2.81), (1.0, -0.0, 0.0, 0.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+open bbox ([0.208, -2.83, 0.05], [6.792, 0.45, 4.4])
+open: leaf A min x 0.208 (post / reader edge 0.200), leaf B max x 6.792 (post edge 6.800)
+rest (closed) bbox ([0.205, 0.273, 0.05], [6.795, 0.447, 4.4])  height 4.400 = 1.80 stories
+
+== MinidoracatKnoxPass_gate_D9.glb (93872 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_gate_D']
+bones [('DoorBoneA', (0.295, 0.36, 0.0)), ('DoorBoneB', (9.705, 0.36, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  groups ['DoorBoneA', 'DoorBoneB', 'PostBone']  verts=1352 tris=676
+clip Open: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, -0.0, 0.0, 0.0), (0.1, 2.82, 2.82, 2.81), (0.5, 45.0, 45.0, 45.0), (0.9, 87.18, 87.18, 87.19), (1.0, 90.0, 90.0, 90.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+clip Close: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, 90.0, 90.0, 90.0), (0.1, 87.18, 87.18, 87.19), (0.5, 45.0, 45.0, 45.0), (0.9, 2.82, 2.82, 2.81), (1.0, -0.0, 0.0, 0.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+open bbox ([0.208, -4.33, 0.05], [9.792, 0.45, 4.4])
+open: leaf A min x 0.208 (post / reader edge 0.200), leaf B max x 9.792 (post edge 9.800)
+rest (closed) bbox ([0.205, 0.273, 0.05], [9.795, 0.447, 4.4])  height 4.400 = 1.80 stories
+
+== MinidoracatKnoxPass_gatepost_E.glb (34044 bytes) static, verts=160 tris=78 bbox ([-0.36, 0.0, 0.0], [0.36, 0.72, 4.77]) images ['MinidoracatKnoxPass_gate_E']
+
+== knoxpass_reader_pillar_E.glb (31740 bytes) static, verts=240 tris=120 bbox ([-0.18, 0.01, 0.0], [0.18, 0.71, 1.1]) images ['MinidoracatKnoxPassReader']
+reader: min |y - PLANE_Y| 0.3050 (post face 0.300 + 0.005), x -0.18..0.18, faces y 0.055 / 0.665
+
+== MinidoracatKnoxPass_gate_E6.glb (143664 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_gate_E']
+bones [('DoorBoneA', (0.385, 0.36, 0.0)), ('DoorBoneB', (6.615, 0.36, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  groups ['DoorBoneA', 'DoorBoneB', 'PostBone']  verts=1832 tris=916
+clip Open: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, -0.0, 0.0, 0.0), (0.1, 2.82, 2.82, 2.81), (0.5, 45.0, 45.0, 45.0), (0.9, 87.18, 87.18, 87.19), (1.0, 90.0, 90.0, 90.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+clip Close: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, 90.0, 90.0, 90.0), (0.1, 87.18, 87.18, 87.19), (0.5, 45.0, 45.0, 45.0), (0.9, 2.82, 2.82, 2.81), (1.0, -0.0, 0.0, 0.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+open bbox ([0.32, -2.74, 0.05], [6.68, 0.44, 4.85])
+open: leaf A min x 0.320 (post / reader edge 0.300), leaf B max x 6.680 (post edge 6.700)
+rest (closed) bbox ([0.305, 0.295, 0.05], [6.695, 0.425, 4.85])  height 4.850 = 1.98 stories
+
+== MinidoracatKnoxPass_gate_E9.glb (177984 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_gate_E']
+bones [('DoorBoneA', (0.385, 0.36, 0.0)), ('DoorBoneB', (9.615, 0.36, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  groups ['DoorBoneA', 'DoorBoneB', 'PostBone']  verts=2456 tris=1228
+clip Open: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, -0.0, 0.0, 0.0), (0.1, 2.82, 2.82, 2.81), (0.5, 45.0, 45.0, 45.0), (0.9, 87.18, 87.18, 87.19), (1.0, 90.0, 90.0, 90.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+clip Close: frames 1-145 @ 24 fps = 6.00 s, (t, leaf A deg, leaf B deg, want) [(0.0, 90.0, 90.0, 90.0), (0.1, 87.18, 87.18, 87.19), (0.5, 45.0, 45.0, 45.0), (0.9, 2.82, 2.82, 2.81), (1.0, -0.0, 0.0, 0.0)]; per-frame step min 0.010 max 0.790, first 0.010 last 0.010
+open bbox ([0.32, -4.24, 0.05], [9.68, 0.44, 4.85])
+open: leaf A min x 0.320 (post / reader edge 0.300), leaf B max x 9.680 (post edge 9.700)
+rest (closed) bbox ([0.305, 0.295, 0.05], [9.695, 0.425, 4.85])  height 4.850 = 1.98 stories
+
+ALL OK

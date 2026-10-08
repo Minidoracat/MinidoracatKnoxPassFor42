@@ -21,7 +21,7 @@ module Base
 
         component SpriteConfig
         {
-            health = 600,
+            health = 1000,
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.Barrier.onCreate,
@@ -30,7 +30,7 @@ module Base
             {
                 layer
                 {
-                    row = MinidoracatKnoxPass_barrier_6 MinidoracatKnoxPass_barrier_0 MinidoracatKnoxPass_barrier_1 MinidoracatKnoxPass_barrier_2,
+                    row = MinidoracatKnoxPass_barrier_6 MinidoracatKnoxPass_barrier_160 MinidoracatKnoxPass_barrier_161 MinidoracatKnoxPass_barrier_162,
                 }
             }
 
@@ -38,10 +38,29 @@ module Base
             {
                 layer
                 {
-                    row = MinidoracatKnoxPass_barrier_5,
-                    row = MinidoracatKnoxPass_barrier_4,
-                    row = MinidoracatKnoxPass_barrier_3,
+                    row = MinidoracatKnoxPass_barrier_165,
+                    row = MinidoracatKnoxPass_barrier_164,
+                    row = MinidoracatKnoxPass_barrier_163,
                     row = MinidoracatKnoxPass_barrier_7,
+                }
+            }
+
+            face S
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_barrier_240 MinidoracatKnoxPass_barrier_241 MinidoracatKnoxPass_barrier_242 MinidoracatKnoxPass_barrier_86,
+                }
+            }
+
+            face E
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_barrier_87,
+                    row = MinidoracatKnoxPass_barrier_245,
+                    row = MinidoracatKnoxPass_barrier_244,
+                    row = MinidoracatKnoxPass_barrier_243,
                 }
             }
         }

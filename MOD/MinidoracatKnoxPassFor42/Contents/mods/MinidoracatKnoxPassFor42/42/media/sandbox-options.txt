@@ -1,7 +1,13 @@
 VERSION = 1,
 
 option MinidoracatKnoxPass.ReadRange
-{type = integer, min = 2, max = 30, default = 8, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassReadRange,}
+{type = integer, min = 2, max = 50, default = 8, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassReadRange,}
+
+option MinidoracatKnoxPass.ReadRangeMin
+{type = integer, min = 2, max = 50, default = 2, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassReadRangeMin,}
+
+option MinidoracatKnoxPass.ReadRangeMax
+{type = integer, min = 2, max = 50, default = 30, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassReadRangeMax,}
 
 option MinidoracatKnoxPass.LeadSeconds
 {type = double, min = 0.0, max = 5.0, default = 2.0, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassLeadSeconds,}
@@ -10,7 +16,13 @@ option MinidoracatKnoxPass.AutoDriveAhead
 {type = integer, min = 0, max = 250, default = 150, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassAutoDriveAhead,}
 
 option MinidoracatKnoxPass.CloseDelay
-{type = integer, min = 0, max = 120, default = 5, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassCloseDelay,}
+{type = integer, min = 0, max = 120, default = 2, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassCloseDelay,}
+
+option MinidoracatKnoxPass.CloseDelayMin
+{type = integer, min = 0, max = 120, default = 0, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassCloseDelayMin,}
+
+option MinidoracatKnoxPass.CloseDelayMax
+{type = integer, min = 0, max = 120, default = 30, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassCloseDelayMax,}
 
 option MinidoracatKnoxPass.RequirePower
 {type = boolean, default = true, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassRequirePower,}

@@ -1,5 +1,5 @@
 -- 伺服器指令：client 只送意圖（sendClientCommand），這裡重查一切再改世界。
--- 指令：install、uninstall、register、unregister、lock、open、query、recolor、recolorReader。回覆：state、result。
+-- 指令：install、uninstall、register、unregister、lock、settings、open、close、query、recolor、recolorReader。回覆：state、result。
 -- SP 的 sendServerCommand 是 no-op（LuaManager.java:8952-8970），回覆直接交給 client 的接收函式（家族 VM 同做法）。
 if isClient() then return end
 require "MinidoracatKnoxPass/Core"
@@ -133,9 +133,17 @@ end
 
 local function buildState(player, key, rec)
     local manager = canManage(player, rec)
+    local rangeLo, rangeHi = KP.settingBounds("ReadRange")
+    local delayLo, delayHi = KP.settingBounds("CloseDelay")
+    -- 每扇門的設定：range／delay＝生效值；rangeSet／delaySet＝擁有者設的值（nil＝跟沙盒預設走）；上下限來自沙盒。
+    -- cx／cy＝感應距離量起的中心（視窗在地上畫範圍圈）
     local state = {
         key = key, kind = rec.kind, owner = rec.owner, manager = manager, lock = rec.lock == true,
-        open = rec.open == true, needPower = KP.sandbox("RequirePower") == true,
+        open = rec.open == true, needPower = KP.sandbox("RequirePower") == true, cx = rec.cx, cy = rec.cy,
+        range = KP.gateRange(rec), rangeSet = rec.range, rangeMin = rangeLo, rangeMax = rangeHi,
+        rangeDefault = KP.clampSetting("ReadRange", tonumber(KP.sandbox("ReadRange")) or 8),
+        delay = KP.gateDelay(rec), delaySet = rec.closeDelay, delayMin = delayLo, delayMax = delayHi,
+        delayDefault = KP.clampSetting("CloseDelay", tonumber(KP.sandbox("CloseDelay")) or 2),
     }
     local adapter, anchor = G.findAt(rec)
     if adapter then
@@ -309,6 +317,30 @@ function H.lock(player, args)
     KP.sendState(player, args.key)
 end
 
+-- 每扇門的感應距離與關門延遲（擁有者或管理員、站在門邊）。值：整數＝新值（夾在沙盒上下限內），
+-- "default"＝改回跟著沙盒預設，沒送＝不改。回傳 ok, 值（false＝改回預設、nil＝不改）
+local function settingArg(v)
+    if v == nil then return true, nil end
+    if v == "default" then return true, false end
+    return KP.isInt(v), v
+end
+
+function H.settings(player, args)
+    local cmd = "settings"
+    local rec, why = gateFor(player, args)
+    if not rec then return result(player, cmd, false, why, args.key) end   -- 帶 key：視窗的下拉選單要回到原值
+    if not canManage(player, rec) then return result(player, cmd, false, "NotOwner", args.key) end
+    local okR, range = settingArg(args.range)
+    local okD, delay = settingArg(args.delay)
+    if not (okR and okD) then return result(player, cmd, false, "BadArgs", args.key) end
+    if range ~= nil then rec.range = range and KP.clampSetting("ReadRange", range) or nil end
+    if delay ~= nil then rec.closeDelay = delay and KP.clampSetting("CloseDelay", delay) or nil end
+    KP.log("settings key=" .. args.key .. " range=" .. tostring(rec.range) .. " delay=" .. tostring(rec.closeDelay)
+        .. " by=" .. tostring(player:getUsername()))
+    result(player, cmd, true, nil, args.key)
+    KP.sendState(player, args.key)
+end
+
 -- 身上帶著已登記、有電的感應盒
 local function carriedTag(player, rec)
     local list = player:getInventory():getAllEvalRecurse(KP.isTag)   -- 7 色都算（ItemContainer.java:1936）
@@ -383,6 +415,19 @@ function H.open(player, args)
         if not tag then return result(player, cmd, false, "NotAllowed", args.key) end
     end
     local ok, reason = S.open(args.key, rec, player, tag, nil, nil, getTimestampMs())
+    result(player, cmd, ok, reason, args.key)
+end
+
+-- 右鍵「用 Knox Pass 關門」：跟開門同樣的權限（擁有者、管理員、身上帶已登記且有電的感應盒），關好照門鎖設定鎖回（S.close）
+function H.close(player, args)
+    local cmd = "close"
+    if player:getVehicle() then return result(player, cmd, false, "InVehicle") end
+    local rec, why = gateFor(player, args)
+    if not rec then return result(player, cmd, false, why) end
+    if not canManage(player, rec) and not carriedTag(player, rec) then
+        return result(player, cmd, false, "NotAllowed", args.key)
+    end
+    local ok, reason = S.close(args.key, rec, player, getTimestampMs())
     result(player, cmd, ok, reason, args.key)
 end
 

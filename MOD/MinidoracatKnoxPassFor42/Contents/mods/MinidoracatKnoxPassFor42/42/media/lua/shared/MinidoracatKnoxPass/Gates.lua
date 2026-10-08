@@ -70,8 +70,19 @@ end
 
 -- ── IsoDoor ─────────────────────────────────────────────────────────────
 -- 伺服器上 setLockedByKey 不會自動同步（IsoDoor.java:2009-2024），照 ISLockDoor.lua:50-72 手動 syncIsoObject。
--- Knox Pass 門鎖用原版預留的 modData.CustomLock（IsoDoor.java:1491,1553）：關著時沒有鑰匙就打不開，
--- 可跨越的柵欄門也一樣（強制解鎖只清 locked／lockedByKey，IsoDoor.java:1517-1520）
+-- Knox Pass 門鎖＝原版預留的 modData.CustomLock（IsoDoor.java:1491,1553：關著時沒有鑰匙的玩家打不開）＋鑰匙鎖。
+-- CustomLock 只擋玩家。會開門的殭屍（認知 1）歸擁有牠的客戶端模擬，拍門與開門都在客戶端跑、只看客戶端那份 locked
+-- （IsoDoor.java:1179-1183、1577-1580），開了再送 SyncIsoObject，伺服器照單全收。只設 CustomLock 的門被殭屍打開後，
+-- 玩家又因 CustomLock 用手關不了（couldBeOpen，ISWorldObjectContextMenuLogic.java:2296-2301；2026-10-08 玩家回報：
+-- 閘門被殭屍升起後放不下來）。鎖要用 lockedByKey：車庫門的 SyncIsoObject 在客戶端逐片 setLockedByKey(bLockedByKey)，
+-- 連帶把 locked 蓋成同一個值（IsoDoor.java:1811-1822、2013-2016），只設 locked 的話客戶端看到的是沒鎖
+-- （zombielock-mp 1008a 實踩）。
+-- KNOX_LOCKED 記 Knox Pass 補鎖前這片原本的鎖：true＝沒鎖、1＝只有 locked；原本就是鑰匙鎖的片不補、不記。
+-- 解鎖與拿掉門鎖時照它還原，引擎在有人試開時把 locked 補成的鑰匙鎖（IsoDoor.java:1529-1532）也就不會被當成原本的鎖。
+-- 車庫門在 MP 回不到「只有 locked」：客戶端收到後鏈上其他片的鑰匙鎖由 true 變 false，setLockedByKey 會把 locked=false
+-- 回送伺服器（IsoDoor.java:2017-2022），原版地圖車庫門解鑰匙鎖也一樣（zombielock-mp Z6）；一般門與 SP 照常還原
+-- 引擎會在別的路徑清掉鎖（柵欄門有人試開、有鑰匙的人開關，IsoDoor.java:1517-1520、1562-1565），Sensor 每 5 秒補回（S.relock）
+local KNOX_LOCKED = "KnoxPassLocked"
 
 local function syncDoor(p) p:syncIsoObject(false, 0, nil, nil) end
 
@@ -89,7 +100,7 @@ local doorAdapter = {
         return { anchor }
     end,
     kind = function(anchor)
-        if isGarage(anchor) then return KP.isBarrier(anchor) and "Barrier" or "Garage" end
+        if isGarage(anchor) then return KP.gateKind(anchor) or "Garage" end
         if isDouble(anchor) then return "Double" end
         return "Door"
     end,
@@ -106,45 +117,70 @@ local doorAdapter = {
     end,
     -- 開門前解除整組的鑰匙鎖與 Knox Pass 門鎖，回傳原本的鎖別（關好後照原樣鎖回）：
     -- 2＝鑰匙鎖；1＝只有 locked（地圖車庫門預設如此，內側能開、外側要鑰匙，IsoDoor.java:1568-1580、CellLoader.java:101-104）。
-    -- locked 也要清：ToggleDoorActual 會把「locked 且有 keyId」補成 lockedByKey（IsoDoor.java:1529-1532）
+    -- locked 也要清：ToggleDoorActual 會把「locked 且有 keyId」補成 lockedByKey（IsoDoor.java:1529-1532）。
+    -- Knox Pass 補過鎖的片，原本的鎖看 KNOX_LOCKED
     unlock = function(anchor, pieces)
         local was = nil
         each(pieces, function(p)
-            if p:isLockedByKey() then was = 2 elseif p:isLocked() and was == nil then was = 1 end
+            local md = p:getModData()
+            local own = md[KNOX_LOCKED]
+            if own == nil then
+                own = p:isLockedByKey() and 2 or p:isLocked() and 1 or nil
+            elseif own ~= 1 then
+                own = nil
+            end
+            if own == 2 then was = 2 elseif own == 1 and was == nil then was = 1 end
             p:setLocked(false)
             p:setLockedByKey(false)
             syncDoor(p)
-            local md = p:getModData()
-            if md.CustomLock ~= nil then
-                md.CustomLock = nil
+            if md.CustomLock ~= nil or md[KNOX_LOCKED] ~= nil then
+                md.CustomLock, md[KNOX_LOCKED] = nil, nil
                 p:transmitModData()
             end
         end)
         return was
     end,
+    -- 先還原原本的鎖（keyed），再上 Knox Pass 門鎖：不是鑰匙鎖的片補上鑰匙鎖，KNOX_LOCKED 記下補之前的鎖。
+    -- 只在狀態真的變了才傳送與同步：Sensor 每 5 秒對關著的上鎖門呼叫一次（S.relock）
     lock = function(anchor, pieces, knoxLock, keyed)
         if knoxLock then
             -- 先沿用建築的 keyId（IsoDoor.java:2372-2398），房屋門上原本的鑰匙才不會失效
             each(pieces, function(p) p:checkKeyId() end)
             ensureKeyId(pieces, function(p, id) p:setKeyId(id) end)
-            each(pieces, function(p)
-                p:getModData().CustomLock = true
-                p:transmitModData()
-            end)
         end
-        if keyed == 2 or keyed == 1 then
-            each(pieces, function(p)
-                if keyed == 2 then p:setLockedByKey(true) else p:setLocked(true) end
-                syncDoor(p)
-            end)
-        end
+        each(pieces, function(p)
+            local md, changed, tx = p:getModData(), false, false
+            if keyed == 2 and not p:isLockedByKey() then
+                p:setLockedByKey(true)
+                changed = true
+            elseif keyed == 1 and not p:isLocked() then
+                p:setLocked(true)
+                changed = true
+            end
+            if knoxLock then
+                if md.CustomLock ~= true then md.CustomLock, tx = true, true end
+                if not p:isLockedByKey() then
+                    if md[KNOX_LOCKED] == nil then md[KNOX_LOCKED], tx = p:isLocked() and 1 or true, true end
+                    p:setLockedByKey(true)
+                    changed = true
+                end
+            end
+            if tx then p:transmitModData() end
+            if changed then syncDoor(p) end
+        end)
     end,
-    -- 只拿掉 Knox Pass 門鎖（擁有者關閉門鎖、拆讀頭），原版鑰匙鎖不動
+    -- 只拿掉 Knox Pass 門鎖（擁有者關閉門鎖、拆讀頭）：Knox Pass 補的鑰匙鎖照 KNOX_LOCKED 還原，原本的鑰匙鎖不動
     unlockKnox = function(anchor, pieces)
         each(pieces, function(p)
             local md = p:getModData()
-            if md.CustomLock ~= nil then
-                md.CustomLock = nil
+            local own = md[KNOX_LOCKED]
+            if own ~= nil then
+                p:setLockedByKey(false)   -- 連帶清 locked（IsoDoor.java:2013-2016）
+                if own == 1 then p:setLocked(true) end
+                syncDoor(p)
+            end
+            if md.CustomLock ~= nil or own ~= nil then
+                md.CustomLock, md[KNOX_LOCKED] = nil, nil
                 p:transmitModData()
             end
         end)
@@ -192,14 +228,17 @@ local thumpAdapter = {
         end)
         return was
     end,
+    -- 已經是該鎖別就不動（Sensor 每 5 秒對關著的上鎖門呼叫一次，S.relock）
     lock = function(anchor, pieces, knoxLock, keyed)
         if knoxLock then
             ensureKeyId(pieces, function(p, id) p:setKeyId(id, true) end)
         end
         each(pieces, function(p)
             if knoxLock or keyed == 2 then
+                if p:isLockedByKey() then return end
                 p:setLockedByKey(true)
             elseif keyed == 1 then
+                if p:isLocked() then return end
                 p:setIsLocked(true)
             else
                 return

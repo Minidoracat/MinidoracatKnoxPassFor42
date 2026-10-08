@@ -1,6 +1,8 @@
 """Re-import every export/knoxpass_barrier_*.glb into an empty scene; print glTF structure, bones, clips,
 arm angle at clip start/middle/end, bounding boxes, and per-part boxes (parts = atlas region / swatch the UVs hit:
 SIGN = STOP plate, lamp = lens, ARM = arm sides, FRONT/SIDE = cabinet faces, paint_white/amber = road paint).
+Arm clips: only Open / Close, 6.0 s, Open = OPEN_DEG * ease(t) and Close its exact reverse (scripts/blender/ease.py),
+monotonic, at rest at both ends.
 用法：blender -b --factory-startup --python verify_export.py   (writes export/knoxpass_barrier_verify.txt)
 """
 import json
@@ -14,7 +16,11 @@ from mathutils import Vector
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent))
 import atlas as A  # noqa: E402
+from ease import ease  # noqa: E402
+
+OPEN_DEG, CLIP_S = 86.0, 6.0   # build_barrier.py OPEN_DEG, clip length F1 - F0 at FPS
 
 lines = []
 
@@ -102,6 +108,8 @@ def verify(glb):
         return math.degrees(math.atan2(d.z, d.x))
 
     ad = rig.animation_data
+    assert sorted(t.name for t in ad.nla_tracks) == ["Close", "Open"], [t.name for t in ad.nla_tracks]
+    assert sorted(a["name"] for a in j["animations"]) == ["Close", "Open"], j["animations"]
     for track in ad.nla_tracks:
         track.mute = True
     for track in ad.nla_tracks:
@@ -109,13 +117,26 @@ def verify(glb):
         ad.action = act
         if hasattr(ad, "action_slot") and act.slots:
             ad.action_slot = act.slots[0]
-        f0, f1 = act.frame_range
+        f0, f1 = (int(f) for f in act.frame_range)
+        assert abs((f1 - f0) / sc.render.fps - CLIP_S) < 1e-6, (act.name, f0, f1)
+
+        def angle_at(f):
+            sc.frame_set(int(f), subframe=f - int(f))
+            return tip_angle()
+        want = (lambda t: OPEN_DEG * ease(t)) if act.name == "Open" else (lambda t: OPEN_DEG * (1 - ease(t)))
         samples = []
-        for f in (f0, (f0 + f1) / 2, f1):
-            sc.frame_set(int(f))
-            samples.append((int(f), round(tip_angle(), 2)))
-        out(f"action {act.name}: frames {f0:.0f}-{f1:.0f} @ {sc.render.fps} fps = {(f1 - f0) / sc.render.fps:.3f} s, "
-            f"arm angle (frame, deg) {samples}, bbox at last frame {bbox(mesh)}")
+        for t in (0.0, 0.1, 0.5, 0.9, 1.0):
+            got = angle_at(f0 + t * (f1 - f0))
+            samples.append((t, round(got, 2), round(want(t), 2)))
+            assert abs(got - want(t)) < 0.5, (act.name, t, got, want(t))
+        frames = [angle_at(f) for f in range(f0, f1 + 1)]
+        sign = 1 if act.name == "Open" else -1
+        assert all(sign * (b - a) >= -1e-4 for a, b in zip(frames, frames[1:])), f"{act.name} not monotonic"
+        first, last = abs(frames[1] - frames[0]), abs(frames[-1] - frames[-2])
+        assert first < 0.1 and last < 0.1, (act.name, first, last)
+        out(f"action {act.name}: frames {f0}-{f1} @ {sc.render.fps} fps = {(f1 - f0) / sc.render.fps:.3f} s, "
+            f"arm angle (t, deg, ease deg) {samples}, monotonic, first/last frame step {first:.4f}/{last:.4f} deg, "
+            f"bbox at last frame {bbox(mesh)}")
         out_parts(f"{act.name} last frame", mesh)
     ad.action = None
     for pb in rig.pose.bones:

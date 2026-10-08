@@ -4,6 +4,7 @@
     "ContextMenu_KnoxPass_Manage": "リーダーを管理...",
     "ContextMenu_KnoxPass_Lock": "施錠（Knox Pass でのみ開く）",
     "ContextMenu_KnoxPass_Open": "Knox Pass で開ける",
+    "ContextMenu_KnoxPass_Close": "Knox Pass で閉める",
     "ContextMenu_KnoxPass_Remove": "リーダーを取り外す",
     "ContextMenu_KnoxPass_OtherOwner": "他のプレイヤーのリーダーです",
     "ContextMenu_KnoxPass_Recolor": "塗り直す"

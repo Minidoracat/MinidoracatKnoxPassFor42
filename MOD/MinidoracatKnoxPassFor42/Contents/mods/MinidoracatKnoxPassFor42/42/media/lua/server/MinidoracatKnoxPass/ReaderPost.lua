@@ -1,5 +1,6 @@
 -- 門柱上的讀頭模型：裝了讀頭的門，在錨點那片的外端門柱上多放一個 IsoObject（tileset MinidoracatKnoxPass_reader，
--- 索引＝讀頭顏色×8＋變體，scripts/build_barrier_tiles.py）。tile 沒有任何屬性：不擋人車、AutoDrive 當成沒東西、不能搬、不能拆；
+-- 索引＝讀頭顏色×8＋變體；兩層樓大門掛在 A 端門柱的柱面，tileset MinidoracatKnoxPass_readerpillar，Core.lua KP.readerCode）。
+-- tile 沒有任何屬性：不擋人車、AutoDrive 當成沒東西、不能搬、不能拆；
 -- 3D 模型由 common/media/spriteModels.txt 掛上（有 spriteModel 的物件只畫模型，IsoObject.java:3540-3545）。
 -- 帳本是唯一依據，世界上的物件只是顯示，全部只在伺服器（含 SP）改：
 --   放上：KP.registerReader → R.attach（帳本記 post＝宿主格與變體）；抬升閘門與其他 MOD 的門不放
@@ -17,7 +18,7 @@ local KP = MinidoracatKnoxPass
 -- 不能搬、不能拆解（ISMoveableSpriteProps.lua:100-130 要 IsMoveAble／Material 屬性）靠 tile 沒有屬性
 local canDestroy = ISDestroyCursor.canDestroy
 function ISDestroyCursor:canDestroy(object)
-    if KP.readerPostIndex(object) then return false end
+    if KP.readerCode(object) then return false end
     return canDestroy(self, object)
 end
 
@@ -39,11 +40,20 @@ local DOOR_ADAPTERS = { ["vanilla.IsoDoor"] = true, ["vanilla.IsoThumpable"] = t
 -- - 雙開門（IsoDoor.java:120-129）：N 向第 1 片在西端、第 4 片在東端，開門時第 2、3 片搬到 y+1（往南擺）；
 --   W 向第 1 片在南端（y 最大）、第 4 片在北端，開門搬到 x+1（往東擺）。兩扇門葉的鉸鏈都在外端，第 1／4 片不搬格
 -- - 車庫門：第 1 片在 N 向最小 x、W 向最大 y（getGarageDoorPrev 往 x-1／y+1，IsoDoor.java:3241-3280），外端＝西／南端，捲起不擺
--- 回傳宿主 x, y, 變體（0 N 西端、1 N 東端、2 W 北端、3 W 南端）；閘門（機箱頂已有讀頭）與其他 MOD 的門回 nil
+-- - 兩層樓大門：門柱 0.34-0.60 格厚，上面的讀頭會埋進去，改用柱面讀頭掛在 A 端門柱（宿主＝A 端那格）
+-- 回傳宿主 x, y, 變體（0 N 西端、1 N 東端、2 W 北端、3 W 南端；大門 8＋外觀×4＋方向序）；閘門（機箱頂已有讀頭）與其他 MOD 的門回 nil
 function R.spot(adapter, anchor)
     if not DOOR_ADAPTERS[adapter.id] or KP.isBarrier(anchor) then return nil end
     local sq = anchor:getSquare()
     local x, y = sq:getX(), sq:getY()
+    local mg = KP.modelGate(anchor)
+    if mg and mg.def.kind == "Gate" then
+        local ex, ey = KP.gateEnds(mg, x, y)
+        for i, ts in ipairs(KP.GATE_LOOKS) do
+            if ts == mg.tileset then return ex, ey, 8 + (i - 1) * 4 + mg.fi end
+        end
+        return nil
+    end
     local dd = IsoDoor.getDoubleDoorIndex(anchor)
     if anchor:getNorth() then
         if dd == 4 then return x + 1, y, 1 end
@@ -111,16 +121,16 @@ end
 
 -- IsoObject(cell, square, spriteName)（IsoObject.java:331-336）→ AddTileObject（IsoGridSquare.java:5851-5880）→
 -- MP 送給附近客戶端（transmitCompleteItemToClients，IsoObject.java:4604-4611；SP 是 no-op）
-local function add(sq, n)
-    local o = IsoObject.new(getCell(), sq, KP.READER_POST_TILESET .. "_" .. n)
+local function add(sq, code)
+    local o = IsoObject.new(getCell(), sq, KP.readerTileName(code))
     sq:AddTileObject(o)
     o:transmitCompleteItemToClients()
 end
 
--- 帳本這筆讀頭在變體 v 該用哪張 tile
+-- 帳本這筆讀頭在變體 v 該用哪個讀頭代碼（顏色×64＋變體，Core.lua KP.readerCode）
 local function tileFor(key, v)
     local rec = L.get(key)
-    return ((rec and rec.color) or 0) * KP.READER_POST_STRIDE + v
+    return ((rec and rec.color) or 0) * 64 + v
 end
 
 local function heal(x, y, z)
@@ -143,8 +153,8 @@ local function heal(x, y, z)
     local objects = sq:getObjects()
     for i = 0, objects:size() - 1 do   -- 留最早放的那個，之後的重複、顏色不對與帳本沒有的移除
         local o = objects:get(i)
-        local n = KP.readerPostIndex(o)
-        local v = n and n % KP.READER_POST_STRIDE
+        local n = KP.readerCode(o)
+        local v = n and n % 64
         if n and want[v] == n and not seen[v] then
             seen[v] = true
         elseif n then
@@ -223,7 +233,8 @@ end)
 -- 觸發點 IsoChunk.java:3829，伺服器與 SP 都跑）。7 色 × 變體 0-3
 local names = {}
 for c = 0, #KP.COLORS - 1 do
-    for v = 0, 3 do names[#names + 1] = KP.READER_POST_TILESET .. "_" .. (c * KP.READER_POST_STRIDE + v) end
+    for v = 0, 3 do names[#names + 1] = KP.readerTileName(c * 64 + v) end
+    for v = 8, 8 + #KP.GATE_LOOKS * 4 - 1 do names[#names + 1] = KP.readerTileName(c * 64 + v) end
 end
 MapObjects.OnLoadWithSprite(names, function(obj)
     local sq = obj:getSquare()

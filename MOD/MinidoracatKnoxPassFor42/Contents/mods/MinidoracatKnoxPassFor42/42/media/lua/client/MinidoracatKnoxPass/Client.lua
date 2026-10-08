@@ -251,7 +251,14 @@ end
 
 local function onManage(player, anchor, key) KP.Window.open(player, anchor, key) end
 local function onLock(player, key, on) C.send(player, "lock", { key = key, on = on }) end
+-- 門開著時給「用 Knox Pass 關門」：門被會開門的殭屍或有鑰匙的人打開時，Knox Pass 門鎖讓原版的「關門」灰掉（couldBeOpen 看
+-- CustomLock，ISWorldObjectContextMenuLogic.java:2296-2301），這是關回去的路。伺服器 H.open／H.close 重驗權限
 local function onOpen(player, key) C.send(player, "open", { key = key }) end
+local function onClose(player, key) C.send(player, "close", { key = key }) end
+local function addOpenClose(sub, player, adapter, anchor, key)
+    if G.isOpen(adapter, anchor) then return sub:addOption(getText("ContextMenu_KnoxPass_Close"), player, onClose, key) end
+    return sub:addOption(getText("ContextMenu_KnoxPass_Open"), player, onOpen, key)
+end
 
 -- 「重新上色」子選單：列出 current 以外的顏色；缺刷子或該色油漆的灰掉並提示（原版 notAvailable＋池化 tooltip，
 -- addTip＝該選單的 tooltip 池：ISWorldObjectContextMenu.lua:2595／ISInventoryPaneContextMenu.lua:3417）
@@ -307,7 +314,7 @@ local function onFillMenu(playerIndex, context, worldobjects, test)
     local key = G.key(anchor)
     if not canManage(player, owner) then
         disable(sub:addOption(getText("ContextMenu_KnoxPass_OtherOwner"), nil, nil))
-        tip(sub:addOption(getText("ContextMenu_KnoxPass_Open"), player, onOpen, key), "IGUI_KnoxPass_OpenTip")
+        tip(addOpenClose(sub, player, adapter, anchor, key), "IGUI_KnoxPass_OpenTip")
         return
     end
 
@@ -319,7 +326,7 @@ local function onFillMenu(playerIndex, context, worldobjects, test)
     sub:setOptionChecked(lock, locked) -- ISContextMenu.lua:1084
     if not G.supportsLock(adapter) then disable(lock, "IGUI_KnoxPass_Why_NoLockSupport") end
 
-    sub:addOption(getText("ContextMenu_KnoxPass_Open"), player, onOpen, key)
+    addOpenClose(sub, player, adapter, anchor, key)
 
     -- 閘門的讀頭是內建的：不給拆（伺服器 H.uninstall 回 BuiltIn）、不分顏色，拆整座閘門走拆除機箱
     if KP.isBarrier(anchor) then return end

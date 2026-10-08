@@ -1,0 +1,2539 @@
+{
+ "kind": "barrier2",
+ "tileset": "MinidoracatKnoxPass_barrier2",
+ "tileset_number": 4,
+ "widths": [
+  6,
+  9
+ ],
+ "faces": [
+  "N",
+  "W"
+ ],
+ "block_rule": "block = widthIdx * 2 + faceIdx; index = block*64+slot",
+ "textures": {
+  "default_red": "IsoObject/MinidoracatKnoxPass_barrier",
+  "green": "IsoObject/MinidoracatKnoxPass_barrier_green",
+  "ship": [],
+  "note": "same atlas and UV layout as the single barrier; both PNGs are already shipped from scripts/blender/barrier/textures/knoxpass_barrier{,_green}.png - nothing new to copy"
+ },
+ "models": {
+  "MinidoracatKnoxPass_Barrier2Boom6": {
+   "glb": "scripts/blender/barrier2/export/knoxpass_barrier2_boom6.glb",
+   "ship": "media/models_X/IsoObject/MinidoracatKnoxPass_barrier2_boom6.glb",
+   "model_script": {
+    "mesh": "IsoObject/MinidoracatKnoxPass_barrier2_boom6",
+    "animationsMesh": "MinidoracatKnoxPass_Barrier2Boom6",
+    "animationsMesh_meshFile": "IsoObject/MinidoracatKnoxPass_barrier2_boom6",
+    "keepMeshAnimations": true,
+    "texture": "IsoObject/MinidoracatKnoxPass_barrier",
+    "shader": "door",
+    "static": false,
+    "scale": 1.0,
+    "undoCoreScale": true
+   },
+   "origin": "end-A cabinet tile centre on the floor; +X along the lane row (lane k centre x = k, end B x = L+1), +Y toward the gate edge (y = +0.5); glb +Y up (Khronos exporter), 1 unit = 1 tile",
+   "armature": "Dummy01",
+   "bones": {
+    "PostBone": {
+     "head": [
+      0,
+      0,
+      0
+     ],
+     "moves": false,
+     "carries": "both pivot lamps, rest posts, road paint"
+    },
+    "DoorBone": {
+     "head": [
+      0.27,
+      0.3,
+      1.0
+     ],
+     "moves": true,
+     "carries": "boom A (tip +X), STOP sign"
+    },
+    "DoorBoneB": {
+     "head": [
+      6.73,
+      0.3,
+      1.0
+     ],
+     "moves": true,
+     "carries": "boom B (tip -X), STOP sign"
+    }
+   },
+   "clips": {
+    "Open": {
+     "seconds": 6.0,
+     "fps": 24,
+     "frames": [
+      1,
+      145
+     ],
+     "deg": [
+      0.0,
+      86.0
+     ]
+    },
+    "Close": {
+     "seconds": 6.0,
+     "fps": 24,
+     "frames": [
+      1,
+      145
+     ],
+     "deg": [
+      86.0,
+      0.0
+     ]
+    },
+    "curve": "ease (scripts/blender/ease.py): angle = 86 * ease(t), baked on every frame; Close = Open reversed; shared with MinidoracatKnoxPass_BarrierArm",
+    "note": "both booms together, same angles/timing as MinidoracatKnoxPass_BarrierArm"
+   },
+   "boom_reach": {
+    "pivot_to_cap_end": 3.215,
+    "booms_meet_x": 3.5,
+    "rest_posts_x": [
+     3.5
+    ],
+    "stop_sign_x": [
+     2.0,
+     5.0
+    ]
+   }
+  },
+  "MinidoracatKnoxPass_Barrier2Boom9": {
+   "glb": "scripts/blender/barrier2/export/knoxpass_barrier2_boom9.glb",
+   "ship": "media/models_X/IsoObject/MinidoracatKnoxPass_barrier2_boom9.glb",
+   "model_script": {
+    "mesh": "IsoObject/MinidoracatKnoxPass_barrier2_boom9",
+    "animationsMesh": "MinidoracatKnoxPass_Barrier2Boom9",
+    "animationsMesh_meshFile": "IsoObject/MinidoracatKnoxPass_barrier2_boom9",
+    "keepMeshAnimations": true,
+    "texture": "IsoObject/MinidoracatKnoxPass_barrier",
+    "shader": "door",
+    "static": false,
+    "scale": 1.0,
+    "undoCoreScale": true
+   },
+   "origin": "end-A cabinet tile centre on the floor; +X along the lane row (lane k centre x = k, end B x = L+1), +Y toward the gate edge (y = +0.5); glb +Y up (Khronos exporter), 1 unit = 1 tile",
+   "armature": "Dummy01",
+   "bones": {
+    "PostBone": {
+     "head": [
+      0,
+      0,
+      0
+     ],
+     "moves": false,
+     "carries": "both pivot lamps, rest posts, road paint"
+    },
+    "DoorBone": {
+     "head": [
+      0.27,
+      0.3,
+      1.0
+     ],
+     "moves": true,
+     "carries": "boom A (tip +X), STOP sign"
+    },
+    "DoorBoneB": {
+     "head": [
+      9.73,
+      0.3,
+      1.0
+     ],
+     "moves": true,
+     "carries": "boom B (tip -X), STOP sign"
+    }
+   },
+   "clips": {
+    "Open": {
+     "seconds": 6.0,
+     "fps": 24,
+     "frames": [
+      1,
+      145
+     ],
+     "deg": [
+      0.0,
+      86.0
+     ]
+    },
+    "Close": {
+     "seconds": 6.0,
+     "fps": 24,
+     "frames": [
+      1,
+      145
+     ],
+     "deg": [
+      86.0,
+      0.0
+     ]
+    },
+    "curve": "ease (scripts/blender/ease.py): angle = 86 * ease(t), baked on every frame; Close = Open reversed; shared with MinidoracatKnoxPass_BarrierArm",
+    "note": "both booms together, same angles/timing as MinidoracatKnoxPass_BarrierArm"
+   },
+   "boom_reach": {
+    "pivot_to_cap_end": 4.715,
+    "booms_meet_x": 5.0,
+    "rest_posts_x": [
+     3.5,
+     6.5
+    ],
+    "stop_sign_x": [
+     2.0,
+     8.0
+    ]
+   }
+  }
+ },
+ "cabinet": {
+  "modelScript": "Base.MinidoracatKnoxPass_BarrierCabinet",
+  "ship": "already shipped (MinidoracatKnoxPass_barrier_cabinet.glb)",
+  "endA": "slot 3, translate 0 0 0, rotate = the face's rotate (same as the single barrier N/W cabinet)",
+  "endB": "slot 4, translate 0 0 0, rotate = the face's rotate: the cabinet mesh is mirror-symmetric along the row, so no 180 deg turn is needed (a 180 deg turn would move it 0.6 tile off the gate-line side); boom B's pivot lamp is part of the boom model"
+ },
+ "faces_xform": {
+  "N": {
+   "rotate": [
+    0.0,
+    180.0,
+    0.0
+   ],
+   "lane1_translate": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "endA_translate": [
+    0,
+    0,
+    0
+   ],
+   "endB_translate": [
+    0,
+    0,
+    0
+   ]
+  },
+  "W": {
+   "rotate": [
+    0.0,
+    -90.0,
+    0.0
+   ],
+   "lane1_translate": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "endA_translate": [
+    0,
+    0,
+    0
+   ],
+   "endB_translate": [
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "lane_slots_1_2_spriteModel": null,
+ "blocks": [
+  {
+   "block": 0,
+   "width": 6,
+   "face": "N",
+   "first_index": 0,
+   "entity_face_rows_slots": [
+    [
+     3,
+     16,
+     17,
+     18,
+     19,
+     20,
+     21,
+     4
+    ]
+   ],
+   "spriteModels": {
+    "0": {
+     "slot": 0,
+     "xy": [
+      0,
+      0
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.0
+    },
+    "3": {
+     "slot": 3,
+     "xy": [
+      3,
+      0
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_BarrierCabinet",
+     "translate": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0
+    },
+    "4": {
+     "slot": 4,
+     "xy": [
+      4,
+      0
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_BarrierCabinet",
+     "translate": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0
+    },
+    "8": {
+     "slot": 8,
+     "xy": [
+      0,
+      1
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Close",
+     "animationTime": 0.0
+    },
+    "32": {
+     "slot": 32,
+     "xy": [
+      0,
+      4
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.0
+    },
+    "33": {
+     "slot": 33,
+     "xy": [
+      1,
+      4
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.125
+    },
+    "34": {
+     "slot": 34,
+     "xy": [
+      2,
+      4
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.25
+    },
+    "35": {
+     "slot": 35,
+     "xy": [
+      3,
+      4
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.375
+    },
+    "36": {
+     "slot": 36,
+     "xy": [
+      4,
+      4
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.5
+    },
+    "37": {
+     "slot": 37,
+     "xy": [
+      5,
+      4
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.625
+    },
+    "38": {
+     "slot": 38,
+     "xy": [
+      6,
+      4
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.75
+    },
+    "39": {
+     "slot": 39,
+     "xy": [
+      7,
+      4
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.875
+    },
+    "40": {
+     "slot": 40,
+     "xy": [
+      0,
+      5
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 1.0
+    },
+    "48": {
+     "slot": 48,
+     "xy": [
+      0,
+      6
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.0
+    },
+    "49": {
+     "slot": 49,
+     "xy": [
+      1,
+      6
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.125
+    },
+    "50": {
+     "slot": 50,
+     "xy": [
+      2,
+      6
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.25
+    },
+    "51": {
+     "slot": 51,
+     "xy": [
+      3,
+      6
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.375
+    },
+    "52": {
+     "slot": 52,
+     "xy": [
+      4,
+      6
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.5
+    },
+    "53": {
+     "slot": 53,
+     "xy": [
+      5,
+      6
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.625
+    },
+    "54": {
+     "slot": 54,
+     "xy": [
+      6,
+      6
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.75
+    },
+    "55": {
+     "slot": 55,
+     "xy": [
+      7,
+      6
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.875
+    },
+    "56": {
+     "slot": 56,
+     "xy": [
+      0,
+      7
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 1.0
+    }
+   },
+   "cells": {
+    "3": {
+     "slot": 3,
+     "file": "scripts/blender/barrier2/cells/6N/endA.png"
+    },
+    "4": {
+     "slot": 4,
+     "file": "scripts/blender/barrier2/cells/6N/endB.png"
+    },
+    "16": {
+     "slot": 16,
+     "file": "scripts/blender/barrier2/cells/6N/lane1.png"
+    },
+    "17": {
+     "slot": 17,
+     "file": "scripts/blender/barrier2/cells/6N/lane2.png"
+    },
+    "18": {
+     "slot": 18,
+     "file": "scripts/blender/barrier2/cells/6N/lane3.png"
+    },
+    "19": {
+     "slot": 19,
+     "file": "scripts/blender/barrier2/cells/6N/lane4.png"
+    },
+    "20": {
+     "slot": 20,
+     "file": "scripts/blender/barrier2/cells/6N/lane5.png"
+    },
+    "21": {
+     "slot": 21,
+     "file": "scripts/blender/barrier2/cells/6N/lane6.png"
+    }
+   },
+   "no_2d_cell_slots": [
+    0,
+    1,
+    2,
+    8,
+    9,
+    10,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56
+   ],
+   "previews": [
+    "scripts/blender/barrier2/previews/6N_closed_game.png",
+    "scripts/blender/barrier2/previews/6N_half_game.png",
+    "scripts/blender/barrier2/previews/6N_open_game.png"
+   ]
+  },
+  {
+   "block": 1,
+   "width": 6,
+   "face": "W",
+   "first_index": 64,
+   "entity_face_rows_slots": [
+    [
+     4
+    ],
+    [
+     21
+    ],
+    [
+     20
+    ],
+    [
+     19
+    ],
+    [
+     18
+    ],
+    [
+     17
+    ],
+    [
+     16
+    ],
+    [
+     3
+    ]
+   ],
+   "spriteModels": {
+    "64": {
+     "slot": 0,
+     "xy": [
+      0,
+      8
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.0
+    },
+    "67": {
+     "slot": 3,
+     "xy": [
+      3,
+      8
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_BarrierCabinet",
+     "translate": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0
+    },
+    "68": {
+     "slot": 4,
+     "xy": [
+      4,
+      8
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_BarrierCabinet",
+     "translate": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0
+    },
+    "72": {
+     "slot": 8,
+     "xy": [
+      0,
+      9
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Close",
+     "animationTime": 0.0
+    },
+    "96": {
+     "slot": 32,
+     "xy": [
+      0,
+      12
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.0
+    },
+    "97": {
+     "slot": 33,
+     "xy": [
+      1,
+      12
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.125
+    },
+    "98": {
+     "slot": 34,
+     "xy": [
+      2,
+      12
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.25
+    },
+    "99": {
+     "slot": 35,
+     "xy": [
+      3,
+      12
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.375
+    },
+    "100": {
+     "slot": 36,
+     "xy": [
+      4,
+      12
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.5
+    },
+    "101": {
+     "slot": 37,
+     "xy": [
+      5,
+      12
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.625
+    },
+    "102": {
+     "slot": 38,
+     "xy": [
+      6,
+      12
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.75
+    },
+    "103": {
+     "slot": 39,
+     "xy": [
+      7,
+      12
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.875
+    },
+    "104": {
+     "slot": 40,
+     "xy": [
+      0,
+      13
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 1.0
+    },
+    "112": {
+     "slot": 48,
+     "xy": [
+      0,
+      14
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.0
+    },
+    "113": {
+     "slot": 49,
+     "xy": [
+      1,
+      14
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.125
+    },
+    "114": {
+     "slot": 50,
+     "xy": [
+      2,
+      14
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.25
+    },
+    "115": {
+     "slot": 51,
+     "xy": [
+      3,
+      14
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.375
+    },
+    "116": {
+     "slot": 52,
+     "xy": [
+      4,
+      14
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.5
+    },
+    "117": {
+     "slot": 53,
+     "xy": [
+      5,
+      14
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.625
+    },
+    "118": {
+     "slot": 54,
+     "xy": [
+      6,
+      14
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.75
+    },
+    "119": {
+     "slot": 55,
+     "xy": [
+      7,
+      14
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.875
+    },
+    "120": {
+     "slot": 56,
+     "xy": [
+      0,
+      15
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom6",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 1.0
+    }
+   },
+   "cells": {
+    "67": {
+     "slot": 3,
+     "file": "scripts/blender/barrier2/cells/6W/endA.png"
+    },
+    "68": {
+     "slot": 4,
+     "file": "scripts/blender/barrier2/cells/6W/endB.png"
+    },
+    "80": {
+     "slot": 16,
+     "file": "scripts/blender/barrier2/cells/6W/lane1.png"
+    },
+    "81": {
+     "slot": 17,
+     "file": "scripts/blender/barrier2/cells/6W/lane2.png"
+    },
+    "82": {
+     "slot": 18,
+     "file": "scripts/blender/barrier2/cells/6W/lane3.png"
+    },
+    "83": {
+     "slot": 19,
+     "file": "scripts/blender/barrier2/cells/6W/lane4.png"
+    },
+    "84": {
+     "slot": 20,
+     "file": "scripts/blender/barrier2/cells/6W/lane5.png"
+    },
+    "85": {
+     "slot": 21,
+     "file": "scripts/blender/barrier2/cells/6W/lane6.png"
+    }
+   },
+   "no_2d_cell_slots": [
+    0,
+    1,
+    2,
+    8,
+    9,
+    10,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56
+   ],
+   "previews": [
+    "scripts/blender/barrier2/previews/6W_closed_game.png",
+    "scripts/blender/barrier2/previews/6W_half_game.png",
+    "scripts/blender/barrier2/previews/6W_open_game.png"
+   ]
+  },
+  {
+   "block": 2,
+   "width": 9,
+   "face": "N",
+   "first_index": 128,
+   "entity_face_rows_slots": [
+    [
+     3,
+     16,
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     4
+    ]
+   ],
+   "spriteModels": {
+    "128": {
+     "slot": 0,
+     "xy": [
+      0,
+      16
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.0
+    },
+    "131": {
+     "slot": 3,
+     "xy": [
+      3,
+      16
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_BarrierCabinet",
+     "translate": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0
+    },
+    "132": {
+     "slot": 4,
+     "xy": [
+      4,
+      16
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_BarrierCabinet",
+     "translate": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0
+    },
+    "136": {
+     "slot": 8,
+     "xy": [
+      0,
+      17
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Close",
+     "animationTime": 0.0
+    },
+    "160": {
+     "slot": 32,
+     "xy": [
+      0,
+      20
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.0
+    },
+    "161": {
+     "slot": 33,
+     "xy": [
+      1,
+      20
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.125
+    },
+    "162": {
+     "slot": 34,
+     "xy": [
+      2,
+      20
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.25
+    },
+    "163": {
+     "slot": 35,
+     "xy": [
+      3,
+      20
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.375
+    },
+    "164": {
+     "slot": 36,
+     "xy": [
+      4,
+      20
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.5
+    },
+    "165": {
+     "slot": 37,
+     "xy": [
+      5,
+      20
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.625
+    },
+    "166": {
+     "slot": 38,
+     "xy": [
+      6,
+      20
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.75
+    },
+    "167": {
+     "slot": 39,
+     "xy": [
+      7,
+      20
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.875
+    },
+    "168": {
+     "slot": 40,
+     "xy": [
+      0,
+      21
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 1.0
+    },
+    "176": {
+     "slot": 48,
+     "xy": [
+      0,
+      22
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.0
+    },
+    "177": {
+     "slot": 49,
+     "xy": [
+      1,
+      22
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.125
+    },
+    "178": {
+     "slot": 50,
+     "xy": [
+      2,
+      22
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.25
+    },
+    "179": {
+     "slot": 51,
+     "xy": [
+      3,
+      22
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.375
+    },
+    "180": {
+     "slot": 52,
+     "xy": [
+      4,
+      22
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.5
+    },
+    "181": {
+     "slot": 53,
+     "xy": [
+      5,
+      22
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.625
+    },
+    "182": {
+     "slot": 54,
+     "xy": [
+      6,
+      22
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.75
+    },
+    "183": {
+     "slot": 55,
+     "xy": [
+      7,
+      22
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.875
+    },
+    "184": {
+     "slot": 56,
+     "xy": [
+      0,
+      23
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 1.0
+    }
+   },
+   "cells": {
+    "131": {
+     "slot": 3,
+     "file": "scripts/blender/barrier2/cells/9N/endA.png"
+    },
+    "132": {
+     "slot": 4,
+     "file": "scripts/blender/barrier2/cells/9N/endB.png"
+    },
+    "144": {
+     "slot": 16,
+     "file": "scripts/blender/barrier2/cells/9N/lane1.png"
+    },
+    "145": {
+     "slot": 17,
+     "file": "scripts/blender/barrier2/cells/9N/lane2.png"
+    },
+    "146": {
+     "slot": 18,
+     "file": "scripts/blender/barrier2/cells/9N/lane3.png"
+    },
+    "147": {
+     "slot": 19,
+     "file": "scripts/blender/barrier2/cells/9N/lane4.png"
+    },
+    "148": {
+     "slot": 20,
+     "file": "scripts/blender/barrier2/cells/9N/lane5.png"
+    },
+    "149": {
+     "slot": 21,
+     "file": "scripts/blender/barrier2/cells/9N/lane6.png"
+    },
+    "150": {
+     "slot": 22,
+     "file": "scripts/blender/barrier2/cells/9N/lane7.png"
+    },
+    "151": {
+     "slot": 23,
+     "file": "scripts/blender/barrier2/cells/9N/lane8.png"
+    },
+    "152": {
+     "slot": 24,
+     "file": "scripts/blender/barrier2/cells/9N/lane9.png"
+    }
+   },
+   "no_2d_cell_slots": [
+    0,
+    1,
+    2,
+    8,
+    9,
+    10,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56
+   ],
+   "previews": [
+    "scripts/blender/barrier2/previews/9N_closed_game.png",
+    "scripts/blender/barrier2/previews/9N_half_game.png",
+    "scripts/blender/barrier2/previews/9N_open_game.png"
+   ]
+  },
+  {
+   "block": 3,
+   "width": 9,
+   "face": "W",
+   "first_index": 192,
+   "entity_face_rows_slots": [
+    [
+     4
+    ],
+    [
+     24
+    ],
+    [
+     23
+    ],
+    [
+     22
+    ],
+    [
+     21
+    ],
+    [
+     20
+    ],
+    [
+     19
+    ],
+    [
+     18
+    ],
+    [
+     17
+    ],
+    [
+     16
+    ],
+    [
+     3
+    ]
+   ],
+   "spriteModels": {
+    "192": {
+     "slot": 0,
+     "xy": [
+      0,
+      24
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.0
+    },
+    "195": {
+     "slot": 3,
+     "xy": [
+      3,
+      24
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_BarrierCabinet",
+     "translate": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0
+    },
+    "196": {
+     "slot": 4,
+     "xy": [
+      4,
+      24
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_BarrierCabinet",
+     "translate": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0
+    },
+    "200": {
+     "slot": 8,
+     "xy": [
+      0,
+      25
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Close",
+     "animationTime": 0.0
+    },
+    "224": {
+     "slot": 32,
+     "xy": [
+      0,
+      28
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.0
+    },
+    "225": {
+     "slot": 33,
+     "xy": [
+      1,
+      28
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.125
+    },
+    "226": {
+     "slot": 34,
+     "xy": [
+      2,
+      28
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.25
+    },
+    "227": {
+     "slot": 35,
+     "xy": [
+      3,
+      28
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.375
+    },
+    "228": {
+     "slot": 36,
+     "xy": [
+      4,
+      28
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.5
+    },
+    "229": {
+     "slot": 37,
+     "xy": [
+      5,
+      28
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.625
+    },
+    "230": {
+     "slot": 38,
+     "xy": [
+      6,
+      28
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.75
+    },
+    "231": {
+     "slot": 39,
+     "xy": [
+      7,
+      28
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 0.875
+    },
+    "232": {
+     "slot": 40,
+     "xy": [
+      0,
+      29
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "texture": "IsoObject/MinidoracatKnoxPass_barrier_green",
+     "animation": "Open",
+     "animationTime": 1.0
+    },
+    "240": {
+     "slot": 48,
+     "xy": [
+      0,
+      30
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.0
+    },
+    "241": {
+     "slot": 49,
+     "xy": [
+      1,
+      30
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.125
+    },
+    "242": {
+     "slot": 50,
+     "xy": [
+      2,
+      30
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.25
+    },
+    "243": {
+     "slot": 51,
+     "xy": [
+      3,
+      30
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.375
+    },
+    "244": {
+     "slot": 52,
+     "xy": [
+      4,
+      30
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.5
+    },
+    "245": {
+     "slot": 53,
+     "xy": [
+      5,
+      30
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.625
+    },
+    "246": {
+     "slot": 54,
+     "xy": [
+      6,
+      30
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.75
+    },
+    "247": {
+     "slot": 55,
+     "xy": [
+      7,
+      30
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 0.875
+    },
+    "248": {
+     "slot": 56,
+     "xy": [
+      0,
+      31
+     ],
+     "modelScript": "Base.MinidoracatKnoxPass_Barrier2Boom9",
+     "translate": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ],
+     "scale": 1.0,
+     "animation": "Open",
+     "animationTime": 1.0
+    }
+   },
+   "cells": {
+    "195": {
+     "slot": 3,
+     "file": "scripts/blender/barrier2/cells/9W/endA.png"
+    },
+    "196": {
+     "slot": 4,
+     "file": "scripts/blender/barrier2/cells/9W/endB.png"
+    },
+    "208": {
+     "slot": 16,
+     "file": "scripts/blender/barrier2/cells/9W/lane1.png"
+    },
+    "209": {
+     "slot": 17,
+     "file": "scripts/blender/barrier2/cells/9W/lane2.png"
+    },
+    "210": {
+     "slot": 18,
+     "file": "scripts/blender/barrier2/cells/9W/lane3.png"
+    },
+    "211": {
+     "slot": 19,
+     "file": "scripts/blender/barrier2/cells/9W/lane4.png"
+    },
+    "212": {
+     "slot": 20,
+     "file": "scripts/blender/barrier2/cells/9W/lane5.png"
+    },
+    "213": {
+     "slot": 21,
+     "file": "scripts/blender/barrier2/cells/9W/lane6.png"
+    },
+    "214": {
+     "slot": 22,
+     "file": "scripts/blender/barrier2/cells/9W/lane7.png"
+    },
+    "215": {
+     "slot": 23,
+     "file": "scripts/blender/barrier2/cells/9W/lane8.png"
+    },
+    "216": {
+     "slot": 24,
+     "file": "scripts/blender/barrier2/cells/9W/lane9.png"
+    }
+   },
+   "no_2d_cell_slots": [
+    0,
+    1,
+    2,
+    8,
+    9,
+    10,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56
+   ],
+   "previews": [
+    "scripts/blender/barrier2/previews/9W_closed_game.png",
+    "scripts/blender/barrier2/previews/9W_half_game.png",
+    "scripts/blender/barrier2/previews/9W_open_game.png"
+   ]
+  }
+ ],
+ "entities": {
+  "MinidoracatKnoxPassBoomBarrier6": {
+   "width": 6,
+   "health": 1500,
+   "icon": "scripts/blender/barrier2/icons/boom_barrier_6.png",
+   "icon_ship": "media/ui/MinidoracatKnoxPass/boom_barrier_6.png"
+  },
+  "MinidoracatKnoxPassBoomBarrier9": {
+   "width": 9,
+   "health": 2000,
+   "icon": "scripts/blender/barrier2/icons/boom_barrier_9.png",
+   "icon_ship": "media/ui/MinidoracatKnoxPass/boom_barrier_9.png"
+  }
+ },
+ "verify": "scripts/blender/barrier2/export/verify.txt"
+}

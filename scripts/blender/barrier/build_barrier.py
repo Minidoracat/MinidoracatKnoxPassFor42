@@ -19,7 +19,8 @@ export/knoxpass_barrier_cabinet.glb  static: navy/amber cabinet + amber cap + do
 export/knoxpass_barrier_arm.glb      skinned: armature Dummy01, DoorBone = 0.16 x 0.10 red/white arm (+ tip cap,
                                      reflectors, STOP octagon at the middle lane); PostBone = static lamp at the
                                      pivot (lens = "lamp" swatch: red in knoxpass_barrier.png, green in _green.png)
-                                     + tip rest post with fork; clips Open 0->86 deg, Close 86->0 deg, 6.0 s each
+                                     + tip rest post with fork; clips Open 0->86 deg, Close 86->0 deg, 6.0 s each,
+                                     keyed every frame on the shared ease (scripts/blender/ease.py; Close = reverse)
 export/knoxpass_barrier_lines.glb    static: road paint, 2 cm above the floor: white stop line + amber KNOX PASS on
                                      both sides of the gate line, text facing oncoming traffic (Barlow, OFL)
 export/knoxpass_barrier_empty.glb    static: one ~1 mm triangle 1 cm under the floor ("render nothing")
@@ -47,7 +48,9 @@ from mathutils import Matrix, Quaternion, Vector
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent))
 import atlas as A  # noqa: E402
+from ease import ease  # noqa: E402
 
 LANE_Y = 0.30                         # arm / cabinet centre line, 0.2 m inside the gate edge
 PIVOT = Vector((0.27, LANE_Y, 1.0))   # 0.11 m off the cabinet side: the raised 0.16 m arm clears the cap at 86 deg
@@ -317,12 +320,12 @@ def add_rig(sc, obj):
     for pb in (door, post):
         pb.rotation_mode = "QUATERNION"
     ad = rig.animation_data_create()
-    for clip, a0, a1 in (("Open", 0.0, OPEN_DEG), ("Close", OPEN_DEG, 0.0)):
+    for clip, angle in (("Open", lambda t: OPEN_DEG * ease(t)), ("Close", lambda t: OPEN_DEG * (1.0 - ease(t)))):
         act = bpy.data.actions.new(clip)
         act.use_fake_user = True
         ad.action = act
-        for frame, deg in ((F0, a0), (F1, a1)):
-            door.rotation_quaternion = lift_quat(door.bone, deg)
+        for frame in range(F0, F1 + 1):   # every frame keyed (LINEAR between): the eased curve is baked in
+            door.rotation_quaternion = lift_quat(door.bone, angle((frame - F0) / (F1 - F0)))
             post.rotation_quaternion = Quaternion()
             for pb in (door, post):
                 pb.location = (0, 0, 0)

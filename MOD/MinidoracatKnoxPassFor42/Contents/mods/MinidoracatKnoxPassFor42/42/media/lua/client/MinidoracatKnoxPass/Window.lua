@@ -1,5 +1,6 @@
--- Knox Pass 讀頭管理視窗（MinidoracatUIFor42 API rev 7：Window／Button／Checkbox／VirtualList，Dialog 選用）。
--- 畫面只顯示伺服器 state；所有變更送指令後等新的 state，不做樂觀更新。
+-- Knox Pass 讀頭管理視窗（MinidoracatUIFor42 API rev 7：Window／Button／Checkbox／VirtualList，Dialog 選用；
+-- 每扇門設定的下拉選單要 rev 14 的 Dropdown，沒有時只顯示數字）。
+-- 畫面只顯示伺服器 state；所有變更送指令後等新的 state，不做樂觀更新。視窗開著時地上畫出這扇門的感應範圍。
 -- 框架不足時整檔在這裡結束：KP.Window 不存在，右鍵「管理讀頭」改成停用並提示（Client.lua）。
 require "MinidoracatKnoxPass/Client"
 local KP = MinidoracatKnoxPass
@@ -10,6 +11,7 @@ if not (MinidoracatUI and MinidoracatUI.v1) then pcall(require, "MinidoracatUI/V
 pcall(require, "MinidoracatUI/VirtualList")
 pcall(require, "MinidoracatUI/Widgets/Controls")
 pcall(require, "MinidoracatUI/Widgets/Window")
+pcall(require, "MinidoracatUI/Widgets/Dropdown")
 local UI = MinidoracatUI and MinidoracatUI.v1
 local CAPS = UI and UI.CAPABILITIES
 if not (UI and UI.API_MAJOR == 1 and UI.API_REVISION >= 7 and CAPS.window and CAPS.controls and CAPS.virtualList) then
@@ -23,6 +25,8 @@ local FS = UIFont.Small
 local PAD, GAP = 12, 6
 local W = 460
 local CLOSE_RANGE = 6
+local DD_W = 210                                  -- 設定下拉選單寬度（英文「Server default (8 tiles)」放得下；右邊接著寫上下限）
+local AMBER = { 0.91, 0.64, 0.24 }                -- 地上範圍圈＝Knox Pass 琥珀色 #e8a33d
 local LAYOUT = "MinidoracatKnoxPassWindow"
 
 local function text(el, s, x, y, token)
@@ -115,17 +119,46 @@ local Win = {}
 Win.__index = Win
 KP.Window = Win
 
+local LABELS = { "IGUI_KnoxPass_Kind", "IGUI_KnoxPass_Owner", "IGUI_KnoxPass_Power", "IGUI_KnoxPass_Door",
+    "IGUI_KnoxPass_Range", "IGUI_KnoxPass_Delay" }
+
+-- 地上的感應範圍圈（同原版除錯工具畫半徑的做法，ISSpawnHordeUI.lua:397-402；setScaleCircleTexture 讓 size＝半徑格數）。
+-- 圓心＝整組門的中心（帳本 cx／cy，Sensor 也從這裡量），標記只能放在整格上，雙開門會偏半格。伺服器上回 nil，只在 client 畫
+local function showRange(w, s)
+    if w.marker then
+        w.marker:setSize(s.range)
+        return
+    end
+    local sq = getCell():getGridSquare(math.floor(s.cx or w.gx), math.floor(s.cy or w.gy), w.gz)
+    if not sq then return end
+    w.marker = getWorldMarkers():addGridSquareMarker(sq, AMBER[1], AMBER[2], AMBER[3], true, s.range)
+    if w.marker then w.marker:setScaleCircleTexture(true) end
+end
+
+local function hideRange(w)
+    if w.marker then w.marker:remove() end
+    w.marker = nil
+end
+
 function Win.new()
     local self = setmetatable({ rows = {}, state = nil }, Win)
     local fh = getTextManager():getFontHeight(FS)
     local ch = fh + 10
     self.fh, self.lineH = fh, fh + 6
     self.listH = (fh * 2 + 14) * 3 + 2 -- 三列（rowHeight＋padding）
-    -- 高度跟字型走：資訊四列＋門鎖＋兩段（標題列＋清單）＋頁尾
-    local bodyH = PAD + self.lineH * 4 + ch + GAP + (ch + GAP + self.listH + PAD) * 2 + ch + PAD
+    -- 固定字串建立時取一次，draw 不查譯文
+    self.labels, self.labelW = {}, 0
+    for i, k in ipairs(LABELS) do
+        self.labels[i] = getText(k)
+        self.labelW = math.max(self.labelW, getTextManager():MeasureStringX(FS, self.labels[i]))
+    end
+    self.labelW = self.labelW + 16
+    -- 高度跟字型走：資訊四列＋門鎖與兩列設定＋說明＋兩段（標題列＋清單）＋頁尾
+    local bodyH = PAD + self.lineH * 4 + (ch + GAP) * 3 + self.lineH + GAP + (ch + GAP + self.listH + PAD) * 2 + ch + PAD
     local sw, sh = getCore():getScreenWidth(), getCore():getScreenHeight()
     self.win = UI.Window.new({ x = math.floor((sw - W) / 2), y = math.floor((sh - bodyH) / 2) - 20, width = W,
-        height = bodyH + 40, title = getText("IGUI_KnoxPass_Title"), theme = theme })
+        height = bodyH + 40, title = getText("IGUI_KnoxPass_Title"), theme = theme,
+        onClose = function() hideRange(self) end })
     local top = self.win:contentTop()
     self.win:setHeight(top + bodyH)
     local body = Body:new(0, top, W, bodyH)
@@ -142,6 +175,21 @@ function Win.new()
         theme = theme, target = self, onChange = Win.onLock })
     body:addChild(self.lock)
     y = y + ch + GAP
+
+    -- 每扇門的感應距離與關門延遲：下拉選單只列沙盒上下限內的值；框架沒有 Dropdown 時 draw 只寫數字
+    self.rangeY, self.delayY = y, y + ch + GAP
+    if CAPS.dropdown then
+        self.rangeDD = UI.Dropdown.new({ x = PAD + self.labelW, y = self.rangeY, width = DD_W, height = ch, font = FS,
+            theme = theme, target = self, onChange = Win.onRange })
+        self.delayDD = UI.Dropdown.new({ x = PAD + self.labelW, y = self.delayY, width = DD_W, height = ch, font = FS,
+            theme = theme, target = self, onChange = Win.onDelay })
+        body:addChild(self.rangeDD)
+        body:addChild(self.delayDD)
+    end
+    y = self.delayY + ch + GAP
+    self.hintY = y
+    self.hint = fit(getText("IGUI_KnoxPass_RangeHint"), W - PAD * 2)
+    y = y + self.lineH + GAP
 
     self.tagsHeadY = y
     self.btnRemoveTag = UI.Button.new({ x = 0, y = y, height = ch, title = getText("IGUI_KnoxPass_Unregister"),
@@ -187,6 +235,31 @@ function Win.bindNear(c, row, w)
         .. chargeText(row.charge), w)
 end
 
+-- 下拉選項：第一個是「伺服器預設（值）」，其餘是上下限內的每個整數
+local function settingOptions(lo, hi, default, unit)
+    local opts = { { id = "default", label = getText("IGUI_KnoxPass_ServerDefault", getText(unit, tostring(default))) } }
+    for v = lo, hi do opts[#opts + 1] = { id = v, label = getText(unit, tostring(v)) } end
+    return opts
+end
+
+-- 設定兩列跟著 state 走（被拒時也用來回到伺服器的值）：設了值就選生效值（上下限縮小後是夾過的值），沒設選預設
+function Win:applySettings(s)
+    local rb = getText("IGUI_KnoxPass_CellsRange", tostring(s.rangeMin), tostring(s.rangeMax))
+    local db = getText("IGUI_KnoxPass_SecondsRange", tostring(s.delayMin), tostring(s.delayMax))
+    if not self.rangeDD then
+        self.rangeAside = getText("IGUI_KnoxPass_Cells", tostring(s.range)) .. "   " .. rb
+        self.delayAside = getText("IGUI_KnoxPass_Seconds", tostring(s.delay)) .. "   " .. db
+        return
+    end
+    self.rangeAside, self.delayAside = rb, db
+    self.rangeDD:setOptions(settingOptions(s.rangeMin, s.rangeMax, s.rangeDefault, "IGUI_KnoxPass_Cells"))
+    self.rangeDD:setSelected(s.rangeSet ~= nil and s.range or "default", true)
+    self.rangeDD:setEnabled(s.manager == true)
+    self.delayDD:setOptions(settingOptions(s.delayMin, s.delayMax, s.delayDefault, "IGUI_KnoxPass_Seconds"))
+    self.delayDD:setSelected(s.delaySet ~= nil and s.delay or "default", true)
+    self.delayDD:setEnabled(s.manager == true)
+end
+
 -- state 到達時算好資訊列字串（draw 每幀只畫）
 function Win:apply(s)
     self.state = s
@@ -201,6 +274,8 @@ function Win:apply(s)
     self.lock:setChecked(s.lock == true, true)
     self.lock:setEnabled(s.manager == true and s.lockSupported ~= false)
     self.lock:setLabel(getText(s.lockSupported == false and "IGUI_KnoxPass_LockUnsupported" or "IGUI_KnoxPass_Lock"))
+    self:applySettings(s)
+    showRange(self, s)
     self.tags:setItems(s.tags or {})
     self.near:setItems(s.nearby or {})
     self:refreshButtons()
@@ -215,8 +290,6 @@ function Win:refreshButtons()
     self.btnRemoveReader:setEnabled(manager and self.state.kind ~= "Barrier")
 end
 
-local LABELS = { "IGUI_KnoxPass_Kind", "IGUI_KnoxPass_Owner", "IGUI_KnoxPass_Power", "IGUI_KnoxPass_Door" }
-
 function Win:draw(el)
     local s = self.state
     if not s then
@@ -229,6 +302,14 @@ function Win:draw(el)
         text(el, self.labels[i], PAD, y, "textMuted")
         text(el, self.rows[i], valueX, y, i == 3 and self.powerToken or "text")
     end
+    -- 設定兩列與下拉選單同高（高 fh+10，文字下移 5 置中）；有下拉選單時右邊寫上下限，沒有時寫「生效值   上下限」
+    local asideX, asideToken = valueX, "text"
+    if self.rangeDD then asideX, asideToken = valueX + DD_W + 10, "textFaint" end
+    text(el, self.labels[5], PAD, self.rangeY + 5, "textMuted")
+    text(el, self.rangeAside, asideX, self.rangeY + 5, asideToken)
+    text(el, self.labels[6], PAD, self.delayY + 5, "textMuted")
+    text(el, self.delayAside, asideX, self.delayY + 5, asideToken)
+    text(el, self.hint, PAD, self.hintY, "textFaint")
     -- 段落標題與右側按鈕同高（按鈕高 fh+10，文字下移 5 置中）
     text(el, self.tagsHead, PAD, self.tagsHeadY + 5, "accent")
     text(el, self.nearHead, PAD, self.nearHeadY + 5, "accent")
@@ -246,6 +327,15 @@ end
 
 function Win:onLock(checked)
     C.send(self.player, "lock", { key = self.key, on = checked == true })
+end
+
+-- 下拉選單：id＝整數或 "default"（改回跟著沙盒預設）；伺服器夾在上下限內再回 state
+function Win:onRange(id)
+    C.send(self.player, "settings", { key = self.key, range = id })
+end
+
+function Win:onDelay(id)
+    C.send(self.player, "settings", { key = self.key, delay = id })
 end
 
 function Win:onUnregister()
@@ -272,14 +362,7 @@ end
 local function ensure()
     if Win.instance then return Win.instance end
     local w = Win.new()
-    -- 固定字串建立時取一次，draw 不查譯文
-    w.labels = {}
-    w.labelW = 0
-    for i, k in ipairs(LABELS) do
-        w.labels[i] = getText(k)
-        w.labelW = math.max(w.labelW, getTextManager():MeasureStringX(FS, w.labels[i]))
-    end
-    w.labelW = w.labelW + 16
+    -- 固定字串建立時取一次，draw 不查譯文（資訊列與設定列的標籤在 Win.new 量寬度時就取了）
     w.loading = getText("IGUI_KnoxPass_Loading")
     w.nearHead = getText("IGUI_KnoxPass_Nearby_Title")
     w.notManager = getText("IGUI_KnoxPass_NotManager")
@@ -302,6 +385,11 @@ function Win.open(player, anchor, key)
     w.near:setItems({})
     w.lock:setChecked(false, true)
     w.lock:setEnabled(false)
+    if w.rangeDD then
+        w.rangeDD:setEnabled(false)
+        w.delayDD:setEnabled(false)
+    end
+    hideRange(w)   -- 換一扇門開視窗：等新 state 再畫這扇門的範圍
     w:refreshButtons()
     w.win:setVisible(true)
     w.win:bringToTop()
@@ -326,5 +414,7 @@ function Win.onResult(r)
         w.win:close()
     elseif not r.ok and r.cmd == "lock" and w.state then
         w.lock:setChecked(w.state.lock == true, true) -- 被拒時開關回到伺服器狀態
+    elseif not r.ok and r.cmd == "settings" and w.state then
+        w:applySettings(w.state)                     -- 被拒時下拉選單回到伺服器的值
     end
 end

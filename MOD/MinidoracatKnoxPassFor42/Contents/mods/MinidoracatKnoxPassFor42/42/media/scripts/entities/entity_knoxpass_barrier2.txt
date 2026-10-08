@@ -1,0 +1,136 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_MinidoracatKnoxPassBoomBarrier6
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_Barrier2_6,
+            Icon = media/ui/MinidoracatKnoxPass/boom_barrier_6.png,
+        }
+
+        entity ES_MinidoracatKnoxPassBoomBarrier9
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_Barrier2_9,
+            Icon = media/ui/MinidoracatKnoxPass/boom_barrier_9.png,
+        }
+    }
+
+    entity MinidoracatKnoxPassBoomBarrier6
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassBoomBarrier6,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            health = 1500,
+            skillBaseHealth = 0,
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_barrier2_3 MinidoracatKnoxPass_barrier2_16 MinidoracatKnoxPass_barrier2_17 MinidoracatKnoxPass_barrier2_18 MinidoracatKnoxPass_barrier2_19 MinidoracatKnoxPass_barrier2_20 MinidoracatKnoxPass_barrier2_21 MinidoracatKnoxPass_barrier2_4,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_barrier2_68,
+                    row = MinidoracatKnoxPass_barrier2_85,
+                    row = MinidoracatKnoxPass_barrier2_84,
+                    row = MinidoracatKnoxPass_barrier2_83,
+                    row = MinidoracatKnoxPass_barrier2_82,
+                    row = MinidoracatKnoxPass_barrier2_81,
+                    row = MinidoracatKnoxPass_barrier2_80,
+                    row = MinidoracatKnoxPass_barrier2_67,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWoodenStructureMedium,
+            time = 250,
+            category = Furniture,
+            Tags = Furniture,
+            inputs
+            {
+                item 1 tags[base:screwdriver] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [MinidoracatKnoxPass.BoomBarrierKit],
+                item 4 [Base.MetalPipe],
+                item 2 [Base.SheetMetal],
+                item 2 [Base.Wire],
+            }
+        }
+    }
+
+    entity MinidoracatKnoxPassBoomBarrier9
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassBoomBarrier9,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            health = 2000,
+            skillBaseHealth = 0,
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_barrier2_131 MinidoracatKnoxPass_barrier2_144 MinidoracatKnoxPass_barrier2_145 MinidoracatKnoxPass_barrier2_146 MinidoracatKnoxPass_barrier2_147 MinidoracatKnoxPass_barrier2_148 MinidoracatKnoxPass_barrier2_149 MinidoracatKnoxPass_barrier2_150 MinidoracatKnoxPass_barrier2_151 MinidoracatKnoxPass_barrier2_152 MinidoracatKnoxPass_barrier2_132,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_barrier2_196,
+                    row = MinidoracatKnoxPass_barrier2_216,
+                    row = MinidoracatKnoxPass_barrier2_215,
+                    row = MinidoracatKnoxPass_barrier2_214,
+                    row = MinidoracatKnoxPass_barrier2_213,
+                    row = MinidoracatKnoxPass_barrier2_212,
+                    row = MinidoracatKnoxPass_barrier2_211,
+                    row = MinidoracatKnoxPass_barrier2_210,
+                    row = MinidoracatKnoxPass_barrier2_209,
+                    row = MinidoracatKnoxPass_barrier2_208,
+                    row = MinidoracatKnoxPass_barrier2_195,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWoodenStructureMedium,
+            time = 350,
+            category = Furniture,
+            Tags = Furniture,
+            inputs
+            {
+                item 1 tags[base:screwdriver] mode:keep flags[Prop1;MayDegradeVeryLight],
+                item 1 [MinidoracatKnoxPass.BoomBarrierKit],
+                item 6 [Base.MetalPipe],
+                item 3 [Base.SheetMetal],
+                item 2 [Base.Wire],
+            }
+        }
+    }
+}
