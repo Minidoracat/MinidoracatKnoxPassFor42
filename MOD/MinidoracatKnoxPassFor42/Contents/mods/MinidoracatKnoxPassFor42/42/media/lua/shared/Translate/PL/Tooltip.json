@@ -1,5 +1,5 @@
 {
-    "Tooltip_MinidoracatKnoxPass_Tag": "Zamontuj go w oknie naprawy pojazdów w kategorii \"Knox Pass\" (potrzebny kluczyk do pojazdu lub otwarte drzwi); ładuje się z pojazdu. Zarejestruj pojazd przy czytniku bramy Knox Pass, aby ta brama się dla niego otwierała.",
-    "Tooltip_MinidoracatKnoxPass_Reader": "Kliknij prawym przyciskiem bramę, mając śrubokręt, aby go zamontować. Kliknij bramę prawym przyciskiem ponownie, aby zarządzać zarejestrowanymi pojazdami i opcjonalną blokadą.",
-    "Tooltip_MinidoracatKnoxPass_BarrierKit": "Postaw go w poprzek drogi z menu budowania (obróć, aby zmienić kierunek); zajmuje 4 pola: szafkę i 3 pola pasa ruchu. Szlaban ma wbudowany czytnik należący do osoby, która go zbudowała, i podlega zasadom zasilania czytnika. Rozmontuj szafkę, aby odzyskać zestaw."
+    "Tooltip_MinidoracatKnoxPass_Tag": "Zamontuj go w oknie naprawy pojazdów w kategorii \"Knox Pass\"<br>(potrzebny kluczyk do pojazdu lub otwarte drzwi); ładuje się z pojazdu.<br>Zarejestruj pojazd przy czytniku bramy Knox Pass, aby ta brama się dla niego otwierała.",
+    "Tooltip_MinidoracatKnoxPass_Reader": "Kliknij prawym przyciskiem bramę, mając śrubokręt, aby go zamontować.<br>Kliknij bramę prawym przyciskiem ponownie,<br>aby zarządzać zarejestrowanymi pojazdami i opcjonalną blokadą.",
+    "Tooltip_MinidoracatKnoxPass_BarrierKit": "Postaw go w poprzek drogi z menu budowania (obróć, aby zmienić kierunek);<br>zajmuje 4 pola: szafkę i 3 pola pasa ruchu.<br>Szlaban ma wbudowany czytnik należący do osoby, która go zbudowała,<br>i podlega zasadom zasilania czytnika. Rozmontuj szafkę, aby odzyskać zestaw."
 }

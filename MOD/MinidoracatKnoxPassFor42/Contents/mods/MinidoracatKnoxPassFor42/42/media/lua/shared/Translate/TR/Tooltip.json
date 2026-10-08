@@ -1,5 +1,5 @@
 {
-    "Tooltip_MinidoracatKnoxPass_Tag": "Araç Tamiri panelinde \"Knox Pass\" kategorisinden tak (araç anahtarı veya kilidi açık bir kapı gerekir); şarjını araçtan alır. O kapının bu araç için açılması için aracı bir Knox Pass Kapı Okuyucusuna kaydet.",
-    "Tooltip_MinidoracatKnoxPass_Reader": "Takmak için elinde tornavidayla bir kapıya sağ tıkla. Kayıtlı araçları ve isteğe bağlı kilidi yönetmek için kapıya tekrar sağ tıkla.",
-    "Tooltip_MinidoracatKnoxPass_BarrierKit": "İnşa Menüsü'nden bir yolu enine kesecek şekilde yerleştir (yönü değiştirmek için döndür); 4 kare kaplar: kabin artı 3 şerit karesi. Bariyerin, onu inşa eden kişiye ait yerleşik bir okuyucusu vardır ve okuyucunun güç kuralına uyar. Seti geri almak için kabini sök."
+    "Tooltip_MinidoracatKnoxPass_Tag": "Araç Tamiri panelinde \"Knox Pass\" kategorisinden tak (araç anahtarı veya kilidi açık bir kapı gerekir);<br>şarjını araçtan alır. O kapının bu araç için açılması için aracı bir Knox Pass Kapı Okuyucusuna kaydet.",
+    "Tooltip_MinidoracatKnoxPass_Reader": "Takmak için elinde tornavidayla bir kapıya sağ tıkla.<br>Kayıtlı araçları ve isteğe bağlı kilidi yönetmek için kapıya tekrar sağ tıkla.",
+    "Tooltip_MinidoracatKnoxPass_BarrierKit": "İnşa Menüsü'nden bir yolu enine kesecek şekilde yerleştir (yönü değiştirmek için döndür);<br>4 kare kaplar: kabin artı 3 şerit karesi.<br>Bariyerin, onu inşa eden kişiye ait yerleşik bir okuyucusu vardır ve okuyucunun güç kuralına uyar.<br>Seti geri almak için kabini sök."
 }

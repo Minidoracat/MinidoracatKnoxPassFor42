@@ -153,6 +153,17 @@ function Win.new()
         self.labelW = math.max(self.labelW, getTextManager():MeasureStringX(FS, self.labels[i]))
     end
     self.labelW = self.labelW + 16
+    -- 標籤欄跟著語言變寬時（法文、德文…），視窗跟著加寬：設定列右邊的上下限、「不能調整」與資訊列的供電說明都要放得下
+    local tm = getTextManager()
+    local aside, info = 0, 0
+    for _, t in ipairs({ getText("IGUI_KnoxPass_CellsRange", "99", "99"), getText("IGUI_KnoxPass_SecondsRange", "99", "99"),
+        getText("IGUI_KnoxPass_SpeedUnsupported") }) do
+        aside = math.max(aside, tm:MeasureStringX(FS, t))
+    end
+    for _, k in ipairs({ "IGUI_KnoxPass_NoPower", "IGUI_KnoxPass_PowerNotNeeded" }) do
+        info = math.max(info, tm:MeasureStringX(FS, getText(k)))
+    end
+    W = math.max(460, PAD * 2 + self.labelW + math.max(DD_W + 10 + aside, info))
     -- 高度跟字型走：資訊四列＋門鎖與三列設定＋說明＋兩段（標題列＋清單）＋頁尾
     local bodyH = PAD + self.lineH * 4 + (ch + GAP) * 4 + self.lineH + GAP + (ch + GAP + self.listH + PAD) * 2 + ch + PAD
     local sw, sh = getCore():getScreenWidth(), getCore():getScreenHeight()

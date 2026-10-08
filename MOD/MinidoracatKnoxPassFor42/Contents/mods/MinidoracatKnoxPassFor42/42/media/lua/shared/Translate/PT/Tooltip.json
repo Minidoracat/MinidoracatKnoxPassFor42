@@ -1,5 +1,5 @@
 {
-    "Tooltip_MinidoracatKnoxPass_Tag": "Instale pelo painel de mecânica do veículo, na categoria \"Knox Pass\" (requer a chave do veículo ou uma porta destrancada); ela carrega com o veículo. Registre o veículo em um Leitor de Portão Knox Pass para que esse portão abra para ele.",
-    "Tooltip_MinidoracatKnoxPass_Reader": "Clique com o botão direito em um portão com uma chave de fenda para instalar. Clique com o botão direito no portão de novo para gerenciar os veículos registrados e a tranca opcional.",
-    "Tooltip_MinidoracatKnoxPass_BarrierKit": "Posicione atravessando uma rua pelo menu de construção (gire para mudar a direção); ocupa 4 quadrados: o gabinete mais 3 quadrados de pista. A cancela tem um leitor embutido cujo proprietário é quem a constrói e segue a regra de energia do leitor. Desmonte o gabinete para recuperar o kit."
+    "Tooltip_MinidoracatKnoxPass_Tag": "Instale pelo painel de mecânica do veículo, na categoria \"Knox Pass\"<br>(requer a chave do veículo ou uma porta destrancada); ela carrega com o veículo.<br>Registre o veículo em um Leitor de Portão Knox Pass para que esse portão abra para ele.",
+    "Tooltip_MinidoracatKnoxPass_Reader": "Clique com o botão direito em um portão com uma chave de fenda para instalar.<br>Clique com o botão direito no portão de novo<br>para gerenciar os veículos registrados e a tranca opcional.",
+    "Tooltip_MinidoracatKnoxPass_BarrierKit": "Posicione atravessando uma rua pelo menu de construção (gire para mudar a direção);<br>ocupa 4 quadrados: o gabinete mais 3 quadrados de pista.<br>A cancela tem um leitor embutido cujo proprietário é quem a constrói<br>e segue a regra de energia do leitor. Desmonte o gabinete para recuperar o kit."
 }
