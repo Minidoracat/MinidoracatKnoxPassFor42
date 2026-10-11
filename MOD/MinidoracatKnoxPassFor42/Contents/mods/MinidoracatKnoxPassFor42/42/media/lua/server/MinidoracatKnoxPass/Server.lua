@@ -17,6 +17,7 @@ local H = {}
 KP.Handlers = H
 
 local MAX_TAGS = 64
+local MAX_BATCH = 100   -- 整批登記／取消登記一次最多幾台：大門 15 格內放不下這麼多車，擋特製客戶端送的超長清單
 local RATE_WINDOW_MS, RATE_MAX = 10000, 20
 local hits = {}
 
@@ -74,6 +75,21 @@ local function canManage(player, rec)
     local name, sid = KP.principal(player)
     if not name or name ~= rec.owner then return false end
     return rec.sid == nil or sid == rec.sid
+end
+
+-- 擁有者把這扇門分享給的人（rec.share＝"faction"／"safehouse"／"both"）：擁有者現在所在陣營的領袖或成員
+-- （Faction.java:123-138、:150-160），或和擁有者同在一間安全屋（屋主或成員，SafeHouse.java:288-290、:795-803）。
+-- 名單是原版的、以名字判定，跟著擁有者現在的陣營與安全屋走。擁有者本人的名字不算：同名但 SteamID 不同的冒名者要擋在 canManage
+local function sharedWith(player, rec)
+    local share = rec.share
+    if not share or not rec.owner then return false end
+    local name = KP.principal(player)
+    if not name or name == rec.owner then return false end
+    if share ~= "safehouse" then
+        local f = Faction.getPlayerFaction(rec.owner)
+        if f and (f:isOwner(name) or f:isMember(name)) then return true end
+    end
+    return share ~= "faction" and SafeHouse.isInSameSafehouse(rec.owner, name)
 end
 
 local function nearGate(player, rec)
@@ -145,7 +161,7 @@ local function buildState(player, key, rec)
         rangeDefault = KP.clampSetting("ReadRange", tonumber(KP.sandbox("ReadRange")) or 8),
         delay = KP.gateDelay(rec), delaySet = rec.closeDelay, delayMin = delayLo, delayMax = delayHi,
         delayDefault = KP.clampSetting("CloseDelay", tonumber(KP.sandbox("CloseDelay")) or 2),
-        speed = rec.speed == "fast" and "fast" or "default",
+        speed = rec.speed == "fast" and "fast" or "default", share = rec.share or "none", maxTags = MAX_TAGS,
     }
     local adapter, anchor = G.findAt(rec)
     if adapter then
@@ -263,41 +279,74 @@ function H.uninstall(player, args)
     result(player, cmd, true, nil, args.key)
 end
 
+-- 管理視窗勾選的一批 ID：先整批驗型別，有一個不合格就整批不收（BadArgs）
+local function batchOf(ids, valid)
+    if type(ids) ~= "table" or #ids == 0 or #ids > MAX_BATCH then return nil end
+    for i = 1, #ids do
+        if not valid(ids[i]) then return nil end
+    end
+    return ids
+end
+
+local function vehicleIdOk(v) return KP.isInt(v) and v >= 0 and v <= 32767 end
+
+-- 登記一台：回傳 true（added＝這次新加）或 false, 原因。count＝這扇門目前登記了幾台
+local function registerOne(key, rec, vid, count)
+    local v = getVehicleById(vid)
+    if not v or math.abs(v:getZ() - rec.z) >= 1
+        or math.max(math.abs(v:getX() - rec.cx), math.abs(v:getY() - rec.cy)) > KP.REGISTER_RANGE + 0.5 then
+        return false, "VehicleTooFar"
+    end
+    local tag = KP.vehicleTag(v)
+    if not tag then return false, "NoTag" end
+    local id = tag:getID()
+    if rec.tags[id] then return true end   -- 已登記的再登記一次算成功，不受上限影響
+    if count >= MAX_TAGS then return false, "TooMany" end
+    L.addTag(key, rec, id, { serial = KP.serial(id), script = v:getScriptName(), at = getGameTime():getWorldAgeHours() })
+    return true, nil, true
+end
+
+-- 整批登記：一個指令處理整批，頻率限制只算一次、state 只回一次。逐台檢查距離、感應盒與上限，
+-- 回覆帶 done＝成功幾台、failed＝沒成功幾台、why＝第一個沒成功的原因
 function H.register(player, args)
     local cmd = "register"
     local rec, why = gateFor(player, args)
     if not rec then return result(player, cmd, false, why) end
     if not canManage(player, rec) then return result(player, cmd, false, "NotOwner", args.key) end
-    if not (KP.isInt(args.vehicleId) and args.vehicleId >= 0 and args.vehicleId <= 32767) then
-        return result(player, cmd, false, "BadArgs", args.key)
+    local ids = batchOf(args.vehicleIds, vehicleIdOk)
+    if not ids then return result(player, cmd, false, "BadArgs", args.key) end
+    local count = 0
+    for _ in pairs(rec.tags) do count = count + 1 end
+    local done, failed, first = 0, 0, nil
+    for i = 1, #ids do
+        local ok, reason, added = registerOne(args.key, rec, ids[i], count)
+        if ok then
+            done = done + 1
+            if added then count = count + 1 end
+        else
+            failed, first = failed + 1, first or reason
+        end
     end
-    local v = getVehicleById(args.vehicleId)
-    if not v or math.abs(v:getZ() - rec.z) >= 1
-        or math.max(math.abs(v:getX() - rec.cx), math.abs(v:getY() - rec.cy)) > KP.REGISTER_RANGE + 0.5 then
-        return result(player, cmd, false, "VehicleTooFar", args.key)
-    end
-    local tag = KP.vehicleTag(v)
-    if not tag then return result(player, cmd, false, "NoTag", args.key) end
-    local id = tag:getID()
-    if not rec.tags[id] then
-        local count = 0
-        for _ in pairs(rec.tags) do count = count + 1 end
-        if count >= MAX_TAGS then return result(player, cmd, false, "TooMany", args.key) end
-        L.addTag(args.key, rec, id, { serial = KP.serial(id), script = v:getScriptName(),
-            at = getGameTime():getWorldAgeHours() })
-    end
-    result(player, cmd, true, nil, args.key)
+    reply(player, "result", { cmd = cmd, ok = done > 0, why = first, key = args.key, done = done, failed = failed })
     KP.sendState(player, args.key)
 end
 
+-- 整批取消登記：不在這扇門的 ID 略過（已經不在了），done＝這次真的拿掉幾台
 function H.unregister(player, args)
     local cmd = "unregister"
     local rec, why = gateFor(player, args)
     if not rec then return result(player, cmd, false, why) end
     if not canManage(player, rec) then return result(player, cmd, false, "NotOwner", args.key) end
-    if not KP.isInt(args.tagId) then return result(player, cmd, false, "BadArgs", args.key) end
-    L.removeTag(args.key, rec, args.tagId)
-    result(player, cmd, true, nil, args.key)
+    local ids = batchOf(args.tagIds, KP.isInt)
+    if not ids then return result(player, cmd, false, "BadArgs", args.key) end
+    local done = 0
+    for i = 1, #ids do
+        if rec.tags[ids[i]] then
+            L.removeTag(args.key, rec, ids[i])
+            done = done + 1
+        end
+    end
+    reply(player, "result", { cmd = cmd, ok = true, key = args.key, done = done, failed = 0 })
     KP.sendState(player, args.key)
 end
 
@@ -323,7 +372,7 @@ function H.lock(player, args)
     KP.sendState(player, args.key)
 end
 
--- 每扇門的感應距離、關門延遲與開關速度（擁有者或管理員、站在門邊）。值：整數＝新值（夾在沙盒上下限內），
+-- 每扇門的感應距離、關門延遲、開關速度與分享對象（擁有者或管理員、站在門邊）。值：整數＝新值（夾在沙盒上下限內），
 -- "default"＝改回跟著沙盒預設，沒送＝不改。回傳 ok, 值（false＝改回預設、nil＝不改）
 local function settingArg(v)
     if v == nil then return true, nil end
@@ -338,6 +387,14 @@ local function speedArg(v)
     return v == "fast", v
 end
 
+-- 分享對象（sharedWith）："faction"／"safehouse"／"both"、"none"＝不分享、沒送＝不改
+local SHARES = { faction = true, safehouse = true, both = true }
+local function shareArg(v)
+    if v == nil then return true, nil end
+    if v == "none" then return true, false end
+    return SHARES[v] == true, v
+end
+
 function H.settings(player, args)
     local cmd = "settings"
     local rec, why = gateFor(player, args)
@@ -346,7 +403,8 @@ function H.settings(player, args)
     local okR, range = settingArg(args.range)
     local okD, delay = settingArg(args.delay)
     local okS, speed = speedArg(args.speed)
-    if not (okR and okD and okS) then return result(player, cmd, false, "BadArgs", args.key) end
+    local okH, share = shareArg(args.share)
+    if not (okR and okD and okS and okH) then return result(player, cmd, false, "BadArgs", args.key) end
     -- 速度存在帳本，也標在錨點給 client 選動畫，所以門要載入
     local adapter, anchor = nil, nil
     if speed ~= nil then
@@ -356,12 +414,13 @@ function H.settings(player, args)
     end
     if range ~= nil then rec.range = range and KP.clampSetting("ReadRange", range) or nil end
     if delay ~= nil then rec.closeDelay = delay and KP.clampSetting("CloseDelay", delay) or nil end
+    if share ~= nil then rec.share = share or nil end
     if speed ~= nil then
         rec.speed = speed or nil
         mark(anchor, rec.owner or "", rec.lock, rec.color, rec.speed)
     end
     KP.log("settings key=" .. args.key .. " range=" .. tostring(rec.range) .. " delay=" .. tostring(rec.closeDelay)
-        .. " speed=" .. tostring(rec.speed) .. " by=" .. tostring(player:getUsername()))
+        .. " speed=" .. tostring(rec.speed) .. " share=" .. tostring(rec.share) .. " by=" .. tostring(player:getUsername()))
     result(player, cmd, true, nil, args.key)
     KP.sendState(player, args.key)
 end
@@ -435,7 +494,7 @@ function H.open(player, args)
     local rec, why = gateFor(player, args)
     if not rec then return result(player, cmd, false, why) end
     local tag = nil
-    if not canManage(player, rec) then
+    if not canManage(player, rec) and not sharedWith(player, rec) then
         tag = carriedTag(player, rec)
         if not tag then return result(player, cmd, false, "NotAllowed", args.key) end
     end
@@ -443,22 +502,26 @@ function H.open(player, args)
     result(player, cmd, ok, reason, args.key)
 end
 
--- 右鍵「用 Knox Pass 關門」：跟開門同樣的權限（擁有者、管理員、身上帶已登記且有電的感應盒），關好照門鎖設定鎖回（S.close）
+-- 右鍵「用 Knox Pass 關門」：跟開門同樣的權限（擁有者、管理員、分享的陣營／安全屋成員、身上帶已登記且有電的感應盒），
+-- 關好照門鎖設定鎖回（S.close）
 function H.close(player, args)
     local cmd = "close"
     if player:getVehicle() then return result(player, cmd, false, "InVehicle") end
     local rec, why = gateFor(player, args)
     if not rec then return result(player, cmd, false, why) end
-    if not canManage(player, rec) and not carriedTag(player, rec) then
+    if not canManage(player, rec) and not sharedWith(player, rec) and not carriedTag(player, rec) then
         return result(player, cmd, false, "NotAllowed", args.key)
     end
     local ok, reason = S.close(args.key, rec, player, getTimestampMs())
     result(player, cmd, ok, reason, args.key)
 end
 
+-- 查詢失敗也帶 key：管理視窗據此顯示原因並重讀（Window.lua Win.onResult）
+local function keyOf(args) return type(args.key) == "string" and args.key or nil end
+
 function H.query(player, args)
     local rec, why = gateFor(player, args)
-    if not rec then return result(player, "query", false, why) end
+    if not rec then return result(player, "query", false, why, keyOf(args)) end
     reply(player, "state", buildState(player, args.key, rec))
 end
 
@@ -466,11 +529,11 @@ local function onClientCommand(module, command, player, args)
     if module ~= KP.MODULE then return end
     local handler = H[command]
     if not handler or not player or type(args) ~= "table" then return end
-    if limited(player) then return result(player, command, false, "RateLimited") end
+    if limited(player) then return result(player, command, false, "RateLimited", keyOf(args)) end
     local ok, err = pcall(handler, player, args)
     if not ok then
         KP.log("command " .. tostring(command) .. " failed: " .. tostring(err))
-        result(player, command, false, "Error")
+        result(player, command, false, "Error", keyOf(args))
     end
 end
 

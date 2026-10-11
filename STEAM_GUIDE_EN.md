@@ -13,7 +13,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]Get them[/b]: a Vehicle Tag and a Gate Reader, crafted or looted (see "Getting them").
 [*] [b]Install the tag[/b]: open the vehicle mechanics panel and install the tag under "Knox Pass"; you need the car key or an unlocked door.
 [*] [b]Install the reader[/b]: with the reader and a screwdriver, right-click the gate → Knox Pass → "Install Knox Pass reader".
-[*] [b]Register the car[/b]: park next to the gate, right-click → Knox Pass → "Manage reader", pick the car under "Nearby vehicles with a tag" and press "Register".
+[*] [b]Register the car[/b]: park next to the gate, right-click → Knox Pass → "Manage reader", check the car on the "Nearby" tab and press "Register".
 [/olist]
 === 🧰 Vehicle Tag
 {{img:07-mechanics-tag-en.jpg}}
@@ -53,11 +53,12 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]It shows[/b]:
 [list]
 [*] gate type, owner, power, lock
-[*] this gate's read range, close delay and speed
-[*] registered cars (charge, last pass)
-[*] nearby cars with a tag
+[*] this gate's read range, close delay, speed and sharing
+[*] "Registered" tab: registered cars (charge, last pass), most recent pass first
+[*] "Nearby" tab: unregistered cars with a tag within 15 tiles, nearest first
 [/list]
 [*] [b]Read range[/b]: while the window is open, an amber circle on the ground shows this gate's read range (the range for a car standing still; faster cars open it sooner).
+[*] [b]Several at once[/b]: each car has a checkbox; click a car to check it, or "Select all" for the whole tab. "Register (N)" or "Unregister (N)" handles them in one go; unregistering asks first.
 [/list]
 {{img:15-range-circle-en.jpg}}
 [h3]Per-gate settings[/h3]
@@ -67,6 +68,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]If the server narrows the limits[/b]: gates that were set follow the new limits and keep their value.
 [*] [b]Speed[/b]: boom barriers, double boom barriers, two-story roll-up doors and two-story gates can be set to [b]Normal (4 s)[/b] or [b]Fast (2.5 s)[/b] under "Speed", and every player sees the same speed.
 [*] [b]Fixed speed[/b]: one-story roll-up doors and vanilla doors; the dropdown says "Not adjustable".
+[*] [b]Share with[/b]: pick [b]Faction[/b], [b]Safehouse[/b] or [b]Faction + safehouse[/b] to let teammates open and close this gate on foot without a tag (see "Opening and closing on foot"). Not shared by default.
 [/list]
 === 🧰 Shell colors and repainting
 {{img:11-shell-colors-en.jpg}}
@@ -213,7 +215,8 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [h3]Opening and closing on foot[/h3]
 [list]
 [*] [b]Open with Knox Pass[/b]: right-click → Knox Pass → "Open with Knox Pass".
-[*] [b]Who can use it[/b]: the owner, admins, and anyone carrying a registered, charged tag.
+[*] [b]Who can use it[/b]: the owner, admins, teammates the owner shares the gate with, and anyone carrying a registered, charged tag.
+[*] [b]Sharing with teammates[/b]: once the owner picks a faction or safehouse under "Share with" in the management window, the leader and members of the owner's faction, or anyone in a safehouse with the owner, can use it; it stops when the owner leaves that faction or safehouse. Teammates can only open and close the gate; they can't register cars or change settings. Multiplayer only.
 [*] [b]At least 5 seconds[/b]: a gate opened on foot stays open at least 5 seconds, so you can walk through even with a very short close delay.
 [*] [b]Close with Knox Pass[/b]: while the gate stands open (for example after someone opened it with the original key), right-click → Knox Pass → "Close with Knox Pass"; it closes and locks again. The same people who can open it on foot can use it.
 [/list]
@@ -287,7 +290,7 @@ Check that:
 [/list]
 [h3]Can other players open my gate?[/h3]
 [list]
-[*] Only the tags you registered can.
+[*] Only the tags you registered can; if you share the gate with your faction or safehouse in the management window, those teammates can open and close it on foot too.
 [*] Once locked, neither bare hands nor zombies can open it, except someone holding that door's original key.
 [*] An unlocked gate can still be opened by hand as usual.
 [/list]

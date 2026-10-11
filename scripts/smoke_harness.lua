@@ -134,7 +134,7 @@ local W
 local function newWorld()
     return {
         squares = {}, unloaded = {}, players = {}, locals = {}, zombies = {}, vehicles = {},
-        scripts = {}, template = nil, safehouse = {}, steam = false, hours = 1000, rand = 12345,
+        scripts = {}, template = nil, safehouse = {}, factions = {}, houses = {}, steam = false, hours = 1000, rand = 12345,
         nextItemId = 1233423, nextVid = 1,
         sent = {}, sendServerCalls = 0, itemStats = 0, removeSent = 0, addSent = 0, handsRemoved = 0,
         partDeltas = 0, nilToggles = 0, refused = 0, recreated = 0, obstructChecks = 0, copyCalls = 0,
@@ -221,10 +221,35 @@ function ZombRand(a, b)   -- ZombRand(n)＝0..n-1；ZombRand(a, b)＝a..b-1
     return a + W.rand % (b - a)
 end
 
+-- 原版陣營與安全屋名單（以名字判定）：W.factions／W.houses＝{ { owner = 名字, members = { [名字] = true } } }。
+-- Faction.getPlayerFaction(String)＝領袖或成員是這個名字的陣營（Faction.java:123-138），isOwner／isMember（:150-160）；
+-- SafeHouse.isInSameSafehouse(a, b)＝有一間兩人都是屋主或成員（SafeHouse.java:288-290、:795-803）。
+-- 只收字串：傳 IsoPlayer 會走另一個多載（:106-121），那條拿的是玩家物件上的名字，不是驗證過的身分
+local function inGroup(g, name) return g.owner == name or g.members[name] == true end
 SafeHouse = {
     isSafehouseAllowInteract = function(sq, player)
         local allowed = W.safehouse[sq]
         return allowed == nil or allowed[player:getUsername()] == true
+    end,
+    isInSameSafehouse = function(a, b)
+        assert(type(a) == "string" and type(b) == "string", "SafeHouse.isInSameSafehouse(String, String)")
+        for _, h in ipairs(W.houses) do
+            if inGroup(h, a) and inGroup(h, b) then return true end
+        end
+        return false
+    end,
+}
+local FactionObj = {}
+FactionObj.__index = FactionObj
+function FactionObj:isOwner(name) return self._g.owner == name end
+function FactionObj:isMember(name) return self._g.members[name] == true end
+Faction = {
+    getPlayerFaction = function(name)
+        assert(type(name) == "string", "Faction.getPlayerFaction(String)")
+        for _, f in ipairs(W.factions) do
+            if inGroup(f, name) then return setmetatable({ _g = f }, FactionObj) end
+        end
+        return nil
     end,
 }
 
@@ -1330,7 +1355,7 @@ local function gate(x, opts)
 end
 local function rec(g) return KP.Ledger.get(g.key) end
 local function car(g, d, opts) return makeVehicle(g.cx, g.cy + d, opts) end
-local function register(g, v) return cmd(g.owner, "register", { key = g.key, vehicleId = v:getId() }) end
+local function register(g, v) return cmd(g.owner, "register", { key = g.key, vehicleIds = { v:getId() } }) end
 local function driver(v, name)
     local p = newPlayer(name or ("driver" .. v._id), 0, 0)
     seat(p, v, 0)
@@ -2015,27 +2040,45 @@ local function scenarioCommands()
     check(cmd(owner, "lock", { key = key, on = true }).why == "TooFar", "不同樓層回 TooFar")
     owner._z = 0
 
-    -- 登記
+    -- 登記：一個指令整批（Server.lua H.register），逐台檢查距離、感應盒與上限；回覆帶成功／沒成功台數與第一個原因。
+    -- 擁有者接著連送十幾個指令：先讓頻率限制（10 秒 20 個）開新視窗，免得後面的步行開門被 RateLimited 擋掉
+    nowMs = nowMs + 10001
     local cx, cy = r.cx, r.cy
     local vNear = makeVehicle(cx, cy + 10, { tag = 0.5 })
     local vFar = makeVehicle(cx, cy + 20, { tag = 0.5 })
     local vBare = makeVehicle(cx + 3, cy + 5)
-    check(cmd(owner, "register", { key = key, vehicleId = vNear:getId() }).ok == true
-        and r.tags[vNear._parts.KnoxPassTag._item:getID()] ~= nil, "登記 15 格內裝著感應盒的車")
-    check(cmd(owner, "register", { key = key, vehicleId = vFar:getId() }).why == "VehicleTooFar", "車太遠回 VehicleTooFar")
-    check(cmd(owner, "register", { key = key, vehicleId = vBare:getId() }).why == "NoTag", "車上沒有感應盒回 NoTag")
-    check(cmd(owner, "register", { key = key, vehicleId = "1" }).why == "BadArgs", "vehicleId 不是整數回 BadArgs")
-    check(cmd(other, "register", { key = key, vehicleId = vNear:getId() }).why == "NotOwner", "非擁有者不能登記")
-    for id = 1, 63 do KP.Ledger.addTag(key, r, id, { serial = "x" }) end
+    local function reg(p, ids) return cmd(p, "register", { key = key, vehicleIds = ids }) end
+    res, st = reg(owner, { vNear:getId() })
+    check(res.ok == true and res.done == 1 and res.failed == 0 and r.tags[vNear._parts.KnoxPassTag._item:getID()] ~= nil
+        and st and st.maxTags == 64, "登記 15 格內裝著感應盒的車（state 帶上限 64）")
+    res = reg(owner, { vFar:getId(), vBare:getId() })
+    check(res.ok == false and res.done == 0 and res.failed == 2 and res.why == "VehicleTooFar",
+        "整批都沒登記：ok＝false，why＝第一台的原因（車太遠在前）")
+    check(reg(owner, { vBare:getId() }).why == "NoTag", "車上沒有感應盒回 NoTag")
+    check(reg(owner, { vNear:getId(), "1" }).why == "BadArgs", "清單裡有一個不是整數就整批回 BadArgs")
+    check(reg(owner, {}).why == "BadArgs" and cmd(owner, "register", { key = key, vehicleIds = vNear:getId() }).why == "BadArgs",
+        "空清單、vehicleIds 不是 table 回 BadArgs")
+    local many = {}
+    for i = 1, 101 do many[i] = vNear:getId() end
+    check(reg(owner, many).why == "BadArgs", "一次超過 100 台回 BadArgs")
+    check(reg(other, { vNear:getId() }).why == "NotOwner", "非擁有者不能登記")
+    for id = 1, 62 do KP.Ledger.addTag(key, r, id, { serial = "x" }) end
     local vMore = makeVehicle(cx - 3, cy + 5, { tag = 0.5 })
-    check(cmd(owner, "register", { key = key, vehicleId = vMore:getId() }).why == "TooMany", "超過 64 個感應盒回 TooMany")
-    check(cmd(owner, "register", { key = key, vehicleId = vNear:getId() }).ok == true, "已登記的再登記一次不受上限影響")
-    for id = 1, 63 do KP.Ledger.removeTag(key, r, id) end
+    local vMore2 = makeVehicle(cx + 6, cy + 8, { tag = 0.5 })
+    res = reg(owner, { vMore:getId(), vNear:getId(), vMore2:getId() })
+    check(res.ok == true and res.done == 2 and res.failed == 1 and res.why == "TooMany"
+        and r.tags[vMore._parts.KnoxPassTag._item:getID()] ~= nil and r.tags[vMore2._parts.KnoxPassTag._item:getID()] == nil,
+        "整批中途滿 64 台：前面的登記、後面的回 TooMany；已登記的再登記一次不佔名額")
+    for id = 1, 62 do KP.Ledger.removeTag(key, r, id) end
 
-    -- 註銷
+    -- 取消登記：整批；不在這扇門的 ID 略過
     local tagId = vMore._parts.KnoxPassTag._item:getID()
-    check(cmd(owner, "register", { key = key, vehicleId = vMore:getId() }).ok == true, "清出空位後可登記")
-    check(cmd(owner, "unregister", { key = key, tagId = tagId }).ok == true and r.tags[tagId] == nil, "註銷感應盒")
+    res = cmd(owner, "unregister", { key = key, tagIds = { tagId, 987654 } })
+    check(res.ok == true and res.done == 1 and r.tags[tagId] == nil, "取消登記：拿掉登記的那台，不在這扇門的 ID 略過")
+    check(cmd(owner, "unregister", { key = key, tagIds = { 1.5 } }).why == "BadArgs", "tagIds 有非整數回 BadArgs")
+    local nearId = vNear._parts.KnoxPassTag._item:getID()
+    check(cmd(other, "unregister", { key = key, tagIds = { nearId } }).why == "NotOwner" and r.tags[nearId] ~= nil,
+        "非擁有者不能取消登記")
     moveCar(vMore, cx, cy + 3)
     driver(vMore)
     runMs(2000)
@@ -2118,7 +2161,7 @@ local function scenarioSinglePlayer()
     check(getOnlinePlayers():size() == 0, "（假引擎）SP 的 getOnlinePlayers 是空的")
     local rec1 = KP.Ledger.get(result.key)
     local v = makeVehicle(rec1.cx, rec1.cy + 10, { tag = 0.5 })
-    fire("OnClientCommand", "MinidoracatKnoxPass", "register", me, { key = result.key, vehicleId = v:getId() })
+    fire("OnClientCommand", "MinidoracatKnoxPass", "register", me, { key = result.key, vehicleIds = { v:getId() } })
     moveCar(v, rec1.cx, rec1.cy + 3)
     seat(me, v, 0)
     step()
@@ -2815,7 +2858,7 @@ local function scenarioPasses()
     v._parts.KnoxPassTag._item = item
     step()
 
-    cmd(a.owner, "unregister", { key = a.key, tagId = id })
+    cmd(a.owner, "unregister", { key = a.key, tagIds = { id } })
     mark = #W.sent
     step()
     got = passesSince(p, mark)
@@ -4041,6 +4084,88 @@ local function scenarioSettings()
     clean(from, "每扇門設定")
 end
 
+-- 分享給陣營／安全屋（Server.lua sharedWith、H.settings 的 share）：擁有者或管理員設定；成員不用感應盒就能用右鍵開關門
+-- （不扣電），但不能管理。名單跟著擁有者現在的陣營與安全屋走；分割畫面與同名但 SteamID 不同的冒名者不算
+local function scenarioShare()
+    out("情境：分享給陣營／安全屋")
+    freshWorld()
+    local from = #logLines + 1
+    local a = gate(100)
+    local owner = a.owner:getUsername()
+    W.factions[1] = { owner = "boss", members = { [owner] = true, mate = true } }   -- 擁有者是成員、boss 是領袖
+    W.factions[2] = { owner = "stranger", members = {} }
+    W.houses[1] = { owner = "roomie", members = { [owner] = true } }
+    local mate, boss = newPlayer("mate", 100, 101), newPlayer("boss", 101, 101)
+    local roomie, stranger = newPlayer("roomie", 99, 101), newPlayer("stranger", 100, 103)
+    local function open(p) return cmd(p, "open", { key = a.key }) end
+    local function close(p) return cmd(p, "close", { key = a.key }) end
+    local function share(p, v) return cmd(p, "settings", { key = a.key, share = v }) end
+
+    local _, st = cmd(a.owner, "query", { key = a.key })
+    check(st and st.share == "none" and rec(a).share == nil, "預設不分享：state.share＝none、帳本沒有值")
+    check(open(mate).why == "NotAllowed" and not a.door:IsOpen(), "沒分享：陣營成員不能開")
+    local res = share(mate, "faction")
+    check(res.why == "NotOwner" and rec(a).share == nil, "成員不能改分享對象")
+
+    res, st = share(a.owner, "faction")
+    check(res.ok == true and rec(a).share == "faction" and st.share == "faction", "擁有者分享給陣營：寫進帳本、state 帶 share")
+    check(open(stranger).why == "NotAllowed" and open(roomie).why == "NotAllowed" and not a.door:IsOpen(),
+        "只分享陣營：別的陣營、同安全屋的人都不能開")
+    local stats = W.itemStats
+    check(open(mate).ok == true and a.door:IsOpen() and W.itemStats == stats, "陣營成員不用感應盒就能開（不扣電）")
+    check(close(boss).ok == true and not a.door:IsOpen(), "陣營領袖（擁有者是成員）能用 Knox Pass 關門")
+    check(cmd(mate, "lock", { key = a.key, on = true }).why == "NotOwner"
+        and cmd(mate, "uninstall", { key = a.key }).why == "NotOwner", "分享不給管理權：門鎖、拆讀頭都被拒")
+    local _, mst = cmd(mate, "query", { key = a.key })
+    check(mst and mst.manager == false and mst.tags == nil, "成員查詢只拿到基本狀態")
+    check(open(newPlayer("mate", 100, 101, { num = 1 })).why == "NotAllowed", "分割畫面第 2 位用成員的名字：不算")
+
+    -- 上鎖的門：成員開的門關好照樣鎖回
+    cmd(a.owner, "lock", { key = a.key, on = true })
+    check(open(mate).ok == true and a.door:IsOpen(), "上鎖的門：成員照樣能開")
+    check(close(mate).ok == true and not a.door:IsOpen() and a.door:isLockedByKey() and a.door._modData.CustomLock == true,
+        "成員用 Knox Pass 關門：關好鎖回")
+
+    -- 名單跟著擁有者現在的陣營走
+    W.factions[1].members[owner] = nil
+    check(open(mate).why == "NotAllowed" and open(boss).why == "NotAllowed", "擁有者離開陣營：原本的成員與領袖都不能開")
+    W.factions[1].members[owner] = true
+
+    res, st = share(a.owner, "safehouse")
+    check(res.ok == true and rec(a).share == "safehouse" and st.share == "safehouse", "改成分享給安全屋")
+    check(open(mate).why == "NotAllowed", "只分享安全屋：陣營成員不能開")
+    check(open(roomie).ok == true and a.door:IsOpen(), "同安全屋（屋主）能開")
+    check(close(roomie).ok == true and not a.door:IsOpen(), "同安全屋能關")
+    share(a.owner, "both")
+    check(rec(a).share == "both" and open(mate).ok == true and close(roomie).ok == true and not a.door:IsOpen(),
+        "兩者都分享：陣營成員與安全屋的人都能用")
+    check(open(stranger).why == "NotAllowed", "兩者都分享：陌生人照樣不能開")
+
+    local bad = 0
+    for _, v in ipairs({ "everyone", true, 1, {} }) do
+        local r = share(a.owner, v)
+        if r.ok ~= false or r.why ~= "BadArgs" or r.key ~= a.key then bad = bad + 1 end
+    end
+    check(bad == 0 and rec(a).share == "both", "不認得的值：BadArgs（帶 key），帳本不動")
+    local admin = newPlayer("admin", 100, 101, { caps = { CanOpenLockedDoors = true } })
+    check(share(admin, "safehouse").ok == true and rec(a).share == "safehouse", "管理員可以改")
+    res, st = share(a.owner, "none")
+    check(res.ok == true and rec(a).share == nil and st.share == "none" and open(roomie).why == "NotAllowed",
+        "\"none\"：不分享，帳本不存值，安全屋的人不能再開")
+
+    -- Steam 伺服器：擁有者的名字只走 canManage（比對 SteamID），同名冒名者不能借擁有者的陣營開門
+    W.steam = true
+    local s = gate(300, { name = "steamer", sid = 76561 })
+    W.factions[3] = { owner = "steamer", members = { buddy = true } }
+    check(cmd(s.owner, "settings", { key = s.key, share = "faction" }).ok == true, "Steam 伺服器：擁有者分享給陣營")
+    check(cmd(newPlayer("steamer", 300, 101, { sid = 99999 }), "open", { key = s.key }).why == "NotAllowed"
+        and not s.door:IsOpen(), "同名但 SteamID 不同的冒名者：不能開")
+    check(cmd(newPlayer("buddy", 301, 101, { sid = 55555 }), "open", { key = s.key }).ok == true and s.door:IsOpen(),
+        "Steam 伺服器：陣營成員能開")
+    W.steam = false
+    clean(from, "分享給陣營／安全屋")
+end
+
 -- 整台通過就不再撐門（Sensor.lua holds）：車和拖車的中心都到門線另一側、而且都沒壓到門口格，就照延遲關，
 -- 即使車還停在範圍內；掉頭朝門開回來才重新算一趟
 local function scenarioPassThrough()
@@ -4271,7 +4396,7 @@ local function scenarioLockHold()
     local r = KP.Ledger.get(key)
     square(201, 100, 0)._grid = true
     local v = makeVehicle(r.cx, r.cy + 6, { tag = 1 })
-    check(cmd(builder, "register", { key = key, vehicleId = v:getId() }).ok == true, "登記停在 6 格外的車")
+    check(cmd(builder, "register", { key = key, vehicleIds = { v:getId() } }).ok == true, "登記停在 6 格外的車")
     step()   -- 上鎖時 client 回送的鑰匙鎖先到（門關著，回送的也是關著）
     driver(v)
     runMs(10000)
@@ -4407,7 +4532,7 @@ local function scenarioModelGates()
 
     -- 感應：登記的車接近，六片一起開；開走後關上
     local v = makeVehicle(404.0, 104.5, { tag = 0.5 })
-    check(cmd(owner, "register", { key = key, vehicleId = v:getId() }).ok == true, "登記車輛")
+    check(cmd(owner, "register", { key = key, vehicleIds = { v:getId() } }).ok == true, "登記車輛")
     driver(v)
     step()
     check(all(gc, function(p) return p:IsOpen() end) and gc.lanes[1]:getSprite():getName() == "MinidoracatKnoxPass_gate_c_136",
@@ -4531,7 +4656,7 @@ local tests = {
     scenarioDoubleDoorway, scenarioAutoDrive, scenarioLoadChunk, scenarioTagScript,
     scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,
     scenarioReaderPost, scenarioColors, scenarioLoot, scenarioBarrierMirror, scenarioRollDoor, scenarioSettings,
-    scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioLaggyEcho,
+    scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioLaggyEcho, scenarioShare,
 }
 for _, t in ipairs(tests) do t() end
 

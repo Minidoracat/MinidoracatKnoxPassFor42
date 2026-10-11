@@ -53,12 +53,25 @@ end
 local function onResult(args)
     if KP.Window then KP.Window.onResult(args) end
     local player = C.lastPlayer or getSpecificPlayer(0)
+    -- 整批登記／取消登記（Server.lua H.register／H.unregister）：done＝成功幾台、failed＝沒成功幾台、why＝第一個原因
+    if args.done ~= nil then
+        if args.cmd == "unregister" then
+            C.say(player, getText("IGUI_KnoxPass_UnregisterDone", tostring(args.done)), false)
+        elseif (args.failed or 0) > 0 then
+            C.say(player, getText("IGUI_KnoxPass_RegisterSome", tostring(args.done), tostring(args.failed),
+                KnoxPassAPI.whyText(args.why)), args.done == 0)
+        else
+            C.say(player, getText("IGUI_KnoxPass_RegisterDone", tostring(args.done)), false)
+        end
+        return
+    end
     if args.ok then
         if args.cmd == "install" then C.say(player, getText("IGUI_KnoxPass_Installed"), false)
         elseif args.cmd == "uninstall" then C.say(player, getText("IGUI_KnoxPass_Uninstalled"), false)
         elseif args.cmd == "recolor" or args.cmd == "recolorReader" then C.say(player, getText("IGUI_KnoxPass_Recolored"), false) end
         return
     end
+    if args.cmd == "query" then return end   -- 管理視窗自己寫出讀取失敗並重讀（Window.lua Win.onResult）
     C.say(player, KnoxPassAPI.whyText(args.why), true)
 end
 
