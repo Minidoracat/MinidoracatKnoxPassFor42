@@ -31,7 +31,7 @@
 [*] [b]7色の外装[/b]：バニラの塗料で好きな色を製作、手持ちのタグとリーダーも塗り替え可能
 [*] [b]衝突・挟み込み防止[/b]：開かないゲートは手前で知らせ、車や人がいる間は閉まりません
 [/list]
-📖 [b]リーダーの取り付け、車両の登録、ゲートの自作、ゲートごとの設定、外装の色、入手方法、よくある質問：[/b][url=https://steamcommunity.com/workshop/filedetails/discussion/3814684002/586187800874015404/]Knox Pass Guide: Tags, Readers & Hands-free Gates[/url]（英語）
+📖 [b]リーダーの取り付け、車両の登録、ゲートの自作、ゲートごとの設定、外装の色、入手方法、よくある質問：[/b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3817842691]Knox Pass Mod Guide: Tags, Readers & Hands-free Gates[/url]（英語）
 
 [h2]🔗 Minidoracat 全シリーズ[/h2]
 ほかの作品は[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3809297109]Minidoracat コレクション[/url]からどうぞ。必要なものだけ購読してください。

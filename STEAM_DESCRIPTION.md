@@ -8,7 +8,7 @@
 [h2]📦 需要安裝[/h2]
 [list]
 [*] 必裝 UI 框架：[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library[/url]
-[*] [b]中途加入／移除：[/b]可加入；移除前請先看說明串，否則上鎖的門會打不開
+[*] [b]中途加入／移除：[/b]可加入；移除前請先看完整說明，否則上鎖的門會打不開
 [*] [b]介面語言：[/b]繁體中文、简体中文、English、日本語、한국어、Русский、Español、Português、Türkçe、Français、Polski、Deutsch（翻譯有問題請回報）
 [/list]
 
@@ -31,7 +31,7 @@
 [*] [b]7 種外殼顏色[/b]：用原版油漆直接做出該色，或替現有的重新上色
 [*] [b]不撞也不夾[/b]：開不了的門提前提醒，門口有車或人不關門
 [/list]
-📖 [b]安裝讀頭、登記車輛、自建大門、每扇門設定、外殼顏色、取得方式與常見問題：[/b][url=https://steamcommunity.com/workshop/filedetails/discussion/3814684002/586187800874015409/]Knox Pass 完整說明：感應盒、讀頭與自動開門[/url]
+📖 [b]安裝讀頭、登記車輛、自建大門、每扇門設定、外殼顏色、取得方式與常見問題：[/b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3817842603]感應大門 Knox Pass MOD 完整說明：感應盒、讀頭與自動開門[/url]
 
 [h2]🔗 Minidoracat 全系列[/h2]
 其他作品都在[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3809297109]Minidoracat 全系列收藏[/url]，依需求自選訂閱。
