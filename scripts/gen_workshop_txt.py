@@ -20,7 +20,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(REPO, "STEAM_DESCRIPTION_EN.md")   # 翻譯包改為 STEAM_DESCRIPTION.md
 DST = os.path.join(REPO, "MOD", "MinidoracatKnoxPassFor42", "workshop.txt")
 
-TITLE = "[B42] Minidoracat Knox Pass"
+TITLE = "[B42] Knox Pass by Minidoracat"
 TAGS = "Build 42;Vehicles;QoL;Multiplayer"   # 合法清單見遊戲 media/WorkshopTags.txt
 VISIBILITY = "public"
 

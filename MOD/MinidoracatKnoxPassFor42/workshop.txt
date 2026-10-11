@@ -1,6 +1,6 @@
 version=1
 id=3814684002
-title=[B42] Minidoracat Knox Pass
+title=[B42] Knox Pass by Minidoracat
 description=[h1]📡 Minidoracat Knox Pass for B42[/h1]
 description=[h3]By Minidoracat[/h3]
 description=
