@@ -1,4 +1,4 @@
-# Minidoracat Knox Pass for B42
+# Minidoracat Knox Pass
 
 車輛裝上感應盒、大門裝上讀頭，開車靠近就自動開門，不必下車也不必按鍵；單人與多人皆可用
 
@@ -8,7 +8,7 @@ Project Zomboid Build 42 MOD。
 
 ## 需要
 
-- [Minidoracat UI Library for B42](https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701)（管理視窗）
+- [Minidoracat UI Library](https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701)（管理視窗）
 
 ## 功能
 
@@ -145,7 +145,7 @@ Project Zomboid Build 42 MOD。
 
 ## 安裝
 
-- Steam Workshop：[Minidoracat Knox Pass for B42](https://steamcommunity.com/sharedfiles/filedetails/?id=3814684002)（ID 3814684002）
+- Steam Workshop：[Minidoracat Knox Pass](https://steamcommunity.com/sharedfiles/filedetails/?id=3814684002)（ID 3814684002）
 - 手動安裝：把 `MOD/MinidoracatKnoxPassFor42/Contents/mods/MinidoracatKnoxPassFor42` 複製到 `%USERPROFILE%\Zomboid\mods\` 並將資料夾改名為 `MinidoracatKnoxPassFor42`
 
 ## 開發

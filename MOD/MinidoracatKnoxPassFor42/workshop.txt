@@ -1,7 +1,7 @@
 version=1
 id=3814684002
 title=[B42] Knox Pass by Minidoracat
-description=[h1]📡 Minidoracat Knox Pass for B42[/h1]
+description=[h1]📡 Minidoracat Knox Pass[/h1]
 description=[h3]By Minidoracat[/h3]
 description=
 description=[hr][/hr]
@@ -10,7 +10,7 @@ description=Put a tag in your car and a reader on your gate: drive up and the ga
 description=
 description=[h2]📦 Requirements[/h2]
 description=[list]
-description=[*] Requires the UI framework: [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library for B42[/url]
+description=[*] Requires the UI framework: [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library[/url]
 description=[*] [b]Add/remove mid-save:[/b] safe to add; read the guide before removing it, or locked gates stay locked
 description=[*] [b]Languages:[/b] 繁體中文, 简体中文, English, 日本語, 한국어, Русский, Español, Português, Türkçe, Français, Polski, Deutsch (please report any translation issues)
 description=[/list]

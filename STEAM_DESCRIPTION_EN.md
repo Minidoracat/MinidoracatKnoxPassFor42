@@ -1,4 +1,4 @@
-[h1]📡 Minidoracat Knox Pass for B42[/h1]
+[h1]📡 Minidoracat Knox Pass[/h1]
 [h3]By Minidoracat[/h3]
 
 [hr][/hr]
@@ -7,7 +7,7 @@ Put a tag in your car and a reader on your gate: drive up and the gate opens by 
 
 [h2]📦 Requirements[/h2]
 [list]
-[*] Requires the UI framework: [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library for B42[/url]
+[*] Requires the UI framework: [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library[/url]
 [*] [b]Add/remove mid-save:[/b] safe to add; read the guide before removing it, or locked gates stay locked
 [*] [b]Languages:[/b] 繁體中文, 简体中文, English, 日本語, 한국어, Русский, Español, Português, Türkçe, Français, Polski, Deutsch (please report any translation issues)
 [/list]

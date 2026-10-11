@@ -7,7 +7,7 @@
 
 [h2]📦 必要なMOD[/h2]
 [list]
-[*] UIフレームワーク（必須）：[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library for B42[/url]
+[*] UIフレームワーク（必須）：[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library[/url]
 [*] [b]途中追加・削除：[/b]追加は可能。外す前にガイドをお読みください。そのままだと施錠した門が開かなくなります
 [*] [b]対応言語：[/b]繁體中文、简体中文、English、日本語、한국어、Русский、Español、Português、Türkçe、Français、Polski、Deutsch（翻訳の問題はお知らせください）
 [/list]
