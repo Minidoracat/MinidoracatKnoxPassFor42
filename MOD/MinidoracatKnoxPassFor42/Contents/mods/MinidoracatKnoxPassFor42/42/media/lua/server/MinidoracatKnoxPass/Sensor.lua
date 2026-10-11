@@ -118,12 +118,16 @@ local function drain(tag, part, vehicle)
     end
 end
 
--- 門關好之後：鎖回 Knox Pass 門鎖或原本的鑰匙鎖，清掉開著的狀態
+-- 門關好之後：鎖回 Knox Pass 門鎖或原本的鑰匙鎖，清掉開著的狀態。門開著時擁有者拿掉了門鎖（Server.lua H.lock 記
+-- rec.unlockOnClose），這時才拿：車庫門鏈開著時仍上鎖（Gates.lua setGarageOpen），開著改鎖的話，客戶端回送的「開著」
+-- 晚到時會把剛關上的門打開
 local function settleClosed(key, rec, adapter, anchor)
-    if G.supportsLock(adapter) and (rec.lock or rec.keyed) then
-        G.lock(adapter, anchor, G.pieces(adapter, anchor), rec.lock, rec.keyed)
+    if G.supportsLock(adapter) then
+        local pieces = G.pieces(adapter, anchor)
+        if rec.unlockOnClose then G.unlockKnox(adapter, anchor, pieces) end
+        if rec.lock or rec.keyed then G.lock(adapter, anchor, pieces, rec.lock, rec.keyed) end
     end
-    rec.keyed, rec.doorway = nil, nil
+    rec.keyed, rec.doorway, rec.unlockOnClose = nil, nil, nil
     L.setOpen(key, rec, false)
 end
 
@@ -147,7 +151,7 @@ function S.open(key, rec, who, tag, part, vehicle, now)
     -- 開著：Knox Pass 開的就延長；別人用手開著的不接手，也不替它關
     if G.isOpen(adapter, anchor) then return true end
     -- Knox Pass 開的門被人用手關上了（rec.open 卻關著）：直接重開，原本的鎖別沿用 rec.keyed；開不成才照關好的規則鎖回。
-    -- 不先鎖再開：車庫門上鎖的同步會讓客戶端把「關著」回送伺服器，蓋掉同一個 tick 的重開（Gates.lua doorAdapter.unlock）
+    -- 不先鎖再開：車庫門改鎖的同步會讓客戶端把「關著」回送伺服器，蓋掉同一個 tick 的重開（Gates.lua setGarageOpen）
     local reopen = rec.open
     local function fail(why)
         if reopen then settleClosed(key, rec, adapter, anchor) end

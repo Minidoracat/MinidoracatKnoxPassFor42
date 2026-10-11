@@ -140,6 +140,7 @@ local function newWorld()
         partDeltas = 0, nilToggles = 0, refused = 0, recreated = 0, obstructChecks = 0, copyCalls = 0,
         customLockTx = 0, garageBlocked = 0, removedObjs = 0, invalidated = 0, dropped = {}, onLoadSprite = {},
         vehicleQueries = 0, postTx = 0, paintUses = 0, modelFlags = 0, npe = {}, echoClosed = 0,
+        echoQueued = 0, echoLagMs = 250, sounds = {},
     }
 end
 -- MapObjects.OnLoadWithSprite（Lua/MapObjects.java:134-176）：記下回呼，loadSprites() 模擬區塊載入時逐物件呼叫
@@ -484,6 +485,9 @@ function Square:transmitRemoveItemFromSquare(o, safelyRemove)
     end
 end
 function Square:RecalcAllWithNeighbours() end
+function Square:setSquareChanged() end
+function Square:playSound(name) W.sounds[#W.sounds + 1] = { name = name, sq = self } end   -- IsoGridSquare.java:9738-9741（本機播）
+function playServerSound(name, sq) W.sounds[#W.sounds + 1] = { name = name, sq = sq, server = true } end   -- LuaManager.java:3892-3894
 function Square:AddTileObject(o)   -- IsoGridSquare.java:5851-5880（門柱讀頭模型用）
     self._objects[#self._objects + 1] = o
     o._square = self
@@ -563,13 +567,14 @@ end
 -- client 收到 SyncIsoObject（D:1772-1774）：車庫門另外逐片 setOpen＋setLockedByKey(bLockedByKey)（D:1811-1822），
 -- setLockedByKey 會連帶設 locked（D:2013-2016）。所以車庫門只有鑰匙鎖送得到 client，只有 locked 的會被蓋成 false。
 -- 鏈上其他片在 client 的鑰匙鎖因此改變時，client 的 setLockedByKey 會 sync，把那片當下的狀態（含開關）送回伺服器
--- （D:2017-2022、1681-1694）；回送下一個 tick 才到（step 套用）
+-- （D:2017-2022、1681-1694）；回送 W.echoLagMs 之後才到（step 套用；預設下一個 tick，卡住的客戶端更晚）
 local function echoChain(o, open, byKey)
     if not isServer() then return end
     for _, p in ipairs(garageChain(o)) do
         if p ~= o and p._view.lockedByKey ~= byKey then
             W.echo = W.echo or {}
-            W.echo[#W.echo + 1] = { p, byKey, open }
+            W.echo[#W.echo + 1] = { p, byKey, open, due = nowMs + W.echoLagMs }
+            W.echoQueued = W.echoQueued + 1
         end
     end
 end
@@ -608,6 +613,12 @@ local function toggleGarage(o)
         p._view.open, p._view.locked, p._view.lockedByKey = p._open, false, false
     end
 end
+-- D:1880-1895：只翻這一片的開關與 sprite，不動鎖、不 sync
+function Door:ToggleDoorSilent()
+    self._open = not self._open
+    if self._closedName then self._spriteObj = namedSprite(self._open and self._openName or self._closedName) end
+end
+function Door:getSoundPrefix() return "WoodDoor" end   -- D:3593-3600：tile 沒有 DoorSound 屬性時
 
 function Door:ToggleDoor(chr)
     if chr == nil then
@@ -1258,17 +1269,23 @@ end
 local function step(fn)
     nowMs = nowMs + 250
     -- 車庫門 client 回送的狀態到伺服器：伺服器照單全收，整條鏈照回送的開關與鑰匙鎖改（GameServer.java:2969-2987、
-    -- D:1772-1774、1798-1822）。回送把開著的門關上的次數記在 W.echoClosed
-    local echo = W.echo
+    -- D:1772-1774、1798-1822）。回送把開著的門關上的次數記在 W.echoClosed；還沒到時間的留著
+    local echo, later = W.echo, nil
     W.echo = nil
     for _, e in ipairs(echo or {}) do
-        local chain = garageChain(e[1])
-        if chain[1]._open and not e[3] then W.echoClosed = W.echoClosed + 1 end
-        for _, p in ipairs(chain) do
-            p._locked, p._lockedByKey, p._open = e[2], e[2], e[3]
-            if p._closedName then p._spriteObj = namedSprite(p._open and p._openName or p._closedName) end
+        if e.due > nowMs then
+            later = later or {}
+            later[#later + 1] = e
+        else
+            local chain = garageChain(e[1])
+            if chain[1]._open and not e[3] then W.echoClosed = W.echoClosed + 1 end
+            for _, p in ipairs(chain) do
+                p._locked, p._lockedByKey, p._open = e[2], e[2], e[3]
+                if p._closedName then p._spriteObj = namedSprite(p._open and p._openName or p._closedName) end
+            end
         end
     end
+    W.echo = later
     if fn then fn() end
     fire("OnTick")
 end
@@ -2278,12 +2295,12 @@ local function scenarioGarage()
         "門鎖套到整組三片、同一把非 -1 keyId")
     local va = car(a, 3, { tag = 0.5 })
     register(a, va)
+    local echoes = W.echoQueued
     driver(va)
     step()
     check(allPieces(a, function(p)
-        return p:IsOpen() and not p:isLocked() and not p:isLockedByKey() and p._modData.CustomLock == nil
-    end), "開門前解除整組的鎖，三片一起開")
-    check(rec(a).keyed == 1, "記下原本只有 locked（車庫門的內外側鎖，記成 1）")
+        return p:IsOpen() and p._view.open and p:isLockedByKey() and p._view.lockedByKey == true and p._modData.CustomLock == true
+    end) and W.echoQueued == echoes, "三片一起開，開著時整組仍是 Knox 門鎖：開關不改鎖，client 沒有回送")
     -- 另一台車跨在門線上（中間片的格子＋北側那格）：Knox Pass 關門前自己查到擋車、不呼叫 ToggleDoor。
     -- 交給引擎的話，引擎拒關時會對開關者播 Blocked 音＋顯示 HaloNote（D:1583-1586），每次重試洗一次畫面
     local blocker = makeVehicle(101.5, 100.0)
@@ -4453,13 +4470,68 @@ local function scenarioModelGates()
     clean(from, "模型門動畫（SP）")
 end
 
+-- 正式服（2026-10-11，0.3.0）：上鎖的九格雙桿閘門附近有 4–5 個客戶端，Knox Pass 開門後各連線每秒送 200–1914 個
+-- SyncIsoObject、多數人斷線。原版 toggle 一律清鑰匙鎖、Knox Pass 關好再鎖回，每次開關鏈上的鎖都翻一次，每個客戶端
+-- 就把其他片當下的開關回送（echoChain）；卡住的客戶端回送晚到，把伺服器上已經改過的門翻回去。
+-- 這裡讓回送晚 2 秒（卡頓的客戶端）：步行開門、等它關上、剛關上就再開
+local function scenarioLaggyEcho()
+    out("情境：上鎖的九格閘門與卡頓客戶端的回送")
+    freshWorld()
+    local from = #logLines + 1
+    local builder = newPlayer("builder", 198, 109)   -- 錨點 (200,109) 3 格內、不在門口格（W 向看 x=199、200）
+    local g = buildModelGate("MinidoracatKnoxPass_barrier2", 3, 9, "W", true, 200, 100, builder)
+    step()
+    local key = "200,109,0W"
+    square(200, 109, 0)._grid = true
+    local function all(fn)
+        for k = 1, 9 do if not fn(g.lanes[k]) then return false end end
+        return true
+    end
+    local res = cmd(builder, "lock", { key = key, on = true })
+    check(res.ok == true and all(function(p) return p._view.lockedByKey == true end),
+        "九格閘門開啟門鎖，client 看到九片都是鑰匙鎖（" .. tostring(res.why) .. "）")
+    step()   -- 上鎖那次的回送（關著、上鎖）下一個 tick 到
+    W.echoLagMs = 2000
+    local queued = W.echoQueued
+    res = cmd(builder, "open", { key = key })
+    check(res.ok == true and all(function(p) return p:IsOpen() and p._view.open end),
+        "步行用 Knox Pass 開門（" .. tostring(res.why) .. "）")
+    check(all(function(p) return p:isLockedByKey() and p._view.lockedByKey == true end),
+        "開著時整組照樣是鑰匙鎖：開關不改鎖，client 沒有片要改")
+    runMs(6000)   -- 步行開門撐 5 秒就關；關門上鎖的回送 2 秒後才到
+    check(all(function(p) return not p:IsOpen() and not p._view.open and p:isLockedByKey() end), "5 秒後照延遲關上、仍上鎖")
+    check(cmd(builder, "open", { key = key }).ok == true and g.lanes[1]:IsOpen(), "關上 1 秒就再開（前一次的回送還在路上）")
+    runMs(3000)
+    check(W.echoQueued == queued and W.echoClosed == 0, string.format(
+        "開、關、再開都沒有客戶端回送（%d 個），門沒有被晚到的回送翻回去（%d 次）", W.echoQueued - queued, W.echoClosed))
+    check(all(function(p) return p:IsOpen() and p._view.open end), "第二次開門照常開著")
+    runMs(5000)
+    check(all(function(p) return not p:IsOpen() and p:isLockedByKey() and p._view.lockedByKey == true end)
+        and W.echoQueued == queued, "再關上：整組鑰匙鎖，仍沒有回送")
+    local names = {}
+    for _, s in ipairs(W.sounds) do names[#names + 1] = s.name end
+    check(#W.sounds == 4 and W.sounds[1].server and W.sounds[1].sq == g.lanes[1]._square
+        and table.concat(names, ",") == "WoodDoorOpen,WoodDoorClose,WoodDoorOpen,WoodDoorClose",
+        "開關門音效在錨點那格播給附近的人（" .. table.concat(names, ",") .. "）")
+    -- 門開著時擁有者拿掉門鎖：開著仍上鎖（開著改鎖，晚到的回送會把剛關上的門打開），關好才拿
+    W.echoLagMs = 250
+    cmd(builder, "open", { key = key })
+    check(cmd(builder, "lock", { key = key, on = false }).ok == true
+        and all(function(p) return p:IsOpen() and p:isLockedByKey() end), "門開著時拿掉門鎖：先記下，開著照樣上鎖")
+    runMs(6000)
+    check(all(function(p)
+        return not p:IsOpen() and not p:isLockedByKey() and p._view.lockedByKey == false and p._modData.CustomLock == nil
+    end) and KP.Ledger.get(key).unlockOnClose == nil, "關好才拿掉門鎖，client 也看到沒鎖")
+    clean(from, "上鎖的九格閘門與卡頓客戶端的回送")
+end
+
 local tests = {
     scenarioParts, scenarioDock, scenarioDetection, scenarioAutoClose, scenarioLocks, scenarioCommands,
     scenarioSinglePlayer, scenarioLedger, scenarioCharging, scenarioReopen, scenarioUninstallOpen, scenarioGarage,
     scenarioDoubleDoorway, scenarioAutoDrive, scenarioLoadChunk, scenarioTagScript,
     scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,
     scenarioReaderPost, scenarioColors, scenarioLoot, scenarioBarrierMirror, scenarioRollDoor, scenarioSettings,
-    scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates,
+    scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioLaggyEcho,
 }
 for _, t in ipairs(tests) do t() end
 

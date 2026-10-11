@@ -310,10 +310,13 @@ function H.lock(player, args)
     if not adapter then return result(player, cmd, false, "NoGate", args.key) end
     if not G.supportsLock(adapter) then return result(player, cmd, false, "NoLockSupport", args.key) end
     rec.lock = args.on == true or nil
-    -- 門開著時只記下來，關好後由 Sensor 鎖上；關著就馬上套用
+    -- 門開著時只記下來，關好後由 Sensor 處理（settleClosed）；關著就馬上套用
     if not rec.open and not G.isOpen(adapter, anchor) then
         local pieces = G.pieces(adapter, anchor)
         if rec.lock then G.lock(adapter, anchor, pieces, true, false) else G.unlockKnox(adapter, anchor, pieces) end
+        rec.unlockOnClose = nil
+    else
+        rec.unlockOnClose = not rec.lock or nil
     end
     mark(anchor, rec.owner or "", rec.lock, rec.color, rec.speed)
     result(player, cmd, true, nil, args.key)

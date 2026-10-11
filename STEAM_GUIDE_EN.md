@@ -205,7 +205,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [list]
 [*] [b]Turning it on[/b]: the owner can turn on "Lock (only Knox Pass opens it)" in the right-click menu or the window.
 [*] [b]Once locked[/b]: it can't be opened bare-handed, and zombies that open doors can't open it either.
-[*] [b]Opening and closing[/b]: Knox Pass unlocks it to open and locks it again once closed.
+[*] [b]Opening and closing[/b]: boom barriers, garage roll-up doors, two-story gates and garage doors stay locked while open, so without the key use "Close with Knox Pass" to shut them; other gates are unlocked to open and locked again once closed.
 [*] [b]Original keys[/b]: a house door's original key keeps working, so whoever holds that key can still open it.
 [*] [b]Your old locks stay intact[/b]: a map door that was locked goes back to exactly the same kind of lock after closing, so its original key still works.
 [*] [b]Gates locked before this update[/b]: they get the new lock automatically; there's nothing to set again.
