@@ -630,7 +630,7 @@ end
 -- 輸入框是 UI.Autocomplete（框架 API rev 11，CAPS.autocomplete；家族 Safehouse 的分享對象同款）：候選由伺服器
 -- H.findPlayers 回，只列伺服器認得的玩家；選了候選才能按「加入」，伺服器 H.managers 再重查一次。
 -- 框架沒有 Autocomplete 時名單照列，新增停用並寫明
-local CO_W = 340
+local CO_W = 340               -- 最窄寬度；陣營開關的標籤比較長的語言撐寬（Co.new）
 local QUERY_TIMEOUT_MS = 3000   -- 候選查詢送出後這麼久沒回覆就當作掉了，可以再送
 local TOGGLE_W = 44             -- 勾選框的開關圖樣與間距（標籤截字用）
 
@@ -654,51 +654,58 @@ function Co.new()
     local addTitle, removeTitle = getText("IGUI_KnoxPass_Add"), getText("IGUI_KnoxPass_Remove")
     local addW = tm:MeasureStringX(FS, addTitle) + 20
     self.removeW = tm:MeasureStringX(FS, removeTitle) + 20
-    self.note = wrap(getText("IGUI_KnoxPass_ManagersNote"), CO_W - PAD * 2)
-    self.factionHint = fit(getText("IGUI_KnoxPass_ManagersFactionHint"), CO_W - PAD * 2 - TOGGLE_W)
-    self.empty = fit(getText("IGUI_KnoxPass_ManagersEmpty"), CO_W - PAD * 2)
+    -- 寬度跟著語言撐開（同管理視窗）：陣營開關的標籤只有一行，擁有者不在陣營時那句最長；陣營名太長照樣截字
+    local w = math.max(CO_W, PAD * 2 + TOGGLE_W + tm:MeasureStringX(FS, getText("IGUI_KnoxPass_ManagersFactionNone")),
+        PAD * 2 + TOGGLE_W + tm:MeasureStringX(FS, getText("IGUI_KnoxPass_ManagersFactionOn", "")))
+    self.w = w
+    self.note = wrap(getText("IGUI_KnoxPass_ManagersNote"), w - PAD * 2)
+    self.factionHint = wrap(getText("IGUI_KnoxPass_ManagersFactionHint"), w - PAD * 2 - TOGGLE_W)
+    self.empty = fit(getText("IGUI_KnoxPass_ManagersEmpty"), w - PAD * 2)
     self.onlineTag = getText("IGUI_KnoxPass_Online")
-    -- 由上而下：說明、陣營開關與說明、搜尋框＋加入、名單（最多 KP.MAX_MANAGERS 列）、人數。搜尋框在名單上面，下拉蓋住名單列
+    -- 由上而下：說明、陣營開關與說明、搜尋框＋加入、名單（最多 KP.MAX_MANAGERS 列）、底下一行（人數或只能看的說明，
+    -- 會換行：留最長那句的行數）。搜尋框在名單上面，下拉蓋住名單列
     local y = PAD
     self.noteY = y
     y = y + #self.note * self.lineH + GAP
     self.factionY = y
     y = y + ch
     self.factionHintY = y
-    y = y + self.lineH + GAP
+    y = y + #self.factionHint * self.lineH + GAP
     self.addY = y
     y = y + ch + GAP
     self.listY = y
     y = y + KP.MAX_MANAGERS * (ch + 2) + GAP
     self.countY = y
-    local bodyH = y + self.lineH + PAD
+    local countLines = math.max(#wrap(getText("IGUI_KnoxPass_ManagersReadOnly"), w - PAD * 2),
+        #wrap(getText("IGUI_KnoxPass_ManagersNeedFramework"), w - PAD * 2), 1)
+    local bodyH = y + countLines * self.lineH + PAD
 
-    self.win = UI.Window.new({ x = 0, y = 0, width = CO_W, height = bodyH + 40, theme = theme, opaque = true,
+    self.win = UI.Window.new({ x = 0, y = 0, width = w, height = bodyH + 40, theme = theme, opaque = true,
         title = getText("IGUI_KnoxPass_ManagersTitle") })
     local top = self.win:contentTop()
     self.win:setHeight(top + bodyH)
-    local body = CoBody:new(0, top, CO_W, bodyH)
+    local body = CoBody:new(0, top, w, bodyH)
     body.background = false
     body.co = self
     body:initialise()
     self.win:addChild(body)
 
-    self.faction = UI.Checkbox.new({ x = PAD, y = self.factionY, width = CO_W - PAD * 2, label = "", theme = theme,
+    self.faction = UI.Checkbox.new({ x = PAD, y = self.factionY, width = w - PAD * 2, label = "", theme = theme,
         target = self, onChange = Co.onFaction })
     body:addChild(self.faction)
     self.rowButtons = {}
     for i = 1, KP.MAX_MANAGERS do
-        local b = UI.Button.new({ x = CO_W - PAD - self.removeW, y = self.listY + (i - 1) * (ch + 2), width = self.removeW,
+        local b = UI.Button.new({ x = w - PAD - self.removeW, y = self.listY + (i - 1) * (ch + 2), width = self.removeW,
             height = ch, title = removeTitle, theme = theme, target = self, onClick = Co.onRemove })
         b:setVisible(false)
         body:addChild(b)
         self.rowButtons[i] = b
     end
-    self.btnAdd = UI.Button.new({ x = CO_W - PAD - addW, y = self.addY, width = addW, height = ch, title = addTitle,
+    self.btnAdd = UI.Button.new({ x = w - PAD - addW, y = self.addY, width = addW, height = ch, title = addTitle,
         style = "primary", theme = theme, target = self, onClick = Co.onAdd })
     body:addChild(self.btnAdd)
     if CAPS.autocomplete then
-        self.ac = UI.Autocomplete.new({ x = PAD, y = self.addY, width = CO_W - PAD * 2 - addW - GAP, theme = theme, font = FS,
+        self.ac = UI.Autocomplete.new({ x = PAD, y = self.addY, width = w - PAD * 2 - addW - GAP, theme = theme, font = FS,
             placeholder = getText("IGUI_KnoxPass_PlayerHint"), maxLength = KP.NAME_MAX, target = self, opaque = true,
             onQuery = Co.onQuery, onPick = Co.onPick, labelOf = function(row) return row.name end,
             tagOf = function(row) return row.online and self.onlineTag or nil end })
@@ -714,11 +721,11 @@ function Co:apply(s)
     self.names = s.co or {}
     self.count, self.max = #self.names, s.maxManagers or KP.MAX_MANAGERS
     self.faction:setLabel(fit(s.ownerFaction and getText("IGUI_KnoxPass_ManagersFactionOn", s.ownerFaction)
-        or getText("IGUI_KnoxPass_ManagersFactionNone"), CO_W - PAD * 2 - TOGGLE_W))
+        or getText("IGUI_KnoxPass_ManagersFactionNone"), self.w - PAD * 2 - TOGGLE_W))
     self.faction:setChecked(s.coFaction == true, true)
     -- 擁有者不在陣營時不能打開；已經開著（擁有者後來離開陣營）照樣能關
     self.faction:setEnabled(self.canEdit and (s.ownerFaction ~= nil or s.coFaction == true))
-    local textW = CO_W - PAD * 2 - (self.canEdit and (self.removeW + GAP) or 0)
+    local textW = self.w - PAD * 2 - (self.canEdit and (self.removeW + GAP) or 0)
     for i, b in ipairs(self.rowButtons) do
         local name = self.names[i]
         self.rowText[i] = name and fit(name, textW) or nil
@@ -738,18 +745,19 @@ function Co:apply(s)
     else
         self.countText = getText("IGUI_KnoxPass_ManagersCount", tostring(self.count), tostring(self.max))
     end
+    self.countLines = wrap(self.countText, self.w - PAD * 2)
 end
 
 -- 只能看的人沒有搜尋列：名單往上移到搜尋列的位置
 function Co:draw(el)
     drawLines(el, self.note, PAD, self.noteY, self.lineH, "textMuted")
-    text(el, self.factionHint, PAD + TOGGLE_W, self.factionHintY, "textFaint")
+    drawLines(el, self.factionHint, PAD + TOGGLE_W, self.factionHintY, self.lineH, "textFaint")
     local top = self.canEdit and self.listY or self.addY
     if self.count == 0 then text(el, self.empty, PAD, top + 5, "textFaint") end
     for i = 1, self.count do
         text(el, self.rowText[i], PAD, top + (i - 1) * (self.ch + 2) + 5, "text")
     end
-    text(el, self.countText, PAD, self.countY, "textMuted")
+    drawLines(el, self.countLines, PAD, self.countY, self.lineH, "textMuted")
 end
 
 function Co.show(w)
@@ -763,7 +771,7 @@ function Co.show(w)
     if co.ac then co.ac:setText("") end
     -- 擺在管理視窗右邊，放不下就擺左邊
     local x = w.win:getX() + w.win:getWidth() + 8
-    if x + CO_W > getCore():getScreenWidth() then x = math.max(0, w.win:getX() - CO_W - 8) end
+    if x + co.w > getCore():getScreenWidth() then x = math.max(0, w.win:getX() - co.w - 8) end
     co.win:setX(x)
     co.win:setY(w.win:getY())
     co:apply(w.state)
