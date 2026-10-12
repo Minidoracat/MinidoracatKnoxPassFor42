@@ -240,19 +240,20 @@ function Win.new()
         y = y + ch + GAP
     end
 
-    -- 每扇門的感應距離、關門延遲、開關速度與分享對象：距離與延遲只列沙盒上下限內的值；框架沒有 Dropdown 時 draw 只寫目前的值
+    -- 每扇門的感應距離、關門延遲、開關速度與分享對象：距離與延遲只列沙盒上下限內的值；框架沒有 Dropdown 時 draw 只寫目前的值。
+    -- 視窗本體半透明，清單會蓋住下面幾列：opaque（框架 rev 18）讓清單不透明，才不會透出底下的按鈕與說明（舊框架忽略）
     self.rangeY, self.delayY, self.speedY, self.shareY = y, y + ch + GAP, y + (ch + GAP) * 2, y + (ch + GAP) * 3
     if CAPS.dropdown then
         self.rangeDD = UI.Dropdown.new({ x = PAD + self.labelW, y = self.rangeY, width = DD_W, height = ch, font = FS,
-            theme = theme, target = self, onChange = Win.onRange })
+            theme = theme, target = self, onChange = Win.onRange, opaque = true })
         self.delayDD = UI.Dropdown.new({ x = PAD + self.labelW, y = self.delayY, width = DD_W, height = ch, font = FS,
-            theme = theme, target = self, onChange = Win.onDelay })
+            theme = theme, target = self, onChange = Win.onDelay, opaque = true })
         self.speedDD = UI.Dropdown.new({ x = PAD + self.labelW, y = self.speedY, width = DD_W, height = ch, font = FS,
-            theme = theme, target = self, onChange = Win.onSpeed })
+            theme = theme, target = self, onChange = Win.onSpeed, opaque = true })
         self.speedDD:setOptions({ { id = "default", label = getText("IGUI_KnoxPass_SpeedNormal") },
             { id = "fast", label = getText("IGUI_KnoxPass_SpeedFast") } })
         self.shareDD = UI.Dropdown.new({ x = PAD + self.labelW, y = self.shareY, width = DD_W, height = ch, font = FS,
-            theme = theme, target = self, onChange = Win.onShare })
+            theme = theme, target = self, onChange = Win.onShare, opaque = true })
         local opts = {}
         for i, o in ipairs(SHARES) do opts[i] = { id = o.id, label = getText(o.key) } end
         self.shareDD:setOptions(opts)
