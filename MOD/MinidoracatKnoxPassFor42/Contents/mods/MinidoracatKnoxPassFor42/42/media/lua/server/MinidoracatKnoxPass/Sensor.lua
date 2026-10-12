@@ -410,6 +410,7 @@ function S.tick()
     if now - lastRelock >= S.RELOCK_MS then
         lastRelock = now
         S.relock(gates)
+        if isServer() then KP.eachPlayer(L.seenPlayer) end   -- 共同管理者的候選：伺服器認得的玩家（Ledger.lua）
     end
 end
 

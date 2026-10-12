@@ -127,14 +127,14 @@ function instanceof(o, name)
     return false
 end
 
-Capability = { CanOpenLockedDoors = "CanOpenLockedDoors" }
+Capability = { CanOpenLockedDoors = "CanOpenLockedDoors", CanSetupSafehouses = "CanSetupSafehouses" }
 
 -- ===== 假世界 =====
 local W
 local function newWorld()
     return {
         squares = {}, unloaded = {}, players = {}, locals = {}, zombies = {}, vehicles = {},
-        scripts = {}, template = nil, safehouse = {}, factions = {}, houses = {}, steam = false, hours = 1000, rand = 12345,
+        scripts = {}, template = nil, safehouse = {}, houseAt = {}, factions = {}, houses = {}, steam = false, hours = 1000, rand = 12345,
         nextItemId = 1233423, nextVid = 1,
         sent = {}, sendServerCalls = 0, itemStats = 0, removeSent = 0, addSent = 0, handsRemoved = 0,
         partDeltas = 0, nilToggles = 0, refused = 0, recreated = 0, obstructChecks = 0, copyCalls = 0,
@@ -238,11 +238,21 @@ SafeHouse = {
         end
         return false
     end,
+    -- 格子所在的安全屋（SafeHouse.java:157→:201-222，不看玩家）：W.houseAt[格]＝W.houses 的一筆；playerAllowed(String)＝屋主或成員（:288-290）
+    getSafeHouse = function(sq)
+        local h = W.houseAt[sq]
+        if not h then return nil end
+        return { playerAllowed = function(_, name)
+            assert(type(name) == "string", "SafeHouse:playerAllowed(String)")
+            return inGroup(h, name)
+        end }
+    end,
 }
 local FactionObj = {}
 FactionObj.__index = FactionObj
 function FactionObj:isOwner(name) return self._g.owner == name end
 function FactionObj:isMember(name) return self._g.members[name] == true end
+function FactionObj:getName() return self._g.name or "faction" end
 Faction = {
     getPlayerFaction = function(name)
         assert(type(name) == "string", "Faction.getPlayerFaction(String)")
@@ -269,7 +279,7 @@ local PAINTS = { "Base.PaintWhite", "Base.PaintBlack", "Base.PaintGrey", "Base.P
 local USE_DELTA = { [TAG] = 0.001, ["Base.CarBattery1"] = 0.00001 }
 for _, id in ipairs(COLOR_IDS) do USE_DELTA[TAG .. "_" .. id] = 0.001 end
 for _, p in ipairs(PAINTS) do USE_DELTA[p] = 0.1 end   -- 原版油漆 UseDelta 0.1（generated/items/drainable.txt:1803-1817）
-local TAGS = { ["Base.Paintbrush"] = "base:paintbrush" }
+local TAGS = { ["Base.Paintbrush"] = "base:paintbrush", ["Base.Screwdriver"] = "base:screwdriver" }
 ItemTag = { PAINTBRUSH = "base:paintbrush", SCREWDRIVER = "base:screwdriver" }
 
 local Item = {}
@@ -279,6 +289,7 @@ function Item:getFullType() return self._type end
 function Item:getContainer() return self._container end
 function Item:getCondition() return self._condition or 100 end
 function Item:setCondition(c) self._condition = c end
+function Item:isBroken() return self._broken == true end
 local Drain = setmetatable({}, { __index = Item })
 Drain.__index = Drain
 function Drain:getUseDelta() return self._useDelta end
@@ -357,6 +368,7 @@ function Container:containsEvalRecurse(fn) return evalAll(self, fn)[1] ~= nil en
 function Container:getFirstTypeRecurse(t) return evalAll(self, function(it) return it._type == t end)[1] end
 function Container:getFirstTypeEvalRecurse(t, fn) return evalAll(self, function(it) return it._type == t and fn(it) end)[1] end   -- :1569
 function Container:getFirstTagRecurse(tag) return evalAll(self, function(it) return it._tag == tag end)[1] end
+function Container:getFirstTagEvalRecurse(tag, fn) return evalAll(self, function(it) return it._tag == tag and fn(it) end)[1] end   -- :1526
 local function countType(inv, t) return inv:getAllTypeRecurse(t):size() end
 
 -- ===== 角色 =====
@@ -379,12 +391,14 @@ function Player:removeFromHands() W.handsRemoved = W.handsRemoved + 1 end
 function Player:getCurrentSquare() return square(math.floor(self._x), math.floor(self._y), math.floor(self._z)) end
 function Player:getOnlineID() return 1 end
 
+-- 預設身上帶一把螺絲起子（裝拆讀頭伺服器會重驗）；opts.screwdriver＝false 時不帶
 local function newPlayer(name, x, y, opts)
     opts = opts or {}
     local p = new("IsoPlayer", Player, {
         _name = name, _num = opts.num or 0, _sid = opts.sid, _x = x + 0.5, _y = y + 0.5, _z = opts.z or 0,
         _inv = newContainer(), _role = setmetatable({ _caps = opts.caps or {} }, Role),
     })
+    if opts.screwdriver ~= false then p._inv:AddItem("Base.Screwdriver") end
     W.players[#W.players + 1] = p
     return p
 end
@@ -2004,6 +2018,14 @@ local function scenarioCommands()
     check(install(owner, reader).why == "InVehicle", "在車上不能安裝")
     unseat(owner)
     owner._x, owner._y = 100.5, 102.5
+    local sd = owner._inv:getFirstTagRecurse(ItemTag.SCREWDRIVER)
+    owner._inv:DoRemoveItem(sd)
+    check(install(owner, reader).why == "NeedScrewdriver" and countType(owner._inv, READER) == 1,
+        "沒帶螺絲起子：伺服器回 NeedScrewdriver（不只選單擋），讀頭不扣")
+    sd._broken = true
+    owner._inv:AddItem(sd)
+    check(install(owner, reader).why == "NeedScrewdriver", "壞掉的螺絲起子不算")
+    sd._broken = nil
     W.safehouse[square(100, 100, 0)] = { someoneElse = true }
     check(install(owner, reader).why == "Safehouse", "別人的安全屋內不能安裝")
     W.safehouse[square(100, 100, 0)] = nil
@@ -2019,19 +2041,22 @@ local function scenarioCommands()
 
     -- 身分
     check(cmd(other, "lock", { key = key, on = true }).why == "NotOwner", "非擁有者不能管理")
-    local admin = newPlayer("admin", 100, 101, { caps = { CanOpenLockedDoors = true } })
-    check(cmd(admin, "lock", { key = key, on = true }).ok == true, "管理員可以管理")
+    local admin = newPlayer("admin", 100, 101, { caps = { CanSetupSafehouses = true } })
+    check(cmd(admin, "lock", { key = key, on = true }).ok == true, "管理員（能管理安全屋的角色）可以管理")
     cmd(admin, "lock", { key = key, on = false })
+    local gm = newPlayer("gm", 100, 101, { caps = { CanOpenLockedDoors = true } })
+    check(cmd(gm, "lock", { key = key, on = true }).why == "NotOwner" and cmd(gm, "query", { key = key }).why == "NotOwner",
+        "只會開上鎖門的角色（42.21 預設 gm、observer）不算管理員")
     local split = newPlayer("owner", 100, 101, { num = 1 })
     check(cmd(split, "lock", { key = key, on = true }).why == "NotOwner", "分割畫面第 2 位（同名）不能冒充擁有者")
     local splitReader = split._inv:AddItem(READER)
     local door2 = makeDoor("IsoDoor", 103, 100)
     check(cmd(split, "install", { x = 103, y = 100, z = 0, index = 0, itemId = splitReader:getID() }).why == "Unverified",
         "分割畫面玩家無法驗證身分，不能安裝")
-    local _, st = cmd(other, "query", { key = key })
-    check(st and st.manager == false and st.tags == nil and st.owner == "owner", "非擁有者查詢只拿到基本狀態")
+    local qres, st = cmd(other, "query", { key = key })
+    check(qres.why == "NotOwner" and qres.key == key and st == nil, "非擁有者查詢：回 NotOwner，拿不到這扇門的任何設定")
     _, st = cmd(owner, "query", { key = key })
-    check(st and st.manager == true and type(st.tags) == "table", "擁有者查詢拿到完整狀態")
+    check(st and st.ownerOrAdmin == true and type(st.tags) == "table" and st.manager == nil, "擁有者查詢拿到完整狀態")
 
     -- 距離
     owner._y = 104.5
@@ -2105,6 +2130,11 @@ local function scenarioCommands()
     -- 拆除
     cmd(owner, "lock", { key = key, on = true })
     check(cmd(other, "uninstall", { key = key }).why == "NotOwner", "非擁有者不能拆")
+    local sd2 = owner._inv:getFirstTagRecurse(ItemTag.SCREWDRIVER)
+    owner._inv:DoRemoveItem(sd2)
+    check(cmd(owner, "uninstall", { key = key }).why == "NeedScrewdriver" and KP.Ledger.get(key) ~= nil,
+        "擁有者沒帶螺絲起子：NeedScrewdriver，讀頭還在")
+    owner._inv:AddItem(sd2)
     check(cmd(owner, "uninstall", { key = key }).ok == true and KP.Ledger.get(key) == nil, "擁有者拆除，帳本記錄刪除")
     check(countType(owner._inv, READER) == 1 and W.addSent == 1, "讀頭還給擁有者並同步")
     check(door._modData.KnoxPassReader == nil and door._modData.CustomLock == nil and door._view.modData.CustomLock == nil,
@@ -2122,7 +2152,7 @@ local function scenarioCommands()
     check(cmd(sOwner, "lock", { key = sKey, on = true }).ok == true, "同名同 SteamID → 可以管理")
     W.steam = false
 
-    -- 速率限制
+    -- 速率限制（和權限無關：沒有管理權的查詢也算次數）
     local spam = newPlayer("spam", 100, 101)
     local d4 = makeDoor("IsoDoor", 300, 100)
     local o4 = newPlayer("o4", 300, 102)
@@ -2130,14 +2160,12 @@ local function scenarioCommands()
     spam._x = 300.5
     local okCount = 0
     for _ = 1, 20 do
-        local res20, st20 = cmd(spam, "query", { key = k4 })
-        if st20 and not res20.why then okCount = okCount + 1 end
+        if cmd(spam, "query", { key = k4 }).why == "NotOwner" then okCount = okCount + 1 end
     end
-    check(okCount == 20, "10 秒內前 20 個指令正常")
+    check(okCount == 20, "10 秒內前 20 個指令正常處理（沒有管理權：NotOwner）")
     check(cmd(spam, "query", { key = k4 }).why == "RateLimited", "第 21 個指令回 RateLimited")
     nowMs = nowMs + 10001
-    local _, st2 = cmd(spam, "query", { key = k4 })
-    check(st2 ~= nil, "過了 10 秒視窗恢復")
+    check(cmd(spam, "query", { key = k4 }).why == "NotOwner", "過了 10 秒視窗恢復")
     check(W.sendServerCalls > 0 and #W.sent > 0, "MP 回覆走 sendServerCommand")
     clean(from, "指令")
 end
@@ -2681,8 +2709,8 @@ local function scenarioTagScript()
     local strangerId = stranger._parts.KnoxPassTag._item:getID()
     check(rec(a).tags[id].script == CAR, "登記時記下 A 車車型")
     local other = newPlayer("other", 100, 101)
-    local _, st = cmd(other, "query", { key = a.key })
-    check(st and st.manager == false and rec(a).tags[id].script == CAR, "反面：非擁有者 query 不改帳本車型")
+    local ores, st = cmd(other, "query", { key = a.key })
+    check(ores.why == "NotOwner" and st == nil and rec(a).tags[id].script == CAR, "反面：非擁有者 query 被拒、不改帳本車型")
     _, st = cmd(a.owner, "query", { key = a.key })
     check(st and st.tags and #st.tags == 1 and st.tags[1].script == TRUCK, "擁有者 query：已登記清單顯示 B 車車型")
     local nb = nearbyOf(st, vb:getId())
@@ -3999,7 +4027,7 @@ local function scenarioSettings()
     local other = newPlayer("other", 100, 101)
     res = cmd(other, "settings", { key = a.key, range = 20 })
     check(res.ok == false and res.why == "NotOwner" and rec(a).range == nil, "非擁有者不能改")
-    local admin = newPlayer("admin", 100, 101, { caps = { CanOpenLockedDoors = true } })
+    local admin = newPlayer("admin", 100, 101, { caps = { CanSetupSafehouses = true } })
     check(cmd(admin, "settings", { key = a.key, range = 20 }).ok == true and rec(a).range == 20, "管理員可以改")
     a.owner._y = 110.5
     res = cmd(a.owner, "settings", { key = a.key, range = 5 })
@@ -4116,8 +4144,8 @@ local function scenarioShare()
     check(close(boss).ok == true and not a.door:IsOpen(), "陣營領袖（擁有者是成員）能用 Knox Pass 關門")
     check(cmd(mate, "lock", { key = a.key, on = true }).why == "NotOwner"
         and cmd(mate, "uninstall", { key = a.key }).why == "NotOwner", "分享不給管理權：門鎖、拆讀頭都被拒")
-    local _, mst = cmd(mate, "query", { key = a.key })
-    check(mst and mst.manager == false and mst.tags == nil, "成員查詢只拿到基本狀態")
+    local mres, mst = cmd(mate, "query", { key = a.key })
+    check(mres.why == "NotOwner" and mst == nil, "分享成員查詢：回 NotOwner，拿不到設定（分享只給開關門）")
     check(open(newPlayer("mate", 100, 101, { num = 1 })).why == "NotAllowed", "分割畫面第 2 位用成員的名字：不算")
 
     -- 上鎖的門：成員開的門關好照樣鎖回
@@ -4147,7 +4175,7 @@ local function scenarioShare()
         if r.ok ~= false or r.why ~= "BadArgs" or r.key ~= a.key then bad = bad + 1 end
     end
     check(bad == 0 and rec(a).share == "both", "不認得的值：BadArgs（帶 key），帳本不動")
-    local admin = newPlayer("admin", 100, 101, { caps = { CanOpenLockedDoors = true } })
+    local admin = newPlayer("admin", 100, 101, { caps = { CanSetupSafehouses = true } })
     check(share(admin, "safehouse").ok == true and rec(a).share == "safehouse", "管理員可以改")
     res, st = share(a.owner, "none")
     check(res.ok == true and rec(a).share == nil and st.share == "none" and open(roomie).why == "NotAllowed",
@@ -4650,6 +4678,196 @@ local function scenarioLaggyEcho()
     clean(from, "上鎖的九格閘門與卡頓客戶端的回送")
 end
 
+-- 共同管理者（Server.lua H.managers／H.findPlayers、coManager；Ledger.lua 伺服器認得的玩家）：擁有者或管理員從伺服器認得的玩家
+-- 加人（搜尋列上線的、自己在別扇門加過的，離線的要打完整帳號），也能交給擁有者的陣營；共同管理者能管理、不能拆讀頭也不能改名單
+local function scenarioCoManagers()
+    out("情境：共同管理者（搜尋、加入、陣營、權限）")
+    freshWorld()
+    local from = #logLines + 1
+    local function find(p, key, q)
+        local first = #W.sent + 1
+        local res = cmd(p, "findPlayers", { key = key, query = q })
+        for i = first, #W.sent do
+            if W.sent[i].cmd == "players" then return W.sent[i].args.rows, res end
+        end
+        return nil, res
+    end
+    local function names(rows)
+        local list = {}
+        for _, r in ipairs(rows or {}) do list[#list + 1] = r.name .. (r.online and "+" or "") end
+        return table.concat(list, ",")
+    end
+    local function logout(p)
+        for i, q in ipairs(W.players) do
+            if q == p then table.remove(W.players, i) return end
+        end
+    end
+    local function managers(p, key, args)
+        args.key = key
+        return cmd(p, "managers", args)
+    end
+
+    -- 1. 搜尋：上線玩家照關鍵字（不分大小寫）、照字母序；離線的只在打完整帳號（分大小寫）時列出
+    local a = gate(100)
+    local friend = newPlayer("friend", 100, 101)
+    local alpha = newPlayer("Alpha", 300, 300)
+    newPlayer("alpine", 301, 300)
+    check(names(find(a.owner, a.key, "AL")) == "Alpha+,alpine+", "關鍵字（不分大小寫）找得到上線玩家，照字母序")
+    check(names(find(a.owner, a.key, "owner100")) == "", "不列擁有者自己")
+    check(#find(a.owner, a.key, "ghost") == 0, "沒上線過的帳號搜不到")
+    logout(alpha)
+    check(names(find(a.owner, a.key, "al")) == "alpine+", "下線的人用關鍵字搜不到（不能列出全服玩家）")
+    check(names(find(a.owner, a.key, "Alpha")) == "Alpha", "下線的人打完整帳號列得出來（不是上線中）")
+    check(names(find(a.owner, a.key, "alpha")) == "", "完整帳號分大小寫")
+
+    -- 2. 加入：只收伺服器認得的玩家；錨點標記只帶名字
+    nowMs = nowMs + 10001
+    check(managers(a.owner, a.key, { add = "ghost" }).why == "UnknownPlayer" and rec(a).co == nil, "沒上線過的帳號加不進來")
+    check(managers(a.owner, a.key, { add = "owner100" }).why == "UnknownPlayer", "不能把擁有者自己加進名單")
+    local res, st = managers(a.owner, a.key, { add = "friend" })
+    check(res.ok == true and rec(a).co.friend == true and st and #st.co == 1 and st.co[1] == "friend",
+        "擁有者加入 friend（非 Steam 伺服器記 true），state 帶名單")
+    check(a.door._modData[KP.MARKER_CO].friend == true and a.door._view.modData[KP.MARKER_CO].friend == true,
+        "錨點標記帶名單並同步給 client")
+    check(managers(a.owner, a.key, { add = "Alpha" }).ok == true, "下線但上線過的人也加得進來")
+    check(names(find(a.owner, a.key, "a")) == "alpine+", "已經在名單上的人不再列入候選")
+
+    -- 3. 共同管理者能管理，不能拆讀頭、改名單、搜尋
+    local _, fst = cmd(friend, "query", { key = a.key })
+    check(fst and fst.ownerOrAdmin == false and type(fst.tags) == "table", "共同管理者打得開管理視窗（ownerOrAdmin＝false）")
+    check(cmd(friend, "lock", { key = a.key, on = true }).ok == true and cmd(friend, "lock", { key = a.key, on = false }).ok == true,
+        "共同管理者能上鎖、解鎖")
+    check(cmd(friend, "settings", { key = a.key, range = 10 }).ok == true and rec(a).range == 10, "共同管理者能改設定")
+    check(cmd(friend, "open", { key = a.key }).ok == true and a.door:IsOpen(), "共同管理者不用感應盒也能右鍵開門")
+    check(cmd(friend, "uninstall", { key = a.key }).why == "OwnerOnly" and KP.Ledger.get(a.key) ~= nil, "共同管理者不能拆讀頭（OwnerOnly）")
+    check(managers(friend, a.key, { remove = { "Alpha" } }).why == "OwnerOnly" and rec(a).co.Alpha ~= nil, "共同管理者不能改名單")
+    local _, fres = find(friend, a.key, "al")
+    check(fres.why == "OwnerOnly", "共同管理者不能搜尋候選")
+    check(managers(newPlayer("friend", 100, 101, { num = 1 }), a.key, { add = "alpine" }).why == "NotOwner",
+        "分割畫面第 2 位用共同管理者的名字：不算")
+
+    -- 4. 移除：名單清空時帳本與標記都不留空表
+    nowMs = nowMs + 10001
+    res = managers(a.owner, a.key, { remove = { "friend" } })
+    check(res.ok == true and rec(a).co.friend == nil and a.door._modData[KP.MARKER_CO].friend == nil, "擁有者移除 friend：帳本與標記都拿掉")
+    check(cmd(friend, "query", { key = a.key }).why == "NotOwner", "移除後就打不開管理視窗")
+    managers(a.owner, a.key, { remove = { "Alpha" } })
+    check(rec(a).co == nil and a.door._modData[KP.MARKER_CO] == nil, "名單清空")
+
+    -- 5. 最多 8 人；已經在名單上的再加一次不算超過
+    for i = 1, 9 do KP.Ledger.seen("p" .. i, nil) end
+    local okN = 0
+    for i = 1, 8 do
+        if managers(a.owner, a.key, { add = "p" .. i }).ok then okN = okN + 1 end
+    end
+    check(okN == 8 and managers(a.owner, a.key, { add = "p9" }).why == "TooManyManagers", "最多 8 人：第 9 人回 TooManyManagers")
+    check(managers(a.owner, a.key, { add = "p3" }).ok == true, "已經在名單上的再加一次不算超過")
+    managers(a.owner, a.key, { remove = { "p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8" } })
+    check(rec(a).co == nil, "整批移除")
+
+    -- 6. 擁有者在別扇門加過的人：照樣列進候選（下線也算）
+    local b = gate(103, { owner = a.owner })
+    managers(a.owner, b.key, { add = "Alpha" })
+    check(names(find(a.owner, a.key, "alp")) == "Alpha,alpine+", "自己在別扇門加過的人先列（下線也列），再列上線玩家")
+
+    -- 7. 陣營：擁有者不在陣營時打不開；打開後陣營成員是共同管理者，離開陣營就不是
+    nowMs = nowMs + 10001
+    check(managers(a.owner, a.key, { faction = true }).why == "NoFaction" and rec(a).coFaction == nil, "擁有者不在陣營：NoFaction")
+    W.factions[1] = { name = "Wolves", owner = "boss", members = { owner100 = true, mate = true } }
+    local mate = newPlayer("mate", 100, 101)
+    check(cmd(mate, "query", { key = a.key }).why == "NotOwner", "還沒交給陣營：陣營成員打不開")
+    res, st = managers(a.owner, a.key, { faction = true })
+    check(res.ok == true and rec(a).coFaction == true and st.coFaction == true and st.ownerFaction == "Wolves"
+        and a.door._modData[KP.MARKER_COFACTION] == true, "交給陣營：帳本、state（陣營名）與標記")
+    local _, mst = cmd(mate, "query", { key = a.key })
+    check(mst and mst.ownerOrAdmin == false and cmd(mate, "uninstall", { key = a.key }).why == "OwnerOnly",
+        "陣營成員打得開管理視窗，但不能拆讀頭")
+    W.factions[1].members.mate = nil
+    check(cmd(mate, "query", { key = a.key }).why == "NotOwner", "離開陣營就不算")
+    managers(a.owner, a.key, { faction = false })
+    check(rec(a).coFaction == nil and a.door._modData[KP.MARKER_COFACTION] == nil, "關掉陣營：帳本與標記都拿掉")
+
+    -- 8. 格式不對；管理員也能改
+    nowMs = nowMs + 10001
+    local bad = 0
+    for _, args in ipairs({ { add = 123 }, { add = "" }, { add = string.rep("x", 33) }, { remove = {} }, { remove = { 1 } },
+        { faction = "yes" } }) do
+        if managers(a.owner, a.key, args).why ~= "BadArgs" then bad = bad + 1 end
+    end
+    check(bad == 0 and cmd(a.owner, "findPlayers", { key = a.key, query = 5 }).why == "BadArgs",
+        "add 不是 1-32 字的字串、remove 空或有非字串、faction 不是布林、查詢不是字串 → BadArgs")
+    local admin = newPlayer("admin", 100, 101, { caps = { CanSetupSafehouses = true } })
+    check(managers(admin, a.key, { add = "alpine" }).ok == true and rec(a).co.alpine == true, "管理員能改名單")
+
+    -- 9. Steam 伺服器：上線就記帳號與 SteamID（記過的不改），加入時照記下的 SteamID，同名冒名者過不了
+    W.steam = true
+    local s = gate(500, { name = "steamer", sid = 76561 })
+    local buddy = newPlayer("buddy", 500, 101, { sid = 5550 })
+    runMs(5000)
+    check(KP.Ledger.userSid("buddy") == 5550, "上線就記下帳號與 SteamID（Sensor 每 5 秒）")
+    local fake = newPlayer("buddy", 501, 101, { sid = 9990 })
+    runMs(5000)
+    check(KP.Ledger.userSid("buddy") == 5550, "同名但 SteamID 不同的人上線：記過的不改")
+    check(managers(s.owner, s.key, { add = "buddy" }).ok == true and rec(s).co.buddy == 5550, "加入時記下伺服器看過的 SteamID")
+    local _, bst = cmd(buddy, "query", { key = s.key })
+    check(bst ~= nil and cmd(fake, "query", { key = s.key }).why == "NotOwner", "SteamID 相符才是共同管理者，冒名者被擋下")
+    W.steam = false
+
+    -- 10. 重開：名單與認得的玩家都還在
+    restart()
+    check(rec(a).co.alpine == true and KP.Ledger.known("Alpha") and KP.Ledger.userSid("buddy") == 5550,
+        "重開後名單與認得的玩家都還在")
+    clean(from, "共同管理者")
+end
+
+-- 沙盒「安全屋外的讀頭」（Core.lua KP.lockAllowedAt／installAllowedAt）：1 不限制、2 不能上鎖、3 不能安裝。
+-- 門在讀頭擁有者（安裝時是安裝者）的安全屋裡才不受限；已上鎖的門照樣能關掉門鎖；只在多人模式有作用
+local function scenarioOutsideSafehouse()
+    out("情境：沙盒「安全屋外的讀頭」")
+    freshWorld()
+    local from = #logLines + 1
+    local sb = SandboxVars.MinidoracatKnoxPass
+    local a = gate(100)
+    local res, st = cmd(a.owner, "lock", { key = a.key, on = true })
+    check(res.ok == true and st.lockAllowed == true, "預設不限制：安全屋外照樣能上鎖")
+    sb.OutsideSafehouse = 2
+    res, st = cmd(a.owner, "lock", { key = a.key, on = false })
+    check(res.ok == true and st.lockAllowed == false and rec(a).lock == nil, "不能上鎖：已上鎖的門照樣能關掉，state 帶 lockAllowed＝false")
+    res = cmd(a.owner, "lock", { key = a.key, on = true })
+    check(res.why == "LockSafehouseOnly" and rec(a).lock == nil and not a.door:isLockedByKey(), "不能上鎖：安全屋外的門開不了門鎖")
+    local admin = newPlayer("admin", 100, 101, { caps = { CanSetupSafehouses = true } })
+    check(cmd(admin, "lock", { key = a.key, on = true }).why == "LockSafehouseOnly", "管理員也照這條（看門在不在擁有者的安全屋）")
+    W.houses[1] = { owner = "owner100", members = {} }
+    W.houseAt[square(100, 100, 0)] = W.houses[1]
+    res, st = cmd(a.owner, "lock", { key = a.key, on = true })
+    check(res.ok == true and st.lockAllowed == true and rec(a).lock == true, "門在擁有者的安全屋裡：能上鎖")
+
+    sb.OutsideSafehouse = 3
+    local b = gate(200)
+    check(b.res.why == "InstallSafehouseOnly" and b.key == nil and countType(b.owner._inv, READER) == 1,
+        "不能安裝：安全屋外裝不了，讀頭不扣")
+    W.houses[2] = { owner = "boss", members = { owner300 = true } }
+    W.houseAt[square(300, 100, 0)] = W.houses[2]
+    check(gate(300).res.ok == true, "不能安裝：在自己是成員的安全屋裡能裝")
+    W.houses[3] = { owner = "boss2", members = {} }
+    W.houseAt[square(400, 100, 0)] = W.houses[3]
+    check(gate(400).res.why == "InstallSafehouseOnly", "不能安裝：別人的安全屋（原版允許互動時）也不行")
+    clean(from, "安全屋外的讀頭")
+
+    -- SP 沒有這條限制
+    freshWorld("sp")
+    SandboxVars.MinidoracatKnoxPass.OutsideSafehouse = 3
+    local got = {}
+    KP.clientReceive = function(command, args) got[#got + 1] = { cmd = command, args = args } end
+    makeDoor("IsoDoor", 100, 100)
+    local me = newPlayer("me", 100, 102)
+    W.locals = { me }
+    fire("OnClientCommand", "MinidoracatKnoxPass", "install", me, { x = 100, y = 100, z = 0, index = 0, itemId = me._inv:AddItem(READER):getID() })
+    local ok = false
+    for _, g in ipairs(got) do if g.cmd == "result" and g.args.ok then ok = true end end
+    check(ok, "SP：選「不能安裝」也照樣能裝（沒有安全屋可申請）")
+end
+
 local tests = {
     scenarioParts, scenarioDock, scenarioDetection, scenarioAutoClose, scenarioLocks, scenarioCommands,
     scenarioSinglePlayer, scenarioLedger, scenarioCharging, scenarioReopen, scenarioUninstallOpen, scenarioGarage,
@@ -4657,6 +4875,7 @@ local tests = {
     scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,
     scenarioReaderPost, scenarioColors, scenarioLoot, scenarioBarrierMirror, scenarioRollDoor, scenarioSettings,
     scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioLaggyEcho, scenarioShare,
+    scenarioCoManagers, scenarioOutsideSafehouse,
 }
 for _, t in ipairs(tests) do t() end
 

@@ -23,5 +23,10 @@
     "Sandbox_MinidoracatKnoxPassAllowCraft": "Allow crafting Knox Pass items",
     "Sandbox_MinidoracatKnoxPassAllowCraft_tooltip": "Enabled (default) lets players craft the Vehicle Tag (Electrical 2) and the Gate Reader (Electrical 4).\nWhen disabled the recipes cannot be performed. World loot is controlled separately; existing items are unaffected.\nTakes effect as soon as an admin clicks Apply.",
     "Sandbox_MinidoracatKnoxPassSpawnLoot": "Spawn Knox Pass items in world loot",
-    "Sandbox_MinidoracatKnoxPassSpawnLoot_tooltip": "Enabled (default) adds Vehicle Tags and Gate Readers to loot in gas-station and mechanic storage, car-supply, tool and electronics stores, electrician tools and electronics crates.\nDisabled prevents new loot. Existing items and containers that have already generated contents are not removed.\nAfter an admin clicks Apply, containers whose contents have not yet generated use the new setting immediately."
+    "Sandbox_MinidoracatKnoxPassSpawnLoot_tooltip": "Enabled (default) adds Vehicle Tags and Gate Readers to loot in gas-station and mechanic storage, car-supply, tool and electronics stores, electrician tools and electronics crates.\nDisabled prevents new loot. Existing items and containers that have already generated contents are not removed.\nAfter an admin clicks Apply, containers whose contents have not yet generated use the new setting immediately.",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse": "Readers outside safehouses",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_tooltip": "Applies when a gate is not in the reader owner's safehouse (multiplayer only).\nNo limit (default) = readers can be installed and locked anywhere.\nNo locking = the Knox Pass lock can't be turned on; opening the gate works as usual.\nNo installing = readers can only be installed in your own safehouse (and gates outside safehouses can't be locked).\nGates that are already locked stay locked; the owner, a co-manager or an admin can turn the lock off.\nTakes effect as soon as an admin clicks Apply.",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "No limit",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "No locking",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "No installing"
 }

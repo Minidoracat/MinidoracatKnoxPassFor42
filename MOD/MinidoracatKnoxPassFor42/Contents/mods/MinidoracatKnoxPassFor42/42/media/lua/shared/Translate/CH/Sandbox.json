@@ -23,5 +23,10 @@
     "Sandbox_MinidoracatKnoxPassAllowCraft": "允許製作 Knox Pass 道具",
     "Sandbox_MinidoracatKnoxPassAllowCraft_tooltip": "開啟（預設）＝玩家可以製作車用感應盒（需電工 2 級）與大門讀頭（需電工 4 級）。\n關閉後配方無法執行；世界搜刮另由各自設定決定，既有道具不受影響。\n管理員按「套用」後立即生效。",
     "Sandbox_MinidoracatKnoxPassSpawnLoot": "世界搜刮會生成 Knox Pass 道具",
-    "Sandbox_MinidoracatKnoxPassSpawnLoot_tooltip": "開啟（預設）＝車用感應盒與大門讀頭會加入加油站與修車廠倉儲、汽車用品店、五金行與電子用品店、電工工具與電子板條箱的搜刮生成清單。\n關閉＝之後生成的搜刮不再出現；既有道具與已經生成過的容器內容不會移除。\n管理員按「套用」後，尚未生成內容的容器立即採用新設定。"
+    "Sandbox_MinidoracatKnoxPassSpawnLoot_tooltip": "開啟（預設）＝車用感應盒與大門讀頭會加入加油站與修車廠倉儲、汽車用品店、五金行與電子用品店、電工工具與電子板條箱的搜刮生成清單。\n關閉＝之後生成的搜刮不再出現；既有道具與已經生成過的容器內容不會移除。\n管理員按「套用」後，尚未生成內容的容器立即採用新設定。",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse": "安全屋外的讀頭",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_tooltip": "門不在讀頭擁有者的安全屋裡時套用（只在多人模式有作用）。\n不限制（預設）＝哪裡都能安裝、上鎖。\n不能上鎖＝不能開 Knox Pass 門鎖；開門照常。\n不能安裝＝只能在自己的安全屋裡裝讀頭（安全屋外的門也不能上鎖）。\n已經上鎖的門維持原狀，擁有者、共同管理者或管理員可以關掉門鎖。\n管理員按「套用」後立即生效。",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "不限制",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "不能上鎖",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "不能安裝"
 }

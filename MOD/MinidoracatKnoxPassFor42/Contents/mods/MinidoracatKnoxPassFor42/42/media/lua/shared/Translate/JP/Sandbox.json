@@ -23,5 +23,10 @@
     "Sandbox_MinidoracatKnoxPassAllowCraft": "Knox Pass アイテムの製作を許可",
     "Sandbox_MinidoracatKnoxPassAllowCraft_tooltip": "有効（初期値）にすると、車載タグ（電気技師レベル2）とゲートリーダー（電気技師レベル4）を製作できます。\n無効にするとレシピを実行できません。ワールド探索は別の設定で決まり、既存のアイテムには影響しません。\n管理者が「適用」を押すと即座に反映されます。",
     "Sandbox_MinidoracatKnoxPassSpawnLoot": "ワールド探索で Knox Pass アイテムを生成",
-    "Sandbox_MinidoracatKnoxPassSpawnLoot_tooltip": "有効（初期値）にすると、ガソリンスタンドと整備工場の倉庫、カー用品店・工具店・家電店、電気工具、電子機器クレートの探索品に車載タグとゲートリーダーが追加されます。\n無効にすると新しい探索品として生成されません。既存のアイテムや内容生成済みのコンテナからは削除されません。\n管理者が「適用」を押すと、内容が未生成のコンテナには新しい設定が即座に反映されます。"
+    "Sandbox_MinidoracatKnoxPassSpawnLoot_tooltip": "有効（初期値）にすると、ガソリンスタンドと整備工場の倉庫、カー用品店・工具店・家電店、電気工具、電子機器クレートの探索品に車載タグとゲートリーダーが追加されます。\n無効にすると新しい探索品として生成されません。既存のアイテムや内容生成済みのコンテナからは削除されません。\n管理者が「適用」を押すと、内容が未生成のコンテナには新しい設定が即座に反映されます。",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse": "セーフハウス外のリーダー",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_tooltip": "ゲートがリーダー所有者のセーフハウス内にないときに適用されます（マルチプレイのみ）。\n制限なし（初期値）＝どこでも取り付け・施錠できます。\n施錠不可＝Knox Pass の施錠をオンにできません。開閉は通常どおりです。\n取付不可＝自分のセーフハウス内にしかリーダーを取り付けられません（セーフハウス外のゲートも施錠できません）。\nすでに施錠されているゲートはそのままです。所有者、共同管理者、管理者が施錠を解除できます。\n管理者が「適用」を押すと即座に反映されます。",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "制限なし",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "施錠不可",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "取付不可"
 }

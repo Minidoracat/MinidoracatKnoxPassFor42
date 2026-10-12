@@ -1,5 +1,6 @@
 -- Knox Pass 讀頭管理視窗（MinidoracatUIFor42 API rev 7：Window／Button／Checkbox／Tabs／VirtualList，Dialog 選用；
--- 每扇門設定的下拉選單要 rev 14 的 Dropdown，沒有時只顯示數字）。
+-- 每扇門設定的下拉選單要 rev 14 的 Dropdown，沒有時只顯示數字；共同管理者名單的搜尋框要 rev 11 的 Autocomplete）。
+-- 只有能管理這扇門的人（擁有者、共同管理者、管理員）拿得到 state；伺服器回 NotOwner 時視窗關掉。
 -- 畫面只顯示伺服器 state；所有變更送指令後等新的 state，不做樂觀更新。視窗開著時地上畫出這扇門的感應範圍。
 -- 框架不足時整檔在這裡結束：KP.Window 不存在，右鍵「管理讀頭」改成停用並提示（Client.lua）。
 require "MinidoracatKnoxPass/Client"
@@ -12,6 +13,7 @@ pcall(require, "MinidoracatUI/VirtualList")
 pcall(require, "MinidoracatUI/Widgets/Controls")
 pcall(require, "MinidoracatUI/Widgets/Window")
 pcall(require, "MinidoracatUI/Widgets/Dropdown")
+pcall(require, "MinidoracatUI/Widgets/Autocomplete")
 local UI = MinidoracatUI and MinidoracatUI.v1
 local CAPS = UI and UI.CAPABILITIES
 if not (UI and UI.API_MAJOR == 1 and UI.API_REVISION >= 7 and CAPS.window and CAPS.controls and CAPS.virtualList) then
@@ -135,9 +137,12 @@ function Body:render() self.kp:draw(self) end
 local Win = {}
 Win.__index = Win
 KP.Window = Win
+local Co = {}   -- 共同管理者名單視窗（下方「共同管理者名單視窗」段）
+Co.__index = Co
+Win.Co = Co     -- E2E 與報告情境取用名單視窗（Win.Co.instance）
 
 local LABELS = { "IGUI_KnoxPass_Kind", "IGUI_KnoxPass_Owner", "IGUI_KnoxPass_Power", "IGUI_KnoxPass_Door",
-    "IGUI_KnoxPass_Range", "IGUI_KnoxPass_Delay", "IGUI_KnoxPass_Speed", "IGUI_KnoxPass_Share" }
+    "IGUI_KnoxPass_Range", "IGUI_KnoxPass_Delay", "IGUI_KnoxPass_Speed", "IGUI_KnoxPass_Share", "IGUI_KnoxPass_Managers" }
 -- 分享對象（伺服器 rec.share，沒分享是 "none"）的選項文字；順序就是下拉選單的順序
 local SHARES = { { id = "none", key = "IGUI_KnoxPass_ShareNone" }, { id = "faction", key = "IGUI_KnoxPass_ShareFaction" },
     { id = "safehouse", key = "IGUI_KnoxPass_ShareSafehouse" }, { id = "both", key = "IGUI_KnoxPass_ShareBoth" } }
@@ -177,7 +182,7 @@ function Win.new()
     local tm = getTextManager()
     local aside, info = 0, 0
     for _, t in ipairs({ getText("IGUI_KnoxPass_CellsRange", "99", "99"), getText("IGUI_KnoxPass_SecondsRange", "99", "99"),
-        getText("IGUI_KnoxPass_SpeedUnsupported"), getText("IGUI_KnoxPass_ShareHint") }) do
+        getText("IGUI_KnoxPass_SpeedUnsupported"), getText("IGUI_KnoxPass_ShareHint"), getText("IGUI_KnoxPass_ManagersHint") }) do
         aside = math.max(aside, tm:MeasureStringX(FS, t))
     end
     for _, k in ipairs({ "IGUI_KnoxPass_NoPower", "IGUI_KnoxPass_PowerNotNeeded" }) do
@@ -191,12 +196,15 @@ function Win.new()
     local actW = math.max(tm:MeasureStringX(FS, getText("IGUI_KnoxPass_RegisterN", "99")),
         tm:MeasureStringX(FS, getText("IGUI_KnoxPass_UnregisterN", "64"))) + 20
     W = math.max(460, PAD * 2 + self.labelW + math.max(DD_W + 10 + aside, info), PAD * 2 + tabsW + GAP * 2 + allW + actW)
-    -- 高度跟字型走：資訊四列＋門鎖與四列設定＋說明＋分頁列＋清單＋頁尾
-    local bodyH = PAD + self.lineH * 4 + (ch + GAP) * 5 + self.lineH + GAP + ch + GAP + self.listH + PAD + ch + PAD
+    -- 高度跟字型走：資訊四列＋門鎖與五列設定（含共同管理）＋說明＋分頁列＋清單＋頁尾
+    local bodyH = PAD + self.lineH * 4 + (ch + GAP) * 6 + self.lineH + GAP + ch + GAP + self.listH + PAD + ch + PAD
     local sw, sh = getCore():getScreenWidth(), getCore():getScreenHeight()
     self.win = UI.Window.new({ x = math.floor((sw - W) / 2), y = math.floor((sh - bodyH) / 2) - 20, width = W,
         height = bodyH + 40, title = getText("IGUI_KnoxPass_Title"), theme = theme,
-        onClose = function() hideRange(self) end })
+        onClose = function()
+            hideRange(self)
+            Co.hide()   -- 名單視窗跟著關
+        end })
     local top = self.win:contentTop()
     self.win:setHeight(top + bodyH)
     local body = Body:new(0, top, W, bodyH)
@@ -235,7 +243,12 @@ function Win.new()
         body:addChild(self.speedDD)
         body:addChild(self.shareDD)
     end
-    y = self.shareY + ch + GAP
+    -- 共同管理：按鈕寫目前的名單摘要，按下去開名單視窗（Co.show）
+    self.managersY = self.shareY + ch + GAP
+    self.btnManagers = UI.Button.new({ x = PAD + self.labelW, y = self.managersY, width = DD_W, height = ch, title = "",
+        theme = theme, target = self, onClick = Win.onManagers })
+    body:addChild(self.btnManagers)
+    y = self.managersY + ch + GAP
     self.hintY = y
     self.hint = fit(getText("IGUI_KnoxPass_RangeHint"), W - PAD * 2)
     y = y + self.lineH + GAP
@@ -299,9 +312,23 @@ local function settingOptions(lo, hi, default, unit)
     return opts
 end
 
--- 設定四列跟著 state 走（被拒時也用來回到伺服器的值）：設了值就選生效值（上下限縮小後是夾過的值），沒設選預設。
+-- 共同管理那一列的按鈕標題：擁有者陣營（開著陣營、擁有者也還在陣營時）與個別幾人
+local function managersSummary(s)
+    local n = #(s.co or {})
+    if s.coFaction and s.ownerFaction then
+        if n > 0 then return getText("IGUI_KnoxPass_ManagersBoth", s.ownerFaction, tostring(n)) end
+        return getText("IGUI_KnoxPass_ManagersFaction", s.ownerFaction)
+    end
+    if n > 0 then return getText("IGUI_KnoxPass_ManagersPeople", tostring(n)) end
+    return getText("IGUI_KnoxPass_ManagersNone")
+end
+
+-- 設定各列跟著 state 走（被拒時也用來回到伺服器的值）：設了值就選生效值（上下限縮小後是夾過的值），沒設選預設。
 -- 開關速度只有錨點有加速版模型的門能選（state.speedSupported），其他門停用並寫明；分享對象右邊寫分享出去的是什麼
 function Win:applySettings(s)
+    self.btnManagers:setTitle(managersSummary(s))
+    self.btnManagers:setEnabled(true)
+    self.managersAside = getText("IGUI_KnoxPass_ManagersHint")
     local rb = getText("IGUI_KnoxPass_CellsRange", tostring(s.rangeMin), tostring(s.rangeMax))
     local db = getText("IGUI_KnoxPass_SecondsRange", tostring(s.delayMin), tostring(s.delayMax))
     local fast = s.speed == "fast"
@@ -319,14 +346,14 @@ function Win:applySettings(s)
     self.rangeAside, self.delayAside, self.speedAside, self.shareAside = rb, db, sb, hb
     self.rangeDD:setOptions(settingOptions(s.rangeMin, s.rangeMax, s.rangeDefault, "IGUI_KnoxPass_Cells"))
     self.rangeDD:setSelected(s.rangeSet ~= nil and s.range or "default", true)
-    self.rangeDD:setEnabled(s.manager == true)
+    self.rangeDD:setEnabled(true)
     self.delayDD:setOptions(settingOptions(s.delayMin, s.delayMax, s.delayDefault, "IGUI_KnoxPass_Seconds"))
     self.delayDD:setSelected(s.delaySet ~= nil and s.delay or "default", true)
-    self.delayDD:setEnabled(s.manager == true)
+    self.delayDD:setEnabled(true)
     self.speedDD:setSelected(fast and "fast" or "default", true)
-    self.speedDD:setEnabled(s.manager == true and s.speedSupported == true)
+    self.speedDD:setEnabled(s.speedSupported == true)
     self.shareDD:setSelected(s.share or "none", true)
-    self.shareDD:setEnabled(s.manager == true)
+    self.shareDD:setEnabled(true)
 end
 
 -- state 到達時算好資訊列字串與兩頁的列（draw 每幀只畫）
@@ -339,7 +366,7 @@ function Win:apply(s)
     elseif s.powered then rows[3], self.powerToken = getText("IGUI_KnoxPass_Powered"), "text"
     else rows[3], self.powerToken = getText("IGUI_KnoxPass_NoPower"), "errorText" end
     rows[4] = getText(s.open and "IGUI_KnoxPass_DoorOpen" or "IGUI_KnoxPass_DoorClosed")
-    -- 不是管理者時伺服器不給兩份清單（Server.lua buildState）；附近只列還沒登記的車
+    -- 附近只列還沒登記的車
     self.tagRows = sortRows(s.tags or {}, tagBefore)
     local near = {}
     for _, row in ipairs(s.nearby or {}) do
@@ -348,9 +375,14 @@ function Win:apply(s)
     self.nearRows = sortRows(near, nearBefore)
     self.tabs:setItemLabel("tags", getText("IGUI_KnoxPass_TabRegistered", tostring(#self.tagRows), tostring(s.maxTags)))
     self.tabs:setItemLabel("near", getText("IGUI_KnoxPass_TabNearby", tostring(#self.nearRows)))
+    -- 門鎖：不支援的門停用並寫明；沙盒「安全屋外的讀頭」不准上鎖時（state.lockAllowed＝false），沒上鎖的停用並寫原因，
+    -- 已上鎖的照樣能關掉
+    local blocked = s.lock ~= true and s.lockAllowed == false
     self.lock:setChecked(s.lock == true, true)
-    self.lock:setEnabled(s.manager == true and s.lockSupported ~= false)
-    self.lock:setLabel(getText(s.lockSupported == false and "IGUI_KnoxPass_LockUnsupported" or "IGUI_KnoxPass_Lock"))
+    self.lock:setEnabled(s.lockSupported ~= false and not blocked)
+    self.lock:setLabel(getText(s.lockSupported == false and "IGUI_KnoxPass_LockUnsupported"
+        or blocked and "IGUI_KnoxPass_LockSafehouseOnly" or "IGUI_KnoxPass_Lock"))
+    if Co.shownFor(self.key) then Co.instance:apply(s) end
     self:applySettings(s)
     showRange(self, s)
     self:showPage()
@@ -374,6 +406,7 @@ function Win:reset()
     self.list:setItems({})
     self.lock:setChecked(false, true)
     self.lock:setEnabled(false)
+    self.btnManagers:setEnabled(false)
     if self.rangeDD then
         self.rangeDD:setEnabled(false)
         self.delayDD:setEnabled(false)
@@ -381,32 +414,35 @@ function Win:reset()
         self.shareDD:setEnabled(false)
     end
     hideRange(self)   -- 換一扇門或讀取失敗：等新 state 再畫範圍
+    Co.hide()
     self:refreshButtons()
 end
 
--- 分頁列只給管理者；「全選」在整頁都勾了時變「全不選」；動作鈕跟著分頁（登記／取消登記）並寫出勾了幾台
+-- 分頁列在拿到 state 後才顯示；「全選」在整頁都勾了時變「全不選」；動作鈕跟著分頁（登記／取消登記）並寫出勾了幾台
 function Win:refreshButtons()
     local s = self.state
-    local manager = s ~= nil and s.manager == true
+    local has = s ~= nil
     local rows, n = self.list:getItems(), 0
     for _, row in ipairs(rows) do
         if self.picked[rowId(row)] then n = n + 1 end
     end
     local near = self.page == "near"
-    self.tabs:setVisible(manager)
-    self.btnAll:setVisible(manager)
-    self.btnAct:setVisible(manager)
+    self.tabs:setVisible(has)
+    self.btnAll:setVisible(has)
+    self.btnAct:setVisible(has)
     self.btnAll:setTitle(getText(n > 0 and n == #rows and "IGUI_KnoxPass_SelectNone" or "IGUI_KnoxPass_SelectAll"))
-    self.btnAll:setEnabled(manager and #rows > 0)
+    self.btnAll:setEnabled(has and #rows > 0)
     if n == 0 then
         self.btnAct:setTitle(getText(near and "IGUI_KnoxPass_Register" or "IGUI_KnoxPass_Unregister"))
     else
         self.btnAct:setTitle(getText(near and "IGUI_KnoxPass_RegisterN" or "IGUI_KnoxPass_UnregisterN", tostring(n)))
     end
     self.btnAct:setStyle(near and "primary" or "danger")
-    self.btnAct:setEnabled(manager and n > 0)
-    -- 閘門的讀頭是內建的（伺服器 H.uninstall 回 BuiltIn）：拆整座閘門走拆除機箱
-    self.btnRemoveReader:setEnabled(manager and s.kind ~= "Barrier")
+    self.btnAct:setEnabled(has and n > 0)
+    -- 閘門的讀頭是內建的（伺服器 H.uninstall 回 BuiltIn）：拆整座閘門走拆除機箱。共同管理者不能拆（OwnerOnly），停用並說明
+    local coOnly = has and s.ownerOrAdmin ~= true
+    self.btnRemoveReader:setEnabled(has and not coOnly and s.kind ~= "Barrier")
+    self.btnRemoveReader:setTooltip(coOnly and self.ownerOnly or nil)
 end
 
 function Win:draw(el)
@@ -416,6 +452,7 @@ function Win:draw(el)
     text(el, self.labels[6], PAD, self.delayY + 5, "textMuted")
     text(el, self.labels[7], PAD, self.speedY + 5, "textMuted")
     text(el, self.labels[8], PAD, self.shareY + 5, "textMuted")
+    text(el, self.labels[9], PAD, self.managersY + 5, "textMuted")
     if not s then
         if self.failed then
             drawLines(el, self.failed, PAD, self.infoY, self.lineH, "errorText")
@@ -438,10 +475,9 @@ function Win:draw(el)
     text(el, self.delayAside, asideX, self.delayY + 5, asideToken)
     text(el, self.speedAside, asideX, self.speedY + 5, asideToken)
     text(el, self.shareAside, asideX, self.shareY + 5, asideToken)
+    text(el, self.managersAside, valueX + DD_W + 10, self.managersY + 5, "textFaint")   -- 名單按鈕一律有，右邊寫說明
     text(el, self.hint, PAD, self.hintY, "textFaint")
-    if not s.manager then
-        text(el, self.notManager, PAD + 8, self.listY + 8, "textMuted")
-    elseif #self.list:getItems() == 0 then
+    if #self.list:getItems() == 0 then
         drawLines(el, self.page == "near" and self.emptyNear or self.emptyTags, PAD + 8, self.listY + 8, self.lineH,
             "textFaint")
     end
@@ -530,6 +566,203 @@ function Win:onRemoveReader()
         onResult = function(ok) if ok then go() end end })
 end
 
+-- 「共同管理」那一列的按鈕：開名單視窗
+function Win:onManagers()
+    if self.state then Co.show(self) end
+end
+
+-- ── 共同管理者名單視窗 ──────────────────────────────────────────────────
+-- 內容照管理視窗的 state 畫（Co:apply）；擁有者與管理員能改（state.ownerOrAdmin），共同管理者只能看。
+-- 輸入框是 UI.Autocomplete（框架 API rev 11，CAPS.autocomplete；家族 Safehouse 的分享對象同款）：候選由伺服器
+-- H.findPlayers 回，只列伺服器認得的玩家；選了候選才能按「加入」，伺服器 H.managers 再重查一次。
+-- 框架沒有 Autocomplete 時名單照列，新增停用並寫明
+local CO_W = 340
+local QUERY_TIMEOUT_MS = 3000   -- 候選查詢送出後這麼久沒回覆就當作掉了，可以再送
+local TOGGLE_W = 44             -- 勾選框的開關圖樣與間距（標籤截字用）
+
+local CoBody = ISPanel:derive("KnoxPassCoBody")
+-- 文字畫在 prerender：子元件（搜尋框的下拉）在 prerender 之後、render 之前畫，下拉才蓋得住名單文字
+-- （UIElement.render：prerender → children → render）
+function CoBody:prerender()
+    local co = self.co
+    -- 選了候選之後又改字就不算選過：只能加入確實存在的玩家
+    if co.picked and co.ac and co.ac:getText() ~= co.picked then co.picked = nil end
+    co.btnAdd:setEnabled(co.canEdit and co.picked ~= nil and co.count < co.max)
+    co:draw(self)
+end
+
+function Co.new()
+    local self = setmetatable({ names = {}, rowText = {}, count = 0, max = KP.MAX_MANAGERS, canEdit = false }, Co)
+    local tm = getTextManager()
+    local fh = tm:getFontHeight(FS)
+    local ch = fh + 10
+    self.lineH, self.ch = fh + 6, ch
+    local addTitle, removeTitle = getText("IGUI_KnoxPass_Add"), getText("IGUI_KnoxPass_Remove")
+    local addW = tm:MeasureStringX(FS, addTitle) + 20
+    self.removeW = tm:MeasureStringX(FS, removeTitle) + 20
+    self.note = wrap(getText("IGUI_KnoxPass_ManagersNote"), CO_W - PAD * 2)
+    self.factionHint = fit(getText("IGUI_KnoxPass_ManagersFactionHint"), CO_W - PAD * 2 - TOGGLE_W)
+    self.empty = fit(getText("IGUI_KnoxPass_ManagersEmpty"), CO_W - PAD * 2)
+    self.onlineTag = getText("IGUI_KnoxPass_Online")
+    -- 由上而下：說明、陣營開關與說明、搜尋框＋加入、名單（最多 KP.MAX_MANAGERS 列）、人數。搜尋框在名單上面，下拉蓋住名單列
+    local y = PAD
+    self.noteY = y
+    y = y + #self.note * self.lineH + GAP
+    self.factionY = y
+    y = y + ch
+    self.factionHintY = y
+    y = y + self.lineH + GAP
+    self.addY = y
+    y = y + ch + GAP
+    self.listY = y
+    y = y + KP.MAX_MANAGERS * (ch + 2) + GAP
+    self.countY = y
+    local bodyH = y + self.lineH + PAD
+
+    self.win = UI.Window.new({ x = 0, y = 0, width = CO_W, height = bodyH + 40, theme = theme, opaque = true,
+        title = getText("IGUI_KnoxPass_ManagersTitle") })
+    local top = self.win:contentTop()
+    self.win:setHeight(top + bodyH)
+    local body = CoBody:new(0, top, CO_W, bodyH)
+    body.background = false
+    body.co = self
+    body:initialise()
+    self.win:addChild(body)
+
+    self.faction = UI.Checkbox.new({ x = PAD, y = self.factionY, width = CO_W - PAD * 2, label = "", theme = theme,
+        target = self, onChange = Co.onFaction })
+    body:addChild(self.faction)
+    self.rowButtons = {}
+    for i = 1, KP.MAX_MANAGERS do
+        local b = UI.Button.new({ x = CO_W - PAD - self.removeW, y = self.listY + (i - 1) * (ch + 2), width = self.removeW,
+            height = ch, title = removeTitle, theme = theme, target = self, onClick = Co.onRemove })
+        b:setVisible(false)
+        body:addChild(b)
+        self.rowButtons[i] = b
+    end
+    self.btnAdd = UI.Button.new({ x = CO_W - PAD - addW, y = self.addY, width = addW, height = ch, title = addTitle,
+        style = "primary", theme = theme, target = self, onClick = Co.onAdd })
+    body:addChild(self.btnAdd)
+    if CAPS.autocomplete then
+        self.ac = UI.Autocomplete.new({ x = PAD, y = self.addY, width = CO_W - PAD * 2 - addW - GAP, theme = theme, font = FS,
+            placeholder = getText("IGUI_KnoxPass_PlayerHint"), maxLength = KP.NAME_MAX, target = self, opaque = true,
+            onQuery = Co.onQuery, onPick = Co.onPick, labelOf = function(row) return row.name end,
+            tagOf = function(row) return row.online and self.onlineTag or nil end })
+        self.ac:addTo(body)   -- 下拉最後加，才蓋得住名單列
+        self.ac:anchorList(self.countY - self.addY - ch)
+    end
+    return self
+end
+
+-- 照管理視窗的 state 重畫；名單只有擁有者與管理員能改
+function Co:apply(s)
+    self.canEdit = s.ownerOrAdmin == true
+    self.names = s.co or {}
+    self.count, self.max = #self.names, s.maxManagers or KP.MAX_MANAGERS
+    self.faction:setLabel(fit(s.ownerFaction and getText("IGUI_KnoxPass_ManagersFactionOn", s.ownerFaction)
+        or getText("IGUI_KnoxPass_ManagersFactionNone"), CO_W - PAD * 2 - TOGGLE_W))
+    self.faction:setChecked(s.coFaction == true, true)
+    -- 擁有者不在陣營時不能打開；已經開著（擁有者後來離開陣營）照樣能關
+    self.faction:setEnabled(self.canEdit and (s.ownerFaction ~= nil or s.coFaction == true))
+    local textW = CO_W - PAD * 2 - (self.canEdit and (self.removeW + GAP) or 0)
+    for i, b in ipairs(self.rowButtons) do
+        local name = self.names[i]
+        self.rowText[i] = name and fit(name, textW) or nil
+        b.internal = name
+        b:setVisible(name ~= nil and self.canEdit)
+    end
+    local full = self.count >= self.max
+    if self.ac then
+        self.ac:setVisible(self.canEdit)
+        self.ac:setEnabled(not full)
+    end
+    self.btnAdd:setVisible(self.canEdit)
+    if not self.canEdit then
+        self.countText = getText("IGUI_KnoxPass_ManagersReadOnly")
+    elseif not self.ac then
+        self.countText = getText("IGUI_KnoxPass_ManagersNeedFramework")
+    else
+        self.countText = getText("IGUI_KnoxPass_ManagersCount", tostring(self.count), tostring(self.max))
+    end
+end
+
+-- 只能看的人沒有搜尋列：名單往上移到搜尋列的位置
+function Co:draw(el)
+    drawLines(el, self.note, PAD, self.noteY, self.lineH, "textMuted")
+    text(el, self.factionHint, PAD + TOGGLE_W, self.factionHintY, "textFaint")
+    local top = self.canEdit and self.listY or self.addY
+    if self.count == 0 then text(el, self.empty, PAD, top + 5, "textFaint") end
+    for i = 1, self.count do
+        text(el, self.rowText[i], PAD, top + (i - 1) * (self.ch + 2) + 5, "text")
+    end
+    text(el, self.countText, PAD, self.countY, "textMuted")
+end
+
+function Co.show(w)
+    local co = Co.instance
+    if not co then
+        co = Co.new()
+        co.win:addToUIManager()
+        Co.instance = co
+    end
+    co.owner, co.picked, co.pending = w, nil, nil
+    if co.ac then co.ac:setText("") end
+    -- 擺在管理視窗右邊，放不下就擺左邊
+    local x = w.win:getX() + w.win:getWidth() + 8
+    if x + CO_W > getCore():getScreenWidth() then x = math.max(0, w.win:getX() - CO_W - 8) end
+    co.win:setX(x)
+    co.win:setY(w.win:getY())
+    co:apply(w.state)
+    co.win:setVisible(true)
+    co.win:bringToTop()
+end
+
+function Co.hide()
+    local co = Co.instance
+    if not (co and co.win:getIsVisible()) then return end
+    if co.ac then
+        co.ac:close()
+        co.ac:blur()
+    end
+    co.win:setVisible(false)
+end
+
+function Co.shownFor(key)
+    local co = Co.instance
+    return co ~= nil and co.win:getIsVisible() and co.owner ~= nil and co.owner.key == key
+end
+
+function Co:onFaction(checked)
+    local w = self.owner
+    if w then C.send(w.player, "managers", { key = w.key, faction = checked == true }) end
+end
+
+function Co:onRemove(button)
+    local w = self.owner
+    if w and button.internal then C.send(w.player, "managers", { key = w.key, remove = { button.internal } }) end
+end
+
+function Co:onAdd()
+    local w, name = self.owner, self.picked
+    if not (w and name) then return end
+    self.picked = nil
+    if self.ac then self.ac:setText("") end
+    C.send(w.player, "managers", { key = w.key, add = name })
+end
+
+-- 一次只送一筆，回覆在 Win.onPlayers 交給 setResults；回 false＝框架下一幀再問
+function Co:onQuery(textNow)
+    local w, now = self.owner, getTimestampMs()
+    if not w or (self.pending and now - self.pendingAt < QUERY_TIMEOUT_MS) then return false end
+    self.pending, self.pendingAt = textNow, now
+    C.send(w.player, "findPlayers", { key = w.key, query = textNow })
+    return true
+end
+
+function Co:onPick(row)
+    self.picked = row.name
+end
+
 -- ── 入口（Client.lua 呼叫）──────────────────────────────────────────────
 
 local function ensure()
@@ -538,7 +771,7 @@ local function ensure()
     -- 固定字串建立時取一次，draw 不查譯文（資訊列與設定列的標籤在 Win.new 量寬度時就取了）
     w.loading = getText("IGUI_KnoxPass_Loading")
     w.retryHint = getText("IGUI_KnoxPass_RetryHint")
-    w.notManager = getText("IGUI_KnoxPass_NotManager")
+    w.ownerOnly = getText("IGUI_KnoxPass_Why_OwnerOnly")
     w.emptyTags = wrap(getText("IGUI_KnoxPass_NoTags"), W - PAD * 2 - 16)
     w.emptyNear = wrap(getText("IGUI_KnoxPass_NoNearby"), W - PAD * 2 - 16)
     w.win:addToUIManager()
@@ -577,8 +810,12 @@ end
 function Win.onResult(r)
     local w = shown(r.key)
     if not w then return end
-    if not r.ok and r.cmd == "query" then
-        -- 伺服器只在失敗時回 query 的 result：清掉舊資料、寫出原因，Body:prerender 在 3 格內重讀
+    if not r.ok and r.cmd == "query" and r.why == "NotOwner" then
+        -- 伺服器確認沒有管理權（只回原因、不給設定）：關掉視窗並提示，不重讀
+        w.win:close()
+        C.say(w.player, KnoxPassAPI.whyText(r.why), true)
+    elseif not r.ok and r.cmd == "query" then
+        -- 讀取失敗：清掉舊資料、寫出原因，Body:prerender 在 3 格內重讀（TooFar 這類走近就會好的原因）
         w:reset()
         w.failed = wrap(getText("IGUI_KnoxPass_LoadFailed", KnoxPassAPI.whyText(r.why)), W - PAD * 2)
     elseif r.cmd == "register" or r.cmd == "unregister" then
@@ -591,5 +828,19 @@ function Win.onResult(r)
         w.lock:setChecked(w.state.lock == true, true) -- 被拒時開關回到伺服器狀態
     elseif not r.ok and r.cmd == "settings" and w.state then
         w:applySettings(w.state)                     -- 被拒時下拉選單回到伺服器的值
+    elseif not r.ok and r.cmd == "managers" and w.state and Co.shownFor(w.key) then
+        Co.instance:apply(w.state)                   -- 被拒時名單視窗回到伺服器的狀態（原因由 Client.lua 提示）
+    elseif not r.ok and r.cmd == "findPlayers" and Co.shownFor(w.key) then
+        local co = Co.instance                       -- 候選被拒（例如走遠了）：安靜收起，候選只是方便
+        co.pending = nil
+        if co.ac then co.ac:queryFailed(false) end
     end
+end
+
+-- 共同管理者候選（Server.lua H.findPlayers）：交給名單視窗的輸入框；不是最後送出的查詢時框架自己丟掉
+function Win.onPlayers(args)
+    if not Co.shownFor(args.key) then return end
+    local co = Co.instance
+    if args.query == co.pending then co.pending = nil end
+    if co.ac and type(args.query) == "string" then co.ac:setResults(args.query, args.rows) end
 end

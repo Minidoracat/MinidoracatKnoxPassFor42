@@ -28,9 +28,14 @@ function System:initSystem()
     self.system:setObjectSyncKeys({})
     if type(self.state) ~= "table" then self.state = { version = 1, gates = {} } end
     if type(self.state.gates) ~= "table" then self.state.gates = {} end
+    if type(self.state.users) ~= "table" then self.state.users = {} end
     -- 原版在 new() 回傳後才設 instance（SGlobalObjectSystem.lua:246），先設免得 rebuild 讀不到
     System.instance = self
     L.rebuild()
+    -- 更新前就裝了讀頭的人還沒被記過：擁有者先放進認得的玩家（共同管理者搜得到、加得進來）
+    for _, rec in pairs(self.state.gates) do
+        if type(rec.owner) == "string" and rec.owner ~= "" then L.seen(rec.owner, rec.sid) end
+    end
     KP.log("ledger loaded gates=" .. L.count())
 end
 
@@ -138,4 +143,46 @@ function L.count()
     local n = 0
     for _ in pairs(L.gates() or {}) do n = n + 1 end
     return n
+end
+
+-- ── 伺服器認得的玩家 ─────────────────────────────────────────────────────
+-- 共同管理者只能從這裡選（原版帳號資料庫 Lua 讀不到；家族 Safehouse 同樣自己記）：帳號 → SteamID 數值
+-- （非 Steam 伺服器是 true）。上線就記（Sensor.lua 每 5 秒），名字記過就不改 SteamID：冒名者蓋不掉
+-- （家族 conventions「玩家身分」）。只增不減，一個帳號約 40 bytes
+local function users()
+    local inst = System.instance
+    return inst and inst.state and inst.state.users or nil
+end
+
+function L.seen(name, sid)
+    local u = users()
+    if u and (u[name] == nil or (u[name] == true and sid ~= nil)) then u[name] = sid or true end
+end
+
+-- 線上玩家記進來（KP.principal：分割畫面第 2-4 位回 nil、不記）
+function L.seenPlayer(player)
+    local name, sid = KP.principal(player)
+    if name then L.seen(name, sid) end
+end
+
+function L.known(name)
+    local u = users()
+    return u ~= nil and u[name] ~= nil
+end
+
+-- 記下的 SteamID（數值）或 true；不認得回 nil
+function L.userSid(name)
+    local u = users()
+    return u and u[name]
+end
+
+-- owner 在自己每扇門加過的共同管理者（名單視窗的候選）：{ [帳號] = true }
+function L.managersOf(owner)
+    local out = {}
+    for _, rec in pairs(L.gates() or {}) do
+        if rec.owner == owner and type(rec.co) == "table" then
+            for name in pairs(rec.co) do out[name] = true end
+        end
+    end
+    return out
 end

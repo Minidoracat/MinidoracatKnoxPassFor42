@@ -23,5 +23,10 @@
     "Sandbox_MinidoracatKnoxPassAllowCraft": "Knox Pass eşyalarının üretimine izin ver",
     "Sandbox_MinidoracatKnoxPassAllowCraft_tooltip": "Etkinse (varsayılan) oyuncular Araç Etiketi (Elektrikçilik 2) ve Kapı Okuyucusu (Elektrikçilik 4) üretebilir.\nDevre dışıysa tarifler uygulanamaz. Dünya ganimeti ayrı ayarlanır; mevcut eşyalar etkilenmez.\nBir yönetici Uygula'ya tıkladığı anda geçerli olur.",
     "Sandbox_MinidoracatKnoxPassSpawnLoot": "Knox Pass eşyaları dünya ganimetinde çıksın",
-    "Sandbox_MinidoracatKnoxPassSpawnLoot_tooltip": "Etkinse (varsayılan) Araç Etiketleri ve Kapı Okuyucuları; benzin istasyonu ve tamirci depolarına, oto yedek parça, nalbur ve elektronik mağazalarına, elektrikçi alet sandıklarına ve elektronik sandıklarına ganimet olarak eklenir.\nDevre dışıysa yeni ganimet oluşmaz. Mevcut eşyalar ve içeriği zaten oluşturulmuş kaplar kaldırılmaz.\nBir yönetici Uygula'ya tıkladıktan sonra, içeriği henüz oluşturulmamış kaplar yeni ayarı hemen kullanır."
+    "Sandbox_MinidoracatKnoxPassSpawnLoot_tooltip": "Etkinse (varsayılan) Araç Etiketleri ve Kapı Okuyucuları; benzin istasyonu ve tamirci depolarına, oto yedek parça, nalbur ve elektronik mağazalarına, elektrikçi alet sandıklarına ve elektronik sandıklarına ganimet olarak eklenir.\nDevre dışıysa yeni ganimet oluşmaz. Mevcut eşyalar ve içeriği zaten oluşturulmuş kaplar kaldırılmaz.\nBir yönetici Uygula'ya tıkladıktan sonra, içeriği henüz oluşturulmamış kaplar yeni ayarı hemen kullanır.",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse": "Güvenli ev dışındaki okuyucular",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_tooltip": "Kapı, okuyucu sahibinin güvenli evinde değilse uygulanır (yalnızca çok oyunculu).\nSınırsız (varsayılan) = okuyucular her yere takılabilir ve kilitlenebilir.\nKilitlenemez = Knox Pass kilidi açılamaz; kapıyı açmak her zamanki gibi çalışır.\nTakılamaz = okuyucular yalnızca kendi güvenli evine takılabilir (güvenli ev dışındaki kapılar da kilitlenemez).\nZaten kilitli kapılar kilitli kalır; sahibi, bir ortak yönetici veya bir yönetici kilidi kapatabilir.\nBir yönetici Uygula'ya tıkladığı anda geçerli olur.",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "Sınırsız",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "Kilitlenemez",
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "Takılamaz"
 }

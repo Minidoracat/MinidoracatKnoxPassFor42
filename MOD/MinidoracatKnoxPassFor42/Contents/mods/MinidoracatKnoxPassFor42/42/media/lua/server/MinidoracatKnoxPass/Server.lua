@@ -1,5 +1,6 @@
 -- 伺服器指令：client 只送意圖（sendClientCommand），這裡重查一切再改世界。
--- 指令：install、uninstall、register、unregister、lock、settings、open、close、query、recolor、recolorReader。回覆：state、result。
+-- 指令：install、uninstall、register、unregister、lock、settings、managers、findPlayers、open、close、query、recolor、
+-- recolorReader。回覆：state（只給能管理這扇門的人）、players（共同管理者候選）、result。
 -- SP 的 sendServerCommand 是 no-op（LuaManager.java:8952-8970），回覆直接交給 client 的接收函式（家族 VM 同做法）。
 if isClient() then return end
 require "MinidoracatKnoxPass/Core"
@@ -68,27 +69,40 @@ local function limited(player)
     return h.n > RATE_MAX
 end
 
--- 擁有者（名字＋安裝時記下的 SteamID）或管理員；SP 沒有擁有權問題
-local function canManage(player, rec)
+-- 擁有者（名字＋安裝時記下的 SteamID）或管理員：拆讀頭、改共同管理者名單只看這個；SP 沒有擁有權問題
+local function ownerOrAdmin(player, rec)
     if not isServer() then return true end
-    if KP.isAdmin(player) then return true end
+    if KP.hasAdminRole(player) then return true end
     local name, sid = KP.principal(player)
     if not name or name ~= rec.owner then return false end
     return rec.sid == nil or sid == rec.sid
 end
 
+-- 共同管理者：rec.co[帳號]＝加入時伺服器記下的 SteamID（Ledger.lua L.userSid；非 Steam 伺服器是 true），
+-- 或擁有者現在所在陣營的領袖或成員（rec.coFaction，以名字判定，同分享給陣營）。擁有者本人的名字不算：
+-- 同名但 SteamID 不同的冒名者要擋在 ownerOrAdmin
+local function coManager(player, rec)
+    local name, sid = KP.principal(player)
+    if not name or name == rec.owner then return false end
+    local entry = rec.co and rec.co[name]
+    if entry ~= nil then return entry == true or entry == sid end
+    return rec.coFaction == true and KP.inFactionOf(rec.owner, name)
+end
+
+-- 能管理這扇門（開管理視窗、設定、登記、上鎖、重新上色）：擁有者、管理員、共同管理者
+local function canManage(player, rec)
+    return ownerOrAdmin(player, rec) or coManager(player, rec)
+end
+
 -- 擁有者把這扇門分享給的人（rec.share＝"faction"／"safehouse"／"both"）：擁有者現在所在陣營的領袖或成員
--- （Faction.java:123-138、:150-160），或和擁有者同在一間安全屋（屋主或成員，SafeHouse.java:288-290、:795-803）。
+-- （KP.inFactionOf），或和擁有者同在一間安全屋（屋主或成員，SafeHouse.java:288-290、:795-803）。
 -- 名單是原版的、以名字判定，跟著擁有者現在的陣營與安全屋走。擁有者本人的名字不算：同名但 SteamID 不同的冒名者要擋在 canManage
 local function sharedWith(player, rec)
     local share = rec.share
     if not share or not rec.owner then return false end
     local name = KP.principal(player)
     if not name or name == rec.owner then return false end
-    if share ~= "safehouse" then
-        local f = Faction.getPlayerFaction(rec.owner)
-        if f and (f:isOwner(name) or f:isMember(name)) then return true end
-    end
+    if share ~= "safehouse" and KP.inFactionOf(rec.owner, name) then return true end
     return share ~= "faction" and SafeHouse.isInSameSafehouse(rec.owner, name)
 end
 
@@ -96,12 +110,26 @@ local function nearGate(player, rec)
     return KP.near(player, rec.x, rec.y, rec.z, KP.MANAGE_RANGE)
 end
 
-local function mark(anchor, owner, lock, color, speed)
+-- 名單 { [帳號] = 任何值 } → { [帳號] = true }；空名單回 nil（Kahlua 沒有 next）
+local function nameSet(co)
+    local out = nil
+    for name in pairs(type(co) == "table" and co or {}) do
+        out = out or {}
+        out[name] = true
+    end
+    return out
+end
+
+-- 錨點標記（右鍵選單決定長相用，伺服器不信它）：照帳本寫；rec＝nil 時全部拿掉（拆讀頭）。
+-- 共同管理者只帶名字，不帶 SteamID
+local function mark(anchor, rec)
     local md = anchor:getModData()
-    md[KP.MARKER_OWNER] = owner
-    md[KP.MARKER_LOCK] = lock or nil
-    md[KP.MARKER_COLOR] = owner and color ~= 0 and color or nil   -- 只給右鍵選單列出「其他顏色」用
-    md[KP.MARKER_SPEED] = owner and speed == "fast" and "fast" or nil   -- client 選開關動畫（BarrierAnim.lua）
+    md[KP.MARKER_OWNER] = rec and (rec.owner or "") or nil
+    md[KP.MARKER_LOCK] = rec and rec.lock or nil
+    md[KP.MARKER_COLOR] = rec and rec.color ~= 0 and rec.color or nil   -- 只給右鍵選單列出「其他顏色」用
+    md[KP.MARKER_SPEED] = rec and rec.speed == "fast" and "fast" or nil   -- client 選開關動畫（BarrierAnim.lua）
+    md[KP.MARKER_CO] = rec and nameSet(rec.co) or nil
+    md[KP.MARKER_COFACTION] = rec and rec.coFaction or nil
     anchor:transmitModData()
 end
 
@@ -148,28 +176,50 @@ local function nearbyVehicles(rec)
     return out
 end
 
+-- 名字照字母序（不分大小寫）；專案禁用 table.sort（verify_mod.py），名單最多幾十個，用插入排序
+local function sortedNames(set)
+    local out = {}
+    for name in pairs(set or {}) do
+        local i = #out
+        while i >= 1 and string.lower(out[i]) > string.lower(name) do
+            out[i + 1] = out[i]
+            i = i - 1
+        end
+        out[i + 1] = name
+    end
+    return out
+end
+
+local function factionName(owner)
+    local f = owner and Faction.getPlayerFaction(owner)
+    return f and f:getName() or nil
+end
+
+-- 只有能管理這扇門的人拿得到（KP.sendState 先查 canManage）
 local function buildState(player, key, rec)
-    local manager = canManage(player, rec)
     local rangeLo, rangeHi = KP.settingBounds("ReadRange")
     local delayLo, delayHi = KP.settingBounds("CloseDelay")
     -- 每扇門的設定：range／delay＝生效值；rangeSet／delaySet＝擁有者設的值（nil＝跟沙盒預設走）；上下限來自沙盒。
-    -- cx／cy＝感應距離量起的中心（視窗在地上畫範圍圈）
+    -- cx／cy＝感應距離量起的中心（視窗在地上畫範圍圈）。共同管理者：個別帳號（照字母序）、陣營開關、擁有者現在的陣營名；
+    -- ownerOrAdmin＝能改共同管理者名單、能拆讀頭
     local state = {
-        key = key, kind = rec.kind, owner = rec.owner, manager = manager, lock = rec.lock == true,
+        key = key, kind = rec.kind, owner = rec.owner, lock = rec.lock == true,
         open = rec.open == true, needPower = KP.sandbox("RequirePower") == true, cx = rec.cx, cy = rec.cy,
         range = KP.gateRange(rec), rangeSet = rec.range, rangeMin = rangeLo, rangeMax = rangeHi,
         rangeDefault = KP.clampSetting("ReadRange", tonumber(KP.sandbox("ReadRange")) or 8),
         delay = KP.gateDelay(rec), delaySet = rec.closeDelay, delayMin = delayLo, delayMax = delayHi,
         delayDefault = KP.clampSetting("CloseDelay", tonumber(KP.sandbox("CloseDelay")) or 2),
         speed = rec.speed == "fast" and "fast" or "default", share = rec.share or "none", maxTags = MAX_TAGS,
+        ownerOrAdmin = ownerOrAdmin(player, rec), co = sortedNames(rec.co), coFaction = rec.coFaction == true,
+        ownerFaction = factionName(rec.owner), maxManagers = KP.MAX_MANAGERS,
     }
     local adapter, anchor = G.findAt(rec)
     if adapter then
         state.powered = G.powered(G.pieces(adapter, anchor))
         state.lockSupported = G.supportsLock(adapter)
         state.speedSupported = KP.speedSupported(anchor)
+        state.lockAllowed = KP.lockAllowedAt(anchor:getSquare(), rec.owner)   -- 沙盒「安全屋外的讀頭」
     end
-    if not manager then return state end
     local now = getGameTime():getWorldAgeHours()
     local near = {}
     state.nearby = {}
@@ -198,9 +248,10 @@ local function buildState(player, key, rec)
     return state
 end
 
+-- 這扇門的設定與清單只送給能管理的人：所有回 state 的路徑（查詢、各項操作之後）都經過這裡
 function KP.sendState(player, key)
     local rec = L.get(key)
-    if rec then reply(player, "state", buildState(player, key, rec)) end
+    if rec and canManage(player, rec) then reply(player, "state", buildState(player, key, rec)) end
 end
 
 -- 寫帳本並在錨點留標記（安裝讀頭、建好抬升閘門共用）。builtin＝閘門內建讀頭，不能單獨拆（H.uninstall）。
@@ -217,7 +268,7 @@ function KP.registerReader(adapter, anchor, name, sid, builtin, color)
     L.put(key, rec)
     -- 建造者身分無法驗證（分割畫面第 2-4 位，KP.principal 回 nil）時閘門沒有擁有者、只有管理員能管；
     -- 標記仍要非 nil，client 才知道這扇門裝了讀頭（Client.lua onFillMenu、KnoxPassAPI.willOpenFor）
-    mark(anchor, name or "", false, color)
+    mark(anchor, rec)
     KP.ReaderPost.attach(key, rec, adapter, anchor)
     KP.log("reader installed key=" .. key .. " owner=" .. tostring(name) .. (builtin and " builtin" or ""))
     return key
@@ -232,6 +283,7 @@ function H.install(player, args)
     local name, sid = KP.principal(player)
     if not name then return result(player, cmd, false, "Unverified") end
     if not KP.near(player, args.x, args.y, args.z, KP.MANAGE_RANGE) then return result(player, cmd, false, "TooFar") end
+    if not KP.screwdriverOf(player) then return result(player, cmd, false, "NeedScrewdriver") end   -- 選單也查，這裡重驗
     local sq = getCell():getGridSquare(args.x, args.y, args.z)
     if not sq then return result(player, cmd, false, "NoGate") end
     if not SafeHouse.isSafehouseAllowInteract(sq, player) then return result(player, cmd, false, "Safehouse") end
@@ -239,6 +291,8 @@ function H.install(player, args)
     if not adapter then return result(player, cmd, false, "NoGate") end
     local key = G.key(anchor)
     if L.get(key) then return result(player, cmd, false, "AlreadyInstalled", key) end
+    -- 沙盒「安全屋外的讀頭」＝不能安裝：門要在安裝者自己的安全屋裡（屋主或成員）
+    if not KP.installAllowedAt(anchor:getSquare(), name) then return result(player, cmd, false, "InstallSafehouseOnly") end
     local item = player:getInventory():getItemWithIDRecursiv(args.itemId)
     if not KP.isReader(item) then return result(player, cmd, false, "NoReader") end
     local container = item:getContainer()
@@ -255,8 +309,12 @@ function H.uninstall(player, args)
     if player:getVehicle() then return result(player, cmd, false, "InVehicle") end
     local rec, why = gateFor(player, args)
     if not rec then return result(player, cmd, false, why) end
-    if not canManage(player, rec) then return result(player, cmd, false, "NotOwner", args.key) end
+    -- 拆讀頭只限擁有者與管理員：共同管理者回 OwnerOnly（讀頭會歸拆的人、全部登記一起清掉）
+    if not ownerOrAdmin(player, rec) then
+        return result(player, cmd, false, canManage(player, rec) and "OwnerOnly" or "NotOwner", args.key)
+    end
     if rec.builtin then return result(player, cmd, false, "BuiltIn", args.key) end
+    if not KP.screwdriverOf(player) then return result(player, cmd, false, "NeedScrewdriver", args.key) end
     local adapter, anchor = G.findAt(rec)
     if adapter then
         local pieces = G.pieces(adapter, anchor)
@@ -268,7 +326,7 @@ function H.uninstall(player, args)
             if rec.lock then G.unlockKnox(adapter, anchor, pieces) end
             if rec.keyed and not G.isOpen(adapter, anchor) then G.lock(adapter, anchor, pieces, false, rec.keyed) end
         end
-        mark(anchor, nil, nil)
+        mark(anchor, nil)
     end
     L.remove(args.key)
     S.forget(args.key)
@@ -358,6 +416,10 @@ function H.lock(player, args)
     local adapter, anchor = G.findAt(rec)
     if not adapter then return result(player, cmd, false, "NoGate", args.key) end
     if not G.supportsLock(adapter) then return result(player, cmd, false, "NoLockSupport", args.key) end
+    -- 沙盒「安全屋外的讀頭」＝不能上鎖（或不能安裝）：門要在讀頭擁有者的安全屋裡才能開門鎖；關掉門鎖不受限
+    if args.on == true and not rec.lock and not KP.lockAllowedAt(anchor:getSquare(), rec.owner) then
+        return result(player, cmd, false, "LockSafehouseOnly", args.key)
+    end
     rec.lock = args.on == true or nil
     -- 門開著時只記下來，關好後由 Sensor 處理（settleClosed）；關著就馬上套用
     if not rec.open and not G.isOpen(adapter, anchor) then
@@ -367,7 +429,7 @@ function H.lock(player, args)
     else
         rec.unlockOnClose = not rec.lock or nil
     end
-    mark(anchor, rec.owner or "", rec.lock, rec.color, rec.speed)
+    mark(anchor, rec)
     result(player, cmd, true, nil, args.key)
     KP.sendState(player, args.key)
 end
@@ -417,7 +479,7 @@ function H.settings(player, args)
     if share ~= nil then rec.share = share or nil end
     if speed ~= nil then
         rec.speed = speed or nil
-        mark(anchor, rec.owner or "", rec.lock, rec.color, rec.speed)
+        mark(anchor, rec)
     end
     KP.log("settings key=" .. args.key .. " range=" .. tostring(rec.range) .. " delay=" .. tostring(rec.closeDelay)
         .. " speed=" .. tostring(rec.speed) .. " share=" .. tostring(rec.share) .. " by=" .. tostring(player:getUsername()))
@@ -483,7 +545,7 @@ function H.recolorReader(player, args)
     rec.color = args.color
     KP.ReaderPost.refresh(args.key, rec)
     local adapter, anchor = G.findAt(rec)
-    if adapter then mark(anchor, rec.owner or "", rec.lock, rec.color, rec.speed) end
+    if adapter then mark(anchor, rec) end
     KP.log("reader recolor key=" .. args.key .. " color=" .. KP.COLORS[rec.color + 1].id .. " by=" .. tostring(player:getUsername()))
     result(player, cmd, true, nil, args.key)
 end
@@ -522,7 +584,101 @@ local function keyOf(args) return type(args.key) == "string" and args.key or nil
 function H.query(player, args)
     local rec, why = gateFor(player, args)
     if not rec then return result(player, "query", false, why, keyOf(args)) end
-    reply(player, "state", buildState(player, args.key, rec))
+    -- 沒有管理權：只回 NotOwner，不送這扇門的任何設定（管理視窗收到就關掉，Window.lua Win.onResult）
+    if not canManage(player, rec) then return result(player, "query", false, "NotOwner", args.key) end
+    KP.sendState(player, args.key)
+end
+
+-- ── 共同管理者 ─────────────────────────────────────────────────────────
+
+-- 上線玩家的帳號（KP.principal 驗過的）；順手記進伺服器認得的玩家（Ledger.lua L.seen），剛上線的人不用等下一輪
+local function onlineNames()
+    local out = {}
+    KP.eachPlayer(function(p)
+        local name, sid = KP.principal(p)
+        if name then
+            out[name] = true
+            L.seen(name, sid)
+        end
+    end)
+    return out
+end
+
+local CANDIDATES = 20
+
+-- 名單視窗輸入框的候選，順序同家族 Safehouse 的分享對象（Sharing.lua Sh.candidates）：帳號完全相符（分大小寫）的已知玩家、
+-- 這位擁有者在自己每扇門加過的人、帳號含關鍵字（不分大小寫）的上線玩家，最多 20 位，rows＝{ name, online }。
+-- 離線的玩家只在打完整帳號時列出：不能用關鍵字列出全服玩家。不列擁有者、查詢的人與已在名單上的人；只有能改名單的人能查
+function H.findPlayers(player, args)
+    local cmd = "findPlayers"
+    local rec, why = gateFor(player, args)
+    if not rec then return result(player, cmd, false, why, keyOf(args)) end
+    if not ownerOrAdmin(player, rec) then return result(player, cmd, false, "OwnerOnly", args.key) end
+    local query = args.query
+    if type(query) ~= "string" or #query > KP.NAME_MAX then return result(player, cmd, false, "BadArgs", args.key) end
+    local online = onlineNames()
+    local needle, rows = string.lower(query), {}
+    local skip = nameSet(rec.co) or {}
+    skip[rec.owner or ""] = true
+    skip[KP.principal(player) or ""] = true
+    local function add(name)
+        if #rows < CANDIDATES and not skip[name] then
+            skip[name] = true
+            rows[#rows + 1] = { name = name, online = online[name] == true }
+        end
+    end
+    local function has(name) return string.find(string.lower(name), needle, 1, true) ~= nil end
+    if query ~= "" and L.known(query) then add(query) end
+    for _, name in ipairs(sortedNames(L.managersOf(rec.owner))) do
+        if has(name) then add(name) end
+    end
+    for _, name in ipairs(sortedNames(online)) do
+        if has(name) then add(name) end
+    end
+    reply(player, "players", { key = args.key, query = query, rows = rows })
+end
+
+local function isName(v) return type(v) == "string" and v ~= "" and #v <= KP.NAME_MAX end
+
+-- 改共同管理者名單（擁有者或管理員）：{ key, faction = true/false }、{ key, add = "帳號" }、{ key, remove = { "帳號"… } }。
+-- 加入只收伺服器認得的玩家（Ledger.lua L.known：上線過、或是讀頭擁有者），同時記下伺服器看過的 SteamID（L.userSid）
+function H.managers(player, args)
+    local cmd = "managers"
+    local rec, why = gateFor(player, args)
+    if not rec then return result(player, cmd, false, why, keyOf(args)) end
+    if not ownerOrAdmin(player, rec) then
+        return result(player, cmd, false, canManage(player, rec) and "OwnerOnly" or "NotOwner", args.key)
+    end
+    local add, remove, faction = args.add, args.remove, args.faction
+    if (add ~= nil and not isName(add)) or (faction ~= nil and type(faction) ~= "boolean")
+        or (remove ~= nil and not batchOf(remove, isName)) then
+        return result(player, cmd, false, "BadArgs", args.key)
+    end
+    if faction == true and not factionName(rec.owner) then return result(player, cmd, false, "NoFaction", args.key) end
+    if add ~= nil then
+        onlineNames()
+        if add == rec.owner or not L.known(add) then return result(player, cmd, false, "UnknownPlayer", args.key) end
+        local n = 0
+        for name in pairs(rec.co or {}) do
+            if name ~= add then n = n + 1 end
+        end
+        if n >= KP.MAX_MANAGERS then return result(player, cmd, false, "TooManyManagers", args.key) end
+    end
+    if faction ~= nil then rec.coFaction = faction or nil end
+    if add ~= nil then
+        rec.co = rec.co or {}
+        rec.co[add] = L.userSid(add)
+    end
+    for _, name in ipairs(remove or {}) do
+        if rec.co then rec.co[name] = nil end
+    end
+    if not nameSet(rec.co) then rec.co = nil end
+    local adapter, anchor = G.findAt(rec)
+    if adapter then mark(anchor, rec) end
+    KP.log("managers key=" .. args.key .. " add=" .. tostring(add) .. " faction=" .. tostring(faction)
+        .. " by=" .. tostring(player:getUsername()))
+    result(player, cmd, true, nil, args.key)
+    KP.sendState(player, args.key)
 end
 
 local function onClientCommand(module, command, player, args)

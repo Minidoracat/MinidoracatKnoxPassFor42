@@ -17,14 +17,6 @@ pcall(require, "MinidoracatUI/Widgets/Toast")
 local INSTALL_TICKS, UNINSTALL_TICKS = 150, 100
 local HALO_TICKS = 250 -- 預設 128（IsoGameCharacter.java:592）
 
--- 原版同名區域函式（ISWorldObjectContextMenu.lua:49-51）
-local function predicateNotBroken(item) return not item:isBroken() end
-
-local function screwdriverOf(player)
-    -- ISWorldObjectContextMenu.lua:1369 同款
-    return player:getInventory():getFirstTagEvalRecurse(ItemTag.SCREWDRIVER, predicateNotBroken)
-end
-
 -- ── 送指令與提示 ────────────────────────────────────────────────────────
 
 -- OnServerCommand 不帶收件人：提示掛在最後送指令的本機玩家頭上
@@ -71,7 +63,7 @@ local function onResult(args)
         elseif args.cmd == "recolor" or args.cmd == "recolorReader" then C.say(player, getText("IGUI_KnoxPass_Recolored"), false) end
         return
     end
-    if args.cmd == "query" then return end   -- 管理視窗自己寫出讀取失敗並重讀（Window.lua Win.onResult）
+    if args.cmd == "query" or args.cmd == "findPlayers" then return end   -- 管理視窗自己處理（Window.lua Win.onResult）
     C.say(player, KnoxPassAPI.whyText(args.why), true)
 end
 
@@ -87,6 +79,8 @@ function KP.clientReceive(command, args)
         local keys = {}
         for _, key in pairs(type(args.keys) == "table" and args.keys or {}) do keys[key] = true end
         KP.passes = { tag = args.tag, keys = keys }
+    elseif command == "players" then
+        if KP.Window then KP.Window.onPlayers(args) end   -- 共同管理者候選（Server.lua H.findPlayers）
     end
 end
 
@@ -108,7 +102,7 @@ function Action:isValid()
     local door = self.door
     if not door or not door:getSquare() or door:getObjectIndex() == -1 then return false end
     local inv = self.character:getInventory()
-    if not inv:containsTagEvalRecurse(ItemTag.SCREWDRIVER, predicateNotBroken) then return false end -- ISWorldObjectContextMenu.lua:1244
+    if not KP.screwdriverOf(self.character) then return false end -- ISWorldObjectContextMenu.lua:1244
     -- getItemWithIDRecursiv：ItemContainer.java:3094（SP／MP client 都用 ID 找，不比物件參照）
     return self.command ~= "install" or inv:getItemWithIDRecursiv(self.itemId) ~= nil
 end
@@ -148,7 +142,7 @@ end
 
 -- 走到門邊（原版開關門／鎖門同款：ISWorldObjectContextMenu.lua:1516）→ 拿起子（:1370）→ 動作
 local function queue(player, door, action)
-    local screwdriver = screwdriverOf(player)
+    local screwdriver = KP.screwdriverOf(player)
     if not screwdriver then return end
     if not luautils.walkAdjWindowOrDoor(player, door:getSquare(), door) then return end
     ISWorldObjectContextMenu.equip(player, player:getPrimaryHandItem(), screwdriver, true, false)
@@ -238,17 +232,15 @@ end
 
 -- ── 右鍵選單 ────────────────────────────────────────────────────────────
 
--- client 顯示用的管理權：SP 一律可管（伺服器 canManage 同規則）；MP 看標記上的擁有者或管理員角色
--- （Capability 已曝露 LuaManager.java:2460；IsoPlayer.getRole 可能為 nil，Role.java:185-187）
-local function canManage(player, owner)
-    if not isClient() then return true end
-    if owner == player:getUsername() then return true end
-    if not Capability then return false end
-    local ok, yes = pcall(function()
-        local role = player:getRole()
-        return role ~= nil and role:hasCapability(Capability.CanOpenLockedDoors)
-    end)
-    return ok and yes == true
+-- client 顯示用的管理權（規則同伺服器 Server.lua canManage／ownerOrAdmin，伺服器照樣重驗）：SP 一律可管；MP 看錨點標記上的
+-- 擁有者、共同管理者（帳號名單，或擁有者陣營的成員）與管理員角色。回傳 能管理, 是擁有者或管理員（能拆讀頭、改名單）
+local function access(player, md)
+    if not isClient() then return true, true end
+    local me, owner = player:getUsername(), md[KP.MARKER_OWNER]
+    if me == owner or KP.hasAdminRole(player) then return true, true end
+    local co = md[KP.MARKER_CO]
+    if type(co) == "table" and co[me] then return true, false end
+    return md[KP.MARKER_COFACTION] == true and KP.inFactionOf(owner, me), false
 end
 
 local function tip(option, textKey)
@@ -374,7 +366,7 @@ local function onFillMenu(playerIndex, context, worldobjects, test)
 
     local md = anchor:getModData()
     local owner = md[KP.MARKER_OWNER]
-    local hasScrewdriver = screwdriverOf(player) ~= nil
+    local hasScrewdriver = KP.screwdriverOf(player) ~= nil
     if not owner and not player:getInventory():containsEvalRecurse(KP.isReader) then return end   -- ItemContainer.java:1146
 
     local root = context:addOption(getText("ContextMenu_KnoxPass"), nil, nil)
@@ -383,12 +375,17 @@ local function onFillMenu(playerIndex, context, worldobjects, test)
 
     if not owner then
         local opt = sub:addOption(getText("ContextMenu_KnoxPass_Install"), player, C.queueInstall, door)
-        if not hasScrewdriver then disable(opt, "IGUI_KnoxPass_NeedScrewdriver") end
+        if not hasScrewdriver then
+            disable(opt, "IGUI_KnoxPass_NeedScrewdriver")
+        elseif not KP.installAllowedAt(anchor:getSquare(), player:getUsername()) then
+            disable(opt, "IGUI_KnoxPass_Why_InstallSafehouseOnly")   -- 沙盒「安全屋外的讀頭」＝不能安裝
+        end
         return
     end
 
     local key = G.key(anchor)
-    if not canManage(player, owner) then
+    local manager, ownerOrAdmin = access(player, md)
+    if not manager then
         disable(sub:addOption(getText("ContextMenu_KnoxPass_OtherOwner"), nil, nil))
         tip(addOpenClose(sub, player, adapter, anchor, key), "IGUI_KnoxPass_OpenTip")
         return
@@ -400,14 +397,22 @@ local function onFillMenu(playerIndex, context, worldobjects, test)
     local locked = md[KP.MARKER_LOCK] == true
     local lock = sub:addOption(getText("ContextMenu_KnoxPass_Lock"), player, onLock, key, not locked)
     sub:setOptionChecked(lock, locked) -- ISContextMenu.lua:1084
-    if not G.supportsLock(adapter) then disable(lock, "IGUI_KnoxPass_Why_NoLockSupport") end
+    if not G.supportsLock(adapter) then
+        disable(lock, "IGUI_KnoxPass_Why_NoLockSupport")
+    elseif not locked and not KP.lockAllowedAt(anchor:getSquare(), owner) then
+        disable(lock, "IGUI_KnoxPass_Why_LockSafehouseOnly")   -- 沙盒「安全屋外的讀頭」；已上鎖的照樣能關掉
+    end
 
     addOpenClose(sub, player, adapter, anchor, key)
 
     -- 閘門的讀頭是內建的：不給拆（伺服器 H.uninstall 回 BuiltIn）、不分顏色，拆整座閘門走拆除機箱
     if KP.isBarrier(anchor) then return end
     local remove = sub:addOption(getText("ContextMenu_KnoxPass_Remove"), player, C.queueUninstall, anchor, key)
-    if not hasScrewdriver then disable(remove, "IGUI_KnoxPass_NeedScrewdriver") end
+    if not ownerOrAdmin then
+        disable(remove, "IGUI_KnoxPass_Why_OwnerOnly")   -- 共同管理者不能拆讀頭（伺服器 H.uninstall 回 OwnerOnly）
+    elseif not hasScrewdriver then
+        disable(remove, "IGUI_KnoxPass_NeedScrewdriver")
+    end
     recolorMenu(sub, player, md[KP.MARKER_COLOR] or 0, ISWorldObjectContextMenu.addToolTip, { door = anchor, key = key })
 end
 

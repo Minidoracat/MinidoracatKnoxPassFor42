@@ -11,6 +11,10 @@ KP.MARKER_OWNER = "KnoxPassReader"                -- 大門錨點 modData：讀�
 KP.MARKER_LOCK = "KnoxPassLock"                   -- 大門錨點 modData：Knox Pass 門鎖是否開啟（同上）
 KP.MARKER_COLOR = "KnoxPassColor"                 -- 大門錨點 modData：讀頭顏色索引（同上；沒有＝米白）
 KP.MARKER_SPEED = "KnoxPassSpeed"                 -- 大門錨點 modData：開關速度 "fast"（沒有＝正常；client 據此選動畫）
+KP.MARKER_CO = "KnoxPassCo"                       -- 大門錨點 modData：共同管理者 { [帳號] = true }（右鍵選單用，伺服器不信它）
+KP.MARKER_COFACTION = "KnoxPassCoFaction"         -- 大門錨點 modData：擁有者陣營的成員也是共同管理者（同上）
+KP.MAX_MANAGERS = 8                               -- 每扇門最多幾位個別的共同管理者（陣營另外算）
+KP.NAME_MAX = 32                                  -- 帳號最長幾個字（42.21 起 32，ServerWorldDatabase.isValidUserName）
 KP.MANAGE_RANGE = 3                               -- 操作讀頭要站在大門幾格內（同樓層）
 KP.REGISTER_RANGE = 15                            -- 登記時車要在大門幾格內
 KP.CHARGE_PER_HOUR = 0.2                          -- 裝在車上、車在跑、電瓶高於 10% 時每遊戲小時充電量
@@ -210,7 +214,7 @@ end
 local DEFAULTS = {
     ReadRange = 8, ReadRangeMin = 2, ReadRangeMax = 30, LeadSeconds = 2.0, AutoDriveAhead = 150,
     CloseDelay = 2, CloseDelayMin = 0, CloseDelayMax = 30, RequirePower = true,
-    TagDrainPercent = 100, AllowCraft = true, SpawnLoot = true,
+    TagDrainPercent = 100, AllowCraft = true, SpawnLoot = true, OutsideSafehouse = 1,
 }
 
 function KP.sandbox(key)
@@ -382,14 +386,51 @@ function KP.principal(player)
     return name, sid
 end
 
--- 伺服器上的管理員：角色有 CanOpenLockedDoors（Capability 已曝露，LuaManager.java:2460；IsoPlayer.getRole 可能為 nil）
-function KP.isAdmin(player)
-    if not isServer() or not player or not Capability then return false end
+-- 能管理別人讀頭的角色：能管理安全屋（CanSetupSafehouses；42.21 預設 moderator、admin，Roles.java:446-475），
+-- 同原版安全屋加人介面的判斷（ISSafehouseAddPlayerUI.lua:150）。伺服器 canManage 與客戶端右鍵選單共用；
+-- SP 沒有擁有權，由呼叫端處理（Capability 已曝露，LuaManager.java:2460；IsoPlayer.getRole 可能為 nil）
+function KP.hasAdminRole(player)
+    if not player or not Capability then return false end
     local ok, yes = pcall(function()
         local role = player:getRole()
-        return role ~= nil and role:hasCapability(Capability.CanOpenLockedDoors)
+        return role ~= nil and role:hasCapability(Capability.CanSetupSafehouses)
     end)
     return ok and yes == true
+end
+
+-- name 是 owner 現在所在陣營的領袖或成員（Faction.getPlayerFaction(String)、isOwner／isMember，Faction.java:123-138、:150-160）。
+-- 原版陣營以名字判定；伺服器的共同管理者、分享給陣營與客戶端選單共用
+function KP.inFactionOf(owner, name)
+    local f = owner and name and Faction.getPlayerFaction(owner)
+    return f ~= nil and (f:isOwner(name) or f:isMember(name))
+end
+
+-- sq 在 name 自己的安全屋裡（屋主或成員）：SafeHouse.getSafeHouse(square)（SafeHouse.java:157→:201-222）、
+-- playerAllowed(String)（:288-290，只看名字，不含「能進安全屋」的角色例外）。沙盒「安全屋外的讀頭」用
+function KP.inOwnSafehouse(sq, name)
+    local sh = sq and name and SafeHouse.getSafeHouse(sq)
+    return sh ~= nil and sh:playerAllowed(name)
+end
+
+-- 沙盒「安全屋外的讀頭」：1 不限制、2 不能上鎖、3 不能安裝（也不能上鎖）。門要在讀頭擁有者的安全屋裡才不受限。
+-- 只在多人模式有作用（SP 沒有安全屋可申請，也沒有別人的門）
+local function outsideRule()
+    if not (isServer() or isClient()) then return 1 end
+    return tonumber(KP.sandbox("OutsideSafehouse")) or 1
+end
+
+function KP.lockAllowedAt(sq, owner)
+    return outsideRule() < 2 or KP.inOwnSafehouse(sq, owner)
+end
+
+function KP.installAllowedAt(sq, name)
+    return outsideRule() < 3 or KP.inOwnSafehouse(sq, name)
+end
+
+-- 身上（含背包）沒壞的螺絲起子（ISWorldObjectContextMenu.lua:1369 同款）：裝拆讀頭的伺服器重驗與客戶端選單共用
+local function notBroken(item) return not item:isBroken() end
+function KP.screwdriverOf(player)
+    return player:getInventory():getFirstTagEvalRecurse(ItemTag.SCREWDRIVER, notBroken)
 end
 
 -- ── 幾何 ────────────────────────────────────────────────────────────────

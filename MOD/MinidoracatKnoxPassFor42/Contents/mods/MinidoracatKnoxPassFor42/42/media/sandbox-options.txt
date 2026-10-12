@@ -35,3 +35,6 @@ option MinidoracatKnoxPass.AllowCraft
 
 option MinidoracatKnoxPass.SpawnLoot
 {type = boolean, default = true, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassSpawnLoot,}
+
+option MinidoracatKnoxPass.OutsideSafehouse
+{type = enum, numValues = 3, default = 1, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassOutsideSafehouse, valueTranslation = MinidoracatKnoxPassOutsideSafehouse,}
