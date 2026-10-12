@@ -8,6 +8,7 @@ Put a tag in your car and a reader on your gate: drive up and the gate opens by 
 [h2]📦 Requirements[/h2]
 [list]
 [*] Requires the UI framework: [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library[/url]
+[*] [b]Optional:[/b] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3816406671]Minidoracat MiniMap - Map Watch[/url] (wear the Knox Pass Sensor Module and gates open as you walk up)
 [*] [b]Add/remove mid-save:[/b] safe to add; read the guide before removing it, or locked gates stay locked
 [*] [b]Languages:[/b] 繁體中文, 简体中文, English, 日本語, 한국어, Русский, Español, Português, Türkçe, Français, Polski, Deutsch (please report any translation issues)
 [/list]
@@ -22,16 +23,16 @@ Put a tag in your car and a reader on your gate: drive up and the gate opens by 
 
 [h2]✨ Features[/h2]
 [list]
-[*] [b]Hands-free gates[/b]: drive up from the driver's seat and the gate opens, then closes after you leave
-[*] [b]Build your own gates[/b]: boom barriers, roll-up garage doors and two-story gates, wide enough for several cars side by side
-[*] [b]Reads on the move[/b]: the faster you drive, the earlier it opens; self-driving cars find it already open
+[*] [b]Hands-free gates[/b]: drive up from the driver's seat and the gate opens, earlier the faster you go, then closes after you leave
+[*] [b]Walk up too[/b]: wear the Knox Pass Sensor Module in a Map Watch and gates open as you walk toward them
+[*] [b]Map gates or your own[/b]: fits fence gates, double doors and garage doors, or build boom barriers, roll-up doors and two-story gates
 [*] [b]A real vehicle part[/b]: fits vanilla and modded cars, and moves with the tag to another car
 [*] [b]Per-gate registration[/b]: only the cars you register get through, and each gate has its own range, close delay, speed and lock
-[*] [b]Works with many gates[/b]: fence gates, double doors, garage doors and player-built doors
+[*] [b]Share with your team[/b]: share a gate with your faction or safehouse, or add co-managers to run it with you
 [*] [b]7 shell colors[/b]: craft tags and readers in color with vanilla paint, or repaint the ones you have
 [*] [b]No crashes, no pinching[/b]: warns you ahead of a gate that won't open, and never closes on a car or a person
 [/list]
-📖 [b]Installing readers, registering cars, building gates, per-gate settings, shell colors, getting the items and FAQ:[/b] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3817842691]Knox Pass Mod Guide: Tags, Readers & Hands-free Gates[/url]
+📖 [b]Installing readers, registering cars, co-managers, the watch sensor module, building gates, per-gate settings, shell colors, getting the items and FAQ:[/b] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3817842691]Knox Pass Mod Guide: Tags, Readers & Hands-free Gates[/url]
 
 [h2]🔗 All Minidoracat Mods[/h2]
 Browse the rest in the [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3809297109]Minidoracat collection[/url] and subscribe to what you need.

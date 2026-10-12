@@ -8,6 +8,7 @@
 [h2]📦 必要なMOD[/h2]
 [list]
 [*] UIフレームワーク（必須）：[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library[/url]
+[*] [b]任意：[/b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3816406671]Minidoracat ミニマップ - マップウォッチ[/url]（ウォッチに Knox Pass センサーモジュールを付けると、歩いて近づくだけでゲートが開きます）
 [*] [b]途中追加・削除：[/b]追加は可能。外す前にガイドをお読みください。そのままだと施錠した門が開かなくなります
 [*] [b]対応言語：[/b]繁體中文、简体中文、English、日本語、한국어、Русский、Español、Português、Türkçe、Français、Polski、Deutsch（翻訳の問題はお知らせください）
 [/list]
@@ -22,16 +23,16 @@
 
 [h2]✨ 主な機能[/h2]
 [list]
-[*] [b]ボタン不要[/b]：運転席で近づくとゲートが開き、離れると閉まります
-[*] [b]ゲートを自作[/b]：遮断機、ガレージシャッター、2 階建てゲート。幅広タイプは車を何台も並べて通せます
-[*] [b]走行中も検知[/b]：速いほど早く開き、自動運転の車には遠くから開けておきます
+[*] [b]ボタン不要[/b]：運転席で近づくとゲートが開き（速いほど早めに）、離れると閉まります
+[*] [b]歩いても開く[/b]：マップウォッチに Knox Pass センサーモジュールを付ければ、歩いて近づくだけで開きます
+[*] [b]既存のゲートも自作も[/b]：フェンスゲート、両開き扉、ガレージ扉に付くほか、遮断機・ガレージシャッター・2 階建てゲートも建てられます
 [*] [b]本物の車両部品[/b]：バニラ車にもMOD車にも付き、タグごと別の車へ移せます
 [*] [b]ゲートごとの登録[/b]：登録した車だけが通れ、感知距離・閉まるまでの時間・開閉速度・ロックもゲートごとに設定できます
-[*] [b]多くのゲートに対応[/b]：フェンスゲート、両開き扉、ガレージ扉、プレイヤーが建てた扉
+[*] [b]仲間と共有[/b]：派閥やセーフハウスに共有したり、共同管理者を追加して一緒に管理できます
 [*] [b]7色の外装[/b]：バニラの塗料で好きな色を製作、手持ちのタグとリーダーも塗り替え可能
 [*] [b]衝突・挟み込み防止[/b]：開かないゲートは手前で知らせ、車や人がいる間は閉まりません
 [/list]
-📖 [b]リーダーの取り付け、車両の登録、ゲートの自作、ゲートごとの設定、外装の色、入手方法、よくある質問：[/b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3817842691]Knox Pass Mod Guide: Tags, Readers & Hands-free Gates[/url]（英語）
+📖 [b]リーダーの取り付け、車両の登録、共同管理者、ウォッチのセンサーモジュール、ゲートの自作、ゲートごとの設定、外装の色、入手方法、よくある質問：[/b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3817842691]Knox Pass Mod Guide: Tags, Readers & Hands-free Gates[/url]（英語）
 
 [h2]🔗 Minidoracat 全シリーズ[/h2]
 ほかの作品は[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3809297109]Minidoracat コレクション[/url]からどうぞ。必要なものだけ購読してください。

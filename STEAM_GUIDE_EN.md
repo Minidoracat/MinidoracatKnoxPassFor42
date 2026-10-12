@@ -1,7 +1,7 @@
 <!-- 指南網址：https://steamcommunity.com/sharedfiles/filedetails/?id=3817842691 -->
 <!-- Steam guide source (English): the full reference for this mod; the Workshop description only summarizes. Format and sync: pz-family-docs/release.md「完整說明：Steam 指南」 -->
 <!-- 標題：📖 Knox Pass Mod Guide: Tags, Readers & Hands-free Gates -->
-<!-- 摘要：Illustrated guide to the Minidoracat Knox Pass mod: the Vehicle Tag, the Gate Reader, shell colors, boom barriers and gates you build, hands-free opening and closing, the gate lock and opening on foot, how to get them, plus server settings and FAQ. -->
+<!-- 摘要：Illustrated guide to the Minidoracat Knox Pass mod: the Vehicle Tag, the Gate Reader, co-managers, the Map Watch sensor module, shell colors, boom barriers and gates you build, hands-free opening and closing, the gate lock and opening on foot, how to get them, plus server settings and FAQ. -->
 === 🚀 Quick start
 [b]繁體中文版：[/b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3817842603]感應大門 MOD 完整說明[/url]
 
@@ -43,19 +43,20 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 === 🧰 Gate Reader
 [list]
 [*] [b]Where it fits[/b]: map doors, fence gates, double doors, garage doors, player-built doors and gates, and Knox Pass's own roll-up garage doors, two-story roll-up doors and two-story gates (see "Build your own gates").
-[*] [b]Installing[/b]: right-click the gate with the reader and a screwdriver. Whoever installs it owns it.
+[*] [b]Installing[/b]: right-click the gate with the reader and a screwdriver. Whoever installs it owns it. The server can limit readers to your own safehouse (see "Server settings").
 [*] [b]Where it shows[/b]: on the gate post; on the face of the pillar for two-story gates, and on top of the cabinet for boom barriers and double boom barriers. It doesn't block people or cars.
-[*] [b]Removing[/b]: the owner can take the reader back. If Knox Pass has the gate open, it closes it first and restores the original lock.
+[*] [b]Removing[/b]: the owner or a server admin can take the reader back with a screwdriver. If Knox Pass has the gate open, it closes it first and restores the original lock. Co-managers can't remove it.
 [/list]
 [h3]Management window[/h3]
 {{img:05-manage-window-en.jpg}}
 [list]
+[*] [b]Who can open it[/b]: the owner, co-managers and server admins. For anyone else the window closes right away and says why.
 [*] [b]It shows[/b]:
 [list]
 [*] gate type, owner, power, lock
-[*] this gate's read range, close delay, speed and sharing
-[*] "Registered" tab: registered cars (charge, last pass), most recent pass first
-[*] "Nearby" tab: unregistered cars with a tag within 15 tiles, nearest first
+[*] this gate's read range, close delay, speed, sharing and co-managers
+[*] "Registered" tab: registered cars and watch modules (charge, last pass), most recent pass first; 64 entries at most, cars and modules together
+[*] "Nearby" tab: unregistered cars with a tag and people wearing a sensor module within 15 tiles, nearest first
 [/list]
 [*] [b]Read range[/b]: while the window is open, an amber circle on the ground shows this gate's read range (the range for a car standing still; faster cars open it sooner).
 [*] [b]Several at once[/b]: each car has a checkbox; click a car to check it, or "Select all" for the whole tab. "Register (N)" or "Unregister (N)" handles them in one go; unregistering asks first.
@@ -63,12 +64,22 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 {{img:15-range-circle-en.jpg}}
 [h3]Per-gate settings[/h3]
 [list]
-[*] [b]Read range and close delay[/b]: the owner or an admin picks them from two dropdowns in the window, limited to what the server allows (2–30 tiles and 0–30 seconds by default).
+[*] [b]Read range and close delay[/b]: the owner, a co-manager or an admin picks them from two dropdowns in the window, limited to what the server allows (2–30 tiles and 0–30 seconds by default).
 [*] [b]Server default[/b]: follows the sandbox setting.
 [*] [b]If the server narrows the limits[/b]: gates that were set follow the new limits and keep their value.
 [*] [b]Speed[/b]: boom barriers, double boom barriers, two-story roll-up doors and two-story gates can be set to [b]Normal (4 s)[/b] or [b]Fast (2.5 s)[/b] under "Speed", and every player sees the same speed.
 [*] [b]Fixed speed[/b]: one-story roll-up doors and vanilla doors; the dropdown says "Not adjustable".
 [*] [b]Share with[/b]: pick [b]Faction[/b], [b]Safehouse[/b] or [b]Faction + safehouse[/b] to let teammates open and close this gate on foot without a tag (see "Opening and closing on foot"). Not shared by default.
+[/list]
+[h3]Co-managers[/h3]
+[list]
+[*] [b]Open the list[/b]: press the button on the "Co-managers" row of the management window.
+[*] [b]Adding someone[/b]: type a player account in the search box, pick them from the dropdown and press "Add"; up to 8 people.
+[*] [b]Who you can find[/b]: online players show up after typing part of the account; offline players need the full account (same upper/lower case); an account that has never been online on this server can't be added, so wait until they log in once.
+[*] [b]Your faction[/b]: turn on "Members of faction "…"" and everyone in the owner's faction counts as a co-manager; people who join later count too, and leaving the faction ends it.
+[*] [b]What they can do[/b]: open the management window, change settings, register and unregister, lock, open and close on foot, and repaint the reader.
+[*] [b]What they can't[/b]: remove the reader or change the co-manager list; only the owner and server admins can.
+[*] Works in multiplayer only.
 [/list]
 === 🧰 Shell colors and repainting
 {{img:11-shell-colors-en.jpg}}
@@ -95,7 +106,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [list]
 [*] [b]In your inventory[/b]: right-click a tag or reader you carry (bags count) → "Repaint" → pick a color. Colors you lack paint or a paintbrush for are grayed out; hover to see what's missing.
 [*] [b]A repainted tag[/b]: keeps its charge and its registration at every gate, so it opens the same gates.
-[*] [b]A reader on a gate[/b]: the owner or an admin right-clicks the gate → Knox Pass → "Repaint"; your character walks to the gate and paints it, and registrations stay as they are.
+[*] [b]A reader on a gate[/b]: the owner, a co-manager or an admin right-clicks the gate → Knox Pass → "Repaint"; your character walks to the gate and paints it, and registrations stay as they are.
 [*] [b]A tag in a car[/b]: the windshield shows its color. To repaint it, remove it in the mechanics panel first, then install it again.
 [*] [b]Can't be repainted[/b]: the built-in reader of a boom barrier or double boom barrier.
 [/list]
@@ -205,7 +216,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 {{img:06-gate-menu-en.jpg}}
 [h3]Gate lock[/h3]
 [list]
-[*] [b]Turning it on[/b]: the owner can turn on "Lock (only Knox Pass opens it)" in the right-click menu or the window.
+[*] [b]Turning it on[/b]: the owner, a co-manager or an admin can turn on "Lock (only Knox Pass opens it)" in the right-click menu or the window. When the server doesn't allow locking outside safehouses, the option is grayed out for gates outside one and says why; a gate that is already locked can still have its lock turned off.
 [*] [b]Once locked[/b]: it can't be opened bare-handed, and zombies that open doors can't open it either.
 [*] [b]Opening and closing[/b]: boom barriers, garage roll-up doors, two-story gates and garage doors stay locked while open, so without the key use "Close with Knox Pass" to shut them; other gates are unlocked to open and locked again once closed.
 [*] [b]Original keys[/b]: a house door's original key keeps working, so whoever holds that key can still open it.
@@ -215,10 +226,29 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [h3]Opening and closing on foot[/h3]
 [list]
 [*] [b]Open with Knox Pass[/b]: right-click → Knox Pass → "Open with Knox Pass".
-[*] [b]Who can use it[/b]: the owner, admins, teammates the owner shares the gate with, and anyone carrying a registered, charged tag.
+[*] [b]Who can use it[/b]: the owner, co-managers, admins, teammates the owner shares the gate with, anyone carrying a registered, charged tag, and anyone wearing a registered watch sensor module.
 [*] [b]Sharing with teammates[/b]: once the owner picks a faction or safehouse under "Share with" in the management window, the leader and members of the owner's faction, or anyone in a safehouse with the owner, can use it; it stops when the owner leaves that faction or safehouse. Teammates can only open and close the gate; they can't register cars or change settings. Multiplayer only.
 [*] [b]At least 5 seconds[/b]: a gate opened on foot stays open at least 5 seconds, so you can walk through even with a very short close delay.
 [*] [b]Close with Knox Pass[/b]: while the gate stands open (for example after someone opened it with the original key), right-click → Knox Pass → "Close with Knox Pass"; it closes and locks again. The same people who can open it on foot can use it.
+[/list]
+=== 🧰 Map Watch sensor module
+Needs [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3816406671]Minidoracat MiniMap - Map Watch[/url] (42.21.0-0.3.0 or later); without the Map Watch nothing changes.
+[list]
+[*] [b]Crafting[/b]: "Craft Knox Pass Sensor Module (for the Map Watch)"; see "Getting them".
+[*] [b]Into the watch[/b]: it goes in a standard slot of the Map Watch and adds 10% power use.
+[*] [b]Registering[/b]: with the wearer within 15 tiles of the gate, check "Watch module (name)" on the "Nearby" tab of the management window and press "Register".
+[*] [b]Walk up and it opens[/b]: walk toward the gate wearing a registered module and it opens within 3 tiles; after you pass it closes with the gate's close delay. Standing still or walking along the gate doesn't open it.
+[*] [b]Driving counts too[/b]: if the driver wears a registered module, the gate opens for any car.
+[*] [b]Right-click knows it[/b]: "Open with Knox Pass" and "Close with Knox Pass" accept the module you wear.
+[*] [b]When it does nothing[/b]: the watch isn't worn, has no power, or the module's slot is disabled.
+[*] [b]When the gate can't open[/b]: if the reader has no power or the doorway is blocked, a note above your head and at the top right says why, once per gate every 30 seconds.
+[*] [b]Registered list[/b]: shows who is wearing it; when nobody is, who passed last and when. It never shows where the module is.
+[*] [b]Per gate[/b]: turn off "Registered watch modules open it on approach" in the management window and walking no longer opens that gate; driving and right-click still accept the module.
+[/list]
+[h3]Map markers[/h3]
+[list]
+[*] The minimap and the world map mark the gates your module opens.
+[*] In the map settings, the "Knox Pass" section under "Add-ons" turns the markers off, sets their size, and chooses whether to show gate types.
 [/list]
 === 🧰 Getting them
 {{img:08-craft-recipes-en.jpg}}
@@ -228,11 +258,13 @@ All crafted with a screwdriver:
 [tr][td]Vehicle Tag[/td][td]Electrical 2[/td][td]A pager or TV remote, 2 electronics scrap, 1 battery[/td][td]Gas station storage, car supply stores, mechanic electrical shelves, electronics stores[/td][/tr]
 [tr][td]Gate Reader[/td][td]Electrical 4[/td][td]A radio receiver, 3 electronics scrap, 2 electrical wires[/td][td]Electrician tool boxes, electronics crates, hardware stores, mechanics[/td][/tr]
 [tr][td]Boom Barrier Kit[/td][td]Electrical 4[/td][td]1 Gate Reader (any color), 2 iron pipes, 1 steel sheet, 2 electrical wires[/td][td]Crafting only; it isn't found as loot[/td][/tr]
+[tr][td]Knox Pass Sensor Module[/td][td]Electrical 3[/td][td]1 Vehicle Tag (any color), 2 electronics scrap[/td][td]Crafting only, with the Map Watch installed[/td][/tr]
 [/table]
 [list]
 [*] [b]Looted color[/b]: random.
 [*] [b]Craft in color[/b]: add one use of paint and a paintbrush to craft a tag or reader in that color (see "Shell colors and repainting").
 [*] [b]Gates you build[/b]: roll-up garage doors, two-story roll-up doors, two-story gates and double boom barriers all come from the build menu; see "Build your own gates" for materials and skills.
+[*] [b]Sensor module[/b]: only craftable with the Map Watch installed, and not when the server turns off "Registered watch modules open gates on approach".
 [/list]
 === ⚙️ Server settings
 {{img:09-sandbox-options-en.jpg}}
@@ -249,6 +281,9 @@ Sandbox page "Minidoracat Knox Pass":
 [tr][td]Vehicle tag drain multiplier (percent)[/td][td]100%[/td][td]0–500%[/td][/tr]
 [tr][td]Allow crafting Knox Pass items[/td][td]On[/td][td][/td][/tr]
 [tr][td]Spawn Knox Pass items in world loot[/td][td]On[/td][td][/td][/tr]
+[tr][td]Readers outside safehouses[/td][td]No limit[/td][td]No limit / No locking / No installing[/td][/tr]
+[tr][td]Registered watch modules open gates on approach[/td][td]On[/td][td][/td][/tr]
+[tr][td]Watch module range (tiles)[/td][td]3[/td][td]1–8[/td][/tr]
 [/table]
 [list]
 [*] [b]Reader range[/b]: the range around the gate while the car stands still; owners can set each gate to a value within the limits.
@@ -257,6 +292,9 @@ Sandbox page "Minidoracat Knox Pass":
 [*] [b]Self-driving early open distance[/b]: when a car under Minidoracat AutoDrive heads for the gate (the gate within about 12 degrees of its direction of travel), the gate opens once the car is this close. The server must have the gate's area loaded first, so in practice it opens about 70–130 tiles out. 0 treats it like any other car.
 [*] [b]Gate readers need power[/b]: grid power or a generator both count, and outdoor gates do get grid power.
 [*] [b]Tag drain multiplier[/b]: 0 means it never runs out.
+[*] [b]Readers outside safehouses[/b]: applies when a gate isn't in the reader owner's safehouse, multiplayer only. "No locking" = the Knox Pass lock can't be turned on, opening works as usual; "No installing" = readers only go in your own safehouse. Gates already locked stay locked, and the owner, a co-manager or an admin can turn the lock off. This stops people from putting a reader on someone else's door and locking it.
+[*] [b]Watch modules[/b]: need the Map Watch. When off, walking doesn't open gates and the module can't be crafted; driving and right-click opening still accept the module. The range is how close to the gate line it opens.
+[*] [b]Server admins[/b]: roles that can manage safehouses (moderator and admin by default) can manage every reader; if the server owner changed role permissions, the actual permissions apply.
 [/list]
 === ⚠️ Known limitations
 [list]
@@ -291,6 +329,8 @@ Check that:
 [h3]Can other players open my gate?[/h3]
 [list]
 [*] Only the tags you registered can; if you share the gate with your faction or safehouse in the management window, those teammates can open and close it on foot too.
+[*] Co-managers you add can open and close it, and change its settings and registrations.
+[*] Anyone wearing a watch sensor module registered at this gate opens it by walking up.
 [*] Once locked, neither bare hands nor zombies can open it, except someone holding that door's original key.
 [*] An unlocked gate can still be opened by hand as usual.
 [/list]
@@ -299,15 +339,26 @@ Check that:
 [*] Not one with the Knox Pass lock on.
 [*] An unlocked gate can be opened by zombies when the server lets zombies open doors, as in vanilla.
 [/list]
+[h3]My teammate can't open the management window?[/h3]
+[list]
+[*] Only the owner, co-managers and server admins can; sharing with a faction or safehouse only covers opening and closing on foot.
+[*] To manage the gate together, add them under "Co-managers".
+[/list]
+[h3]Can't find a teammate's account?[/h3]
+[list]
+[*] Offline players need the full account (same upper/lower case).
+[*] An account that has never been online on this server can't be found; wait until they log in once.
+[/list]
 [h3]Is it safe in multiplayer?[/h3]
 [list]
-[*] Opening, closing, locking and registering are all checked by the server, and the registrations live only on the server.
+[*] Opening, closing, locking, registering and the co-manager list are all checked by the server, and that data lives only on the server.
 [/list]
 [h3]Removing this mod?[/h3]
 [list]
 [*] First turn off "Lock (only Knox Pass opens it)" on every locked gate, or take its reader back; otherwise the gate stays locked after removal and can only be broken down unless someone has its original key.
 [*] Also dismantle Knox Pass barriers, roll-up doors and gates first, as they may not display or work after removal.
 [*] Tags in cars and all other Knox Pass items disappear.
+[*] Take sensor modules out of Map Watches first, too; after removal they can't be taken out and keep the slot taken.
 [/list]
 === 💬 Feedback
 [list]

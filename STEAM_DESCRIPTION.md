@@ -8,6 +8,7 @@
 [h2]📦 需要安裝[/h2]
 [list]
 [*] 必裝 UI 框架：[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library[/url]
+[*] [b]選裝：[/b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3816406671]Minidoracat 小地圖 - 地圖手錶[/url]（戴著 Knox Pass 感應模組走近大門就開）
 [*] [b]中途加入／移除：[/b]可加入；移除前請先看完整說明，否則上鎖的門會打不開
 [*] [b]介面語言：[/b]繁體中文、简体中文、English、日本語、한국어、Русский、Español、Português、Türkçe、Français、Polski、Deutsch（翻譯有問題請回報）
 [/list]
@@ -22,16 +23,16 @@
 
 [h2]✨ 主要功能[/h2]
 [list]
-[*] [b]免按鍵開門[/b]：坐駕駛座開近就開門，駛離後自動關
-[*] [b]自己蓋大門[/b]：抬升閘門、車庫捲門與兩層樓大門，寬門可並排過多台車
-[*] [b]行進中也感應[/b]：車速越快越早開門，自駕車遠遠就開好
+[*] [b]免按鍵開門[/b]：坐駕駛座開近就開門，車速越快越早開，駛離後自動關
+[*] [b]走近也能開[/b]：戴上地圖手錶的 Knox Pass 感應模組，走向大門就開
+[*] [b]原版門與自建大門[/b]：柵欄門、雙開門、車庫門都能裝，也能自己蓋閘門、捲門與兩層樓大門
 [*] [b]真的車輛零件[/b]：原版與 MOD 車都能裝，換車照樣通行
 [*] [b]各門各自登記[/b]：只有登記的車開得了，感應距離、關門延遲、開關速度與門鎖各門自訂
-[*] [b]支援多種門[/b]：柵欄門、雙開門、車庫門與玩家建造的門
+[*] [b]和隊友共用[/b]：分享給陣營或安全屋，或加入共同管理者一起管理
 [*] [b]7 種外殼顏色[/b]：用原版油漆直接做出該色，或替現有的重新上色
 [*] [b]不撞也不夾[/b]：開不了的門提前提醒，門口有車或人不關門
 [/list]
-📖 [b]安裝讀頭、登記車輛、自建大門、每扇門設定、外殼顏色、取得方式與常見問題：[/b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3817842603]感應大門 Knox Pass MOD 完整說明：感應盒、讀頭與自動開門[/url]
+📖 [b]安裝讀頭、登記車輛、共同管理者、手錶感應模組、自建大門、每扇門設定、外殼顏色、取得方式與常見問題：[/b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3817842603]感應大門 Knox Pass MOD 完整說明：感應盒、讀頭與自動開門[/url]
 
 [h2]🔗 Minidoracat 全系列[/h2]
 其他作品都在[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3809297109]Minidoracat 全系列收藏[/url]，依需求自選訂閱。
