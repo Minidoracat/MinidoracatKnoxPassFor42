@@ -13,5 +13,6 @@
     "MinidoracatKnoxPass.GateReader_Olive": "Czytnik bramy Knox Pass (oliwkowy)",
     "MinidoracatKnoxPass.GateReader_Navy": "Czytnik bramy Knox Pass (granatowy)",
     "MinidoracatKnoxPass.GateReader_Orange": "Czytnik bramy Knox Pass (pomarańczowy sygnałowy)",
-    "MinidoracatKnoxPass.GateReader_Red": "Czytnik bramy Knox Pass (czerwony)"
+    "MinidoracatKnoxPass.GateReader_Red": "Czytnik bramy Knox Pass (czerwony)",
+    "MinidoracatKnoxPass.WatchModule": "Moduł czujnika Knox Pass"
 }

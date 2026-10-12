@@ -28,5 +28,9 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_tooltip": "Applies when a gate is not in the reader owner's safehouse (multiplayer only).\nNo limit (default) = readers can be installed and locked anywhere.\nNo locking = the Knox Pass lock can't be turned on; opening the gate works as usual.\nNo installing = readers can only be installed in your own safehouse (and gates outside safehouses can't be locked).\nGates that are already locked stay locked; the owner, a co-manager or an admin can turn the lock off.\nTakes effect as soon as an admin clicks Apply.",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "No limit",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "No locking",
-    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "No installing"
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "No installing",
+    "Sandbox_MinidoracatKnoxPassWatchSensing": "Registered watch modules open gates on approach",
+    "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "Needs the Minidoracat Map Watch. Enabled (default) = a gate opens by itself when someone wearing a watch with a Knox Pass Sensor Module registered at that gate walks toward it.\nDisabled = no sensing on foot and the module recipe can't be performed; driving and right-click opening still accept the module.\nTakes effect as soon as an admin clicks Apply.",
+    "Sandbox_MinidoracatKnoxPassWatchRange": "Watch module range (tiles)",
+    "Sandbox_MinidoracatKnoxPassWatchRange_tooltip": "A gate opens when someone wearing a registered module walks toward it and is within this many tiles of the gate line.\nTakes effect as soon as an admin clicks Apply."
 }

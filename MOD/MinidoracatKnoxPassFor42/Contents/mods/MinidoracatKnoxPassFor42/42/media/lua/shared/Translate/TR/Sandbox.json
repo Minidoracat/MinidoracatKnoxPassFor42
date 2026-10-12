@@ -28,5 +28,9 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_tooltip": "Kapı, okuyucu sahibinin güvenli evinde değilse uygulanır (yalnızca çok oyunculu).\nSınırsız (varsayılan) = okuyucular her yere takılabilir ve kilitlenebilir.\nKilitlenemez = Knox Pass kilidi açılamaz; kapıyı açmak her zamanki gibi çalışır.\nTakılamaz = okuyucular yalnızca kendi güvenli evine takılabilir (güvenli ev dışındaki kapılar da kilitlenemez).\nZaten kilitli kapılar kilitli kalır; sahibi, bir ortak yönetici veya bir yönetici kilidi kapatabilir.\nBir yönetici Uygula'ya tıkladığı anda geçerli olur.",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "Sınırsız",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "Kilitlenemez",
-    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "Takılamaz"
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "Takılamaz",
+    "Sandbox_MinidoracatKnoxPassWatchSensing": "Kayıtlı saat modülleri yaklaşınca kapıları açar",
+    "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "Minidoracat Harita Saati gerekir. Etkinse (varsayılan) o kapıya kayıtlı bir Knox Pass Sensör Modülü takılı saati olan biri kapıya doğru yürüdüğünde kapı kendiliğinden açılır.\nDevre dışıysa yürürken algılama olmaz ve modül tarifi uygulanamaz; araç kullanırken ve sağ tıkla açarken modül yine tanınır.\nBir yönetici Uygula'ya tıkladığı anda geçerli olur.",
+    "Sandbox_MinidoracatKnoxPassWatchRange": "Saat modülü menzili (kare)",
+    "Sandbox_MinidoracatKnoxPassWatchRange_tooltip": "Kayıtlı modülü takan biri kapıya doğru yürüdüğünde ve kapı çizgisine bu kadar kare yakın olduğunda kapı açılır.\nBir yönetici Uygula'ya tıkladığı anda geçerli olur."
 }

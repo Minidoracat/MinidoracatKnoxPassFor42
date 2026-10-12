@@ -13,5 +13,6 @@
     "MinidoracatKnoxPass.GateReader_Olive": "Knox Pass Kapı Okuyucusu (Zeytin Yeşili)",
     "MinidoracatKnoxPass.GateReader_Navy": "Knox Pass Kapı Okuyucusu (Lacivert)",
     "MinidoracatKnoxPass.GateReader_Orange": "Knox Pass Kapı Okuyucusu (Güvenlik Turuncusu)",
-    "MinidoracatKnoxPass.GateReader_Red": "Knox Pass Kapı Okuyucusu (Kırmızı)"
+    "MinidoracatKnoxPass.GateReader_Red": "Knox Pass Kapı Okuyucusu (Kırmızı)",
+    "MinidoracatKnoxPass.WatchModule": "Knox Pass Sensör Modülü"
 }

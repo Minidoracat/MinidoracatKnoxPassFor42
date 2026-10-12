@@ -28,5 +28,9 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_tooltip": "門不在讀頭擁有者的安全屋裡時套用（只在多人模式有作用）。\n不限制（預設）＝哪裡都能安裝、上鎖。\n不能上鎖＝不能開 Knox Pass 門鎖；開門照常。\n不能安裝＝只能在自己的安全屋裡裝讀頭（安全屋外的門也不能上鎖）。\n已經上鎖的門維持原狀，擁有者、共同管理者或管理員可以關掉門鎖。\n管理員按「套用」後立即生效。",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "不限制",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "不能上鎖",
-    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "不能安裝"
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "不能安裝",
+    "Sandbox_MinidoracatKnoxPassWatchSensing": "已登記的手錶模組走近就開門",
+    "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "需要 Minidoracat 地圖手錶。開啟（預設）＝戴著手錶、裝了在這扇門登記過的 Knox Pass 感應模組，走向大門時門會自己打開。\n關閉＝走路不感應，模組的配方也不能做；開車與右鍵開門照樣認得模組。\n管理員按「套用」後立即生效。",
+    "Sandbox_MinidoracatKnoxPassWatchRange": "手錶感應距離（格）",
+    "Sandbox_MinidoracatKnoxPassWatchRange_tooltip": "戴著已登記模組的人走向大門、離門線這麼多格內就開門。\n管理員按「套用」後立即生效。"
 }

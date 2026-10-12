@@ -7,6 +7,7 @@ require "MinidoracatKnoxPass/Core"
 require "MinidoracatKnoxPass/Gates"
 require "MinidoracatKnoxPass/Parts"
 require "MinidoracatKnoxPass/Ledger"
+require "MinidoracatKnoxPass/Watch"
 require "MinidoracatKnoxPass/Sensor"
 require "MinidoracatKnoxPass/ReaderPost"
 local KP = MinidoracatKnoxPass
@@ -17,7 +18,7 @@ local S = KP.Sensor
 local H = {}
 KP.Handlers = H
 
-local MAX_TAGS = 64
+local MAX_TAGS = 64     -- 每扇門最多登記幾項（車與地圖手錶模組合計）
 local MAX_BATCH = 100   -- 整批登記／取消登記一次最多幾台：大門 15 格內放不下這麼多車，擋特製客戶端送的超長清單
 local RATE_WINDOW_MS, RATE_MAX = 10000, 20
 local hits = {}
@@ -176,6 +177,26 @@ local function nearbyVehicles(rec)
     return out
 end
 
+-- 線上戴著 Knox Pass 模組的人：序號 → 玩家（不管有沒有電）。只在開視窗、每次操作與登記時算，線上人數一輪
+local function wearers()
+    local out = {}
+    KP.eachPlayer(function(p)
+        local s = KP.wornSerial(p)
+        if s then out[s] = p end
+    end)
+    return out
+end
+
+-- 在大門 15 格內、同一層（和登記車輛同一個範圍：registerOne）
+local function nearForRegister(obj, rec)
+    return math.abs(obj:getZ() - rec.z) < 1
+        and math.max(math.abs(obj:getX() - rec.cx), math.abs(obj:getY() - rec.cy)) <= KP.REGISTER_RANGE + 0.5
+end
+
+local function gateDist(obj, rec)
+    return math.floor(math.max(math.abs(obj:getX() - rec.cx), math.abs(obj:getY() - rec.cy)))
+end
+
 -- 名字照字母序（不分大小寫）；專案禁用 table.sort（verify_mod.py），名單最多幾十個，用插入排序
 local function sortedNames(set)
     local out = {}
@@ -210,6 +231,7 @@ local function buildState(player, key, rec)
         delay = KP.gateDelay(rec), delaySet = rec.closeDelay, delayMin = delayLo, delayMax = delayHi,
         delayDefault = KP.clampSetting("CloseDelay", tonumber(KP.sandbox("CloseDelay")) or 2),
         speed = rec.speed == "fast" and "fast" or "default", share = rec.share or "none", maxTags = MAX_TAGS,
+        walk = rec.walk ~= false, walkSupported = KP.watchSensing(),   -- 這扇門的手錶步行感應（沒有＝開）
         ownerOrAdmin = ownerOrAdmin(player, rec), co = sortedNames(rec.co), coFaction = rec.coFaction == true,
         ownerFaction = factionName(rec.owner), maxManagers = KP.MAX_MANAGERS,
     }
@@ -233,7 +255,7 @@ local function buildState(player, key, rec)
             if rec.tags[id] then rec.tags[id].script = v:getScriptName() end
             state.nearby[#state.nearby + 1] = {
                 vid = v:getId(), serial = KP.serial(id), script = v:getScriptName(), charge = charge,
-                dist = math.floor(math.max(math.abs(v:getX() - rec.cx), math.abs(v:getY() - rec.cy))),
+                dist = gateDist(v, rec),
                 registered = rec.tags[id] ~= nil,
             }
         end
@@ -244,6 +266,22 @@ local function buildState(player, key, rec)
             id = id, serial = info.serial, script = info.script, charge = near[id],
             lastHours = info.last and (now - info.last) or nil,
         }
+    end
+    -- 手錶模組：正戴著它的線上玩家只給名字，不給位置；沒人戴時寫上次是誰、何時從這扇門通過。
+    -- 附近＝15 格內戴著模組、這扇門還沒登記的人（active＝錶有電、槽位有效，現在就能用）
+    local wearing = wearers()
+    state.mods = {}
+    for s, info in pairs(rec.mods or {}) do
+        local p = wearing[s]
+        state.mods[#state.mods + 1] = { id = s, serial = KP.serial(s), wearer = p and p:getUsername() or nil,
+            lastBy = info.by, lastHours = info.last and (now - info.last) or nil }
+    end
+    state.nearMods = {}
+    for s, p in pairs(wearing) do
+        if not (rec.mods and rec.mods[s]) and nearForRegister(p, rec) then
+            state.nearMods[#state.nearMods + 1] = { id = s, serial = KP.serial(s), name = p:getUsername(),
+                dist = gateDist(p, rec), active = KP.watchSerial(p) == s }
+        end
     end
     return state
 end
@@ -347,14 +385,18 @@ local function batchOf(ids, valid)
 end
 
 local function vehicleIdOk(v) return KP.isInt(v) and v >= 0 and v <= 32767 end
+local function serialOk(v) return KP.isInt(v) and v > 0 end
 
--- 登記一台：回傳 true（added＝這次新加）或 false, 原因。count＝這扇門目前登記了幾台
+-- 送來的 ID 清單：沒送＝空；送了就要是合格的一批（batchOf）
+local function idsOf(ids, valid)
+    if ids == nil then return {} end
+    return batchOf(ids, valid)
+end
+
+-- 登記一台：回傳 true（added＝這次新加）或 false, 原因。count＝這扇門目前登記了幾項
 local function registerOne(key, rec, vid, count)
     local v = getVehicleById(vid)
-    if not v or math.abs(v:getZ() - rec.z) >= 1
-        or math.max(math.abs(v:getX() - rec.cx), math.abs(v:getY() - rec.cy)) > KP.REGISTER_RANGE + 0.5 then
-        return false, "VehicleTooFar"
-    end
+    if not v or not nearForRegister(v, rec) then return false, "VehicleTooFar" end
     local tag = KP.vehicleTag(v)
     if not tag then return false, "NoTag" end
     local id = tag:getID()
@@ -364,20 +406,30 @@ local function registerOne(key, rec, vid, count)
     return true, nil, true
 end
 
--- 整批登記：一個指令處理整批，頻率限制只算一次、state 只回一次。逐台檢查距離、感應盒與上限，
--- 回覆帶 done＝成功幾台、failed＝沒成功幾台、why＝第一個沒成功的原因
+-- 登記一顆手錶模組：不信客戶端的清單，重查「這個序號正戴在 15 格內的人身上」才收（擁有者自己的模組也要登記）
+local function registerModule(key, rec, serial, wearing, count)
+    local p = wearing[serial]
+    if not (p and nearForRegister(p, rec)) then return false, "WearerTooFar" end
+    if rec.mods and rec.mods[serial] then return true end
+    if count >= MAX_TAGS then return false, "TooMany" end
+    L.addModule(key, rec, serial, { at = getGameTime():getWorldAgeHours() })
+    return true, nil, true
+end
+
+-- 整批登記（vehicleIds 車、modIds 手錶模組序號，至少一項）：一個指令處理整批，頻率限制只算一次、state 只回一次。
+-- 逐項檢查距離、感應盒與上限（車與模組合計），回覆帶 done＝成功幾項、failed＝沒成功幾項、why＝第一個沒成功的原因
 function H.register(player, args)
     local cmd = "register"
     local rec, why = gateFor(player, args)
     if not rec then return result(player, cmd, false, why) end
     if not canManage(player, rec) then return result(player, cmd, false, "NotOwner", args.key) end
-    local ids = batchOf(args.vehicleIds, vehicleIdOk)
-    if not ids then return result(player, cmd, false, "BadArgs", args.key) end
-    local count = 0
-    for _ in pairs(rec.tags) do count = count + 1 end
+    local vids, mids = idsOf(args.vehicleIds, vehicleIdOk), idsOf(args.modIds, serialOk)
+    if not (vids and mids) or #vids + #mids == 0 or #vids + #mids > MAX_BATCH then
+        return result(player, cmd, false, "BadArgs", args.key)
+    end
+    local count = L.passCount(rec)
     local done, failed, first = 0, 0, nil
-    for i = 1, #ids do
-        local ok, reason, added = registerOne(args.key, rec, ids[i], count)
+    local function tally(ok, reason, added)
         if ok then
             done = done + 1
             if added then count = count + 1 end
@@ -385,22 +437,33 @@ function H.register(player, args)
             failed, first = failed + 1, first or reason
         end
     end
+    for i = 1, #vids do tally(registerOne(args.key, rec, vids[i], count)) end
+    local wearing = #mids > 0 and wearers() or nil
+    for i = 1, #mids do tally(registerModule(args.key, rec, mids[i], wearing, count)) end
     reply(player, "result", { cmd = cmd, ok = done > 0, why = first, key = args.key, done = done, failed = failed })
     KP.sendState(player, args.key)
 end
 
--- 整批取消登記：不在這扇門的 ID 略過（已經不在了），done＝這次真的拿掉幾台
+-- 整批取消登記（tagIds 感應盒、modIds 手錶模組序號）：不在這扇門的略過（已經不在了），done＝這次真的拿掉幾項
 function H.unregister(player, args)
     local cmd = "unregister"
     local rec, why = gateFor(player, args)
     if not rec then return result(player, cmd, false, why) end
     if not canManage(player, rec) then return result(player, cmd, false, "NotOwner", args.key) end
-    local ids = batchOf(args.tagIds, KP.isInt)
-    if not ids then return result(player, cmd, false, "BadArgs", args.key) end
+    local tids, mids = idsOf(args.tagIds, KP.isInt), idsOf(args.modIds, serialOk)
+    if not (tids and mids) or #tids + #mids == 0 or #tids + #mids > MAX_BATCH then
+        return result(player, cmd, false, "BadArgs", args.key)
+    end
     local done = 0
-    for i = 1, #ids do
-        if rec.tags[ids[i]] then
-            L.removeTag(args.key, rec, ids[i])
+    for i = 1, #tids do
+        if rec.tags[tids[i]] then
+            L.removeTag(args.key, rec, tids[i])
+            done = done + 1
+        end
+    end
+    for i = 1, #mids do
+        if rec.mods and rec.mods[mids[i]] then
+            L.removeModule(args.key, rec, mids[i])
             done = done + 1
         end
     end
@@ -466,7 +529,8 @@ function H.settings(player, args)
     local okD, delay = settingArg(args.delay)
     local okS, speed = speedArg(args.speed)
     local okH, share = shareArg(args.share)
-    if not (okR and okD and okS and okH) then return result(player, cmd, false, "BadArgs", args.key) end
+    local okW = args.walk == nil or type(args.walk) == "boolean"   -- 手錶步行感應：true／false、沒送＝不改
+    if not (okR and okD and okS and okH and okW) then return result(player, cmd, false, "BadArgs", args.key) end
     -- 速度存在帳本，也標在錨點給 client 選動畫，所以門要載入
     local adapter, anchor = nil, nil
     if speed ~= nil then
@@ -477,12 +541,14 @@ function H.settings(player, args)
     if range ~= nil then rec.range = range and KP.clampSetting("ReadRange", range) or nil end
     if delay ~= nil then rec.closeDelay = delay and KP.clampSetting("CloseDelay", delay) or nil end
     if share ~= nil then rec.share = share or nil end
+    if args.walk == false then rec.walk = false elseif args.walk == true then rec.walk = nil end   -- 沒有＝開，舊存檔不用轉換
     if speed ~= nil then
         rec.speed = speed or nil
         mark(anchor, rec)
     end
     KP.log("settings key=" .. args.key .. " range=" .. tostring(rec.range) .. " delay=" .. tostring(rec.closeDelay)
-        .. " speed=" .. tostring(rec.speed) .. " share=" .. tostring(rec.share) .. " by=" .. tostring(player:getUsername()))
+        .. " speed=" .. tostring(rec.speed) .. " share=" .. tostring(rec.share) .. " walk=" .. tostring(rec.walk ~= false)
+        .. " by=" .. tostring(player:getUsername()))
     result(player, cmd, true, nil, args.key)
     KP.sendState(player, args.key)
 end
@@ -550,28 +616,34 @@ function H.recolorReader(player, args)
     result(player, cmd, true, nil, args.key)
 end
 
+-- 右鍵「用 Knox Pass 開門」：擁有者、管理員、共同管理者、分享的陣營／安全屋成員，或身上帶已登記且有電的感應盒、
+-- 戴著已登記且有作用的手錶模組（感應盒優先：開門扣它的電）。人還要走到門口，先撐著 S.WALK_MS
 function H.open(player, args)
     local cmd = "open"
     if player:getVehicle() then return result(player, cmd, false, "InVehicle") end
     local rec, why = gateFor(player, args)
     if not rec then return result(player, cmd, false, why) end
-    local tag = nil
+    local tag, serial = nil, nil
     if not canManage(player, rec) and not sharedWith(player, rec) then
         tag = carriedTag(player, rec)
-        if not tag then return result(player, cmd, false, "NotAllowed", args.key) end
+        if not tag then
+            if not KP.wornPass(player, rec) then return result(player, cmd, false, "NotAllowed", args.key) end
+            serial = KP.watchSerial(player)
+        end
     end
-    local ok, reason = S.open(args.key, rec, player, tag, nil, nil, getTimestampMs())
+    local ok, reason = S.open(args.key, rec, player, tag, nil, nil, getTimestampMs(), S.WALK_MS)
+    if ok and serial then L.touchModule(rec, serial, player) end
     result(player, cmd, ok, reason, args.key)
 end
 
--- 右鍵「用 Knox Pass 關門」：跟開門同樣的權限（擁有者、管理員、分享的陣營／安全屋成員、身上帶已登記且有電的感應盒），
--- 關好照門鎖設定鎖回（S.close）
+-- 右鍵「用 Knox Pass 關門」：跟開門同樣的權限，關好照門鎖設定鎖回（S.close）
 function H.close(player, args)
     local cmd = "close"
     if player:getVehicle() then return result(player, cmd, false, "InVehicle") end
     local rec, why = gateFor(player, args)
     if not rec then return result(player, cmd, false, why) end
-    if not canManage(player, rec) and not sharedWith(player, rec) and not carriedTag(player, rec) then
+    if not canManage(player, rec) and not sharedWith(player, rec) and not carriedTag(player, rec)
+        and not KP.wornPass(player, rec) then
         return result(player, cmd, false, "NotAllowed", args.key)
     end
     local ok, reason = S.close(args.key, rec, player, getTimestampMs())

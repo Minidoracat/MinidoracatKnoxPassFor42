@@ -3,6 +3,7 @@
 -- 其他做法的 MOD 門由該 MOD 呼叫 KnoxPassAPI.registerGateAdapter 註冊，比對時排在原版之前。
 -- 開關與上鎖只在伺服器（含 SP）呼叫；判斷與找錨點 client 也會用（右鍵選單）。
 require "MinidoracatKnoxPass/Core"
+require "MinidoracatKnoxPass/Watch"
 local KP = MinidoracatKnoxPass
 
 local G = {}
@@ -434,10 +435,12 @@ function KnoxPassAPI.registerGateAdapter(adapter)
 end
 
 -- 公開給其他 MOD（家族 AutoDrive 用）：obj 是一扇 Knox Pass 大門的任一片、而且 Knox Pass 會替這台車開它時回 true。
--- 條件：車上裝著有電的感應盒、這顆感應盒登記在這扇門（伺服器推送的清單，Sensor.lua pushPasses）、
+-- 條件：車上裝著有電的感應盒、這顆感應盒登記在這扇門（伺服器推送的清單，Sensor.lua pushPasses），或駕駛是本機玩家、
+-- 戴著有作用的地圖手錶模組、這顆模組登記在這扇門（任何一台車都算，Sensor.lua scanDriver 同一份規則）；
 -- 門需要供電時有電（KP.squarePowered 在客戶端可用：發電機看區塊資料、電網看沙盒，IsoGridSquare.java:9696,11799）。
 -- 是預告不是保證：伺服器仍可能開不了（門片擺動範圍被擋、剛斷電、延遲），呼叫端要能在門前停住。
--- 裝了讀頭的門不會開時，第二個回傳值是原因代碼（whyText 轉成玩家語言）：NoTag、NotRegistered、TagEmpty、NoPower。
+-- 裝了讀頭的門不會開時，第二個回傳值是原因代碼（whyText 轉成玩家語言）：NoTag、NotRegistered、TagEmpty、NoPower，
+-- 模組登記了這扇門但手錶沒作用（沒戴、沒電、槽位失效）時是 WatchOff。
 -- 一般門、或還沒收到這顆感應盒的推送（剛上車、剛換感應盒）時不帶原因，免得把「還不知道」說成「沒登記」。
 -- 在 MP 客戶端與單機有效；專用伺服器沒有推送清單，一律 false。每次呼叫配置一個短字串與一個小 table
 function KnoxPassAPI.willOpenFor(vehicle, obj)
@@ -445,12 +448,18 @@ function KnoxPassAPI.willOpenFor(vehicle, obj)
     local adapter, anchor = G.resolve(obj)
     if not adapter then return false end
     local reader = anchor:hasModData() and anchor:getModData()[KP.MARKER_OWNER] ~= nil
-    local tag = KP.vehicleTag(vehicle)
-    if not tag then return false, reader and "NoTag" or nil end
-    local passes = KP.passes
-    if not passes or tag:getID() ~= passes.tag then return false end
-    if not passes.keys[G.key(anchor)] then return false, reader and "NotRegistered" or nil end
-    if KP.charge(tag) <= 0 then return false, "TagEmpty" end
+    local passes, key = KP.passes, G.key(anchor)
+    local driver = vehicle:getDriver()
+    local mine = passes and passes.modKeys and passes.modKeys[key] and driver and driver:isLocalPlayer()
+    if not (mine and KP.watchActive(driver)) then
+        local tag = KP.vehicleTag(vehicle)
+        if not tag then return false, mine and "WatchOff" or (reader and "NoTag" or nil) end
+        if not passes or tag:getID() ~= passes.tag then return false end
+        if not (passes.keys and passes.keys[key]) then
+            return false, mine and "WatchOff" or (reader and "NotRegistered" or nil)
+        end
+        if KP.charge(tag) <= 0 then return false, "TagEmpty" end
+    end
     if KP.sandbox("RequirePower") == true and not G.powered(G.pieces(adapter, anchor)) then return false, "NoPower" end
     return true
 end

@@ -28,5 +28,9 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_tooltip": "Se aplica cuando un portón no está en el refugio del propietario del lector (solo multijugador).\nSin límite (predeterminado) = los lectores se pueden instalar y bloquear en cualquier lugar.\nSin bloqueo = no se puede activar el bloqueo Knox Pass; abrir el portón funciona como siempre.\nSin instalar = solo se pueden instalar lectores en tu propio refugio (y los portones fuera de refugios no se pueden bloquear).\nLos portones ya bloqueados siguen bloqueados; el propietario, un cogestor o un administrador puede desactivar el bloqueo.\nSe aplica en cuanto un administrador hace clic en Aplicar.",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "Sin límite",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "Sin bloqueo",
-    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "Sin instalar"
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "Sin instalar",
+    "Sandbox_MinidoracatKnoxPassWatchSensing": "Los módulos de reloj registrados abren portones al acercarse",
+    "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "Requiere el Minidoracat Reloj de mapa. Activado (predeterminado) = un portón se abre solo cuando camina hacia él alguien que lleva un reloj con un Módulo sensor Knox Pass registrado en ese portón.\nDesactivado = no hay detección a pie y la receta del módulo no se puede realizar; al conducir y al abrir con clic derecho, el módulo sigue valiendo.\nSe aplica en cuanto un administrador hace clic en Aplicar.",
+    "Sandbox_MinidoracatKnoxPassWatchRange": "Alcance del módulo de reloj (casillas)",
+    "Sandbox_MinidoracatKnoxPassWatchRange_tooltip": "Un portón se abre cuando alguien que lleva un módulo registrado camina hacia él y está a esta cantidad de casillas o menos de la línea del portón.\nSe aplica en cuanto un administrador hace clic en Aplicar."
 }

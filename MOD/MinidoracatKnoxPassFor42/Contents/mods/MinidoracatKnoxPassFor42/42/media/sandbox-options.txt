@@ -38,3 +38,9 @@ option MinidoracatKnoxPass.SpawnLoot
 
 option MinidoracatKnoxPass.OutsideSafehouse
 {type = enum, numValues = 3, default = 1, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassOutsideSafehouse, valueTranslation = MinidoracatKnoxPassOutsideSafehouse,}
+
+option MinidoracatKnoxPass.WatchSensing
+{type = boolean, default = true, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassWatchSensing,}
+
+option MinidoracatKnoxPass.WatchRange
+{type = integer, min = 1, max = 8, default = 3, page = MinidoracatKnoxPass, translation = MinidoracatKnoxPassWatchRange,}

@@ -4,6 +4,7 @@
 -- 畫面只顯示伺服器 state；所有變更送指令後等新的 state，不做樂觀更新。視窗開著時地上畫出這扇門的感應範圍。
 -- 框架不足時整檔在這裡結束：KP.Window 不存在，右鍵「管理讀頭」改成停用並提示（Client.lua）。
 require "MinidoracatKnoxPass/Client"
+require "MinidoracatKnoxPass/Watch"
 local KP = MinidoracatKnoxPass
 local C = KP.Client
 
@@ -89,12 +90,13 @@ local function sortRows(rows, before)
     return rows
 end
 
--- 已登記：最近通過的在前，沒通過過的（lastHours＝nil）在最後；附近：由近到遠
+-- 已登記：最近通過的在前，沒通過過的（lastHours＝nil）在最後；附近：由近到遠。車與手錶模組同一份清單
 local function tagBefore(a, b) return (a.lastHours or 1e9) < (b.lastHours or 1e9) end
 local function nearBefore(a, b) return a.dist < b.dist end
 
--- 勾選記 ID（已登記＝感應盒物品 ID，附近＝車輛 ID），不記列號：清單重排或更新後勾的還是同一台
-local function rowId(row) return row.id or row.vid end
+-- 勾選記 ID（已登記＝感應盒物品 ID，附近＝車輛 ID），不記列號：清單重排或更新後勾的還是同一台。
+-- 手錶模組列另有 pick 鍵（"m"＋序號，Win:apply 算好），序號才不會撞到車輛或感應盒的 ID
+local function rowId(row) return row.pick or row.id or row.vid end
 
 -- ── 清單列：勾選框＋兩行文字，字串與勾選在 bind 時算好，render 不配置 ────
 local Cell = ISPanel:derive("KnoxPassCell")
@@ -188,6 +190,14 @@ function Win.new()
     for _, k in ipairs({ "IGUI_KnoxPass_NoPower", "IGUI_KnoxPass_PowerNotNeeded" }) do
         info = math.max(info, tm:MeasureStringX(FS, getText(k)))
     end
+    -- 門鎖與手錶步行感應兩個開關的標籤（含不支援、不准上鎖、伺服器沒開放）：開關 36 px＋間距 8 px
+    -- （UI 框架 Controls.lua:615-616 TOGGLE_WIDTH、LABEL_GAP）。沒裝地圖手錶就不建步行感應那一列
+    local hasWalk = KP.watchRegistered()
+    local toggle = 0
+    for _, k in ipairs({ "IGUI_KnoxPass_Lock", "IGUI_KnoxPass_LockUnsupported", "IGUI_KnoxPass_LockSafehouseOnly",
+        "IGUI_KnoxPass_Walk", "IGUI_KnoxPass_WalkOff" }) do
+        toggle = math.max(toggle, tm:MeasureStringX(FS, getText(k)))
+    end
     -- 分頁列：兩個分頁（數字取最寬的情況）、「全選」與動作鈕。按鈕寬取兩種標題較寬的，換標題不跳動
     local tabsW = tm:MeasureStringX(FS, getText("IGUI_KnoxPass_TabRegistered", "64", "64"))
         + tm:MeasureStringX(FS, getText("IGUI_KnoxPass_TabNearby", "99")) + 54   -- Tabs 每頁左右各 12、間隔 2、兩端各 2
@@ -195,9 +205,11 @@ function Win.new()
         tm:MeasureStringX(FS, getText("IGUI_KnoxPass_SelectNone"))) + 20          -- Button 左右各 10
     local actW = math.max(tm:MeasureStringX(FS, getText("IGUI_KnoxPass_RegisterN", "99")),
         tm:MeasureStringX(FS, getText("IGUI_KnoxPass_UnregisterN", "64"))) + 20
-    W = math.max(460, PAD * 2 + self.labelW + math.max(DD_W + 10 + aside, info), PAD * 2 + tabsW + GAP * 2 + allW + actW)
-    -- 高度跟字型走：資訊四列＋門鎖與五列設定（含共同管理）＋說明＋分頁列＋清單＋頁尾
-    local bodyH = PAD + self.lineH * 4 + (ch + GAP) * 6 + self.lineH + GAP + ch + GAP + self.listH + PAD + ch + PAD
+    W = math.max(460, PAD * 2 + self.labelW + math.max(DD_W + 10 + aside, info), PAD * 2 + tabsW + GAP * 2 + allW + actW,
+        PAD * 2 + 36 + 8 + toggle)
+    -- 高度跟字型走：資訊四列＋門鎖（與步行感應）與五列設定（含共同管理）＋說明＋分頁列＋清單＋頁尾
+    local bodyH = PAD + self.lineH * 4 + (ch + GAP) * (hasWalk and 7 or 6) + self.lineH + GAP + ch + GAP + self.listH
+        + PAD + ch + PAD
     local sw, sh = getCore():getScreenWidth(), getCore():getScreenHeight()
     self.win = UI.Window.new({ x = math.floor((sw - W) / 2), y = math.floor((sh - bodyH) / 2) - 20, width = W,
         height = bodyH + 40, title = getText("IGUI_KnoxPass_Title"), theme = theme,
@@ -221,6 +233,12 @@ function Win.new()
         theme = theme, target = self, onChange = Win.onLock })
     body:addChild(self.lock)
     y = y + ch + GAP
+    if hasWalk then
+        self.walk = UI.Checkbox.new({ x = PAD, y = y, width = W - PAD * 2, label = getText("IGUI_KnoxPass_Walk"),
+            theme = theme, target = self, onChange = Win.onWalk })
+        body:addChild(self.walk)
+        y = y + ch + GAP
+    end
 
     -- 每扇門的感應距離、關門延遲、開關速度與分享對象：距離與延遲只列沙盒上下限內的值；框架沒有 Dropdown 時 draw 只寫目前的值
     self.rangeY, self.delayY, self.speedY, self.shareY = y, y + ch + GAP, y + (ch + GAP) * 2, y + (ch + GAP) * 3
@@ -291,15 +309,25 @@ function Win.new()
     return self
 end
 
--- 列的字串與勾選在綁定時算好（勾選改了就 setItems 重綁）；文字從勾選框右邊（x＝28）開始
+-- 列的字串與勾選在綁定時算好（勾選改了就 setItems 重綁）；文字從勾選框右邊（x＝28）開始。
+-- 手錶模組：已登記的寫誰正戴著（只給名字），沒人戴時寫上次是誰、何時通過；附近的寫戴著的人與手錶能不能用
 function Win:bindRow(c, row, index)
     local w = c.width - 36
     c.index, c.picked = index, self.picked[rowId(row)] == true
-    c.title = fit(vehicleName(row.script), w)
-    if self.page == "near" then
+    if row.kind == "mod" then
+        c.title = fit(row.wearer and getText("IGUI_KnoxPass_ModWearing", row.wearer) or getText("IGUI_KnoxPass_ModNobody"), w)
+        c.sub = fit(tostring(row.serial) .. "   " .. (row.lastHours and getText("IGUI_KnoxPass_LastPassedBy",
+            tostring(row.lastBy or "?"), agoText(row.lastHours)) or getText("IGUI_KnoxPass_LastPassed", agoText(nil))), w)
+    elseif row.kind == "nearMod" then
+        c.title = fit(getText("IGUI_KnoxPass_ModNear", tostring(row.name)), w)
+        c.sub = fit(tostring(row.serial) .. "   " .. getText("IGUI_KnoxPass_Distance", tostring(row.dist)) .. "   "
+            .. getText(row.active and "IGUI_KnoxPass_ModReady" or "IGUI_KnoxPass_ModIdle"), w)
+    elseif self.page == "near" then
+        c.title = fit(vehicleName(row.script), w)
         c.sub = fit(tostring(row.serial) .. "   " .. getText("IGUI_KnoxPass_Distance", tostring(row.dist)) .. "   "
             .. chargeText(row.charge), w)
     else
+        c.title = fit(vehicleName(row.script), w)
         c.sub = fit(tostring(row.serial) .. "   " .. chargeText(row.charge) .. "   "
             .. getText("IGUI_KnoxPass_LastPassed", agoText(row.lastHours)), w)
     end
@@ -354,6 +382,12 @@ function Win:applySettings(s)
     self.speedDD:setEnabled(s.speedSupported == true)
     self.shareDD:setSelected(s.share or "none", true)
     self.shareDD:setEnabled(true)
+    -- 手錶步行感應（這扇門 rec.walk）：伺服器沒開放（沙盒 WatchSensing）時停用，標籤寫原因
+    if self.walk then
+        self.walk:setChecked(s.walk ~= false, true)
+        self.walk:setEnabled(s.walkSupported == true)
+        self.walk:setLabel(getText(s.walkSupported and "IGUI_KnoxPass_Walk" or "IGUI_KnoxPass_WalkOff"))
+    end
 end
 
 -- state 到達時算好資訊列字串與兩頁的列（draw 每幀只畫）
@@ -366,11 +400,21 @@ function Win:apply(s)
     elseif s.powered then rows[3], self.powerToken = getText("IGUI_KnoxPass_Powered"), "text"
     else rows[3], self.powerToken = getText("IGUI_KnoxPass_NoPower"), "errorText" end
     rows[4] = getText(s.open and "IGUI_KnoxPass_DoorOpen" or "IGUI_KnoxPass_DoorClosed")
-    -- 附近只列還沒登記的車
-    self.tagRows = sortRows(s.tags or {}, tagBefore)
+    -- 已登記＝車＋手錶模組；附近＝還沒登記的車＋15 格內戴著模組的人（列表是 state 裡的表，就地標上種類與勾選鍵）
+    local tags = {}
+    for _, row in ipairs(s.tags or {}) do tags[#tags + 1] = row end
+    for _, row in ipairs(s.mods or {}) do
+        row.kind, row.pick = "mod", "m" .. tostring(row.id)
+        tags[#tags + 1] = row
+    end
+    self.tagRows = sortRows(tags, tagBefore)
     local near = {}
     for _, row in ipairs(s.nearby or {}) do
         if not row.registered then near[#near + 1] = row end
+    end
+    for _, row in ipairs(s.nearMods or {}) do
+        row.kind, row.pick = "nearMod", "m" .. tostring(row.id)
+        near[#near + 1] = row
     end
     self.nearRows = sortRows(near, nearBefore)
     self.tabs:setItemLabel("tags", getText("IGUI_KnoxPass_TabRegistered", tostring(#self.tagRows), tostring(s.maxTags)))
@@ -407,6 +451,7 @@ function Win:reset()
     self.lock:setChecked(false, true)
     self.lock:setEnabled(false)
     self.btnManagers:setEnabled(false)
+    if self.walk then self.walk:setEnabled(false) end
     if self.rangeDD then
         self.rangeDD:setEnabled(false)
         self.delayDD:setEnabled(false)
@@ -508,6 +553,11 @@ function Win:onShare(id)
     C.send(self.player, "settings", { key = self.key, share = id })
 end
 
+-- 手錶步行感應：這扇門要不要讓已登記的模組走近就開（開車與右鍵不受影響）
+function Win:onWalk(checked)
+    C.send(self.player, "settings", { key = self.key, walk = checked == true })
+end
+
 -- 換分頁：勾選清空、捲回頂端；附近的車會動，換到附近就重讀（伺服器重新量距離與電量）
 function Win:onTab(id)
     self.page, self.picked = id, {}
@@ -539,21 +589,25 @@ function Win:onPickAll()
     self:refreshButtons()
 end
 
--- 登記或取消登記勾起的車：整批一個指令（伺服器 H.register／H.unregister 逐台檢查）；取消登記每次先確認
+-- 登記或取消登記勾起的車與手錶模組：整批一個指令（伺服器 H.register／H.unregister 逐項檢查）；取消登記每次先確認
 function Win:onAct()
-    local ids = {}
+    local ids, mods = {}, {}
     for _, row in ipairs(self.list:getItems()) do
-        local id = rowId(row)
-        if self.picked[id] then ids[#ids + 1] = id end
+        if self.picked[rowId(row)] then
+            if row.kind then mods[#mods + 1] = row.id else ids[#ids + 1] = rowId(row) end
+        end
     end
-    if #ids == 0 then return end
+    local n = #ids + #mods
+    if n == 0 then return end
     local player, key = self.player, self.key
-    if self.page == "near" then return C.send(player, "register", { key = key, vehicleIds = ids }) end
-    local function go() C.send(player, "unregister", { key = key, tagIds = ids }) end
+    local vehicles, modules = ids[1] and ids or nil, mods[1] and mods or nil   -- 空的不送（伺服器收到空清單回 BadArgs）
+    if self.page == "near" then
+        return C.send(player, "register", { key = key, vehicleIds = vehicles, modIds = modules })
+    end
+    local function go() C.send(player, "unregister", { key = key, tagIds = vehicles, modIds = modules }) end
     if not CAPS.dialog then return go() end
-    local n = tostring(#ids)
-    UI.Dialog.show({ title = getText("IGUI_KnoxPass_Unregister"), text = getText("IGUI_KnoxPass_ConfirmUnregister", n),
-        theme = theme, confirmText = getText("IGUI_KnoxPass_UnregisterN", n), cancelText = getText("IGUI_KnoxPass_Back"),
+    UI.Dialog.show({ title = getText("IGUI_KnoxPass_Unregister"), text = getText("IGUI_KnoxPass_ConfirmUnregister", tostring(n)),
+        theme = theme, confirmText = getText("IGUI_KnoxPass_UnregisterN", tostring(n)), cancelText = getText("IGUI_KnoxPass_Back"),
         danger = true, onResult = function(ok) if ok then go() end end })
 end
 

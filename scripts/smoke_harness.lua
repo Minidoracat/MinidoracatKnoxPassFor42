@@ -220,6 +220,7 @@ function ZombRand(a, b)   -- ZombRand(n)＝0..n-1；ZombRand(a, b)＝a..b-1
     W.rand = (W.rand * 1103515245 + 12345) % 2147483648
     return a + W.rand % (b - a)
 end
+function ZombRandBetween(a, b) return ZombRand(a, b) end   -- Rand.Next(min, max)：a..b-1
 
 -- 原版陣營與安全屋名單（以名字判定）：W.factions／W.houses＝{ { owner = 名字, members = { [名字] = true } } }。
 -- Faction.getPlayerFaction(String)＝領袖或成員是這個名字的陣營（Faction.java:123-138），isOwner／isMember（:150-160）；
@@ -290,6 +291,10 @@ function Item:getContainer() return self._container end
 function Item:getCondition() return self._condition or 100 end
 function Item:setCondition(c) self._condition = c end
 function Item:isBroken() return self._broken == true end
+function Item:getModData()
+    self._md = self._md or {}
+    return self._md
+end
 local Drain = setmetatable({}, { __index = Item })
 Drain.__index = Drain
 function Drain:getUseDelta() return self._useDelta end
@@ -390,6 +395,7 @@ function Player:getInventory() return self._inv end
 function Player:removeFromHands() W.handsRemoved = W.handsRemoved + 1 end
 function Player:getCurrentSquare() return square(math.floor(self._x), math.floor(self._y), math.floor(self._z)) end
 function Player:getOnlineID() return 1 end
+function Player:isLocalPlayer() return self._local == true end
 
 -- 預設身上帶一把螺絲起子（裝拆讀頭伺服器會重驗）；opts.screwdriver＝false 時不帶
 local function newPlayer(name, x, y, opts)
@@ -4868,6 +4874,259 @@ local function scenarioOutsideSafehouse()
     check(ok, "SP：選「不能安裝」也照樣能裝（沒有安全屋可申請）")
 end
 
+-- ===== 地圖手錶的 Knox Pass 感應模組（Watch.lua、Sensor.lua scanWalker、Server.lua 模組登記）=====
+-- 假的 MinidoracatWatchAPI（地圖手錶 MinidoracatWatch_Modules.lua）：玩家的 _watch＝{ state, md }，2 版起有 getWatchModuleData。
+-- 狀態照地圖手錶：只有 active（裝在戴著、有電的錶的有效槽位）算；unpowered、paused、notRequired、missing 都不算
+local function fakeWatchAPI(version)
+    local api = { watchApiVersion = version, defs = {} }
+    function api.registerWatchModule(def)
+        api.defs[#api.defs + 1] = def
+        return true
+    end
+    function api.getWatchModuleState(p) return p._watch and p._watch.state or "missing" end
+    function api.getWatchModuleData(p) return p._watch and p._watch.md or nil end
+    return api
+end
+local function wear(p, serial, state) p._watch = { state = state or "active", md = { KnoxPassSerial = serial } } end
+-- 每 250 ms 走 (dx, dy) 格，共 n 步（伺服器照位置差算速度）
+local function walk(p, dx, dy, n)
+    for _ = 1, n do step(function() p._x, p._y = p._x + dx, p._y + dy end) end
+end
+local function sentTo(p, mark, command, sub)
+    local list = {}
+    for i = mark + 1, #W.sent do
+        local s = W.sent[i]
+        if s.player == p and s.cmd == command and (sub == nil or s.args.cmd == sub) then list[#list + 1] = s.args end
+    end
+    return list
+end
+
+-- 步行：走向門線、在 WatchRange（預設 3）格內才開；站著、沿著門走、沒登記、手錶沒作用、這扇門或沙盒關掉都不開
+local function scenarioWatchWalk()
+    out("情境：手錶模組走近就開（步行感應）")
+    MinidoracatWatchAPI = fakeWatchAPI(2)
+    freshWorld()
+    local from = #logLines + 1
+    local api = MinidoracatWatchAPI
+    check(#api.defs == 1 and api.defs[1].id == "knoxpass" and api.defs[1].item == "MinidoracatKnoxPass.WatchModule"
+        and api.defs[1].desc == "IGUI_KnoxPass_WatchModule_Desc" and KP.watchRegistered(),
+        "地圖手錶 2 版：登記 knoxpass 模組一次（載入時；OnGameBoot 不重複）")
+    local g = gate(100, { double = true })   -- 門線 y=100、x=100..104
+    local me = newPlayer("walker", 101, 107)
+    wear(me, 777)
+    local res = cmd(g.owner, "register", { key = g.key, modIds = { 777 } })
+    check(res.ok == true and res.done == 1 and rec(g).mods[777] ~= nil, "擁有者登記 15 格內戴著的模組")
+    walk(me, 0, -0.4, 8)                       -- y 107.5 → 104.3
+    check(not g.door:IsOpen(), "走向門線、還在 3 格外：還不開")
+    walk(me, 0, -0.4, 4)                       -- → 102.7
+    check(g.door:IsOpen() and rec(g).open == true, "走向門線、3 格內：開")
+    local m = rec(g).mods[777]
+    check(m.by == "walker" and m.last == W.hours, "開了就記下這顆模組上次是誰、何時通過")
+    walk(me, 0, -0.4, 8)                       -- → 99.5（門線另一側那格）
+    runMs(4000)
+    check(g.door:IsOpen(), "站在門口：關門延遲過了也不關")
+    walk(me, 0, -0.5, 10)                      -- → 94.5
+    runMs(3000)
+    check(not g.door:IsOpen() and rec(g).open == nil, "走過門口、離開：照關門延遲關上")
+
+    local idle = newPlayer("idle", 101, 102)
+    wear(idle, 777)
+    runMs(3000)
+    check(not g.door:IsOpen(), "站在門前 2 格：不開")
+    local side = newPlayer("side", 100, 102)
+    wear(side, 777)
+    walk(side, 0.4, 0, 7)                      -- x 100.5 → 103.3，在門線範圍內平行走
+    check(not g.door:IsOpen(), "沿著門線走：不開")
+    for _, c in ipairs({ { 888, "active", "沒登記的模組" }, { 777, "unpowered", "手錶沒電" }, { 777, "paused", "槽位停用" },
+        { 777, "notRequired", "服主關掉地圖手錶系統（notRequired）" } }) do
+        local p = newPlayer("w" .. c[2] .. c[1], 101, 107)
+        wear(p, c[1], c[2])
+        walk(p, 0, -0.4, 12)
+        check(not g.door:IsOpen(), c[3] .. "：走近不開")
+        p._x = 300
+    end
+
+    local _, st = cmd(g.owner, "settings", { key = g.key, walk = false })
+    check(rec(g).walk == false and st.walk == false and st.walkSupported == true, "擁有者關掉這扇門的步行感應（state.walk＝false）")
+    local p2 = newPlayer("walk2", 101, 107)
+    wear(p2, 777)
+    walk(p2, 0, -0.4, 12)
+    check(not g.door:IsOpen(), "這扇門關掉步行感應：戴著已登記的模組走近也不開")
+    p2._x = 300
+    _, st = cmd(g.owner, "settings", { key = g.key, walk = true })
+    check(rec(g).walk == nil and st.walk == true, "打開：帳本回到沒有 walk（預設開，舊存檔不用轉換）")
+    check(cmd(g.owner, "settings", { key = g.key, walk = "yes" }).why == "BadArgs", "walk 不是布林：BadArgs")
+
+    SandboxVars.MinidoracatKnoxPass.WatchSensing = false
+    _, st = cmd(g.owner, "query", { key = g.key })
+    local p3 = newPlayer("walk3", 101, 107)
+    wear(p3, 777)
+    walk(p3, 0, -0.4, 12)
+    check(not g.door:IsOpen() and st.walkSupported == false and KP.canCraftModule() == false,
+        "沙盒關掉步行感應：走近不開、state.walkSupported＝false、模組配方做不了")
+    p3._x = 300
+    SandboxVars.MinidoracatKnoxPass.WatchSensing = nil
+    check(KP.canCraftModule() == true, "沙盒預設（開）：模組配方做得了")
+
+    local d = gate(200, { power = false })
+    local p4 = newPlayer("walk4", 201, 107)
+    wear(p4, 999)
+    cmd(d.owner, "register", { key = d.key, modIds = { 999 } })
+    local mark = #W.sent
+    walk(p4, 0, -0.4, 12)
+    local hints = sentTo(p4, mark, "result", "walk")
+    check(not d.door:IsOpen() and #hints == 1 and hints[1].why == "NoPower" and hints[1].key == d.key,
+        "讀頭沒電：不開，只推給這個人一次 NoPower 提示")
+    walk(p4, 0, 0.4, 10)
+    walk(p4, 0, -0.4, 10)
+    check(#sentTo(p4, mark, "result", "walk") == 1, "30 秒內再走近：不再提示")
+    runMs(30000)
+    walk(p4, 0, 0.4, 10)
+    walk(p4, 0, -0.4, 10)
+    check(#sentTo(p4, mark, "result", "walk") == 2, "過了 30 秒再走近：再提示一次")
+    clean(from, "手錶步行感應")
+    MinidoracatWatchAPI = nil
+end
+
+-- 沒裝地圖手錶、或地圖手錶只有 1 版（沒有 getWatchModuleData）：不登記模組、不感應、不報錯
+local function scenarioWatchMissing()
+    out("情境：沒裝地圖手錶、或地圖手錶只有 1 版")
+    for _, version in ipairs({ false, 1 }) do
+        MinidoracatWatchAPI = version and fakeWatchAPI(version) or nil
+        freshWorld()
+        local from = #logLines + 1
+        local label = version and "地圖手錶 1 版" or "沒有地圖手錶"
+        local g = gate(100)
+        local p = newPlayer("walker", 100, 107)
+        wear(p, 777)
+        local res = cmd(g.owner, "register", { key = g.key, modIds = { 777 } })
+        walk(p, 0, -0.4, 12)
+        local _, st = cmd(g.owner, "query", { key = g.key })
+        check(not KP.watchRegistered() and (not version or #MinidoracatWatchAPI.defs == 0), label .. "：不登記模組")
+        check(res.why == "WearerTooFar" and not g.door:IsOpen() and KP.canCraftModule() == false,
+            label .. "：模組登記不了、走近不開、配方做不了")
+        check(st.walkSupported == false and #st.nearMods == 0 and #st.mods == 0, label .. "：state 沒有模組，步行感應不支援")
+        clean(from, label)
+    end
+    MinidoracatWatchAPI = nil
+end
+
+-- 開車（駕駛的模組，任何一台車）、登記與取消登記、推送只給本人、右鍵開關門、上限、重啟、物品序號
+local function scenarioWatchDrive()
+    out("情境：手錶模組（開車、登記、推送、右鍵開門）")
+    MinidoracatWatchAPI = fakeWatchAPI(2)
+    freshWorld()
+    local from = #logLines + 1
+    local g = gate(100)
+    local v = makeVehicle(g.cx, g.cy + 12)     -- 沒裝感應盒
+    local p = driver(v, "drv")
+    wear(p, 555)
+    moveCar(v, g.cx, g.cy + 30)
+    local res = cmd(g.owner, "register", { key = g.key, modIds = { 555 } })
+    check(res.ok == false and res.why == "WearerTooFar" and rec(g).mods == nil, "戴著模組的人在 15 格外：WearerTooFar")
+    check(cmd(g.owner, "register", { key = g.key, modIds = { 12345 } }).why == "WearerTooFar", "沒有人戴的序號：WearerTooFar")
+    local bad = true
+    for _, ids in ipairs({ { 0 }, { -3 }, { 1.5 }, { "555" }, {} }) do
+        bad = bad and cmd(g.owner, "register", { key = g.key, modIds = ids }).why == "BadArgs"
+    end
+    check(bad and cmd(g.owner, "register", { key = g.key }).why == "BadArgs", "序號不是正整數、空清單、車與模組都沒送：BadArgs")
+    moveCar(v, g.cx, g.cy + 12)
+    local _, st = cmd(g.owner, "query", { key = g.key })
+    local nm = st.nearMods[1]
+    check(#st.nearMods == 1 and nm.id == 555 and nm.name == "drv" and nm.active == true and nm.dist == 12
+        and nm.serial == KP.serial(555), "附近：15 格內戴著、還沒登記的模組（序號、戴的人、距離、能不能用）")
+    res, st = cmd(g.owner, "register", { key = g.key, modIds = { 555 } })
+    check(res.ok and res.done == 1 and rec(g).mods[555] ~= nil and #st.nearMods == 0 and #st.mods == 1
+        and st.mods[1].wearer == "drv" and st.mods[1].lastHours == nil, "登記後：已登記列出模組與正戴著的人，附近不再列")
+    check(KP.Ledger.gatesForModule(555)[g.key] == true, "模組索引（L.gatesForModule）")
+
+    local bystander = newPlayer("bystander", 100, 130)
+    moveCar(v, g.cx, g.cy + 30)
+    local mark = #W.sent
+    step()
+    local got = passesSince(p, mark)
+    check(#got == 1 and got[1].mod == 555 and #got[1].gates == 1 and got[1].gates[1].key == g.key
+        and got[1].gates[1].x == g.cx and got[1].gates[1].kind == rec(g).kind, "開車時推送：模組序號與登記的門（座標、種類）")
+    check(#passesSince(bystander, mark) == 0, "沒戴模組的人收不到別人的登記")
+    p._local = true
+    KP.passes = { tag = got[1].tag, keys = {}, mod = got[1].mod, modKeys = { [g.key] = true }, gates = got[1].gates }
+    check(KnoxPassAPI.willOpenFor(v, g.door) == true, "willOpenFor：駕駛的模組登記了這扇門，沒裝感應盒的車也 true")
+    p._watch.state = "unpowered"
+    local ok, why = KnoxPassAPI.willOpenFor(v, g.door)
+    check(ok == false and why == "WatchOff", "willOpenFor：手錶沒作用 → false, WatchOff")
+    for _ = 1, 12 do step(function() moveCar(v, v._x, v._y - 2.5) end) end
+    check(not g.door:IsOpen(), "手錶沒電：開到門前也不開")
+    p._watch.state = "active"
+    moveCar(v, g.cx, g.cy + 30)
+    runMs(4000)
+    cmd(g.owner, "settings", { key = g.key, walk = false })   -- 這扇門關掉步行感應：開車照開
+    local openAt = nil
+    for _ = 1, 20 do
+        step(function() moveCar(v, v._x, v._y - 2.5) end)
+        if g.door:IsOpen() then
+            openAt = v._y - g.cy
+            break
+        end
+    end
+    check(openAt ~= nil and openAt > 8, "沒裝感應盒的車、駕駛的模組登記過：照感應盒的規則提早開門（" .. tostring(openAt) .. " 格）")
+    check(rec(g).mods[555].by == "drv", "開車通過也記下模組的上次通過")
+
+    local h = gate(300)
+    local vh = makeVehicle(h.cx, h.cy + 12)
+    local pas = newPlayer("pas", 0, 0)
+    seat(pas, vh, 1)
+    wear(pas, 556)
+    cmd(h.owner, "register", { key = h.key, modIds = { 556 } })
+    driver(vh, "drv2")
+    moveCar(vh, h.cx, h.cy + 5)
+    runMs(2000)
+    check(rec(h).mods[556] ~= nil and not h.door:IsOpen(), "乘客戴著不算（和感應盒「一台車一顆」一致）")
+
+    local k = gate(400)
+    local vk = makeVehicle(k.cx, k.cy + 12, { tag = 0.5 })
+    local pk = driver(vk, "drv3")
+    wear(pk, 557)
+    register(k, vk)
+    cmd(k.owner, "register", { key = k.key, modIds = { 557 } })
+    moveCar(vk, k.cx, k.cy + 7)
+    step()
+    check(k.door:IsOpen() and near(charge(vk), 0.49) and rec(k).mods[557].last == nil,
+        "感應盒與模組都登記：感應盒開一次、只扣它一次電，模組不重開")
+
+    local mg = gate(500)
+    local rk = newPlayer("rk", 500, 102)
+    wear(rk, 558)
+    check(cmd(rk, "open", { key = mg.key }).why == "NotAllowed", "沒登記的模組：右鍵開門被拒")
+    cmd(mg.owner, "register", { key = mg.key, modIds = { 558 } })
+    res = cmd(rk, "open", { key = mg.key })
+    check(res.ok == true and mg.door:IsOpen() and rec(mg).mods[558].by == "rk", "戴著已登記的模組：右鍵開門並記下上次通過")
+    check(cmd(rk, "close", { key = mg.key }).ok == true and not mg.door:IsOpen(), "右鍵關門也認模組")
+    rk._watch.state = "paused"
+    check(cmd(rk, "open", { key = mg.key }).why == "NotAllowed", "槽位停用：右鍵開門被拒")
+    rk._watch.state = "active"
+    res = cmd(mg.owner, "unregister", { key = mg.key, modIds = { 558, 9999 } })
+    check(res.ok and res.done == 1 and rec(mg).mods[558] == nil and KP.Ledger.gatesForModule(558)[mg.key] == nil,
+        "取消登記模組：帳本與索引都拿掉，done 只算真的拿掉的")
+    check(cmd(mg.owner, "unregister", { key = mg.key, modIds = { "x" } }).why == "BadArgs", "取消登記的序號不合格：BadArgs")
+
+    local full = gate(600)
+    for i = 1, 64 do KP.Ledger.addTag(full.key, rec(full), 900000 + i, { serial = "x" }) end
+    local pf = newPlayer("pf", 600, 105)
+    wear(pf, 559)
+    check(cmd(full.owner, "register", { key = full.key, modIds = { 559 } }).why == "TooMany", "車與模組合計 64 項：再登記模組 TooMany")
+
+    cmd(mg.owner, "register", { key = mg.key, modIds = { 558 } })
+    restart()
+    check(rec(mg).mods[558] ~= nil and KP.Ledger.gatesForModule(558)[mg.key] == true and KP.watchRegistered(),
+        "重啟：模組登記跟著帳本存檔，索引重建")
+    local item = newItem("MinidoracatKnoxPass.WatchModule")
+    KP.onModuleCreate(item)
+    local s = item:getModData()[KP.SERIAL_KEY]
+    check(KP.isInt(s) and s >= 1 and s < 2147483647, "模組物品建立時寫入序號（OnCreate，1..2^31-2 的整數）")
+    clean(from, "手錶模組")
+    MinidoracatWatchAPI = nil
+end
+
 local tests = {
     scenarioParts, scenarioDock, scenarioDetection, scenarioAutoClose, scenarioLocks, scenarioCommands,
     scenarioSinglePlayer, scenarioLedger, scenarioCharging, scenarioReopen, scenarioUninstallOpen, scenarioGarage,
@@ -4875,7 +5134,7 @@ local tests = {
     scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,
     scenarioReaderPost, scenarioColors, scenarioLoot, scenarioBarrierMirror, scenarioRollDoor, scenarioSettings,
     scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioLaggyEcho, scenarioShare,
-    scenarioCoManagers, scenarioOutsideSafehouse,
+    scenarioCoManagers, scenarioOutsideSafehouse, scenarioWatchWalk, scenarioWatchMissing, scenarioWatchDrive,
 }
 for _, t in ipairs(tests) do t() end
 

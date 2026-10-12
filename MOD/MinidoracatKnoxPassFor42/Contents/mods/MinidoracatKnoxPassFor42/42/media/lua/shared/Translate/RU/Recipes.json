@@ -13,5 +13,6 @@
     "CraftKnoxPassGateReader_Navy": "Изготовить: Считыватель ворот Knox Pass (тёмно-синий)",
     "CraftKnoxPassGateReader_Orange": "Изготовить: Считыватель ворот Knox Pass (сигнальный оранжевый)",
     "CraftKnoxPassGateReader_Red": "Изготовить: Считыватель ворот Knox Pass (красный)",
-    "CraftKnoxPassBoomBarrierKit": "Изготовить: Комплект шлагбаума Knox Pass"
+    "CraftKnoxPassBoomBarrierKit": "Изготовить: Комплект шлагбаума Knox Pass",
+    "CraftKnoxPassWatchModule": "Изготовить: Модуль датчика Knox Pass (для часов с картой)"
 }

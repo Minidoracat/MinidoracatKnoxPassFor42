@@ -13,5 +13,6 @@
     "MinidoracatKnoxPass.GateReader_Olive": "Knox Pass 大门读头（军绿）",
     "MinidoracatKnoxPass.GateReader_Navy": "Knox Pass 大门读头（深蓝）",
     "MinidoracatKnoxPass.GateReader_Orange": "Knox Pass 大门读头（安全橙）",
-    "MinidoracatKnoxPass.GateReader_Red": "Knox Pass 大门读头（红色）"
+    "MinidoracatKnoxPass.GateReader_Red": "Knox Pass 大门读头（红色）",
+    "MinidoracatKnoxPass.WatchModule": "Knox Pass 感应模块"
 }

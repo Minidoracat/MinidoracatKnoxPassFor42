@@ -13,5 +13,6 @@
     "MinidoracatKnoxPass.GateReader_Olive": "Knox Pass Gate Reader (Olive)",
     "MinidoracatKnoxPass.GateReader_Navy": "Knox Pass Gate Reader (Navy)",
     "MinidoracatKnoxPass.GateReader_Orange": "Knox Pass Gate Reader (Safety Orange)",
-    "MinidoracatKnoxPass.GateReader_Red": "Knox Pass Gate Reader (Red)"
+    "MinidoracatKnoxPass.GateReader_Red": "Knox Pass Gate Reader (Red)",
+    "MinidoracatKnoxPass.WatchModule": "Knox Pass Sensor Module"
 }

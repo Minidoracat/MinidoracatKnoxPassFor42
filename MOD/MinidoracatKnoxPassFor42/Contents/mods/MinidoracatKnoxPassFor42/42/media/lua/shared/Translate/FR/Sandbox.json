@@ -28,5 +28,9 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_tooltip": "S'applique quand un portail n'est pas dans l'abri du propriétaire du lecteur (multijoueur uniquement).\nAucune limite (par défaut) = les lecteurs peuvent être installés et verrouillés partout.\nSans verrou = le verrou Knox Pass ne peut pas être activé ; l'ouverture du portail fonctionne normalement.\nSans installation = les lecteurs ne peuvent être installés que dans votre propre abri (et les portails hors des abris ne peuvent pas être verrouillés).\nLes portails déjà verrouillés le restent ; le propriétaire, un cogestionnaire ou un administrateur peut désactiver le verrou.\nPrend effet dès qu'un administrateur clique sur Appliquer.",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "Aucune limite",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "Sans verrou",
-    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "Sans installation"
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "Sans installation",
+    "Sandbox_MinidoracatKnoxPassWatchSensing": "Les modules de montre enregistrés ouvrent les portails à l'approche",
+    "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "Nécessite la Minidoracat Montre-carte. Activé (par défaut) = un portail s'ouvre tout seul quand quelqu'un qui porte une montre équipée d'un module capteur Knox Pass enregistré sur ce portail marche vers lui.\nDésactivé = aucune détection à pied et la recette du module ne peut pas être réalisée ; en conduisant et à l'ouverture par clic droit, le module reste reconnu.\nPrend effet dès qu'un administrateur clique sur Appliquer.",
+    "Sandbox_MinidoracatKnoxPassWatchRange": "Portée du module de montre (tiles)",
+    "Sandbox_MinidoracatKnoxPassWatchRange_tooltip": "Un portail s'ouvre quand quelqu'un qui porte un module enregistré marche vers lui et se trouve à ce nombre de tiles ou moins de la ligne du portail.\nPrend effet dès qu'un administrateur clique sur Appliquer."
 }

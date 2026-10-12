@@ -11,8 +11,9 @@ local L = {}
 KP.Ledger = L
 
 local byTag = {}     -- 感應盒物品 ID → { [gateKey] = true }
+local byMod = {}     -- 地圖手錶模組序號（Watch.lua KP.SERIAL_KEY）→ { [gateKey] = true }
 local openKeys = {}  -- Knox Pass 開著、等著關的門
-local version = 0    -- 哪顆感應盒能開哪些門有變動就加一（Sensor.lua 據此重推已授權大門給駕駛）
+local version = 0    -- 哪顆感應盒或模組能開哪些門有變動就加一（Sensor.lua 據此重推已授權大門給本人）
 
 local System = SGlobalObjectSystem:derive("MinidoracatKnoxPassLedger")
 
@@ -57,16 +58,21 @@ function L.get(key)
     return gates and gates[key] or nil
 end
 
+-- 舊記錄沒有 rec.mods（模組 2026-10-12 起），沒有就是沒登記模組
 local function index(key, rec)
     for id in pairs(rec.tags) do
         byTag[id] = byTag[id] or {}
         byTag[id][key] = true
     end
+    for serial in pairs(rec.mods or {}) do
+        byMod[serial] = byMod[serial] or {}
+        byMod[serial][key] = true
+    end
     if rec.open then openKeys[key] = true end
 end
 
 function L.rebuild()
-    byTag, openKeys = {}, {}
+    byTag, byMod, openKeys = {}, {}, {}
     version = version + 1
     local gates = L.gates()
     if not gates then return end
@@ -90,6 +96,9 @@ function L.remove(key)
     if KP.ReaderPost then KP.ReaderPost.detach(key, rec) end
     for id in pairs(rec.tags) do
         if byTag[id] then byTag[id][key] = nil end
+    end
+    for serial in pairs(rec.mods or {}) do
+        if byMod[serial] then byMod[serial][key] = nil end
     end
     openKeys[key] = nil
     L.gates()[key] = nil
@@ -128,6 +137,39 @@ end
 
 function L.gatesForTag(id)
     return byTag[id]
+end
+
+-- 模組（info＝{ by, last, at }：上次通過的人、時間，登記時間）
+function L.addModule(key, rec, serial, info)
+    rec.mods = rec.mods or {}
+    rec.mods[serial] = info
+    byMod[serial] = byMod[serial] or {}
+    byMod[serial][key] = true
+    version = version + 1
+end
+
+function L.removeModule(key, rec, serial)
+    if rec.mods then rec.mods[serial] = nil end
+    if byMod[serial] then byMod[serial][key] = nil end
+    version = version + 1
+end
+
+function L.gatesForModule(serial)
+    return byMod[serial]
+end
+
+-- 這顆模組剛從這扇門通過：記下是誰、何時（管理視窗的「上次通過」）
+function L.touchModule(rec, serial, player)
+    local m = rec.mods and rec.mods[serial]
+    if m then m.by, m.last = player:getUsername(), getGameTime():getWorldAgeHours() end
+end
+
+-- 這扇門登記了幾項（車與模組合計，上限 Server.lua MAX_PASSES）
+function L.passCount(rec)
+    local n = 0
+    for _ in pairs(rec.tags) do n = n + 1 end
+    for _ in pairs(rec.mods or {}) do n = n + 1 end
+    return n
 end
 
 function L.setOpen(key, rec, open)

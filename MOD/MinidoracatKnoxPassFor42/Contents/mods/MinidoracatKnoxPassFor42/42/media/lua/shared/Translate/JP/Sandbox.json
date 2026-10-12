@@ -28,5 +28,9 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_tooltip": "ゲートがリーダー所有者のセーフハウス内にないときに適用されます（マルチプレイのみ）。\n制限なし（初期値）＝どこでも取り付け・施錠できます。\n施錠不可＝Knox Pass の施錠をオンにできません。開閉は通常どおりです。\n取付不可＝自分のセーフハウス内にしかリーダーを取り付けられません（セーフハウス外のゲートも施錠できません）。\nすでに施錠されているゲートはそのままです。所有者、共同管理者、管理者が施錠を解除できます。\n管理者が「適用」を押すと即座に反映されます。",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "制限なし",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "施錠不可",
-    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "取付不可"
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "取付不可",
+    "Sandbox_MinidoracatKnoxPassWatchSensing": "登録済みのウォッチモジュールで近づくとゲートが開く",
+    "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "Minidoracat マップウォッチが必要です。有効（初期値）にすると、このゲートに登録した Knox Pass センサーモジュール入りのウォッチを着けた人がゲートに向かって歩くと、自動で開きます。\n無効にすると徒歩では感知せず、モジュールのレシピも実行できません。運転中と右クリックで開けるときは、モジュールを引き続き認識します。\n管理者が「適用」を押すと即座に反映されます。",
+    "Sandbox_MinidoracatKnoxPassWatchRange": "ウォッチモジュールの感知距離（マス）",
+    "Sandbox_MinidoracatKnoxPassWatchRange_tooltip": "登録済みのモジュールを着けた人がゲートに向かって歩き、ゲートのラインからこのマス数以内に入るとゲートが開きます。\n管理者が「適用」を押すと即座に反映されます。"
 }

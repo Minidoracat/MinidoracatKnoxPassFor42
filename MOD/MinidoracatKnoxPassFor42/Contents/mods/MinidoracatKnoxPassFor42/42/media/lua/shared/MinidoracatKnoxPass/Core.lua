@@ -214,7 +214,7 @@ end
 local DEFAULTS = {
     ReadRange = 8, ReadRangeMin = 2, ReadRangeMax = 30, LeadSeconds = 2.0, AutoDriveAhead = 150,
     CloseDelay = 2, CloseDelayMin = 0, CloseDelayMax = 30, RequirePower = true,
-    TagDrainPercent = 100, AllowCraft = true, SpawnLoot = true, OutsideSafehouse = 1,
+    TagDrainPercent = 100, AllowCraft = true, SpawnLoot = true, OutsideSafehouse = 1, WatchSensing = true, WatchRange = 3,
 }
 
 function KP.sandbox(key)
@@ -435,7 +435,7 @@ end
 
 -- ── 幾何 ────────────────────────────────────────────────────────────────
 
--- 點 (px,py) 到線段 (ax,ay)-(bx,by) 的距離平方
+-- 點 (px,py) 到線段 (ax,ay)-(bx,by) 的距離平方，和點指向最近點的向量（手錶感應用來看是不是走向門線）
 function KP.segDistSq(px, py, ax, ay, bx, by)
     local dx, dy = bx - ax, by - ay
     local len2 = dx * dx + dy * dy
@@ -445,5 +445,5 @@ function KP.segDistSq(px, py, ax, ay, bx, by)
         if t < 0 then t = 0 elseif t > 1 then t = 1 end
     end
     local ex, ey = ax + t * dx - px, ay + t * dy - py
-    return ex * ex + ey * ey
+    return ex * ex + ey * ey, ex, ey
 end

@@ -28,5 +28,9 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_tooltip": "대문이 리더기 소유자의 은신처 안에 있지 않을 때 적용됩니다 (멀티플레이 전용).\n제한 없음(기본값) = 어디서나 리더기를 설치하고 잠글 수 있습니다.\n잠금 불가 = Knox Pass 잠금을 켤 수 없습니다. 대문 열기는 평소대로 작동합니다.\n설치 불가 = 내 은신처 안에만 리더기를 설치할 수 있습니다 (은신처 밖의 대문도 잠글 수 없습니다).\n이미 잠긴 대문은 그대로 잠겨 있으며, 소유자, 공동 관리자 또는 관리자가 잠금을 끌 수 있습니다.\n관리자가 적용을 누르는 즉시 반영됩니다.",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "제한 없음",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "잠금 불가",
-    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "설치 불가"
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "설치 불가",
+    "Sandbox_MinidoracatKnoxPassWatchSensing": "등록된 시계 모듈로 다가가면 대문 열림",
+    "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "Minidoracat 지도 시계가 필요합니다. 활성화하면(기본값) 이 대문에 등록된 Knox Pass 센서 모듈을 장착한 시계를 착용한 사람이 대문으로 걸어갈 때 대문이 저절로 열립니다.\n비활성화하면 도보 감지가 꺼지고 모듈 제작법도 수행할 수 없습니다. 운전 중이거나 우클릭으로 열 때는 모듈을 계속 인식합니다.\n관리자가 적용을 누르는 즉시 반영됩니다.",
+    "Sandbox_MinidoracatKnoxPassWatchRange": "시계 모듈 감지 거리 (타일)",
+    "Sandbox_MinidoracatKnoxPassWatchRange_tooltip": "등록된 모듈을 착용한 사람이 대문으로 걸어가며 대문 선에서 이 타일 수 이내에 들어오면 대문이 열립니다.\n관리자가 적용을 누르는 즉시 반영됩니다."
 }

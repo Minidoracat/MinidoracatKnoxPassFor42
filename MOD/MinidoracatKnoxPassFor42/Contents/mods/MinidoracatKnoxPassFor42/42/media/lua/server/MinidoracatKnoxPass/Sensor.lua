@@ -1,4 +1,5 @@
--- 伺服器偵測：有人駕駛、車上裝著已登記且有電的感應盒，靠近（含行進預測）已登記的大門就開門；
+-- 伺服器偵測：有人駕駛、車上裝著已登記且有電的感應盒（或駕駛戴著已登記、有作用的地圖手錶模組），靠近（含行進預測）
+-- 已登記的大門就開門；戴著已登記模組的人走向門線也開（scanWalker）。
 -- 車和拖車整台通過門口後就不再撐住門，範圍內沒有撐門的車滿延遲秒數，把 Knox Pass 開的門關上並鎖回去。
 -- 感應距離與關門延遲每扇門可以不同（擁有者設定、夾在沙盒上下限內：KP.gateRange／KP.gateDelay）。
 -- 專用伺服器也會觸發 OnTick（GameServer.java:840,1020 → IngameState.java:1520,1563）；
@@ -7,6 +8,7 @@ if isClient() then return end
 require "MinidoracatKnoxPass/Core"
 require "MinidoracatKnoxPass/Gates"
 require "MinidoracatKnoxPass/Ledger"
+require "MinidoracatKnoxPass/Watch"
 local KP = MinidoracatKnoxPass
 local G = KP.Gates
 local L = KP.Ledger
@@ -18,14 +20,15 @@ S.SCAN_MS = 250        -- 掃描間隔
 S.RETRY_MS = 2000      -- 關不上（擋住、沒載入、沒人可當開關者）時多久再試
 S.FAIL_MS = 3000       -- 開不了（沒電、被釘板、被擋）時多久再試
 S.MISSING_MS = 30000   -- 格子載入但門不在，持續多久才當作門被拆掉、刪除記錄
-S.PASSES_MS = 5000     -- 已授權大門清單沒變動時，多久補推一次給駕駛
-S.WALK_MS = 5000       -- 步行開門至少開這麼久才開始算延遲（延遲設 0 時人也走得過去）
+S.PASSES_MS = 5000     -- 已授權大門清單沒變動時，多久補推一次給本人
+S.WALK_MS = 5000       -- 右鍵開門至少開這麼久才開始算延遲（人還要走到門口；延遲設 0 時人也走得過去）
 S.RELOCK_MS = 5000     -- 多久替關著的上鎖門補一次鎖（S.relock）
 
 -- gateKey → { presence, retryAt, failAt, missingSince, by, holdUntil, cars }；
 -- cars＝這扇門範圍內每台登記車的通過紀錄（車輛 runtime id → { from, passed }），只在記憶體
 local runtime = {}
 local tracks = {}      -- 車輛 runtime id → { x, y, t, vx, vy }（算行進速度，平滑過）
+local walkers = {}     -- 戴模組走路的人：使用者名稱 → { x, y, t, vx, vy }（同上）
 local lastScan = 0
 local lastRelock = 0
 
@@ -131,9 +134,9 @@ local function settleClosed(key, rec, adapter, anchor)
     L.setOpen(key, rec, false)
 end
 
--- 開門。who 是觸發的玩家；tag/part/vehicle 是要扣電的感應盒（步行開門時 part/vehicle 為 nil）。
--- 回傳 true 或 false, 原因
-function S.open(key, rec, who, tag, part, vehicle, now)
+-- 開門。who 是觸發的玩家；tag/part/vehicle 是要扣電的感應盒（沒有感應盒時 tag/part 為 nil）。
+-- holdMs＝右鍵開門先撐著多久（人還要走到門口）；感應（車、手錶）每輪都會撐門，不留。回傳 true 或 false, 原因
+function S.open(key, rec, who, tag, part, vehicle, now, holdMs)
     local r = rt(key)
     local adapter, anchor = G.findAt(rec)
     if adapter == nil then return false, "NotLoaded" end
@@ -143,7 +146,7 @@ function S.open(key, rec, who, tag, part, vehicle, now)
     end
     r.missingSince = nil
     r.presence, r.by = now, who
-    if not vehicle then r.holdUntil = now + S.WALK_MS end   -- 步行開門：人還要走到門口，延遲再短也先開著
+    if holdMs then r.holdUntil = now + holdMs end
     -- 記下載著這顆感應盒經過的車（管理視窗的登記清單顯示用；感應盒換車後在這裡跟著改）。
     -- 門已經開著時也記，步行開門沒有車就不動
     local info = tag and vehicle and rec.tags[tag:getID()]
@@ -259,23 +262,33 @@ local function facing(v)
     return fx / n, fy / n
 end
 
--- 推送給駕駛：他這顆感應盒登記了哪些大門（客戶端 KnoxPassAPI.willOpenFor 用，讓 AutoDrive 事先知道哪扇門會開）。
--- 換了感應盒或帳本版本變了就馬上推，平常每 PASSES_MS 補推一次（重連、封包遺失會自己好）。
--- 只告訴駕駛他自己的感應盒能開的門，別人的登記不外流
-local pushed = {}   -- 使用者名稱 → { tag, ver, at }
-local function pushPasses(p, id, keys, now)
+-- 推送給本人：他的感應盒（開車時）與戴著的模組登記了哪些大門（客戶端 KnoxPassAPI.willOpenFor、小地圖用，
+-- 讓 AutoDrive 事先知道哪扇門會開）。換了感應盒或模組、帳本版本變了就馬上推，平常每 PASSES_MS 補推一次
+-- （重連、封包遺失會自己好）。只查索引（gatesForTag／gatesForModule），不掃全部大門；別人的登記不外流
+local pushed = {}   -- 使用者名稱 → { tag, mod, ver, at }
+local function keyList(keys)
+    local list = {}
+    for key in pairs(keys or {}) do list[#list + 1] = key end
+    return list
+end
+
+local function pushPasses(p, tagId, tagKeys, serial, modKeys, now)
     local name = p:getUsername() or "?"
     local last = pushed[name]
     local ver = L.version()
-    if last and last.tag == id and last.ver == ver and now - last.at < S.PASSES_MS then return end
+    if last and last.tag == tagId and last.mod == serial and last.ver == ver and now - last.at < S.PASSES_MS then return end
     if not last then
         last = {}
         pushed[name] = last
     end
-    last.tag, last.ver, last.at = id, ver, now
-    local list = {}
-    for key in pairs(keys or {}) do list[#list + 1] = key end
-    if KP.reply then KP.reply(p, "passes", { tag = id, keys = list }) end
+    last.tag, last.mod, last.ver, last.at = tagId, serial, ver, now
+    -- 模組的門多帶座標與種類（小地圖畫標記）；一扇約 90 位元組（TableNetworkUtils.java:30-99）
+    local gates = {}
+    for key in pairs(modKeys or {}) do
+        local rec = L.get(key)
+        if rec then gates[#gates + 1] = { key = key, x = rec.cx, y = rec.cy, z = rec.z, kind = rec.kind } end
+    end
+    if KP.reply then KP.reply(p, "passes", { tag = tagId, keys = keyList(tagKeys), mod = serial, gates = gates }) end
 end
 
 -- ── 整台通過就不再撐門 ──────────────────────────────────────────────────
@@ -337,22 +350,14 @@ local function holds(key, rec, v, vx, vy, lead)
     return false
 end
 
-local function scanDriver(p, gates, now, lead, ahead)
-    local v = p:getVehicle()
-    if not v or v:getDriver() ~= p then return end
-    local tag, part = KP.vehicleTag(v)
-    if not tag then return end
-    local keys = L.gatesForTag(tag:getID())
-    pushPasses(p, tag:getID(), keys, now)
-    if not keys or KP.charge(tag) <= 0 then return end
-    local x, y, z = v:getX(), v:getY(), v:getZ()
-    local id = v:getId()
-    local tr = tracks[id]
+-- 位置差算速度：伺服器收到的位置是一批一批到的，單次位置差忽快忽慢、方向也抖：取一半新值做平滑。
+-- 超過 2 秒沒看到（剛上車、剛下車）從 0 起算
+local function smooth(tbl, id, x, y, now)
+    local tr = tbl[id]
     if not tr then
         tr = { vx = 0, vy = 0 }
-        tracks[id] = tr
+        tbl[id] = tr
     elseif now > tr.t and now - tr.t < 2000 then
-        -- 伺服器收到的車輛位置是一批一批到的，單次位置差忽快忽慢、方向也抖：取一半新值做平滑
         local dt = (now - tr.t) / 1000
         tr.vx = (tr.vx + (x - tr.x) / dt) * 0.5
         tr.vy = (tr.vy + (y - tr.y) / dt) * 0.5
@@ -360,21 +365,107 @@ local function scanDriver(p, gates, now, lead, ahead)
         tr.vx, tr.vy = 0, 0
     end
     tr.x, tr.y, tr.t = x, y, now
-    local vx, vy = tr.vx, tr.vy
-    local fx, fy = nil, nil
-    if ahead > 0 and autoDriving(v) then fx, fy = facing(v) end
+    return tr.vx, tr.vy
+end
+
+-- 這一輪這台車的位置、速度與參數（scanDriver 填、scanKeys 讀；重複用同一張表）
+local car = {}
+
+-- 一組登記的門（感應盒或駕駛的模組）：範圍、預判線段、AutoDrive 車頭朝向、holds 照舊。skip＝已經用感應盒掃過的門
+-- （同一扇門只掃一次：感應盒開門扣它的電）。serial＝用模組開的，開了記下「上次通過」
+local function scanKeys(p, v, keys, skip, tag, part, serial)
+    for key in pairs(keys) do
+        local rec = car.gates[key]
+        if rec and not (skip and skip[key]) and math.abs(rec.z - car.z) < 1 then
+            local range = KP.gateRange(rec)
+            if KP.segDistSq(rec.cx, rec.cy, car.x, car.y, car.ax, car.ay) <= range * range
+                or (car.fx and headingAt(rec, car.x, car.y, car.fx, car.fy, car.ahead)) then
+                if holds(key, rec, v, car.vx, car.vy, car.lead) and S.open(key, rec, p, tag, part, v, car.now) and serial then
+                    L.touchModule(rec, serial, p)
+                end
+            elseif runtime[key] and runtime[key].cars then
+                runtime[key].cars[v:getId()] = nil
+            end
+        end
+    end
+end
+
+-- 駕駛：車上的感應盒，加上駕駛戴著、有作用的模組（任何一台車都算；乘客戴著不算，和感應盒「一台車一顆」一致）
+local function scanDriver(p, gates, now, lead, ahead)
+    local v = p:getVehicle()
+    if not v or v:getDriver() ~= p then return end
+    local tag, part = KP.vehicleTag(v)
+    local serial = KP.watchSerial(p)
+    if not tag and not serial then return end
+    local tagKeys = tag and L.gatesForTag(tag:getID())
+    local modKeys = serial and L.gatesForModule(serial)
+    pushPasses(p, tag and tag:getID(), tagKeys, serial, modKeys, now)
+    if tagKeys and KP.charge(tag) <= 0 then tagKeys = nil end
+    if not tagKeys and not modKeys then return end
+    local x, y = v:getX(), v:getY()
+    local vx, vy = smooth(tracks, v:getId(), x, y, now)
+    car.gates, car.now, car.lead, car.ahead = gates, now, lead, ahead
+    car.x, car.y, car.z, car.vx, car.vy = x, y, v:getZ(), vx, vy
     -- 停著就是圓形範圍；行進中把「現在位置→lead 秒後位置」這段線段拿去量距離（往遠離大門的方向不延伸）。
     -- 感應距離每扇門自己的（KP.gateRange）
-    local ax, ay = x + vx * lead, y + vy * lead
+    car.ax, car.ay = x + vx * lead, y + vy * lead
+    car.fx, car.fy = nil, nil
+    if ahead > 0 and autoDriving(v) then car.fx, car.fy = facing(v) end
+    if tagKeys then scanKeys(p, v, tagKeys, nil, tag, part, nil) end
+    if modKeys then scanKeys(p, v, modKeys, tagKeys, nil, nil, serial) end
+end
+
+-- ── 手錶模組：戴著走向門線就開 ──────────────────────────────────────────
+local WALK_COS, WALK_MIN_SPEED = 0.5, 0.5   -- 走路方向與「到門線最近點」夾角 60° 內；每秒至少 0.5 格
+local HINT_MS = 30000                       -- 開不了的提示，同一扇門多久一次
+local hinted = {}                           -- 使用者名稱 → { key, at }
+
+-- 門線兩端：錨點和它對中心的對稱點（N 門沿 x、W 門沿 y），九格寬的門兩端也量得到；中心是各片格子中心的平均
+-- （Gates.lua G.center）。其他 MOD 的門沒有朝向（key 不以 N／W 結尾），只有中心一點
+local function span(rec)
+    local edge = string.sub(rec.key, -1)
+    if edge == "N" then
+        local h = math.abs(rec.cx - (rec.x + 0.5)) + 0.5
+        return rec.cx - h, rec.y, rec.cx + h, rec.y
+    elseif edge == "W" then
+        local h = math.abs(rec.cy - (rec.y + 0.5)) + 0.5
+        return rec.x, rec.cy - h, rec.x, rec.cy + h
+    end
+    return rec.cx, rec.cy, rec.cx, rec.cy
+end
+
+-- 開了就記下這次是誰、何時（管理視窗的「上次通過」）；開不了只說玩家排除得了的原因（沒電、擋住），同一扇門 30 秒一次。
+-- Busy 是剛失敗過的冷卻，已經提示過
+local function walkOpen(p, key, rec, serial, now)
+    local ok, why = S.open(key, rec, p, nil, nil, nil, now)
+    if ok then return L.touchModule(rec, serial, p) end
+    if why ~= "NoPower" and why ~= "Blocked" then return end
+    local name = p:getUsername() or "?"
+    local h = hinted[name]
+    if h and h.key == key and now - h.at < HINT_MS then return end
+    hinted[name] = { key = key, at = now }
+    if KP.reply then KP.reply(p, "result", { cmd = "walk", ok = false, why = why, key = key }) end
+end
+
+-- 步行：只看這顆模組登記過的門（通常只有幾扇）。站著（在門邊做事）或沿著門走（速度和「到門線」的方向垂直）不開；
+-- 人一直走近，每輪都會撐門，走過去就照延遲關，門口有人時照舊不關
+local function scanWalker(p, gates, now, range)
+    if p:getVehicle() then return end
+    local serial = KP.watchSerial(p)            -- 沒戴、沒電、槽位失效＝nil
+    if not serial then return end
+    local keys = L.gatesForModule(serial)
+    pushPasses(p, nil, nil, serial, keys, now)  -- 小地圖用
+    if not keys then return end
+    local x, y, z = p:getX(), p:getY(), p:getZ()
+    local vx, vy = smooth(walkers, p:getUsername() or "?", x, y, now)
+    local speed = math.sqrt(vx * vx + vy * vy)
+    if speed < WALK_MIN_SPEED then return end
     for key in pairs(keys) do
         local rec = gates[key]
-        if rec and math.abs(rec.z - z) < 1 then
-            local range = KP.gateRange(rec)
-            if KP.segDistSq(rec.cx, rec.cy, x, y, ax, ay) <= range * range
-                or (fx and headingAt(rec, x, y, fx, fy, ahead)) then
-                if holds(key, rec, v, vx, vy, lead) then S.open(key, rec, p, tag, part, v, now) end
-            elseif runtime[key] and runtime[key].cars then
-                runtime[key].cars[id] = nil
+        if rec and rec.walk ~= false and math.abs(rec.z - z) < 1 then
+            local d2, ex, ey = KP.segDistSq(x, y, span(rec))
+            if d2 <= range * range and ex * vx + ey * vy >= WALK_COS * speed * math.sqrt(d2) then
+                walkOpen(p, key, rec, serial, now)
             end
         end
     end
@@ -402,7 +493,11 @@ function S.tick()
     if not gates then return end
     local lead = tonumber(KP.sandbox("LeadSeconds")) or 0
     local ahead = tonumber(KP.sandbox("AutoDriveAhead")) or 0
-    KP.eachPlayer(function(p) scanDriver(p, gates, now, lead, ahead) end)
+    local walk = KP.watchSensing() and tonumber(KP.sandbox("WatchRange")) or 0   -- 0＝不跑步行感應
+    KP.eachPlayer(function(p)
+        scanDriver(p, gates, now, lead, ahead)
+        if walk > 0 then scanWalker(p, gates, now, walk) end
+    end)
     for key in pairs(L.openKeys()) do
         local rec = gates[key]
         if rec then tryClose(key, rec, now, KP.gateDelay(rec) * 1000) end

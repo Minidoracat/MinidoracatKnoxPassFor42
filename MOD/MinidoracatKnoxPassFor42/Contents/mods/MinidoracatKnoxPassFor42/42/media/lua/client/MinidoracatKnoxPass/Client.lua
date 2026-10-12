@@ -26,11 +26,11 @@ function C.send(player, command, args)
 end
 
 -- Toast（CAPABILITIES.toast）優先；沒有就 setHaloNote(str, r, g, b, dispTime)（IsoGameCharacter.java:6965）。
--- halo＝true 時 Toast 之外頭上也提示（駕駛預警：開車時視線在車上）
+-- halo＝true 時 Toast 之外頭上也提示（駕駛預警、手錶感應：開車、走路時視線在角色上）。英文的長原因約 4 行，Toast 給 5 行
 function C.say(player, text, bad, halo)
     local UI = MinidoracatUI and MinidoracatUI.v1
     if UI and UI.CAPABILITIES and UI.CAPABILITIES.toast and UI.Toast
-        and pcall(UI.Toast.show, { title = getText("IGUI_KnoxPass_Title"), message = text, holdMs = 3500, maxLines = 3 })
+        and pcall(UI.Toast.show, { title = getText("IGUI_KnoxPass_Title"), message = text, holdMs = 3500, maxLines = 5 })
         and not halo then
         return
     end
@@ -64,6 +64,10 @@ local function onResult(args)
         return
     end
     if args.cmd == "query" or args.cmd == "findPlayers" then return end   -- 管理視窗自己處理（Window.lua Win.onResult）
+    if args.cmd == "walk" then   -- 手錶感應開不了（Sensor.lua walkOpen）：伺服器主動推，前面沒有本機送出的指令
+        C.say(player, getText("IGUI_KnoxPass_WalkWarn", KnoxPassAPI.whyText(args.why)), true, true)
+        return
+    end
     C.say(player, KnoxPassAPI.whyText(args.why), true)
 end
 
@@ -75,10 +79,14 @@ function KP.clientReceive(command, args)
     elseif command == "state" then
         if KP.Window then KP.Window.onState(args) end
     elseif command == "passes" then
-        -- 伺服器推送：我現在這顆感應盒登記了哪些門（KnoxPassAPI.willOpenFor 讀，Sensor.lua pushPasses）
-        local keys = {}
+        -- 伺服器推送：我現在這顆感應盒（開車時）與戴著的模組登記了哪些門（KnoxPassAPI.willOpenFor、小地圖讀，
+        -- Sensor.lua pushPasses）。gates＝模組的門 { key, x, y, z, kind }；rev 換了小地圖就重建標記（MapLayer.lua）
+        local keys, modKeys = {}, {}
         for _, key in pairs(type(args.keys) == "table" and args.keys or {}) do keys[key] = true end
-        KP.passes = { tag = args.tag, keys = keys }
+        local gates = type(args.gates) == "table" and args.gates or {}
+        for _, g in ipairs(gates) do modKeys[g.key] = true end
+        KP.passesRev = (KP.passesRev or 0) + 1
+        KP.passes = { tag = args.tag, keys = keys, mod = args.mod, modKeys = modKeys, gates = gates, rev = KP.passesRev }
     elseif command == "players" then
         if KP.Window then KP.Window.onPlayers(args) end   -- 共同管理者候選（Server.lua H.findPlayers）
     end

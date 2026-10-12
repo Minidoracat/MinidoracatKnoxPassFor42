@@ -28,5 +28,9 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_tooltip": "Dotyczy bram, które nie są w schronieniu właściciela czytnika (tylko gra wieloosobowa).\nBez limitu (domyślnie) = czytniki można montować i blokować wszędzie.\nBez blokady = nie można włączyć blokady Knox Pass; otwieranie bramy działa normalnie.\nBez montażu = czytniki można montować tylko we własnym schronieniu (a bram poza schronieniami nie można blokować).\nZablokowane już bramy pozostają zablokowane; właściciel, współzarządca lub administrator może wyłączyć blokadę.\nDziała od razu po kliknięciu Zastosuj przez administratora.",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "Bez limitu",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "Bez blokady",
-    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "Bez montażu"
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "Bez montażu",
+    "Sandbox_MinidoracatKnoxPassWatchSensing": "Zarejestrowane moduły zegarka otwierają bramy przy podejściu",
+    "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "Wymaga moda Minidoracat Zegarek z mapą. Włączone (domyślnie) = brama otwiera się sama, gdy idzie w jej stronę ktoś, kto nosi zegarek z modułem czujnika Knox Pass zarejestrowanym przy tej bramie.\nWyłączone = brak wykrywania pieszo, a receptury modułu nie można wykonać; podczas jazdy i przy otwieraniu prawym przyciskiem moduł nadal działa.\nDziała od razu po kliknięciu Zastosuj przez administratora.",
+    "Sandbox_MinidoracatKnoxPassWatchRange": "Zasięg modułu zegarka (pola)",
+    "Sandbox_MinidoracatKnoxPassWatchRange_tooltip": "Brama otwiera się, gdy ktoś z zarejestrowanym modułem idzie w jej stronę i jest w odległości do tylu pól od linii bramy.\nDziała od razu po kliknięciu Zastosuj przez administratora."
 }

@@ -62,4 +62,22 @@ module MinidoracatKnoxPass
         Tags = base:hasmetal,
         Tooltip = Tooltip_MinidoracatKnoxPass_BarrierKit,
     }
+
+    /*
+        WatchModule：Minidoracat 地圖手錶的「Knox Pass 感應模組」（MinidoracatKnoxPass/Watch.lua 登記）。
+        寫法照地圖手錶的 Module_*（MinidoracatWatch_items.txt）。OnCreate 寫入序號（modData KnoxPassSerial），
+        裝進手錶、拆下來都跟著走；大門讀頭登記的是這個序號。圖示由 scripts/build_module_icon.py 產生。
+    */
+    item WatchModule
+    {
+        DisplayCategory = Electronics,
+        ItemType = base:normal,
+        Weight = 0.1,
+        Icon = MinidoracatKnoxPassWatchModule,
+        MetalValue = 3.0,
+        WorldStaticModel = Receiver,
+        Tags = base:hasmetal,
+        Tooltip = Tooltip_MinidoracatKnoxPass_WatchModule,
+        OnCreate = MinidoracatKnoxPass.onModuleCreate,
+    }
 }

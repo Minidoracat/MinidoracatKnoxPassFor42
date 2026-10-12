@@ -28,5 +28,9 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_tooltip": "大门不在读头所有者的安全屋里时适用（仅多人模式有效）。\n不限制（默认）＝任何地方都能安装、上锁。\n不能上锁＝不能开启 Knox Pass 门锁；开门照常。\n不能安装＝只能在自己的安全屋里安装读头（安全屋外的门也不能上锁）。\n已经上锁的门保持不变，所有者、共同管理者或管理员可以关闭门锁。\n管理员按「应用」后立即生效。",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "不限制",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "不能上锁",
-    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "不能安装"
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "不能安装",
+    "Sandbox_MinidoracatKnoxPassWatchSensing": "已登记的手表模块走近就开门",
+    "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "需要 Minidoracat 地图手表。开启（默认）＝戴着手表、装了在这扇门登记过的 Knox Pass 感应模块，走向大门时门会自己打开。\n关闭＝步行不感应，模块的配方也不能制作；开车与右键开门照样认得模块。\n管理员按「应用」后立即生效。",
+    "Sandbox_MinidoracatKnoxPassWatchRange": "手表感应距离（格）",
+    "Sandbox_MinidoracatKnoxPassWatchRange_tooltip": "戴着已登记模块的人走向大门、离门线这么多格内就开门。\n管理员按「应用」后立即生效。"
 }

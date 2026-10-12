@@ -13,5 +13,6 @@
     "MinidoracatKnoxPass.GateReader_Olive": "Считыватель ворот Knox Pass (оливковый)",
     "MinidoracatKnoxPass.GateReader_Navy": "Считыватель ворот Knox Pass (тёмно-синий)",
     "MinidoracatKnoxPass.GateReader_Orange": "Считыватель ворот Knox Pass (сигнальный оранжевый)",
-    "MinidoracatKnoxPass.GateReader_Red": "Считыватель ворот Knox Pass (красный)"
+    "MinidoracatKnoxPass.GateReader_Red": "Считыватель ворот Knox Pass (красный)",
+    "MinidoracatKnoxPass.WatchModule": "Модуль датчика Knox Pass"
 }

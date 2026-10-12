@@ -28,5 +28,9 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_tooltip": "Vale quando um portão não está na base do proprietário do leitor (só no multijogador).\nSem limite (padrão) = leitores podem ser instalados e trancados em qualquer lugar.\nSem trancar = a tranca Knox Pass não pode ser ativada; abrir o portão funciona normalmente.\nSem instalar = só é possível instalar leitores na sua própria base (e portões fora de bases não podem ser trancados).\nPortões já trancados continuam trancados; o proprietário, um cogestor ou um administrador pode desativar a tranca.\nEntra em vigor assim que um administrador clicar em Aplicar.",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "Sem limite",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "Sem trancar",
-    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "Sem instalar"
+    "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "Sem instalar",
+    "Sandbox_MinidoracatKnoxPassWatchSensing": "Módulos de relógio registrados abrem portões ao se aproximar",
+    "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "Requer o Minidoracat Relógio-Mapa. Ativado (padrão) = um portão abre sozinho quando alguém usando um relógio com um Módulo Sensor Knox Pass registrado nesse portão caminha em direção a ele.\nDesativado = sem detecção a pé, e a receita do módulo não pode ser feita; dirigindo e ao abrir com o botão direito, o módulo continua valendo.\nEntra em vigor assim que um administrador clicar em Aplicar.",
+    "Sandbox_MinidoracatKnoxPassWatchRange": "Alcance do módulo de relógio (quadrados)",
+    "Sandbox_MinidoracatKnoxPassWatchRange_tooltip": "Um portão abre quando alguém usando um módulo registrado caminha em direção a ele e está a até esse número de quadrados da linha do portão.\nEntra em vigor assim que um administrador clicar em Aplicar."
 }

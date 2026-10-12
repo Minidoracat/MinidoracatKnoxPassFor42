@@ -13,5 +13,6 @@
     "MinidoracatKnoxPass.GateReader_Olive": "Lector de portón Knox Pass (Oliva)",
     "MinidoracatKnoxPass.GateReader_Navy": "Lector de portón Knox Pass (Azul marino)",
     "MinidoracatKnoxPass.GateReader_Orange": "Lector de portón Knox Pass (Naranja de seguridad)",
-    "MinidoracatKnoxPass.GateReader_Red": "Lector de portón Knox Pass (Rojo)"
+    "MinidoracatKnoxPass.GateReader_Red": "Lector de portón Knox Pass (Rojo)",
+    "MinidoracatKnoxPass.WatchModule": "Módulo sensor Knox Pass"
 }

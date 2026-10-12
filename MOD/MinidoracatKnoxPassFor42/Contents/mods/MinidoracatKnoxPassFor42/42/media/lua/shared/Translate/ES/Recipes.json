@@ -13,5 +13,6 @@
     "CraftKnoxPassGateReader_Navy": "Fabricar Lector de portón Knox Pass (Azul marino)",
     "CraftKnoxPassGateReader_Orange": "Fabricar Lector de portón Knox Pass (Naranja de seguridad)",
     "CraftKnoxPassGateReader_Red": "Fabricar Lector de portón Knox Pass (Rojo)",
-    "CraftKnoxPassBoomBarrierKit": "Fabricar Kit de barrera levadiza Knox Pass"
+    "CraftKnoxPassBoomBarrierKit": "Fabricar Kit de barrera levadiza Knox Pass",
+    "CraftKnoxPassWatchModule": "Fabricar Módulo sensor Knox Pass (para el reloj de mapa)"
 }

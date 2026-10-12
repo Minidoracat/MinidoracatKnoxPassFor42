@@ -13,5 +13,6 @@
     "MinidoracatKnoxPass.GateReader_Olive": "Knox Pass 대문 리더기 (올리브색)",
     "MinidoracatKnoxPass.GateReader_Navy": "Knox Pass 대문 리더기 (남색)",
     "MinidoracatKnoxPass.GateReader_Orange": "Knox Pass 대문 리더기 (안전 주황색)",
-    "MinidoracatKnoxPass.GateReader_Red": "Knox Pass 대문 리더기 (빨간색)"
+    "MinidoracatKnoxPass.GateReader_Red": "Knox Pass 대문 리더기 (빨간색)",
+    "MinidoracatKnoxPass.WatchModule": "Knox Pass 센서 모듈"
 }
