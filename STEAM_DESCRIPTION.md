@@ -9,7 +9,7 @@
 [list]
 [*] 必裝 UI 框架：[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library[/url]
 [*] [b]選裝：[/b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3816406671]Minidoracat 小地圖 - 地圖手錶[/url]（戴著 Knox Pass 感應模組走近大門就開）
-[*] [b]中途加入／移除：[/b]可加入；移除前請先看完整說明，否則上鎖的門會打不開
+[*] [b]中途加入／移除：[/b]可加入；多人伺服器開過的存檔不能移除，否則所有玩家都進不了世界（原版 B42 機制）；單人移除前請先看完整說明，否則上鎖的門會打不開
 [*] [b]介面語言：[/b]繁體中文、简体中文、English、日本語、한국어、Русский、Español、Português、Türkçe、Français、Polski、Deutsch（翻譯有問題請回報）
 [/list]
 

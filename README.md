@@ -150,6 +150,7 @@ Project Zomboid Build 42 MOD。
 
 - Steam Workshop：[Minidoracat Knox Pass](https://steamcommunity.com/sharedfiles/filedetails/?id=3814684002)（ID 3814684002）
 - 手動安裝：把 `MOD/MinidoracatKnoxPassFor42/Contents/mods/MinidoracatKnoxPassFor42` 複製到 `%USERPROFILE%\Zomboid\mods\` 並將資料夾改名為 `MinidoracatKnoxPassFor42`
+- **不能從多人伺服器開過的存檔移除**：伺服器裝著本 MOD 開過一次存檔，之後再拿掉，伺服器照常啟動，但所有玩家（含 Host 開房的房主）連線時都會出現錯誤、進不了世界（玩家 `console.txt` 有 `Missing dictionary script on client: Base.MinidoracatKnoxPass…`）。這是原版 B42 的機制：遊戲把建造選單物件（閘門、捲門與大門）的名稱記進存檔的世界字典，之後要求每位玩家的遊戲都有這些名稱；所有用原版建造選單加家具或建築的 MOD 都一樣，本 MOD 清不掉這筆紀錄，沒蓋過、拆掉都一樣。把本 MOD 裝回伺服器（`Mods=` 與 `WorkshopItems=`）即可恢復；一定要移除只能開新存檔。不要刪存檔裡的 WorldDictionary 檔：物品靠它的編號對應，刪掉後整個世界的物品都會對不上。單人存檔可以移除，步驟見完整說明常見問題「要移除本 MOD？」。
 
 ## 開發
 

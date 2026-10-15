@@ -9,7 +9,7 @@
 [list]
 [*] UIフレームワーク（必須）：[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library[/url]
 [*] [b]任意：[/b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3816406671]Minidoracat ミニマップ - マップウォッチ[/url]（ウォッチに Knox Pass センサーモジュールを付けると、歩いて近づくだけでゲートが開きます）
-[*] [b]途中追加・削除：[/b]追加は可能。外す前にガイドをお読みください。そのままだと施錠した門が開かなくなります
+[*] [b]途中追加・削除：[/b]追加は可能。一度サーバーで導入したマルチプレイのワールドからは外せません。外すと全プレイヤーがワールドに入れなくなります（B42 本体の仕様）。シングルプレイで外す前にはガイドをお読みください。そのままだと施錠した門が開かなくなります
 [*] [b]対応言語：[/b]繁體中文、简体中文、English、日本語、한국어、Русский、Español、Português、Türkçe、Français、Polski、Deutsch（翻訳の問題はお知らせください）
 [/list]
 

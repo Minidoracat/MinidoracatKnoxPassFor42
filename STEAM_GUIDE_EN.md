@@ -355,10 +355,19 @@ Check that:
 [/list]
 [h3]Removing this mod?[/h3]
 [list]
-[*] First turn off "Lock (only Knox Pass opens it)" on every locked gate, or take its reader back; otherwise the gate stays locked after removal and can only be broken down unless someone has its original key.
-[*] Also dismantle Knox Pass barriers, roll-up doors and gates first, as they may not display or work after removal.
+[*] [b]Not from a multiplayer world the server has run with it[/b]: taking it out still lets the server start, but every player (a Host's own player too) gets an error when joining and can't load the world.
+[*] [b]This is vanilla B42 behavior[/b]: the game records the names of build-menu objects (here, the Knox Pass barriers, roll-up doors and gates) in the world's dictionary and from then on requires every player's game to have them. Every mod that adds furniture or structures through the vanilla build menu works the same way; it isn't caused by this mod's code, and this mod can't clear that record from the save.
+[*] [b]Building one doesn't matter[/b]: it happens even if none was ever built; dismantling them doesn't help either, because the dictionary stores names, not placed objects.
+[*] [b]What the error looks like[/b]: the player's console.txt has Missing dictionary script on client: followed by a name starting with Base.MinidoracatKnoxPass.
+[*] [b]To recover[/b]: put the mod back on the server (in both Mods= and WorkshopItems=) and players can join again; to remove it for good, start a new world.
+[*] [b]Don't delete the save's WorldDictionary file[/b]: items in the save are stored by its ID numbers, so every item in the world would stop matching.
+[*] [b]Single-player worlds can drop it[/b]; before removing:
+[list]
+[*] Turn off "Lock (only Knox Pass opens it)" on every locked gate, or take its reader back; otherwise the gate stays locked after removal and can only be broken down unless someone has its original key.
+[*] Also dismantle Knox Pass barriers, roll-up doors and gates, as they may not display or work after removal.
+[*] Take sensor modules out of Map Watches too; after removal they can't be taken out and keep the slot taken.
 [*] Tags in cars and all other Knox Pass items disappear.
-[*] Take sensor modules out of Map Watches first, too; after removal they can't be taken out and keep the slot taken.
+[/list]
 [/list]
 === 💬 Feedback
 [list]
