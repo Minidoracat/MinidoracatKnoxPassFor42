@@ -93,15 +93,19 @@ local function syncDoor(p) p:syncIsoObject(false, 0, nil, nil) end
 -- 會把那片當下的開關回送伺服器（:1811-1822、:2013-2023），伺服器照單全收、轉給其他附近客戶端（:1845-1856）。
 -- 客戶端一卡，晚到的回送就把門翻回去，附近兩人以上時互相觸發（正式服 2026-10-11，0.3.0：九格閘門附近 4–5 條連線
 -- 各 200–1914 包/秒，多數人斷線）。鎖不變，客戶端沒有片要改，就不回送。
--- 尋路用 setSquareChanged（IsoGridSquare.java:4734-4739，內含 toggle 呼叫的 PolygonalMap2.squareChanged，後者沒曝露給 Lua）。
+-- 尋路用 setSquareChanged（IsoGridSquare.java:4734-4739，內含 toggle 呼叫的 PolygonalMap2.squareChanged，後者沒曝露給 Lua），
+-- 它也通知室內判定（IsoRegions.squareChanged）：照原版放、拆東西（IsoGridSquare.java:5810、5846）先記下翻之前的位元，
+-- 位元變了才重算這格。不先記的話，比的是上一個呼叫者留下的靜態值（IsoRegions.java:301-320），剛好相同就漏掉；
+-- 位元沒變（模型門、閘門的車道片沒有牆屬性）也不會每片都重算、存檔並廣播給所有客戶端（IsoRegionWorker.java:242-262）。
 -- 開關聲在錨點那格播（playServerSound 送給約 10 格內的人，LuaManager.java:3892-3894、GameServer.java:2136-2154）：
 -- 原版靠封包裡的開關者 ID 在他身上播（IsoDoor.java:1776-1806），這個 ID 只有 ToggleDoorActual 寫得到（:1502-1505）。
 -- 不查擋車：呼叫端關門前先看 isBlocked（同 toggleGarageDoor，AGENTS.md 踩坑錄）
 local function setGarageOpen(anchor, open)
     for _, p in ipairs(garagePieces(anchor)) do
         if p:IsOpen() ~= open then
-            p:ToggleDoorSilent()
             local sq = p:getSquare()
+            IsoRegions.setPreviousFlags(sq)
+            p:ToggleDoorSilent()
             sq:RecalcAllWithNeighbours(true)
             sq:setSquareChanged()
             p:invalidateRenderChunkLevel(256)
@@ -113,6 +117,42 @@ local function setGarageOpen(anchor, open)
         playServerSound(sound, anchor:getSquare())
     else
         anchor:getSquare():playSound(sound)
+    end
+end
+
+-- ── 室內判定（IsoRegions）────────────────────────────────────────────────
+-- 自建屋算不算室內看引擎的 IsoRegions（封閉且每格有屋頂才是 isPlayerRoom，IsoWorldRegion.java:146-158；MP 體溫在伺服器算）。
+-- 每格的牆位元只在有人呼叫 IsoRegions.squareChanged 時重算，原版開關門都不呼叫：右鍵選單（ISOpenCloseDoor:complete →
+-- ToggleDoor → toggleGarageDoor，IsoDoor.java:1582-1590、3344-3366）、客戶端送來的 SyncIsoObject（會開門的殭屍，:1832-1834）。
+-- 原版車庫門片（walls_garage_01）關著有牆屬性、開著沒有，這些路徑開關後判定就停在舊狀態，重開服也不會更正
+-- （區塊只在第一次載入時讀，IsoRegionWorker.readSurroundingChunks）。
+-- 位元照 IsoRegions.calculateSquareFlags（IsoRegions.java:322-349；它是 protected，Lua 叫不到）
+local function regionFlags(sq)
+    local f = sq:has(IsoFlagType.solidfloor) and 16 or 0
+    if sq:has(IsoFlagType.cutN) or sq:has(IsoObjectType.doorFrN) then
+        f = f + ((sq:has(IsoFlagType.WindowN) or sq:has(IsoFlagType.windowN) or sq:has(IsoFlagType.DoorWallN)) and 5 or 1)
+    end
+    if not sq:has(IsoFlagType.WallSE) and (sq:has(IsoFlagType.cutW) or sq:has(IsoObjectType.doorFrW)) then
+        f = f + ((sq:has(IsoFlagType.WindowW) or sq:has(IsoFlagType.windowW) or sq:has(IsoFlagType.DoorWallW)) and 10 or 2)
+    end
+    if sq:HasStairsNorth() or sq:HasStairsWest() then f = f + 32 end
+    return f
+end
+
+-- 伺服器：各片的格子現在該有的位元和引擎記著的（getSquareFlags，沒有資料回 -1）不同，才重算那一格。
+-- 重算一格會存檔並把整塊區域資料廣播給所有客戶端（IsoRegionWorker.java:242-262），所以只在對不上時呼叫。
+-- squareChanged 只在位元和靜態 previousFlags 不同時排工作，setPreviousFlags(nil) 把它歸 0（calculateSquareFlags(null)＝0）
+-- ponytail: 位元 0 的格（沒地板、門片開著）排不進去、維持原狀；真遇到再找別的方法讓 previousFlags 不等於 0
+function G.syncRegions(pieces)
+    for i = 1, #pieces do
+        local sq = pieces[i]:getSquare()
+        if sq then
+            local stored = IsoRegions.getSquareFlags(sq:getX(), sq:getY(), sq:getZ())
+            if stored ~= -1 and stored ~= regionFlags(sq) then
+                IsoRegions.setPreviousFlags(nil)
+                IsoRegions.squareChanged(sq)
+            end
+        end
     end
 end
 

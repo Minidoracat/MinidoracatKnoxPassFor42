@@ -22,7 +22,7 @@ S.FAIL_MS = 3000       -- 開不了（沒電、被釘板、被擋）時多久再
 S.MISSING_MS = 30000   -- 格子載入但門不在，持續多久才當作門被拆掉、刪除記錄
 S.PASSES_MS = 5000     -- 已授權大門清單沒變動時，多久補推一次給本人
 S.WALK_MS = 5000       -- 右鍵開門至少開這麼久才開始算延遲（人還要走到門口；延遲設 0 時人也走得過去）
-S.RELOCK_MS = 5000     -- 多久替關著的上鎖門補一次鎖（S.relock）
+S.RELOCK_MS = 5000     -- 多久替關著的上鎖門補一次鎖（S.relock）、核對一次室內判定（S.syncRegions）
 
 -- gateKey → { presence, retryAt, failAt, missingSince, by, holdUntil, cars }；
 -- cars＝這扇門範圍內每台登記車的通過紀錄（車輛 runtime id → { from, passed }），只在記憶體
@@ -485,6 +485,15 @@ function S.relock(gates)
     end
 end
 
+-- 室內判定跟上門現在的狀態（Gates.lua G.syncRegions）：原版右鍵、會開門的殭屍開關門都不通知引擎，Knox Pass 自己開關時
+-- 已經通知過（setGarageOpen），這裡補其他路徑。只看已載入的登記大門，位元對得上就什麼都不做
+function S.syncRegions(gates)
+    for _, rec in pairs(gates) do
+        local adapter, anchor = G.findAt(rec)
+        if adapter then G.syncRegions(G.pieces(adapter, anchor)) end
+    end
+end
+
 function S.tick()
     local now = getTimestampMs()
     if now - lastScan < S.SCAN_MS then return end
@@ -505,6 +514,7 @@ function S.tick()
     if now - lastRelock >= S.RELOCK_MS then
         lastRelock = now
         S.relock(gates)
+        S.syncRegions(gates)
         if isServer() then KP.eachPlayer(L.seenPlayer) end   -- 共同管理者的候選：伺服器認得的玩家（Ledger.lua）
     end
 end

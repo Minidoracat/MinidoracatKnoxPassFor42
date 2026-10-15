@@ -141,6 +141,7 @@ local function newWorld()
         customLockTx = 0, garageBlocked = 0, removedObjs = 0, invalidated = 0, dropped = {}, onLoadSprite = {},
         vehicleQueries = 0, postTx = 0, paintUses = 0, modelFlags = 0, npe = {}, echoClosed = 0,
         echoQueued = 0, echoLagMs = 250, sounds = {},
+        regions = {}, prevFlags = 0, regionJobs = 0,   -- 引擎記著的室內判定位元（格子 key → 位元）、IsoRegions 的 previousFlags、排了幾次重算
     }
 end
 -- MapObjects.OnLoadWithSprite（Lua/MapObjects.java:134-176）：記下回呼，loadSprites() 模擬區塊載入時逐物件呼叫
@@ -530,7 +531,7 @@ function Square:transmitRemoveItemFromSquare(o, safelyRemove)
     end
 end
 function Square:RecalcAllWithNeighbours() end
-function Square:setSquareChanged() end
+function Square:setSquareChanged() IsoRegions.squareChanged(self) end   -- IsoGridSquare.java:4734-4739（這裡只模擬室內判定那段）
 function Square:playSound(name) W.sounds[#W.sounds + 1] = { name = name, sq = self } end   -- IsoGridSquare.java:9738-9741（本機播）
 function playServerSound(name, sq) W.sounds[#W.sounds + 1] = { name = name, sq = sq, server = true } end   -- LuaManager.java:3892-3894
 function Square:AddTileObject(o)   -- IsoGridSquare.java:5851-5880（門柱讀頭模型用）
@@ -856,6 +857,48 @@ IsoDoor = {
         })
         syncView(d)
         return d
+    end,
+}
+
+-- 室內判定（IsoRegions）用到的 tile 屬性：地板一律有；原版車庫門片關著有 WallN／W，載入時補上 cutN／W（IsoWorld.java:901-906）；
+-- walls_garage_01 開著只有 doorN／W，industry_trucks_01 開著是 DoorWallN／W（連帶設 cut，IsoWorld.java:928-945）
+IsoFlagType = setmetatable({}, { __index = function(_, k) return k end })
+IsoObjectType = setmetatable({}, { __index = function(_, k) return "type." .. k end })
+function Square:has(flag)
+    if flag == "solidfloor" then return true end
+    for _, o in ipairs(self._objects) do
+        local sp = o.getSprite and o:getSprite()
+        local prefix, i = string.match(sp and sp:getName() or "", "^(.-)_(%d+)$")
+        local gd, open = garageProps(prefix, tonumber(i))
+        if gd and VANILLA_GARAGE[prefix] then
+            local side, industry = o._north and "N" or "W", prefix == "industry_trucks_01"
+            if flag == "cut" .. side and (industry or not open) then return true end
+            if flag == "DoorWall" .. side and industry and open then return true end
+        end
+    end
+    return false
+end
+function Square:HasStairsNorth() return false end
+function Square:HasStairsWest() return false end
+-- 引擎那一側（IsoRegions.java:241-349）：getSquareFlags 回記著的位元（沒有資料 -1）；squareChanged 位元和 previousFlags 不同才排
+-- 工作（這裡直接寫入、W.regionJobs 加一），排了就把 previousFlags 歸 0；setPreviousFlags(nil) 是 0；MP client 什麼都不做
+local function engineRegionFlags(sq)
+    if sq == nil then return 0 end
+    local f = 16
+    if sq:has("cutN") then f = f + (sq:has("DoorWallN") and 5 or 1) end
+    if sq:has("cutW") then f = f + (sq:has("DoorWallW") and 10 or 2) end
+    return f
+end
+IsoRegions = {
+    getSquareFlags = function(x, y, z) return W.regions[x .. "," .. y .. "," .. z] or -1 end,
+    setPreviousFlags = function(sq) W.prevFlags = engineRegionFlags(sq) end,
+    squareChanged = function(sq)
+        if isClient() then return end
+        local f = engineRegionFlags(sq)
+        if f == W.prevFlags then return end
+        W.regions[sq._x .. "," .. sq._y .. "," .. sq._z] = f
+        W.regionJobs = W.regionJobs + 1
+        W.prevFlags = 0
     end,
 }
 
@@ -3997,10 +4040,38 @@ local function scenarioRollDoor()
         and KP.Ledger.get(res.key).builtin == nil, "捲門照一般車庫門裝讀頭（不內建）")
     local v = makeVehicle(305.5, 101.5, { tag = 0.5 })
     register({ key = res.key, owner = owner }, v)
+    -- 室內判定（Gates.lua setGarageOpen、G.syncRegions；Sensor 每 5 秒巡一次）：建好時引擎算過這四格＝地板 16＋西牆 2
+    local function regions()
+        local t = {}
+        for y = 100, 103 do t[#t + 1] = IsoRegions.getSquareFlags(300, y, 0) end
+        return table.concat(t, ",")
+    end
+    for y = 100, 103 do W.regions["300," .. y .. ",0"] = 18 end
+    step()   -- 這一輪有巡檢
+    check(W.regionJobs == 0, "巡檢：引擎記著的位元和門的狀態一致時不重算（不存檔、不廣播區域資料）")
+    W.prevFlags = 16   -- 上一個呼叫者（別格放家具、位元沒變）留下的值，剛好等於門開著的位元
     driver(v)
     step()
     check(w[1]:IsOpen() and w[4]:IsOpen() and w[4]:getSprite():getName() == "walls_garage_01_56",
         "登記的車接近：四片一起開（原版開啟 sprite＋8）")
+    check(regions() == "16,16,16,16" and W.regionJobs == 4,
+        "Knox Pass 開門：每片翻之前先記位元，四格馬上變成缺口（不受別人留下的 previousFlags 影響）")
+    moveCar(v, v._x + 60, v._y)
+    step()   -- 開門的回送先到（客戶端收到建造時的鎖別變了）
+    local hand = newPlayer("hand", 300, 101)
+    w[4]:ToggleDoor(hand)
+    check(not w[1]:IsOpen() and regions() == "16,16,16,16", "（引擎）原版右鍵關門不通知室內判定：門關了，判定還是缺口")
+    runMs(5000)
+    check(regions() == "18,18,18,18" and W.regionJobs == 8, "5 秒內的巡檢補上：四格回到牆")
+    runMs(10000)
+    check(W.regionJobs == 8, "位元對得上之後，巡檢不再重算")
+    w[4]:ToggleDoor(hand)
+    runMs(5000)
+    check(w[1]:IsOpen() and regions() == "16,16,16,16", "原版右鍵開門：巡檢補成缺口")
+    -- 客戶端送來的 SyncIsoObject（會開門的殭屍在客戶端開關，伺服器照單全收）也不通知
+    W.echo = { { w[4], false, false, due = nowMs } }
+    runMs(5000)
+    check(not w[1]:IsOpen() and regions() == "18,18,18,18", "客戶端送來的關門（會開門的殭屍）：巡檢補成牆")
     clean(from, "車庫捲門")
 end
 
@@ -4574,6 +4645,7 @@ local function scenarioModelGates()
     moveCar(v, v._x, v._y + 40)
     runMs(3000)
     check(not gc.lanes[1]:IsOpen() and not gc.lanes[6]:IsOpen(), "車開走後關上")
+    check(W.regionJobs == 0, "模型門開關：門片沒有牆屬性、位元不變，不重算室內判定（不存檔、不廣播區域資料）")
 
     -- 拆除與打壞：整座一起移除、帳本刪除、柱面讀頭拿掉；拆除只退被拆那一端的材料
     local pipes = W.dropped["Base.MetalPipe"] or 0
