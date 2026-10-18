@@ -1,0 +1,5 @@
+# 逐一查證後豁免的 finding（每行一個子字串樣式）。新增條目前必須先查證，並在上一行註明依據。
+
+# Client.lua 只在「重新上色」缺油漆的提示用：fullType 是 KP.COLORS[].paint（shared/MinidoracatKnoxPass/Core.lua，
+# 固定 7 種 Base.Paint*，原版腳本沒有 VehicleType），不會是車輛零件
+getItemNameFromFullType in client/MinidoracatKnoxPass/Client.lua:
