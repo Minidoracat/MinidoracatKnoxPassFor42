@@ -50,6 +50,13 @@ local function wrap(s, w)
     return { s }
 end
 
+-- 提示框的文字：原版 ISToolTip 照 300 px 自動換行、不管行首禁則（會把「打不壞）」拆成「打不／壞）」）。先用框架的
+-- UI.Text.wrap 照提示框的字型（ISToolTip.GetFont）折好、用 \n 接起來，ISButton.updateTooltip 看到 \n 就不再換行（ISButton.lua:326-327）
+local function tipText(s, w)
+    if not (UI.Text and type(UI.Text.wrap) == "function") then return s end
+    return table.concat(UI.Text.wrap(s, w, ISToolTip.GetFont()), "\n")
+end
+
 local function drawLines(el, lines, x, y, lineH, token)
     for i = 1, #lines do text(el, lines[i], x, y + (i - 1) * lineH, token) end
 end
@@ -144,7 +151,8 @@ Co.__index = Co
 Win.Co = Co     -- E2E 與報告情境取用名單視窗（Win.Co.instance）
 
 local LABELS = { "IGUI_KnoxPass_Kind", "IGUI_KnoxPass_Owner", "IGUI_KnoxPass_Power", "IGUI_KnoxPass_Door",
-    "IGUI_KnoxPass_Range", "IGUI_KnoxPass_Delay", "IGUI_KnoxPass_Speed", "IGUI_KnoxPass_Share", "IGUI_KnoxPass_Managers" }
+    "IGUI_KnoxPass_Durability", "IGUI_KnoxPass_Range", "IGUI_KnoxPass_Delay", "IGUI_KnoxPass_Speed", "IGUI_KnoxPass_Share",
+    "IGUI_KnoxPass_Managers" }
 -- 分享對象（伺服器 rec.share，沒分享是 "none"）的選項文字；順序就是下拉選單的順序
 local SHARES = { { id = "none", key = "IGUI_KnoxPass_ShareNone" }, { id = "faction", key = "IGUI_KnoxPass_ShareFaction" },
     { id = "safehouse", key = "IGUI_KnoxPass_ShareSafehouse" }, { id = "both", key = "IGUI_KnoxPass_ShareBoth" } }
@@ -167,8 +175,22 @@ local function hideRange(w)
     w.marker = nil
 end
 
-function Win.new()
-    local self = setmetatable({ rows = {}, state = nil, page = "tags", picked = {}, tagRows = {}, nearRows = {} }, Win)
+-- 「不會被破壞」只有管理員能改（伺服器 H.settings 的 adminOf；SP 只有一位玩家，一律算）。一般玩家的視窗不放這個開關，
+-- 耐久那一列滑過去說明管理員怎麼開。視窗照打開的人建，身分變了（升降權）下次打開時重建（ensure）
+local function canShield(player) return not isClient() or KP.hasAdminRole(player) end
+
+-- 耐久那一列的滑鼠提示：透明面板蓋在那一列，借原版 ISButton.updateTooltip（hover 時建 ISToolTip、離開收掉，
+-- ISButton.lua:316-346；UI 框架 Controls.lua updateTooltip 同法）。視窗關掉時 ISToolTip 自己收（ISToolTip.lua:58-59）
+local Tip = ISPanel:derive("KnoxPassTip")
+function Tip:prerender() end
+function Tip:update()
+    ISPanel.update(self)
+    ISButton.updateTooltip(self)
+end
+
+function Win.new(admin)
+    local self = setmetatable({ rows = {}, state = nil, page = "tags", picked = {}, tagRows = {}, nearRows = {}, admin = admin },
+        Win)
     local fh = getTextManager():getFontHeight(FS)
     local ch = fh + 10
     self.fh, self.lineH = fh, fh + 6
@@ -187,15 +209,21 @@ function Win.new()
         getText("IGUI_KnoxPass_SpeedUnsupported"), getText("IGUI_KnoxPass_ShareHint"), getText("IGUI_KnoxPass_ManagersHint") }) do
         aside = math.max(aside, tm:MeasureStringX(FS, t))
     end
-    for _, k in ipairs({ "IGUI_KnoxPass_NoPower", "IGUI_KnoxPass_PowerNotNeeded" }) do
-        info = math.max(info, tm:MeasureStringX(FS, getText(k)))
+    for _, t in ipairs({ getText("IGUI_KnoxPass_NoPower"), getText("IGUI_KnoxPass_PowerNotNeeded"),
+        getText("IGUI_KnoxPass_DurabilityShielded"), getText("IGUI_KnoxPass_DurabilityValue", "2500", "2500") }) do
+        info = math.max(info, tm:MeasureStringX(FS, t))
     end
-    -- 門鎖與手錶步行感應兩個開關的標籤（含不支援、不准上鎖、伺服器沒開放）：開關 36 px＋間距 8 px
-    -- （UI 框架 Controls.lua:615-616 TOGGLE_WIDTH、LABEL_GAP）。沒裝地圖手錶就不建步行感應那一列
+    -- 門鎖、手錶步行感應與不會被破壞（只有管理員的視窗有）三個開關的標籤（含不支援、不准上鎖、伺服器沒開放）：
+    -- 開關 36 px＋間距 8 px（UI 框架 Controls.lua:615-616 TOGGLE_WIDTH、LABEL_GAP）。沒裝地圖手錶就不建步行感應那一列
     local hasWalk = KP.watchRegistered()
     local toggle = 0
-    for _, k in ipairs({ "IGUI_KnoxPass_Lock", "IGUI_KnoxPass_LockUnsupported", "IGUI_KnoxPass_LockSafehouseOnly",
-        "IGUI_KnoxPass_Walk", "IGUI_KnoxPass_WalkOff" }) do
+    local toggleKeys = { "IGUI_KnoxPass_Lock", "IGUI_KnoxPass_LockUnsupported", "IGUI_KnoxPass_LockSafehouseOnly",
+        "IGUI_KnoxPass_Walk", "IGUI_KnoxPass_WalkOff" }
+    if admin then
+        toggleKeys[#toggleKeys + 1] = "IGUI_KnoxPass_Indestructible"
+        toggleKeys[#toggleKeys + 1] = "IGUI_KnoxPass_IndestructibleAll"
+    end
+    for _, k in ipairs(toggleKeys) do
         toggle = math.max(toggle, tm:MeasureStringX(FS, getText(k)))
     end
     -- 分頁列：兩個分頁（數字取最寬的情況）、「全選」與動作鈕。按鈕寬取兩種標題較寬的，換標題不跳動
@@ -207,8 +235,9 @@ function Win.new()
         tm:MeasureStringX(FS, getText("IGUI_KnoxPass_UnregisterN", "64"))) + 20
     W = math.max(460, PAD * 2 + self.labelW + math.max(DD_W + 10 + aside, info), PAD * 2 + tabsW + GAP * 2 + allW + actW,
         PAD * 2 + 36 + 8 + toggle)
-    -- 高度跟字型走：資訊四列＋門鎖（與步行感應）與五列設定（含共同管理）＋說明＋分頁列＋清單＋頁尾
-    local bodyH = PAD + self.lineH * 4 + (ch + GAP) * (hasWalk and 7 or 6) + self.lineH + GAP + ch + GAP + self.listH
+    -- 高度跟字型走：資訊五列＋門鎖（與步行感應、管理員的不會被破壞）與五列設定（含共同管理）＋說明＋分頁列＋清單＋頁尾
+    local toggles = 1 + (hasWalk and 1 or 0) + (admin and 1 or 0)
+    local bodyH = PAD + self.lineH * 5 + (ch + GAP) * (toggles + 5) + self.lineH + GAP + ch + GAP + self.listH
         + PAD + ch + PAD
     local sw, sh = getCore():getScreenWidth(), getCore():getScreenHeight()
     self.win = UI.Window.new({ x = math.floor((sw - W) / 2), y = math.floor((sh - bodyH) / 2) - 20, width = W,
@@ -228,7 +257,7 @@ function Win.new()
 
     local y = PAD
     self.infoY = y
-    y = y + self.lineH * 4 -- 種類、擁有者、供電、門
+    y = y + self.lineH * 5 -- 種類、擁有者、供電、門、耐久
     self.lock = UI.Checkbox.new({ x = PAD, y = y, width = W - PAD * 2, label = getText("IGUI_KnoxPass_Lock"),
         theme = theme, target = self, onChange = Win.onLock })
     body:addChild(self.lock)
@@ -238,6 +267,20 @@ function Win.new()
             theme = theme, target = self, onChange = Win.onWalk })
         body:addChild(self.walk)
         y = y + ch + GAP
+    end
+    -- 不會被破壞：只有管理員的視窗有這個開關；一般玩家看耐久那一列（寫「不會被破壞」，滑過去說明管理員怎麼開）
+    if admin then
+        self.indestructible = UI.Checkbox.new({ x = PAD, y = y, width = W - PAD * 2,
+            label = getText("IGUI_KnoxPass_Indestructible"), theme = theme, target = self, onChange = Win.onIndestructible })
+        body:addChild(self.indestructible)
+        y = y + ch + GAP
+    else
+        local tip = Tip:new(PAD, self.infoY + self.lineH * 4, W - PAD * 2, self.lineH)
+        tip:initialise()
+        tip.background = false
+        tip.tooltip = tipText(getText("IGUI_KnoxPass_DurabilityTip"), W - PAD * 2)
+        body:addChild(tip)
+        self.durabilityTip = tip
     end
 
     -- 每扇門的感應距離、關門延遲、開關速度與分享對象：距離與延遲只列沙盒上下限內的值；框架沒有 Dropdown 時 draw 只寫目前的值。
@@ -355,6 +398,13 @@ end
 -- 設定各列跟著 state 走（被拒時也用來回到伺服器的值）：設了值就選生效值（上下限縮小後是夾過的值），沒設選預設。
 -- 開關速度只有錨點有加速版模型的門能選（state.speedSupported），其他門停用並寫明；分享對象右邊寫分享出去的是什麼
 function Win:applySettings(s)
+    -- 不會被破壞（生效值；只有管理員的視窗有開關）：沙盒對所有大門開著時打勾並停用，標籤寫原因
+    if self.indestructible then
+        self.indestructible:setChecked(s.indestructible == true, true)
+        self.indestructible:setEnabled(s.isAdmin == true and s.indestructibleAll ~= true)
+        self.indestructible:setLabel(getText(s.indestructibleAll and "IGUI_KnoxPass_IndestructibleAll"
+            or "IGUI_KnoxPass_Indestructible"))
+    end
     self.btnManagers:setTitle(managersSummary(s))
     self.btnManagers:setEnabled(true)
     self.managersAside = getText("IGUI_KnoxPass_ManagersHint")
@@ -401,6 +451,9 @@ function Win:apply(s)
     elseif s.powered then rows[3], self.powerToken = getText("IGUI_KnoxPass_Powered"), "text"
     else rows[3], self.powerToken = getText("IGUI_KnoxPass_NoPower"), "errorText" end
     rows[4] = getText(s.open and "IGUI_KnoxPass_DoorOpen" or "IGUI_KnoxPass_DoorClosed")
+    -- 耐久：剩下耐久最少的那一片（伺服器 S.durability，墊高的照墊之前的值）；不會被破壞時不寫數字
+    rows[5] = s.indestructible and getText("IGUI_KnoxPass_DurabilityShielded")
+        or s.hp and getText("IGUI_KnoxPass_DurabilityValue", tostring(s.hp), tostring(s.hpFull)) or "?"
     -- 已登記＝車＋手錶模組；附近＝還沒登記的車＋15 格內戴著模組的人（列表是 state 裡的表，就地標上種類與勾選鍵）
     local tags = {}
     for _, row in ipairs(s.tags or {}) do tags[#tags + 1] = row end
@@ -451,6 +504,10 @@ function Win:reset()
     self.list:setItems({})
     self.lock:setChecked(false, true)
     self.lock:setEnabled(false)
+    if self.indestructible then
+        self.indestructible:setChecked(false, true)
+        self.indestructible:setEnabled(false)
+    end
     self.btnManagers:setEnabled(false)
     if self.walk then self.walk:setEnabled(false) end
     if self.rangeDD then
@@ -494,11 +551,11 @@ end
 function Win:draw(el)
     local s = self.state
     -- 設定四列與下拉選單同高（高 fh+10，文字下移 5 置中）；標籤在讀取中與讀取失敗時也畫，停用的選單看得出是什麼
-    text(el, self.labels[5], PAD, self.rangeY + 5, "textMuted")
-    text(el, self.labels[6], PAD, self.delayY + 5, "textMuted")
-    text(el, self.labels[7], PAD, self.speedY + 5, "textMuted")
-    text(el, self.labels[8], PAD, self.shareY + 5, "textMuted")
-    text(el, self.labels[9], PAD, self.managersY + 5, "textMuted")
+    text(el, self.labels[6], PAD, self.rangeY + 5, "textMuted")
+    text(el, self.labels[7], PAD, self.delayY + 5, "textMuted")
+    text(el, self.labels[8], PAD, self.speedY + 5, "textMuted")
+    text(el, self.labels[9], PAD, self.shareY + 5, "textMuted")
+    text(el, self.labels[10], PAD, self.managersY + 5, "textMuted")
     if not s then
         if self.failed then
             drawLines(el, self.failed, PAD, self.infoY, self.lineH, "errorText")
@@ -509,7 +566,7 @@ function Win:draw(el)
         return
     end
     local valueX = PAD + self.labelW
-    for i = 1, 4 do
+    for i = 1, 5 do
         local y = self.infoY + (i - 1) * self.lineH
         text(el, self.labels[i], PAD, y, "textMuted")
         text(el, self.rows[i], valueX, y, i == 3 and self.powerToken or "text")
@@ -557,6 +614,11 @@ end
 -- 手錶步行感應：這扇門要不要讓已登記的模組走近就開（開車與右鍵不受影響）
 function Win:onWalk(checked)
     C.send(self.player, "settings", { key = self.key, walk = checked == true })
+end
+
+-- 不會被破壞：只有管理員能改（伺服器回 AdminOnly 時 Win.onResult 照 state 改回）
+function Win:onIndestructible(checked)
+    C.send(self.player, "settings", { key = self.key, indestructible = checked == true })
 end
 
 -- 換分頁：勾選清空、捲回頂端；附近的車會動，換到附近就重讀（伺服器重新量距離與電量）
@@ -828,9 +890,14 @@ end
 
 -- ── 入口（Client.lua 呼叫）──────────────────────────────────────────────
 
-local function ensure()
-    if Win.instance then return Win.instance end
-    local w = Win.new()
+local function ensure(admin)
+    local w = Win.instance
+    if w and w.admin == admin then return w end
+    if w then   -- 身分變了：舊視窗收掉，照新身分重建（版面在 Win.new 定好）
+        w.win:close()
+        w.win:removeFromUIManager()
+    end
+    w = Win.new(admin)
     -- 固定字串建立時取一次，draw 不查譯文（資訊列與設定列的標籤在 Win.new 量寬度時就取了）
     w.loading = getText("IGUI_KnoxPass_Loading")
     w.retryHint = getText("IGUI_KnoxPass_RetryHint")
@@ -845,7 +912,7 @@ local function ensure()
 end
 
 function Win.open(player, anchor, key)
-    local w = ensure()
+    local w = ensure(canShield(player))
     local sq = anchor:getSquare()
     w.player, w.anchor, w.key = player, anchor, key
     w.ax, w.ay, w.gz = sq:getX(), sq:getY(), sq:getZ()

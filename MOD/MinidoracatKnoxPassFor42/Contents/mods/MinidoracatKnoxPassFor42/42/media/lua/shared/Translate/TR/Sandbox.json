@@ -29,6 +29,8 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "Sınırsız",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "Kilitlenemez",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "Takılamaz",
+    "Sandbox_MinidoracatKnoxPassIndestructible": "Okuyuculu kapılar kırılamaz",
+    "Sandbox_MinidoracatKnoxPassIndestructible_tooltip": "Etkinse Knox Pass okuyucusu takılı kapılar (bariyerde okuyucu yerleşiktir) ve uçlarındaki kabinler ile direkler zombilerle ya da silahlarla kırılamaz. Zombiler yine de vurur ve gürültü yakındaki zombileri çekmeye devam eder.\nDevre dışıysa (varsayılan) orijinal oyundaki gibidir. Yöneticiler bunu okuyucu penceresinden tek tek kapılar için de açabilir.\nYalnızca kapının kendisini kapsar: duvarlar orijinal oyunun \"İnşa Hasarları\" ayarına, balyozlar sunucu ayarlarına uyar, ateş her zamanki gibi çalışır. Kapatıldığında ya da okuyucu söküldüğünde kapı önceki dayanıklılığına döner.\nBir yönetici Uygula'ya tıkladıktan yaklaşık 5 saniye sonra geçerli olur.",
     "Sandbox_MinidoracatKnoxPassWatchSensing": "Kayıtlı saat modülleri yaklaşınca kapıları açar",
     "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "Minidoracat Harita Saati gerekir. Etkinse (varsayılan) o kapıya kayıtlı bir Knox Pass Sensör Modülü takılı saati olan biri kapıya doğru yürüdüğünde kapı kendiliğinden açılır.\nDevre dışıysa yürürken algılama olmaz ve modül tarifi uygulanamaz; araç kullanırken ve sağ tıkla açarken modül yine tanınır.\nBir yönetici Uygula'ya tıkladığı anda geçerli olur.",
     "Sandbox_MinidoracatKnoxPassWatchRange": "Saat modülü menzili (kare)",

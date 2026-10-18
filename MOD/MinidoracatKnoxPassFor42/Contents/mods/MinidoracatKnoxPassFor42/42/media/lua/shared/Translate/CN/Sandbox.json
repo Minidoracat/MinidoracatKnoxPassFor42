@@ -29,6 +29,8 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "不限制",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "不能上锁",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "不能安装",
+    "Sandbox_MinidoracatKnoxPassIndestructible": "装了读头的门不会被破坏",
+    "Sandbox_MinidoracatKnoxPassIndestructible_tooltip": "开启＝装了 Knox Pass 读头的门（升降闸门的读头是内置的）不会被丧尸拍坏，也不会被武器打坏，闸门两端的机箱、门柱也一样；丧尸照样会拍门，拍门声照样会引来附近的丧尸。\n关闭（默认）＝按原版。管理员另外可以在读头管理窗口为个别的门开启。\n只管门本身：墙壁按原版沙盒「损毁建筑物」，破墙大锤按服务器设置，火烧按原版。关闭或拆下读头后，门恢复到开启前的耐久。\n管理员按「应用」后约 5 秒内生效。",
     "Sandbox_MinidoracatKnoxPassWatchSensing": "已登记的手表模块走近就开门",
     "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "需要 Minidoracat 地图手表。开启（默认）＝戴着手表、装了在这扇门登记过的 Knox Pass 感应模块，走向大门时门会自己打开。\n关闭＝步行不感应，模块的配方也不能制作；开车与右键开门照样认得模块。\n管理员按「应用」后立即生效。",
     "Sandbox_MinidoracatKnoxPassWatchRange": "手表感应距离（格）",

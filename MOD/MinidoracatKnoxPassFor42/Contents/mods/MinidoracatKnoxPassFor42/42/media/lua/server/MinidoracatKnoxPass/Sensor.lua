@@ -2,6 +2,7 @@
 -- 已登記的大門就開門；戴著已登記模組的人走向門線也開（scanWalker）。
 -- 車和拖車整台通過門口後就不再撐住門，範圍內沒有撐門的車滿延遲秒數，把 Knox Pass 開的門關上並鎖回去。
 -- 感應距離與關門延遲每扇門可以不同（擁有者設定、夾在沙盒上下限內：KP.gateRange／KP.gateDelay）。
+-- 「不會被破壞」的門也在這裡墊高耐久（下方「不會被破壞」段）。
 -- 專用伺服器也會觸發 OnTick（GameServer.java:840,1020 → IngameState.java:1520,1563）；
 -- OnPlayerUpdate 在伺服器不觸發（IsoPlayer.java:2234-2286），所以走 OnTick＋玩家清單。
 if isClient() then return end
@@ -9,6 +10,7 @@ require "MinidoracatKnoxPass/Core"
 require "MinidoracatKnoxPass/Gates"
 require "MinidoracatKnoxPass/Ledger"
 require "MinidoracatKnoxPass/Watch"
+require "Moveables/ISMoveableSpriteProps"
 local KP = MinidoracatKnoxPass
 local G = KP.Gates
 local L = KP.Ledger
@@ -22,7 +24,7 @@ S.FAIL_MS = 3000       -- 開不了（沒電、被釘板、被擋）時多久再
 S.MISSING_MS = 30000   -- 格子載入但門不在，持續多久才當作門被拆掉、刪除記錄
 S.PASSES_MS = 5000     -- 已授權大門清單沒變動時，多久補推一次給本人
 S.WALK_MS = 5000       -- 右鍵開門至少開這麼久才開始算延遲（人還要走到門口；延遲設 0 時人也走得過去）
-S.RELOCK_MS = 5000     -- 多久替關著的上鎖門補一次鎖（S.relock）、核對一次室內判定（S.syncRegions）
+S.RELOCK_MS = 5000     -- 多久替關著的上鎖門補一次鎖（S.relock）、核對一次室內判定（S.syncRegions）與耐久（S.shieldAll）
 
 -- gateKey → { presence, retryAt, failAt, missingSince, by, holdUntil, cars }；
 -- cars＝這扇門範圍內每台登記車的通過紀錄（車輛 runtime id → { from, passed }），只在記憶體
@@ -494,7 +496,138 @@ function S.syncRegions(gates)
     end
 end
 
+-- ── 不會被破壞（沙盒 Indestructible、管理員替個別大門開的 rec.indestructible：KP.gateIndestructible）─────────
+-- 原版沒有讓門不受傷的開關：IsoDoor.Damage 直接扣 health（IsoDoor.java:1897-1905），殭屍拍門（:1197-1209）與武器（:1305-1308）
+-- 扣到 0 就拆掉整組（:1218-1240、:1359-1375）；IsoThumpable 同樣（IsoThumpable.java:1027-1088、:1161-1162、:1563-1566）。
+-- Lua 攔不到，所以把整扇門每一片（閘門與模型門連兩端：兩端被打壞整座移除，Barrier.lua）的 health 墊到 SHIELD_HP：
+-- 殭屍一下扣 1-5 點（超人另加圍著拍的數量×2，IsoDoor.java:1197-1204），武器一下幾百點，打不完。殭屍照樣會拍、拍門聲照樣
+-- 引來別的殭屍，只是拍不壞。health 在存檔與同步都是 int（IsoDoor.java:936-937、958-959、1693），getThumpCondition
+-- 夾在 maxHealth 以內（:1261-1263），拍門聲照滿格的門播。墊之前的 health 記在那一片的 modData（HP_KEY），不再打不壞時照它還原。
+-- 大錘照原版伺服器設定（SledgehammerOnlyInSafehouse，ISDestroyStuffAction.lua:120-127），火燒直接移除門
+-- （IsoGridSquare.java:6353-6356），都不看 health，擋不住。
+-- 雙開門第 2、3 片每次開關都刪掉重建、health 回到預設（IsoDoor.java:2892-2922），移除前觸發 OnObjectAboutToBeRemoved
+-- （IsoGridSquare.java:5745）：看到墊過的片被移除，下一個 tick 就重墊雙開門。其餘（剛開啟、剛載入、別的 MOD 改了 health、
+-- 客戶端送回舊的 health）由每 5 秒的巡檢補上。
+-- 錨點被移除（火燒、大錘、搬走）時帳本下一個 tick 就刪（ReaderPost.lua），但雙開門不會整扇一起走：火燒移那片連同側那片
+-- （伺服器 RemoveItemFromSquarePacket.java:158-159、SP RemoveTileObject，都經 IsoObjectUtils.java:83-96），打壞外側那片連旁邊
+-- 那片、中間片只拆自己（IsoDoor.java:3187-3205）。移除事件裡記下整扇，下一個 tick 移除做完了才還原還在世界上的片，不然沒有
+-- 讀頭也一直打不壞。不在事件裡同步：移除封包先送出（GameServer.java:2995-2996），客戶端先移掉的話，同步照索引套到同格遞補
+-- 上來的物件（GameClient.java:1630-1631）
+-- HP_KEY 在 modData，改過的客戶端改得到（ObjectModDataPacket.java:50-72），但它們本來就能直接送任意 health
+-- （IsoDoor.java:1757、1775；IsoThumpable.java:1852），防護等級＝原版
+S.SHIELD_HP = 1000000000   -- 10 億：比任何門的耐久大好幾個數量級，又在 int 範圍內
+local HALF = S.SHIELD_HP / 2
+local HP_KEY = "KnoxPassHp"
+
+local function hasHealth(o) return instanceof(o, "IsoDoor") or instanceof(o, "IsoThumpable") end
+
+-- IsoDoor 在伺服器上 setHealth 只改欄位（IsoDoor.java:2401-2403），照 Gates.lua syncDoor 手動同步。客戶端開關門、改鎖時
+-- 會把自己那份 health 送回伺服器、伺服器照收（:1693、1757、1775）：客戶端留著舊值的話，墊高的門被玩家一開關就沒墊；
+-- 還原過的門一開關又打不壞（拍門時伺服器每一下都同步，:1900-1903，附近客戶端拿到的是 10 億）。
+-- IsoThumpable 在伺服器上自己同步（IsoThumpable.java:281-288）
+local function setHealth(o, hp)
+    o:setHealth(hp)
+    if instanceof(o, "IsoDoor") then o:syncIsoObject(false, 0, nil, nil) end
+end
+
+local function shieldOne(o, on)
+    if not hasHealth(o) then return end
+    local hp = o:getHealth()
+    if on then
+        if hp < HALF then   -- 還沒墊（剛開啟、剛重建、被客戶端蓋回去）；墊過的被打掉不到一半不必動，也就不必每輪同步
+            local md = o:getModData()
+            if md[HP_KEY] == nil then md[HP_KEY] = hp end
+            setHealth(o, S.SHIELD_HP)
+        end
+        return
+    end
+    -- 有記錄就照它還原，沒墊高也一樣：開著時重建的 IsoThumpable 帶著記錄、health 回預設（IsoDoor.java:2899-2913），
+    -- 跟墊回去之後才關掉的結果相同
+    local md = o:hasModData() and o:getModData()
+    local to = md and tonumber(md[HP_KEY]) or hp >= HALF and o:getMaxHealth() or hp
+    if to ~= hp then setHealth(o, to) end
+    if md then md[HP_KEY] = nil end
+end
+
+-- 整扇門的物件：閘門與有兩端的模型門連兩端（兩端被打壞整座移除，Barrier.lua），其他門 G.pieces
+local function partsOf(adapter, anchor)
+    return KP.Barrier and KP.Barrier.parts(anchor) or G.pieces(adapter, anchor)
+end
+
+-- on＝nil 照這扇門現在的設定（KP.gateIndestructible）；拆讀頭時傳 false 還原
+function S.shield(rec, adapter, anchor, on)
+    if on == nil then on = KP.gateIndestructible(rec) end
+    for _, o in ipairs(partsOf(adapter, anchor)) do shieldOne(o, on) end
+end
+
+-- 已載入的登記大門照設定墊高或還原；kind＝只看這一種門（雙開門重建後）
+function S.shieldAll(gates, kind)
+    for _, rec in pairs(gates) do
+        if kind == nil or rec.kind == kind then
+            local adapter, anchor = G.findAt(rec)
+            if adapter then S.shield(rec, adapter, anchor) end
+        end
+    end
+end
+
+-- 管理視窗的耐久（Server.lua buildState）：整扇門剩下耐久最少的那一片（最先被打壞；閘門與模型門任一片壞就整座移除），
+-- 回 現在, 那一片的滿格。墊高的照墊之前的值（沙盒剛關、巡檢還沒還原的那幾秒也對）；滿格照 KP.Barrier.fullHealth，
+-- 其他照 getMaxHealth，至少是現在的值。沒有 health 的門回 nil
+function S.durability(adapter, anchor)
+    local parts = partsOf(adapter, anchor)
+    local hp, full = nil, nil
+    for _, o in ipairs(parts) do
+        if hasHealth(o) then
+            local h = o:getHealth()
+            if h >= HALF then h = o:hasModData() and tonumber(o:getModData()[HP_KEY]) or o:getMaxHealth() end
+            if hp == nil or h < hp then
+                hp, full = h, math.max(KP.Barrier and KP.Barrier.fullHealth(o, #parts, h) or o:getMaxHealth(), h)
+            end
+        end
+    end
+    return hp, full
+end
+
+local rebuilt, orphans = false, {}
+Events.OnObjectAboutToBeRemoved.Add(function(obj)
+    if not hasHealth(obj) then return end
+    if obj:getHealth() >= HALF then rebuilt = true end
+    -- 錨點（閘門整座一起移除，Barrier.lua）：記下整扇，S.tick 還原留下的片
+    if obj:hasModData() and obj:getModData()[KP.MARKER_OWNER] ~= nil and not KP.isBarrier(obj) then
+        local adapter, anchor = G.resolve(obj)
+        if anchor == obj then orphans[#orphans + 1] = { key = G.key(obj), parts = partsOf(adapter, obj) } end
+    end
+end)
+
+-- 墊過的 IsoThumpable 被搬起來（原版搬家具把 health 記進物品、放下時照它設，ISMoveableSpriteProps.lua:1306-1309、:1339-1341）：
+-- 記成墊之前的耐久，搬走的門才不會沒裝讀頭也一直打不壞
+local saveThumpable = ISMoveableSpriteProps.saveThumpableParameters
+function ISMoveableSpriteProps:saveThumpableParameters(t, obj)
+    saveThumpable(self, t, obj)
+    if obj:getHealth() >= HALF then
+        t.health = tonumber(obj:getModData()[HP_KEY]) or obj:getMaxHealth()
+        if type(t.modData) == "table" then t.modData[HP_KEY] = nil end
+    end
+end
+
 function S.tick()
+    if rebuilt then
+        rebuilt = false
+        local gates = L.gates()
+        if gates then S.shieldAll(gates, "Double") end
+    end
+    if #orphans > 0 then
+        local list = orphans
+        orphans = {}
+        for _, o in ipairs(list) do
+            local rec = L.get(o.key)
+            if not (rec and G.findAt(rec)) then   -- 錨點還在（沒真的移走）就照設定，交給巡檢
+                for _, p in ipairs(o.parts) do
+                    if p:getObjectIndex() ~= -1 then shieldOne(p, false) end
+                end
+            end
+        end
+    end
     local now = getTimestampMs()
     if now - lastScan < S.SCAN_MS then return end
     lastScan = now
@@ -515,6 +648,7 @@ function S.tick()
         lastRelock = now
         S.relock(gates)
         S.syncRegions(gates)
+        S.shieldAll(gates)
         if isServer() then KP.eachPlayer(L.seenPlayer) end   -- 共同管理者的候選：伺服器認得的玩家（Ledger.lua）
     end
 end

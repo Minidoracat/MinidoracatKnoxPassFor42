@@ -9,7 +9,7 @@ Put a tag in your car and a reader on your gate: drive up and the gate opens by 
 [list]
 [*] Requires the UI framework: [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3789836701]Minidoracat UI Library[/url]
 [*] [b]Optional:[/b] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3816406671]Minidoracat MiniMap - Map Watch[/url] (wear the Knox Pass Sensor Module and gates open as you walk up)
-[*] [b]Add/remove mid-save:[/b] safe to add; can't be removed from a multiplayer world the server has already run with it, or no player can load that world (vanilla B42 behavior); in single-player read the guide before removing it, or locked gates stay locked
+[*] [b]Add/remove mid-save:[/b] safe to add; can't be removed from a multiplayer world the server has already run with it, or no player can load that world (vanilla B42 behavior); in single-player read the guide before removing it, or locked gates stay locked and indestructible gates stay unbreakable
 [*] [b]Languages:[/b] 繁體中文, 简体中文, English, 日本語, 한국어, Русский, Español, Português, Türkçe, Français, Polski, Deutsch (please report any translation issues)
 [/list]
 
@@ -29,6 +29,7 @@ Put a tag in your car and a reader on your gate: drive up and the gate opens by 
 [*] [b]A real vehicle part[/b]: fits vanilla and modded cars, and moves with the tag to another car
 [*] [b]Per-gate registration[/b]: only the cars you register get through, and each gate has its own range, close delay, speed and lock
 [*] [b]Share with your team[/b]: share a gate with your faction or safehouse, or add co-managers to run it with you
+[*] [b]Zombie-proof gates[/b]: the server can make gates with a reader unbreakable by zombies and weapons, or admins can pick single gates
 [*] [b]7 shell colors[/b]: craft tags and readers in color with vanilla paint, or repaint the ones you have
 [*] [b]No crashes, no pinching[/b]: warns you ahead of a gate that won't open, and never closes on a car or a person
 [/list]

@@ -29,6 +29,8 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "No limit",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "No locking",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "No installing",
+    "Sandbox_MinidoracatKnoxPassIndestructible": "Gates with a reader can't be broken",
+    "Sandbox_MinidoracatKnoxPassIndestructible_tooltip": "Enabled = doors and gates with a Knox Pass reader (boom barriers have one built in) can't be broken by zombies or weapons, and neither can the cabinets and posts at their ends. Zombies still bang on them, and the noise still draws nearby zombies.\nDisabled (default) = vanilla behavior. Admins can also turn this on for single gates in the reader window.\nOnly the gate itself is covered: walls follow the vanilla \"Damage Construction\" option, sledgehammers follow the server settings, and fire works as usual. When this is turned off or the reader is removed, the gate gets back the durability it had before.\nTakes effect within about 5 seconds after an admin clicks Apply.",
     "Sandbox_MinidoracatKnoxPassWatchSensing": "Registered watch modules open gates on approach",
     "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "Needs the Minidoracat Map Watch. Enabled (default) = a gate opens by itself when someone wearing a watch with a Knox Pass Sensor Module registered at that gate walks toward it.\nDisabled = no sensing on foot and the module recipe can't be performed; driving and right-click opening still accept the module.\nTakes effect as soon as an admin clicks Apply.",
     "Sandbox_MinidoracatKnoxPassWatchRange": "Watch module range (tiles)",

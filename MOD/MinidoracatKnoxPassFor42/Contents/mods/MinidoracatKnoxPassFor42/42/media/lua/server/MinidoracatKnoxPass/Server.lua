@@ -70,10 +70,14 @@ local function limited(player)
     return h.n > RATE_MAX
 end
 
+-- 伺服器管理員（KP.hasAdminRole）；SP 只有一位玩家、沒有角色，一律算。「不會被破壞」只有管理員能改（H.settings）
+local function adminOf(player)
+    return not isServer() or KP.hasAdminRole(player)
+end
+
 -- 擁有者（名字＋安裝時記下的 SteamID）或管理員：拆讀頭、改共同管理者名單只看這個；SP 沒有擁有權問題
 local function ownerOrAdmin(player, rec)
-    if not isServer() then return true end
-    if KP.hasAdminRole(player) then return true end
+    if adminOf(player) then return true end
     local name, sid = KP.principal(player)
     if not name or name ~= rec.owner then return false end
     return rec.sid == nil or sid == rec.sid
@@ -222,7 +226,8 @@ local function buildState(player, key, rec)
     local delayLo, delayHi = KP.settingBounds("CloseDelay")
     -- 每扇門的設定：range／delay＝生效值；rangeSet／delaySet＝擁有者設的值（nil＝跟沙盒預設走）；上下限來自沙盒。
     -- cx／cy＝感應距離量起的中心（視窗在地上畫範圍圈）。共同管理者：個別帳號（照字母序）、陣營開關、擁有者現在的陣營名；
-    -- ownerOrAdmin＝能改共同管理者名單、能拆讀頭
+    -- ownerOrAdmin＝能改共同管理者名單、能拆讀頭；indestructible＝生效值（沙盒或這扇門），indestructibleAll＝沙盒對所有大門開著，
+    -- isAdmin＝能替這扇門開關「不會被破壞」
     local state = {
         key = key, kind = rec.kind, owner = rec.owner, lock = rec.lock == true,
         open = rec.open == true, needPower = KP.sandbox("RequirePower") == true, cx = rec.cx, cy = rec.cy,
@@ -234,6 +239,8 @@ local function buildState(player, key, rec)
         walk = rec.walk ~= false, walkSupported = KP.watchSensing(),   -- 這扇門的手錶步行感應（沒有＝開）
         ownerOrAdmin = ownerOrAdmin(player, rec), co = sortedNames(rec.co), coFaction = rec.coFaction == true,
         ownerFaction = factionName(rec.owner), maxManagers = KP.MAX_MANAGERS,
+        indestructible = KP.gateIndestructible(rec), indestructibleAll = KP.sandbox("Indestructible") == true,
+        isAdmin = adminOf(player),
     }
     local adapter, anchor = G.findAt(rec)
     if adapter then
@@ -241,6 +248,7 @@ local function buildState(player, key, rec)
         state.lockSupported = G.supportsLock(adapter)
         state.speedSupported = KP.speedSupported(anchor)
         state.lockAllowed = KP.lockAllowedAt(anchor:getSquare(), rec.owner)   -- 沙盒「安全屋外的讀頭」
+        state.hp, state.hpFull = S.durability(adapter, anchor)   -- 耐久：剩下最少的那一片（不會被破壞時視窗不寫數字）
     end
     local now = getGameTime():getWorldAgeHours()
     local near = {}
@@ -308,6 +316,7 @@ function KP.registerReader(adapter, anchor, name, sid, builtin, color)
     -- 標記仍要非 nil，client 才知道這扇門裝了讀頭（Client.lua onFillMenu、KnoxPassAPI.willOpenFor）
     mark(anchor, rec)
     KP.ReaderPost.attach(key, rec, adapter, anchor)
+    S.shield(rec, adapter, anchor)   -- 沙盒「不會被破壞」開著時，新裝的門馬上墊高耐久
     KP.log("reader installed key=" .. key .. " owner=" .. tostring(name) .. (builtin and " builtin" or ""))
     return key
 end
@@ -364,6 +373,7 @@ function H.uninstall(player, args)
             if rec.lock then G.unlockKnox(adapter, anchor, pieces) end
             if rec.keyed and not G.isOpen(adapter, anchor) then G.lock(adapter, anchor, pieces, false, rec.keyed) end
         end
+        S.shield(rec, adapter, anchor, false)   -- 不會被破壞的門還原耐久
         mark(anchor, nil)
     end
     L.remove(args.key)
@@ -497,8 +507,8 @@ function H.lock(player, args)
     KP.sendState(player, args.key)
 end
 
--- 每扇門的感應距離、關門延遲、開關速度與分享對象（擁有者或管理員、站在門邊）。值：整數＝新值（夾在沙盒上下限內），
--- "default"＝改回跟著沙盒預設，沒送＝不改。回傳 ok, 值（false＝改回預設、nil＝不改）
+-- 每扇門的感應距離、關門延遲、開關速度、分享對象、手錶步行感應與不會被破壞（能管理這扇門的人、站在門邊；不會被破壞只限管理員）。
+-- 值：整數＝新值（夾在沙盒上下限內），"default"＝改回跟著沙盒預設，沒送＝不改。回傳 ok, 值（false＝改回預設、nil＝不改）
 local function settingArg(v)
     if v == nil then return true, nil end
     if v == "default" then return true, false end
@@ -530,7 +540,10 @@ function H.settings(player, args)
     local okS, speed = speedArg(args.speed)
     local okH, share = shareArg(args.share)
     local okW = args.walk == nil or type(args.walk) == "boolean"   -- 手錶步行感應：true／false、沒送＝不改
-    if not (okR and okD and okS and okH and okW) then return result(player, cmd, false, "BadArgs", args.key) end
+    local okI = args.indestructible == nil or type(args.indestructible) == "boolean"   -- 不會被破壞：同上
+    if not (okR and okD and okS and okH and okW and okI) then return result(player, cmd, false, "BadArgs", args.key) end
+    -- 擁有者與共同管理者也改不了：誰都能替自己的門開的話，等於整台伺服器都開
+    if args.indestructible ~= nil and not adminOf(player) then return result(player, cmd, false, "AdminOnly", args.key) end
     -- 速度存在帳本，也標在錨點給 client 選動畫，所以門要載入
     local adapter, anchor = nil, nil
     if speed ~= nil then
@@ -546,9 +559,14 @@ function H.settings(player, args)
         rec.speed = speed or nil
         mark(anchor, rec)
     end
+    if args.indestructible ~= nil then
+        rec.indestructible = args.indestructible or nil
+        local a, an = G.findAt(rec)
+        if a then S.shield(rec, a, an) end   -- 門沒載入時由 Sensor 每 5 秒的巡檢補上
+    end
     KP.log("settings key=" .. args.key .. " range=" .. tostring(rec.range) .. " delay=" .. tostring(rec.closeDelay)
         .. " speed=" .. tostring(rec.speed) .. " share=" .. tostring(rec.share) .. " walk=" .. tostring(rec.walk ~= false)
-        .. " by=" .. tostring(player:getUsername()))
+        .. " indestructible=" .. tostring(rec.indestructible == true) .. " by=" .. tostring(player:getUsername()))
     result(player, cmd, true, nil, args.key)
     KP.sendState(player, args.key)
 end

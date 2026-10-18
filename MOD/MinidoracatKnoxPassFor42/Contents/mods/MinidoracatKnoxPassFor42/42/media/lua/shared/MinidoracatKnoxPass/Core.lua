@@ -33,6 +33,7 @@ KP.BARRIER_KIT = "MinidoracatKnoxPass.BoomBarrierKit"
 KP.BARRIER_MIRROR = 80
 KP.BARRIER_PLACEHOLDER = 160
 KP.BARRIER_HEALTH = 1000                          -- 新蓋閘門：機箱（entity health）與每片車道（setHealth）。IsoDoor 預設 500
+KP.FULL_HP_KEY = "KnoxPassFullHp"                 -- Knox Pass 蓋的車道建造時記下滿格耐久（Barrier.lua toGarageDoor、B.fullHealth）
 KP.BARRIER_ANIM_MS = 4000                         -- 臂的 clip 6 s ÷ speedDelta 1.5（IsoObjectAnimations.java:~281）
 KP.BARRIER_ANIM_FAST_MS = 2500                    -- 「加速」：*_fast 模型的 clip 3.75 s ÷ 1.5（build_barrier_tiles.py FAST_TILESET）
 KP.BARRIER_POSES = 8                              -- 靜態姿勢 0..8（animationTime k/8）
@@ -214,7 +215,8 @@ end
 local DEFAULTS = {
     ReadRange = 8, ReadRangeMin = 2, ReadRangeMax = 30, LeadSeconds = 2.0, AutoDriveAhead = 150,
     CloseDelay = 2, CloseDelayMin = 0, CloseDelayMax = 30, RequirePower = true,
-    TagDrainPercent = 100, AllowCraft = true, SpawnLoot = true, OutsideSafehouse = 1, WatchSensing = true, WatchRange = 3,
+    TagDrainPercent = 100, AllowCraft = true, SpawnLoot = true, OutsideSafehouse = 1, Indestructible = false,
+    WatchSensing = true, WatchRange = 3,
 }
 
 function KP.sandbox(key)
@@ -244,6 +246,12 @@ end
 
 function KP.gateDelay(rec)
     return KP.clampSetting("CloseDelay", tonumber(rec.closeDelay) or tonumber(KP.sandbox("CloseDelay")) or 2)
+end
+
+-- 這扇門打不壞：沙盒對所有大門開，或管理員替這扇門開（rec.indestructible，Server.lua H.settings）。
+-- 做法與範圍在 Sensor.lua「不會被破壞」段
+function KP.gateIndestructible(rec)
+    return KP.sandbox("Indestructible") == true or rec.indestructible == true
 end
 
 -- 配方 OnTest（recipes_knoxpass.txt）：引擎對每個候選輸入呼叫，全部 false 時配方無法執行

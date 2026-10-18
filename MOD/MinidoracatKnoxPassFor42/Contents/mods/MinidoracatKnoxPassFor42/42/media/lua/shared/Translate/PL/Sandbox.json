@@ -29,6 +29,8 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "Bez limitu",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "Bez blokady",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "Bez montażu",
+    "Sandbox_MinidoracatKnoxPassIndestructible": "Bramy z czytnikiem są niezniszczalne",
+    "Sandbox_MinidoracatKnoxPassIndestructible_tooltip": "Włączone = ani zombie, ani broń nie zniszczą drzwi i bram z czytnikiem Knox Pass (szlaban ma go wbudowanego) ani szafek i słupów na ich końcach. Zombie nadal w nie walą, a hałas nadal przyciąga pobliskie zombie.\nWyłączone (domyślnie) = jak w podstawowej grze. Administratorzy mogą też włączyć to dla pojedynczych bram w oknie czytnika.\nDotyczy tylko samej bramy: ściany podlegają opcji podstawowej gry \"Niszczenie struktur\", młoty wyburzeniowe ustawieniom serwera, a ogień działa jak zwykle. Po wyłączeniu lub zdjęciu czytnika brama odzyskuje wcześniejszą wytrzymałość.\nDziała około 5 sekund po kliknięciu Zastosuj przez administratora.",
     "Sandbox_MinidoracatKnoxPassWatchSensing": "Zarejestrowane moduły zegarka otwierają bramy przy podejściu",
     "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "Wymaga moda Minidoracat Zegarek z mapą. Włączone (domyślnie) = brama otwiera się sama, gdy idzie w jej stronę ktoś, kto nosi zegarek z modułem czujnika Knox Pass zarejestrowanym przy tej bramie.\nWyłączone = brak wykrywania pieszo, a receptury modułu nie można wykonać; podczas jazdy i przy otwieraniu prawym przyciskiem moduł nadal działa.\nDziała od razu po kliknięciu Zastosuj przez administratora.",
     "Sandbox_MinidoracatKnoxPassWatchRange": "Zasięg modułu zegarka (pola)",

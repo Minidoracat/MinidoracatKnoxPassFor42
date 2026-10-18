@@ -29,6 +29,8 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "不限制",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "不能上鎖",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "不能安裝",
+    "Sandbox_MinidoracatKnoxPassIndestructible": "裝了讀頭的門不會被破壞",
+    "Sandbox_MinidoracatKnoxPassIndestructible_tooltip": "開啟＝裝了 Knox Pass 讀頭的門（抬升閘門的讀頭是內建的）不會被殭屍拍壞，也不會被武器打壞，閘門兩端的機箱、門柱也一樣；殭屍照樣會拍門，拍門聲照樣會引來附近的殭屍。\n關閉（預設）＝照原版。管理員另外可以在讀頭管理視窗替個別的門開啟。\n只管門本身：牆壁照原版沙盒「破壞建築」，大鎚照伺服器設定，火燒照原版。關閉或拆下讀頭後，門回到開啟前的耐久。\n管理員按「套用」後約 5 秒內生效。",
     "Sandbox_MinidoracatKnoxPassWatchSensing": "已登記的手錶模組走近就開門",
     "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "需要 Minidoracat 地圖手錶。開啟（預設）＝戴著手錶、裝了在這扇門登記過的 Knox Pass 感應模組，走向大門時門會自己打開。\n關閉＝走路不感應，模組的配方也不能做；開車與右鍵開門照樣認得模組。\n管理員按「套用」後立即生效。",
     "Sandbox_MinidoracatKnoxPassWatchRange": "手錶感應距離（格）",

@@ -142,6 +142,7 @@ local function newWorld()
         vehicleQueries = 0, postTx = 0, paintUses = 0, modelFlags = 0, npe = {}, echoClosed = 0,
         echoQueued = 0, echoLagMs = 250, sounds = {},
         regions = {}, prevFlags = 0, regionJobs = 0,   -- 引擎記著的室內判定位元（格子 key → 位元）、IsoRegions 的 previousFlags、排了幾次重算
+        thumpSyncs = 0,   -- IsoThumpable 在伺服器上改耐久時送出的同步（T:281-288）
     }
 end
 -- MapObjects.OnLoadWithSprite（Lua/MapObjects.java:134-176）：記下回呼，loadSprites() 模擬區塊載入時逐物件呼叫
@@ -429,9 +430,9 @@ local function zombieThump(door, zb)
 end
 
 -- ===== 門 =====
-local function syncView(o)   -- client 看到的狀態只在明確 sync 時更新
+local function syncView(o)   -- client 看到的狀態只在明確 sync 時更新；SyncIsoObject 也帶著 health（D:1693、1775；T:1823、1852）
     local v = o._view
-    v.open, v.locked, v.lockedByKey, v.keyId = o._open, o._locked, o._lockedByKey, o._keyId
+    v.open, v.locked, v.lockedByKey, v.keyId, v.health = o._open, o._locked, o._lockedByKey, o._keyId, o._health
 end
 local function hasKey(chr, o) return chr:getInventory():haveThisKeyId(o._keyId) ~= nil end
 
@@ -760,9 +761,16 @@ function Thump:ToggleDoor(chr)
     end
 end
 
--- 引擎門片的耐久：IsoDoor 預設 500（D:808-809）；setHealth 只改 health（maxHealth 不動，D:1261-1263 getThumpCondition 夾住）
-function Door:setHealth(h) self._health = h end
-function Door:getHealth() return self._health end
+-- 引擎門片的耐久（health、maxHealth 都是 int）：IsoDoor 預設 500（D:88、808-809），setHealth 只改 health（maxHealth 沒有
+-- setter，D:2401；getThumpCondition 夾住，D:1261-1263）；IsoThumpable 在伺服器上 setHealth 值變了就同步（T:281-288）
+function Base:getHealth() return self._health or 500 end
+function Base:getMaxHealth() return self._maxHealth or 500 end
+function Base:setHealth(h) self._health = h end
+function Thump:setHealth(h)
+    if h == self:getHealth() then return end
+    self._health = h
+    if isServer() and self:getObjectIndex() ~= -1 then W.thumpSyncs = W.thumpSyncs + 1; syncView(self) end
+end
 
 -- sprite 的 GarageDoor 屬性（第幾片）與是不是開著的那張（.tiles 的事實，D:793-805 開關差 8）：
 -- 閘門照 build_barrier_tiles.py（車道 0-5、80-85 關，＋8 開；機箱、姿勢、替代 tile 160 起都沒有）；
@@ -1292,6 +1300,17 @@ local FAKE_MODULES = {
         ISDestroyCursor = {}
         function ISDestroyCursor:canDestroy() return true end   -- 原版判斷（ISDestroyCursor.lua:293-362）此處一律放行
     end,
+    ["Moveables/ISMoveableSpriteProps"] = function()
+        ISMoveableSpriteProps = {}
+        -- 搬起玩家建造的物件：耐久與 modData 記進物品，放下時照它設回（ISMoveableSpriteProps.lua:1306-1333、:1339-1355；這裡只抄這兩項）
+        function ISMoveableSpriteProps:saveThumpableParameters(t, obj)
+            t.health, t.maxHealth = obj:getHealth(), obj:getMaxHealth()
+            if obj:hasModData() then
+                t.modData = {}
+                for k, v in pairs(obj:getModData()) do t.modData[k] = v end
+            end
+        end
+    end,
 }
 
 -- ===== 載入受測程式碼 =====
@@ -1326,7 +1345,7 @@ local function bootMod()
     for k in pairs(handlers) do handlers[k] = nil end
     for k in pairs(systems) do systems[k] = nil end
     MinidoracatKnoxPass, KnoxPassAPI, SGlobalObjectSystem, ISBaseObject = nil, nil, nil, nil
-    ISDismantleAction, ISDestroyStuffAction, ISDestroyCursor = nil, nil, nil
+    ISDismantleAction, ISDestroyStuffAction, ISDestroyCursor, ISMoveableSpriteProps = nil, nil, nil, nil
     for _, name in ipairs(MOD_FILES) do require(name) end
     if MODE ~= "server" then
         for _, name in ipairs(CLIENT_FILES) do assert(loadfile(MEDIA .. "/client/" .. name .. ".lua"))() end
@@ -4072,6 +4091,19 @@ local function scenarioRollDoor()
     W.echo = { { w[4], false, false, due = nowMs } }
     runMs(5000)
     check(not w[1]:IsOpen() and regions() == "18,18,18,18", "客戶端送來的關門（會開門的殭屍）：巡檢補成牆")
+    -- 管理視窗的耐久（Sensor.lua S.durability、Barrier.lua B.fullHealth）：捲門片是原版車庫門片，maxHealth 500
+    local function dur() local _, st = cmd(owner, "query", { key = res.key }); return st.hp, st.hpFull end
+    local hp, full = dur()
+    check(hp == 1000 and full == 1000, "管理視窗的耐久：捲門照建造時記下的滿格 1000（原版門片的 maxHealth 是 500）")
+    w[2]:setHealth(400)
+    for _, p in ipairs(w) do p._modData[KP.FULL_HP_KEY] = nil end   -- 這版之前蓋的：建造時沒記滿格
+    hp, full = dur()
+    check(hp == 400 and full == 1000, "剩下耐久最少的那一片 400；之前蓋的 4 格捲門照寬度找回滿格 1000")
+    local B = KP.Barrier
+    check(B.fullHealth(n[1], 3, 400) == 1000, "3 格捲門：建造時記下滿格，打到 400 也照 1000")
+    n[1]._modData[KP.FULL_HP_KEY] = nil
+    check(B.fullHealth(n[1], 3, 1000) == 1000 and B.fullHealth(n[1], 3, 500) == nil,
+        "之前蓋的 3 格捲門比 maxHealth 高才認得出；不超過 maxHealth 的跟原版車庫門（同一套 sprite、3 片）一樣照 maxHealth")
     clean(from, "車庫捲門")
 end
 
@@ -5199,6 +5231,197 @@ local function scenarioWatchDrive()
     MinidoracatWatchAPI = nil
 end
 
+-- ===== 不會被破壞（Sensor.lua「不會被破壞」段、Server.lua H.settings 的 indestructible）=====
+-- 殭屍拍門與武器打門扣耐久（D:1197-1209、1305-1308；T:1027-1042、1161-1162），伺服器每扣一下都同步給 client（D:1900-1903、
+-- T:1566-1569），扣到 0 就拆：雙開門外側那片連旁邊那片、中間片只拆自己（destroyDoubleDoor，D:3187-3205），
+-- 車庫門整條鏈（destroyGarageDoor，D:1236），其他只拆自己
+local function batter(o, dmg)
+    if not present(o) then return end
+    o._health = o:getHealth() - dmg
+    if isServer() then syncView(o) end
+    if o._health > 0 then return end
+    local list = { o }
+    if o._group then
+        if o._index == 1 or o._index == 4 then list[2] = o._group.pieces[o._index == 1 and 2 or 3] end
+    elseif o._garage then
+        list = garageChain(o)
+    end
+    for _, p in ipairs(list) do
+        if p._square then p._square:transmitRemoveItemFromSquare(p) end
+    end
+end
+-- client 開關門、改鎖時把自己那份狀態（含 health）送回來，伺服器照收（D:1693、1757、1775；T:1823、1852）
+local function clientSync(o) o._health = o._view.health end
+
+-- 沙盒開著或管理員替這扇門開：每一片（閘門連兩端）的耐久墊到 SHIELD_HP，原本的耐久記在 modData，關掉或拆讀頭時還原成原本的值；
+-- 雙開門第 2、3 片開關時重建、耐久回預設，下一個 tick 重墊；只有管理員能逐扇開關（SP 一律可以）；
+-- 搬起墊高的玩家建造門時，物品記的是墊之前的耐久
+local function scenarioIndestructible()
+    out("情境：不會被破壞（沙盒與管理員逐扇開關）")
+    freshWorld()
+    local from = #logLines + 1
+    local BIG = KP.Sensor.SHIELD_HP
+    local sb = SandboxVars.MinidoracatKnoxPass
+    local function shielded(o) return o:getHealth() == BIG end
+
+    -- 1. 預設關：巡檢不動耐久，打到 0 照樣拆掉（也證明假引擎的傷害會拆門）
+    local a = gate(100)
+    runMs(5000)
+    check(a.door:getHealth() == 500 and a.door._modData.KnoxPassHp == nil, "預設關：巡檢不動耐久，不寫 modData")
+    batter(a.door, 500)
+    check(not present(a.door), "預設關：拍到 0 就拆掉")
+
+    -- 2. 沙盒開：5 秒內墊高，原本的耐久記下來；超人殭屍群拍上千下也不壞；關回去照原本的值還原（不是補滿）
+    local b = gate(200)
+    b.door:setHealth(321)
+    local _, bst = cmd(b.owner, "query", { key = b.key })
+    check(bst.hp == 321 and bst.hpFull == 500, "管理視窗的耐久：現在／滿格（原版門照 maxHealth）")
+    sb.Indestructible = true
+    runMs(5000)
+    check(shielded(b.door) and b.door._modData.KnoxPassHp == 321, "沙盒開：5 秒內墊高，原本的 321 記在 modData")
+    _, bst = cmd(b.owner, "query", { key = b.key })
+    check(bst.hp == 321 and bst.hpFull == 500 and bst.indestructible == true,
+        "墊高時耐久照墊之前的 321（不是 10 億），視窗另外寫不會被破壞")
+    clientSync(b.door)
+    check(shielded(b.door), "墊高時同步給客戶端：客戶端開關門送回的也是 10 億（IsoDoor 在伺服器上 setHealth 不會自己同步）")
+    for _ = 1, 1000 do batter(b.door, 105) end   -- 50 隻超人殭屍圍著拍一下（5＋2×50，D:1201-1203）× 1000
+    check(present(b.door) and b.door:getHealth() > BIG / 2, "沙盒開：超人殭屍群拍 1000 下也不壞")
+    runMs(5000)
+    check(b.door:getHealth() == BIG - 105000, "被打掉的不到一半：巡檢不重墊")
+    local c = gate(300)
+    check(shielded(c.door) and c.door._modData.KnoxPassHp == 500, "沙盒開著時新裝讀頭：裝好當下就墊高")
+    local _, st = cmd(c.owner, "query", { key = c.key })
+    check(st.indestructible == true and st.indestructibleAll == true and st.isAdmin == false,
+        "state：生效值開、沙盒對所有大門開、擁有者不是管理員")
+
+    -- 3. 雙開門：第 2、3 片開關時重建、耐久回預設，下一個 tick 重墊（Knox Pass 開門、玩家手關都一樣）。
+    --    tick 不推進時間：掃描節流擋住後面的 5 秒巡檢，證明是重建那條路墊的
+    local d = gate(400, { double = true })
+    check(allPieces(d, shielded), "雙開門四片都墊高")
+    check(cmd(d.owner, "open", { key = d.key }).ok == true and d.door:IsOpen(), "Knox Pass 開門")
+    check(d.group.pieces[2]:getHealth() == 500 and d.group.pieces[3]:getHealth() == 500, "（引擎）重建的第 2、3 片耐久回預設")
+    fire("OnTick")
+    check(allPieces(d, shielded), "開門後下一個 tick 就重墊")
+    d.door:ToggleDoor(d.owner)
+    check(not d.door:IsOpen() and d.group.pieces[2]:getHealth() == 500, "（引擎）玩家手關：第 2、3 片又重建")
+    fire("OnTick")
+    check(allPieces(d, shielded), "手關後下一個 tick 就重墊")
+    batter(d.group.pieces[2], 2000)
+    check(allPieces(d, present), "關著的雙開門中間片被打也不壞")
+    -- 雙開門不會整扇一起被移除：火燒移走錨點和同側那片（伺服器 RemoveItemFromSquarePacket.java:158-159、SP RemoveTileObject，
+    -- 都經 IsoObjectUtils.java:83-96）。帳本下一個 tick 刪掉，留下的另一半在下一個 tick 還原（客戶端那份也是），之後沙盒開著也不再墊；
+    -- 被移走的兩片不送同步：移除封包先送出，客戶端先移掉的話，同步照索引套到同格的別的物件（GameServer.java:2995-2996、GameClient.java:1630-1631）
+    local h = gate(500, { double = true })
+    local h1, h2, h3, h4 = h.group.pieces[1], h.group.pieces[2], h.group.pieces[3], h.group.pieces[4]
+    for _, p in ipairs({ h1, h2 }) do p._square:transmitRemoveItemFromSquare(p) end
+    step()
+    runMs(5000)
+    check(rec(h) == nil and h3:getHealth() == 500 and h4:getHealth() == 500 and h4._view.health == 500
+        and h3._modData.KnoxPassHp == nil, "錨點那一半被燒掉：帳本刪掉，留下的一半還原、之後巡檢不再墊")
+    check(h1._view.health == BIG and h2._view.health == BIG, "被移走的兩片沒有送同步（客戶端的索引可能已經對到別的物件）")
+    -- 玩家建造的雙開門（IsoThumpable 重建帶著 modData、health 回預設，D:2899-2913）：中間兩片原本 200，Knox Pass 開著時拆讀頭，
+    -- 關門重建的中間片也照記錄還原成 200（跟墊回去之後才拆一樣），記錄清掉
+    sb.Indestructible = nil
+    local m = gate(1100, { double = true, cls = "IsoThumpable" })
+    local mp = m.group.pieces
+    mp[2]:setHealth(200)
+    mp[3]:setHealth(200)
+    sb.Indestructible = true
+    runMs(5000)
+    check(mp[2]:getHealth() == BIG and mp[2]._modData.KnoxPassHp == 200, "玩家建造的雙開門：中間片墊高，記下原本的 200")
+    check(cmd(m.owner, "open", { key = m.key }).ok == true and cmd(m.owner, "uninstall", { key = m.key }).ok == true
+        and not m.door:IsOpen(), "Knox Pass 開著時拆讀頭，先關上")
+    check(mp[1]:getHealth() == 500 and mp[2]:getHealth() == 200 and mp[3]:getHealth() == 200 and mp[4]:getHealth() == 500
+        and allPieces(m, function(p) return p._modData.KnoxPassHp == nil end),
+        "拆讀頭：外側兩片回 500、重建的中間片照記錄回 200，記錄都清掉")
+
+    -- 4. 閘門：車道與兩端的機箱一起墊（機箱被打壞會整座移除）；IsoThumpable 改耐久會同步給客戶端
+    local bo = newPlayer("bo", 601, 103)
+    local syncs = W.thumpSyncs
+    local bl = buildBarrier(600, 100, "N", bo)
+    step()
+    check(shielded(bl[0]) and shielded(bl[2]) and shielded(bl[6]) and bl[0]._modData.KnoxPassHp == 1000
+        and W.thumpSyncs == syncs + 1, "單臂閘門：建好登記時三片車道（原本 1000）與機箱都墊高，機箱的耐久同步一次")
+    batter(bl[6], 5000)
+    batter(bl[1], 5000)
+    step()
+    check(present(bl[6]) and present(bl[0]) and KP.Ledger.get("601,100,0N") ~= nil, "機箱與車道被打都不壞，閘門與帳本都在")
+    local b6 = buildModelGate("MinidoracatKnoxPass_barrier2", 0, 6, "N", true, 700, 100, bo)
+    step()
+    local all6 = shielded(b6.A) and shielded(b6.B)
+    for k = 1, 6 do all6 = all6 and shielded(b6.lanes[k]) end
+    check(all6, "雙桿閘門：六片車道與兩端機箱都墊高")
+    for _, o in ipairs({ bl[0], b6.lanes[1] }) do o._modData[KP.FULL_HP_KEY] = nil end   -- 這版之前蓋的：建造時沒記滿格
+    check(KP.Barrier.fullHealth(bl[0], 4, 1000) == 1000 and KP.Barrier.fullHealth(b6.lanes[1], 8, 1500) == 1500,
+        "之前蓋的閘門、模型門車道：滿格照 KP.BARRIER_HEALTH、KP.MODEL_GATES（車道 IsoDoor 的 maxHealth 是 500）")
+
+    -- 5. 沙盒關回去：5 秒內全部還原成墊之前的值
+    sb.Indestructible = nil
+    runMs(5000)
+    check(c.door:getHealth() == 500 and c.door._modData.KnoxPassHp == nil and bl[0]:getHealth() == 1000
+        and bl[6]:getHealth() == 500 and b6.lanes[1]:getHealth() == 1500 and allPieces(d, function(p) return p:getHealth() == 500 end),
+        "沙盒關回去：門、雙開門、閘門車道與機箱都還原，modData 清掉")
+    check(b.door:getHealth() == 321, "被打過的門也還原成墊之前的 321")
+
+    -- 6. 管理員逐扇開關：擁有者不能改（AdminOnly）；管理員開了當下就墊高，關掉當下還原；不合格的值 BadArgs
+    local e = gate(800)
+    local res
+    res, st = cmd(e.owner, "settings", { key = e.key, indestructible = true })
+    check(res.ok == false and res.why == "AdminOnly" and res.key == e.key and rec(e).indestructible == nil
+        and e.door:getHealth() == 500, "擁有者不能開：AdminOnly（帶 key），帳本與耐久不動")
+    res = cmd(e.owner, "settings", { key = e.key, range = 12, indestructible = true })
+    check(res.why == "AdminOnly" and rec(e).range == nil, "連同別的設定一起送：整批不收")
+    local admin = newPlayer("admin", 800, 101, { caps = { CanSetupSafehouses = true } })
+    res, st = cmd(admin, "settings", { key = e.key, indestructible = true })
+    check(res.ok == true and rec(e).indestructible == true and shielded(e.door) and st.indestructible == true
+        and st.indestructibleAll == false and st.isAdmin == true, "管理員替這扇門開：帳本、當下墊高、state")
+    _, st = cmd(e.owner, "query", { key = e.key })
+    check(st.indestructible == true and st.isAdmin == false, "擁有者看得到這扇門開著，但不是管理員")
+    local f = gate(900)
+    runMs(5000)
+    check(shielded(e.door) and f.door:getHealth() == 500, "巡檢：管理員開的門維持墊高，旁邊沒開的門不動")
+    check(cmd(admin, "settings", { key = e.key, indestructible = "yes" }).why == "BadArgs" and rec(e).indestructible == true,
+        "不合格的值：BadArgs，帳本不動")
+    res = cmd(admin, "settings", { key = e.key, indestructible = false })
+    check(res.ok == true and rec(e).indestructible == nil and e.door:getHealth() == 500, "管理員關掉：帳本不留值、當下還原")
+
+    -- 7. 重啟：帳本記著這扇門開著；拆讀頭時還原耐久，之後巡檢不再碰它
+    cmd(admin, "settings", { key = e.key, indestructible = true })
+    restart()
+    runMs(5000)
+    check(rec(e).indestructible == true and shielded(e.door), "重啟：帳本記著這扇門開著，照樣墊高")
+    batter(e.door, 1)   -- 殭屍拍一下：伺服器每一下都同步（D:1900-1903），客戶端那份是 10 億
+    res = cmd(e.owner, "uninstall", { key = e.key })
+    check(res.ok == true and e.door:getHealth() == 500 and e.door._modData.KnoxPassHp == nil, "拆讀頭：還原耐久")
+    clientSync(e.door)
+    check(e.door:getHealth() == 500, "拆讀頭後客戶端開關門：送回的是還原後的 500，不會又打不壞")
+    sb.Indestructible = true
+    runMs(5000)
+    check(e.door:getHealth() == 500, "拆掉讀頭的門：沙盒開著也不再墊高")
+
+    -- 8. 搬起墊高的玩家建造門（原版搬家具把耐久記進物品）：物品記墊之前的值，modData 的記錄不跟過去
+    local t = gate(1000, { cls = "IsoThumpable" })
+    check(shielded(t.door), "玩家建造的門也墊高")
+    local saved = {}
+    ISMoveableSpriteProps:saveThumpableParameters(saved, t.door)
+    check(saved.health == 500 and saved.modData and saved.modData.KnoxPassHp == nil and shielded(t.door),
+        "搬起來：物品記墊之前的 500、不帶 modData 的記錄，門本身不變")
+    clean(from, "不會被破壞")
+
+    -- 9. SP：只有一位玩家，當成管理員
+    freshWorld("sp")
+    local got = {}
+    KP.clientReceive = function(command, args) got[#got + 1] = { cmd = command, args = args } end
+    local door = makeDoor("IsoDoor", 100, 100)
+    local me = newPlayer("me", 100, 102)
+    W.locals = { me }
+    fire("OnClientCommand", "MinidoracatKnoxPass", "install", me, { x = 100, y = 100, z = 0, index = 0, itemId = me._inv:AddItem(READER):getID() })
+    fire("OnClientCommand", "MinidoracatKnoxPass", "settings", me, { key = "100,100,0N", indestructible = true })
+    local ok = false
+    for _, g in ipairs(got) do if g.cmd == "result" and g.args.cmd == "settings" and g.args.ok then ok = true end end
+    check(ok and door:getHealth() == KP.Sensor.SHIELD_HP, "SP：玩家自己就能替門開，當下墊高")
+end
+
 local tests = {
     scenarioParts, scenarioDock, scenarioDetection, scenarioAutoClose, scenarioLocks, scenarioCommands,
     scenarioSinglePlayer, scenarioLedger, scenarioCharging, scenarioReopen, scenarioUninstallOpen, scenarioGarage,
@@ -5206,7 +5429,7 @@ local tests = {
     scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,
     scenarioReaderPost, scenarioColors, scenarioLoot, scenarioBarrierMirror, scenarioRollDoor, scenarioSettings,
     scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioLaggyEcho, scenarioShare,
-    scenarioCoManagers, scenarioOutsideSafehouse, scenarioWatchWalk, scenarioWatchMissing, scenarioWatchDrive,
+    scenarioCoManagers, scenarioOutsideSafehouse, scenarioWatchWalk, scenarioWatchMissing, scenarioWatchDrive, scenarioIndestructible,
 }
 for _, t in ipairs(tests) do t() end
 

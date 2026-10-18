@@ -29,6 +29,8 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "Unbegrenzt",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "Kein Sperren",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "Kein Einbau",
+    "Sandbox_MinidoracatKnoxPassIndestructible": "Tore mit Leser sind unzerstörbar",
+    "Sandbox_MinidoracatKnoxPassIndestructible_tooltip": "Aktiviert = Türen und Tore mit einem Knox Pass Leser (die Schranke hat einen eingebaut) lassen sich weder von Zombies noch mit Waffen zerstören, ebenso wenig die Schaltschränke und Pfosten an ihren Enden. Zombies schlagen trotzdem dagegen, und der Lärm lockt weiterhin Zombies in der Nähe an.\nDeaktiviert (Standard) = wie im Grundspiel. Admins können es außerdem im Leserfenster für einzelne Tore einschalten.\nGilt nur für das Tor selbst: Wände folgen der Grundspiel-Option \"Schaden an Konstruktionen\", Vorschlaghämmer den Servereinstellungen, Feuer wirkt wie gewohnt. Wird die Option ausgeschaltet oder der Leser abgebaut, bekommt das Tor seine vorherige Haltbarkeit zurück.\nWirkt etwa 5 Sekunden, nachdem ein Admin auf Anwenden klickt.",
     "Sandbox_MinidoracatKnoxPassWatchSensing": "Registrierte Uhrmodule öffnen Tore beim Herangehen",
     "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "Benötigt die Minidoracat Kartenuhr. Aktiviert (Standard) = ein Tor öffnet sich von selbst, wenn jemand darauf zugeht, der eine Uhr mit einem an diesem Tor registrierten Knox Pass Sensormodul trägt.\nDeaktiviert = keine Erkennung zu Fuß, und das Modulrezept kann nicht ausgeführt werden; beim Fahren und beim Öffnen per Rechtsklick zählt das Modul weiterhin.\nWirkt, sobald ein Admin auf Anwenden klickt.",
     "Sandbox_MinidoracatKnoxPassWatchRange": "Reichweite des Uhrmoduls (Kacheln)",

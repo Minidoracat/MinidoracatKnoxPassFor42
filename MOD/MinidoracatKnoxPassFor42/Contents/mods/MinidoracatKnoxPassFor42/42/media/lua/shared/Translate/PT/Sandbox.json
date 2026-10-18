@@ -29,6 +29,8 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "Sem limite",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "Sem trancar",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "Sem instalar",
+    "Sandbox_MinidoracatKnoxPassIndestructible": "Portões com leitor não podem ser quebrados",
+    "Sandbox_MinidoracatKnoxPassIndestructible_tooltip": "Ativado = nem zumbis nem armas conseguem quebrar portas e portões com um leitor Knox Pass (a cancela já vem com um embutido), nem os gabinetes e pilares nas pontas. Os zumbis continuam batendo neles, e o barulho continua atraindo zumbis por perto.\nDesativado (padrão) = como no jogo base. Os administradores também podem ativar isso para portões específicos na janela do leitor.\nVale só para o portão: as paredes seguem a opção do jogo base \"Danificar Construções\", as marretas seguem as configurações do servidor e o fogo funciona como sempre. Ao desativar ou remover o leitor, o portão volta à resistência que tinha antes.\nEntra em vigor cerca de 5 segundos depois que um administrador clicar em Aplicar.",
     "Sandbox_MinidoracatKnoxPassWatchSensing": "Módulos de relógio registrados abrem portões ao se aproximar",
     "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "Requer o Minidoracat Relógio-Mapa. Ativado (padrão) = um portão abre sozinho quando alguém usando um relógio com um Módulo Sensor Knox Pass registrado nesse portão caminha em direção a ele.\nDesativado = sem detecção a pé, e a receita do módulo não pode ser feita; dirigindo e ao abrir com o botão direito, o módulo continua valendo.\nEntra em vigor assim que um administrador clicar em Aplicar.",
     "Sandbox_MinidoracatKnoxPassWatchRange": "Alcance do módulo de relógio (quadrados)",

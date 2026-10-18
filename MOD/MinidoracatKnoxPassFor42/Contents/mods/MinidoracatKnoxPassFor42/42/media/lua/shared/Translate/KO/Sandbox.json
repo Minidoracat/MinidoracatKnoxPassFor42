@@ -29,6 +29,8 @@
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option1": "제한 없음",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option2": "잠금 불가",
     "Sandbox_MinidoracatKnoxPassOutsideSafehouse_option3": "설치 불가",
+    "Sandbox_MinidoracatKnoxPassIndestructible": "리더기가 달린 대문은 부서지지 않음",
+    "Sandbox_MinidoracatKnoxPassIndestructible_tooltip": "활성화하면 Knox Pass 리더기를 설치한 문과 대문(차단기는 리더기 내장)은 좀비에게도 무기에도 부서지지 않습니다. 양 끝의 제어함과 기둥도 마찬가지입니다. 좀비는 여전히 두드리고, 그 소리에 근처 좀비도 몰려옵니다.\n비활성화하면(기본값) 원래 게임과 같습니다. 관리자는 리더기 창에서 대문마다 따로 켤 수도 있습니다.\n대문 자체에만 적용됩니다. 벽은 원래 게임의 샌드박스 설정 \"건축물 파괴\", 대형 망치는 서버 설정을 따르고, 불은 평소대로입니다. 끄거나 리더기를 떼어 내면 켜기 전의 내구도로 돌아갑니다.\n관리자가 적용을 누르면 약 5초 안에 반영됩니다.",
     "Sandbox_MinidoracatKnoxPassWatchSensing": "등록된 시계 모듈로 다가가면 대문 열림",
     "Sandbox_MinidoracatKnoxPassWatchSensing_tooltip": "Minidoracat 지도 시계가 필요합니다. 활성화하면(기본값) 이 대문에 등록된 Knox Pass 센서 모듈을 장착한 시계를 착용한 사람이 대문으로 걸어갈 때 대문이 저절로 열립니다.\n비활성화하면 도보 감지가 꺼지고 모듈 제작법도 수행할 수 없습니다. 운전 중이거나 우클릭으로 열 때는 모듈을 계속 인식합니다.\n관리자가 적용을 누르는 즉시 반영됩니다.",
     "Sandbox_MinidoracatKnoxPassWatchRange": "시계 모듈 감지 거리 (타일)",

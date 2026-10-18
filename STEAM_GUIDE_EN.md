@@ -53,7 +53,8 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]Who can open it[/b]: the owner, co-managers and server admins. For anyone else the window closes right away and says why.
 [*] [b]It shows[/b]:
 [list]
-[*] gate type, owner, power, lock
+[*] gate type, owner, power, durability, lock
+[*] durability: how much the weakest part of the gate has left, out of its full value; the gate breaks open when that part breaks. It says "Indestructible" when that is on. For regular players, hovering over this row tells how an admin can turn it on. The number is from when you opened the window; reopen it to update
 [*] this gate's read range, close delay, speed, sharing and co-managers
 [*] "Registered" tab: registered cars and watch modules (charge, last pass), most recent pass first; 64 entries at most, cars and modules together
 [*] "Nearby" tab: unregistered cars with a tag and people wearing a sensor module within 15 tiles, nearest first
@@ -70,6 +71,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]Speed[/b]: boom barriers, double boom barriers, two-story roll-up doors and two-story gates can be set to [b]Normal (4 s)[/b] or [b]Fast (2.5 s)[/b] under "Speed", and every player sees the same speed.
 [*] [b]Fixed speed[/b]: one-story roll-up doors and vanilla doors; the dropdown says "Not adjustable".
 [*] [b]Share with[/b]: pick [b]Faction[/b], [b]Safehouse[/b] or [b]Faction + safehouse[/b] to let teammates open and close this gate on foot without a tag (see "Opening and closing on foot"). Not shared by default.
+[*] [b]Indestructible[/b]: only a server admin's window has this switch; ticked, neither zombies nor weapons can break the gate. Everyone else sees whether it is on in the "Durability" row. When the server turns it on for every gate in the sandbox, the box is ticked and grayed out.
 [/list]
 [h3]Co-managers[/h3]
 [list]
@@ -282,6 +284,7 @@ Sandbox page "Minidoracat Knox Pass":
 [tr][td]Allow crafting Knox Pass items[/td][td]On[/td][td][/td][/tr]
 [tr][td]Spawn Knox Pass items in world loot[/td][td]On[/td][td][/td][/tr]
 [tr][td]Readers outside safehouses[/td][td]No limit[/td][td]No limit / No locking / No installing[/td][/tr]
+[tr][td]Gates with a reader can't be broken[/td][td]Off[/td][td][/td][/tr]
 [tr][td]Registered watch modules open gates on approach[/td][td]On[/td][td][/td][/tr]
 [tr][td]Watch module range (tiles)[/td][td]3[/td][td]1–8[/td][/tr]
 [/table]
@@ -293,6 +296,7 @@ Sandbox page "Minidoracat Knox Pass":
 [*] [b]Gate readers need power[/b]: grid power or a generator both count, and outdoor gates do get grid power.
 [*] [b]Tag drain multiplier[/b]: 0 means it never runs out.
 [*] [b]Readers outside safehouses[/b]: applies when a gate isn't in the reader owner's safehouse, multiplayer only. "No locking" = the Knox Pass lock can't be turned on, opening works as usual; "No installing" = readers only go in your own safehouse. Gates already locked stay locked, and the owner, a co-manager or an admin can turn the lock off. This stops people from putting a reader on someone else's door and locking it.
+[*] [b]Gates with a reader can't be broken[/b]: when on, zombies and weapons can't break gates with a reader, and neither can the cabinets of boom barriers and double boom barriers or the posts of two-story gates. Zombies still bang on them, and the noise still draws nearby zombies. Only the gate itself is covered: walls follow the vanilla "Damage Construction" sandbox option, sledgehammers follow the server settings, and fire works as usual. When it is turned off or the reader is removed, the gate gets back the durability it had before. While it is off, admins can still turn it on for single gates in the manage window.
 [*] [b]Watch modules[/b]: need the Map Watch. When off, walking doesn't open gates and the module can't be crafted; driving and right-click opening still accept the module. The range is how close to the gate line it opens.
 [*] [b]Server admins[/b]: roles that can manage safehouses (moderator and admin by default) can manage every reader; if the server owner changed role permissions, the actual permissions apply.
 [/list]
@@ -336,10 +340,11 @@ Check that:
 [*] Once locked, neither bare hands nor zombies can open it, except someone holding that door's original key.
 [*] An unlocked gate can still be opened by hand as usual.
 [/list]
-[h3]Can zombies open my gate?[/h3]
+[h3]Can zombies open or break my gate?[/h3]
 [list]
-[*] Not one with the Knox Pass lock on.
+[*] They can't open a gate with the Knox Pass lock on.
 [*] An unlocked gate can be opened by zombies when the server lets zombies open doors, as in vanilla.
+[*] To stop them from breaking it at all: ask the server owner to turn on the sandbox option "Gates with a reader can't be broken", or ask a server admin to tick "Indestructible" for that gate in the manage window.
 [/list]
 [h3]My teammate can't open the management window?[/h3]
 [list]
@@ -365,7 +370,7 @@ Check that:
 [*] [b]Don't delete the save's WorldDictionary file[/b]: items in the save are stored by its ID numbers, so every item in the world would stop matching.
 [*] [b]Single-player worlds can drop it[/b]; before removing:
 [list]
-[*] Turn off "Lock (only Knox Pass opens it)" on every locked gate, or take its reader back; otherwise the gate stays locked after removal and can only be broken down unless someone has its original key.
+[*] Turn off "Lock (only Knox Pass opens it)" on every locked gate, or take its reader back; otherwise the gate stays locked after removal and can only be broken down unless someone has its original key. Take the reader back from gates set to Indestructible too, so they get their normal durability back; otherwise they stay unbreakable after removal.
 [*] Also dismantle Knox Pass barriers, roll-up doors and gates, as they may not display or work after removal.
 [*] Take sensor modules out of Map Watches too; after removal they can't be taken out and keep the slot taken.
 [*] Tags in cars and all other Knox Pass items disappear.

@@ -149,7 +149,7 @@ end
 -- （barrier-mp 2026-10-05 實踩：N 向閘門的門片變成 W 向）。
 -- sprite 建構子會照沙盒 lockedHouses 隨機上鎖（IsoDoor.java:820-840）；車庫門的 locked 對玩家是看站位（:1568-1580），
 -- 一律不鎖，門鎖只用 Knox Pass 的 CustomLock。耐久用 setHealth：maxHealth 留 500，getThumpCondition 夾在 1 以內
--- （IsoDoor.java:1261-1263），殭屍照 health 打（IsoDoor.java:88-95 預設 500）。
+-- （IsoDoor.java:1261-1263），殭屍照 health 打（IsoDoor.java:88-95 預設 500）；滿格記在 modData（B.fullHealth，管理視窗的耐久）。
 -- 移走替代 tile 一定要 RemoveTileObject(thump, false)：單參數版在 chunk 已載入時走 safelyRemove（IsoGridSquare.java:5713-5716），
 -- entity 多格物件要整組找齊（IsoObjectUtils.java:32-41、83-113）——還沒放完時回 -1、什麼都不移（替代 tile 留在伺服器），
 -- 放完最後一格時反而整組連機箱一起移掉（r3-mp 1007a 實踩：E 向閘門建好就被整座拆掉）。0.1.x 用真車道 sprite 當建造 tile，
@@ -159,6 +159,7 @@ local function toGarageDoor(thump, dest, sprite, north, health)
     door:setLocked(false)
     door:setLockedByKey(false)
     door:setHealth(health)
+    door:getModData()[KP.FULL_HP_KEY] = health
     dest:AddSpecialObject(door)
     local sq = thump:getSquare()
     sq:RemoveTileObject(thump, false)
@@ -247,6 +248,29 @@ function R.onCreate(params)
     if not real then return nil end
     local door = toGarageDoor(thump, thump:getSquare(), getSprite(real), north, health)
     return { replaceObject = true, object = door }
+end
+
+-- 一片的滿格耐久，只管 Knox Pass 蓋的車道（toGarageDoor 用 setHealth 設得比 maxHealth 高，IsoDoor 沒有 setMaxHealth）：
+-- 這版起建造時記在 modData；之前蓋的照設計值找回來。捲門用原版車庫門的 sprite，3 格寬的跟地圖上的車庫門分不出來，
+-- 耐久（hp，墊高的照墊之前的值）比 maxHealth 高才認得出是捲門。width＝整條鏈幾片。其他（機箱、門柱、原版門）回 nil
+function B.fullHealth(o, width, hp)
+    if not instanceof(o, "IsoDoor") then return nil end
+    local full = o:hasModData() and tonumber(o:getModData()[KP.FULL_HP_KEY])
+    if full then return full end
+    local mg = KP.modelGate(o)
+    if mg then return mg.def.health[mg.width] end
+    if KP.barrierIndex(o) then return KP.BARRIER_HEALTH end
+    if width < 4 and hp <= o:getMaxHealth() then return nil end
+    local spr = o:getSprite()
+    local name = spr and spr:getName() or ""
+    for _, st in ipairs(ROLL_STYLES) do
+        if string.sub(name, 1, #st[1] + 1) == st[1] .. "_" then
+            for _, w in ipairs(ROLL_WIDTHS) do
+                if #w.pieces == width then return w.health end
+            end
+        end
+    end
+    return nil
 end
 
 -- 模型門的 SpriteConfig OnCreate：替代 tile（格位 16＋k−1）換成車道 k 的門片（第 1 片 GarageDoor 1 是錨點、掛 3D 模型，
