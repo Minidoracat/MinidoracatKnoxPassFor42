@@ -172,7 +172,7 @@
     "IGUI_KnoxPass_Remove": "Quitar",
     "IGUI_KnoxPass_LockSafehouseOnly": "Este servidor solo permite bloquear portones en el refugio del propietario",
     "IGUI_KnoxPass_Why_OwnerOnly": "Solo el propietario del lector o un administrador del servidor puede hacer eso.",
-    "IGUI_KnoxPass_Why_UnknownPlayer": "Este servidor no conoce a ningún jugador con ese nombre de cuenta (nombre exacto, distingue mayúsculas y minúsculas). Elige una de las sugerencias bajo el cuadro o espera a que se haya conectado al menos una vez.",
+    "IGUI_KnoxPass_Why_UnknownPlayer": "Este servidor no conoce ese nombre de cuenta (distingue mayúsculas y minúsculas). Elige una sugerencia bajo el cuadro o espera a que se conecte por primera vez.",
     "IGUI_KnoxPass_Why_TooManyManagers": "Un portón puede tener hasta 8 cogestores. Quita uno primero.",
     "IGUI_KnoxPass_Why_NoFaction": "El propietario del lector no está en ninguna facción.",
     "IGUI_KnoxPass_Why_InstallSafehouseOnly": "En este servidor solo puedes instalar lectores en tu propio refugio.",

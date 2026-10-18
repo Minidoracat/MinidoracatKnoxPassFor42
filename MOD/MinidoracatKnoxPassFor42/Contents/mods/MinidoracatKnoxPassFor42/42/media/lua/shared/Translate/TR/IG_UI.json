@@ -172,7 +172,7 @@
     "IGUI_KnoxPass_Remove": "Kaldır",
     "IGUI_KnoxPass_LockSafehouseOnly": "Bu sunucuda yalnızca sahibinin güvenli evindeki kapılar kilitlenebilir",
     "IGUI_KnoxPass_Why_OwnerOnly": "Bunu yalnızca okuyucunun sahibi veya sunucu yöneticisi yapabilir.",
-    "IGUI_KnoxPass_Why_UnknownPlayer": "Bu sunucu bu hesap adına sahip bir oyuncu tanımıyor (ad birebir aynı olmalı, büyük/küçük harf duyarlı). Kutunun altındaki önerilerden seç ya da oyuncu en az bir kez çevrimiçi olana kadar bekle.",
+    "IGUI_KnoxPass_Why_UnknownPlayer": "Bu sunucu bu hesap adını tanımıyor (büyük/küçük harf duyarlı). Kutunun altındaki önerilerden seç ya da oyuncunun ilk kez girmesini bekle.",
     "IGUI_KnoxPass_Why_TooManyManagers": "Bir kapının en fazla 8 ortak yöneticisi olabilir. Önce birini kaldır.",
     "IGUI_KnoxPass_Why_NoFaction": "Okuyucunun sahibi bir grupta değil.",
     "IGUI_KnoxPass_Why_InstallSafehouseOnly": "Bu sunucuda okuyucuları yalnızca kendi güvenli evine takabilirsin.",
