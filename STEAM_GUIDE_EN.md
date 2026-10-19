@@ -18,7 +18,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 === 🧰 Vehicle Tag
 {{img:07-mechanics-tag-en.jpg}}
 [list]
-[*] [b]A real vehicle part[/b]: every car with a battery has the slot, vanilla and modded alike; bicycles and trailers don't.
+[*] [b]A real vehicle part[/b]: every car with a battery has the slot, vanilla and modded alike; bicycles and vanilla trailers don't. Modded trailers with a battery have it too, but only the tag in the car you drive opens gates.
 [*] [b]Installing[/b]: install or remove it from the "Knox Pass" category of the mechanics panel. No tools or skills needed.
 [*] [b]Theft-proof[/b]: you need the car key or an unlocked door, so nobody can steal it from a locked car.
 [/list]
@@ -190,6 +190,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]Who opens it[/b]: the driver of a car carrying a registered, charged tag.
 [*] [b]Opens nothing[/b]: passengers, unregistered cars and empty tags.
 [*] [b]Opens early[/b]: the server predicts where the car is heading from its actual movement, so the faster you drive the earlier it opens; driving past in another direction doesn't.
+[*] [b]Towing[/b]: a trailer you tow counts too. When you back a trailer in, the gate opens before the trailer reaches it.
 [/list]
 [h3]Closes by itself[/h3]
 {{img:14-trailer-pass-en.jpg}}
@@ -323,7 +324,7 @@ Sandbox page "Minidoracat Knox Pass":
 [h3]I drove up and nothing opened?[/h3]
 Check that:
 [list]
-[*] you're in the driver's seat and the tag has charge
+[*] you're in the driver's seat, the tag is in the car you drive (not in a trailer), and it has charge
 [*] this tag is registered at this gate
 [*] the reader has power (the window shows it)
 [/list]
