@@ -1,5 +1,6 @@
 -- Knox Pass 讀頭管理視窗（MinidoracatUIFor42 API rev 7：Window／Button／Checkbox／Tabs／VirtualList，Dialog 選用；
--- 每扇門設定的下拉選單要 rev 14 的 Dropdown，沒有時只顯示數字；共同管理者名單的搜尋框要 rev 11 的 Autocomplete）。
+-- 每扇門設定的下拉選單要 rev 14 的 Dropdown，沒有時只顯示數字；共同管理者名單的搜尋框要 rev 11 的 Autocomplete，
+-- 安全屋那一段的捲動要 rev 16 的 ScrollPanel，截字的全文提示要 rev 17 的 Checkbox tooltip，輸入框的紅框要 rev 16 的 setInvalid）。
 -- 只有能管理這扇門的人（擁有者、共同管理者、管理員）拿得到 state；伺服器回 NotOwner 時視窗關掉。
 -- 畫面只顯示伺服器 state；所有變更送指令後等新的 state，不做樂觀更新。視窗開著時地上畫出這扇門的感應範圍。
 -- 框架不足時整檔在這裡結束：KP.Window 不存在，右鍵「管理讀頭」改成停用並提示（Client.lua）。
@@ -15,6 +16,7 @@ pcall(require, "MinidoracatUI/Widgets/Controls")
 pcall(require, "MinidoracatUI/Widgets/Window")
 pcall(require, "MinidoracatUI/Widgets/Dropdown")
 pcall(require, "MinidoracatUI/Widgets/Autocomplete")
+pcall(require, "MinidoracatUI/Widgets/ScrollPanel")
 local UI = MinidoracatUI and MinidoracatUI.v1
 local CAPS = UI and UI.CAPABILITIES
 if not (UI and UI.API_MAJOR == 1 and UI.API_REVISION >= 7 and CAPS.window and CAPS.controls and CAPS.virtualList) then
@@ -384,15 +386,25 @@ local function settingOptions(lo, hi, default, unit)
     return opts
 end
 
--- 共同管理那一列的按鈕標題：擁有者陣營（開著陣營、擁有者也還在陣營時）與個別幾人
+-- 共同管理那一列的按鈕標題：擁有者陣營（開著陣營、擁有者也還在陣營時）、勾選而且還有效的安全屋、個別幾人，用 ManagersJoin
+-- 一段一段接起來。陣營跟其他段接在一起時只寫「陣營」，按鈕才放得下（managers-mp 1020a：「陣營「KPManagers」＋1 間安全屋」
+-- 被截掉；陣營名在名單視窗看得到）
 local function managersSummary(s)
-    local n = #(s.co or {})
-    if s.coFaction and s.ownerFaction then
-        if n > 0 then return getText("IGUI_KnoxPass_ManagersBoth", s.ownerFaction, tostring(n)) end
-        return getText("IGUI_KnoxPass_ManagersFaction", s.ownerFaction)
+    local people, houses = #(s.co or {}), 0
+    for _, h in ipairs(s.houses or {}) do
+        if h.on and not h.gone then houses = houses + 1 end
     end
-    if n > 0 then return getText("IGUI_KnoxPass_ManagersPeople", tostring(n)) end
-    return getText("IGUI_KnoxPass_ManagersNone")
+    local parts = {}
+    if houses > 0 then parts[1] = getText("IGUI_KnoxPass_ManagersHouses", tostring(houses)) end
+    if people > 0 then parts[#parts + 1] = getText("IGUI_KnoxPass_ManagersPeople", tostring(people)) end
+    if s.coFaction and s.ownerFaction then
+        table.insert(parts, 1, #parts > 0 and getText("IGUI_KnoxPass_ManagersFactionShort")
+            or getText("IGUI_KnoxPass_ManagersFaction", s.ownerFaction))
+    end
+    if #parts == 0 then return getText("IGUI_KnoxPass_ManagersNone") end
+    local out = parts[1]
+    for i = 2, #parts do out = getText("IGUI_KnoxPass_ManagersJoin", out, parts[i]) end
+    return out
 end
 
 -- 設定各列跟著 state 走（被拒時也用來回到伺服器的值）：設了值就選生效值（上下限縮小後是夾過的值），沒設選預設。
@@ -689,59 +701,105 @@ function Win:onManagers()
 end
 
 -- ── 共同管理者名單視窗 ──────────────────────────────────────────────────
--- 內容照管理視窗的 state 畫（Co:apply）；擁有者與管理員能改（state.ownerOrAdmin），共同管理者只能看。
+-- 內容照管理視窗的 state 畫（Co:apply）；擁有者與管理員能改（state.ownerOrAdmin），共同管理者只能看。三段：陣營（擁有者陣營的
+-- 成員）、安全屋（擁有者所在的每一間，一列一個開關；共同管理者只看得到勾選的）、個別帳號。
 -- 輸入框是 UI.Autocomplete（框架 API rev 11，CAPS.autocomplete；家族 Safehouse 的分享對象同款）：候選由伺服器
--- H.findPlayers 回，只列伺服器認得的玩家；選了候選才能按「加入」，伺服器 H.managers 再重查一次。
+-- H.findPlayers 回，只列伺服器認得的玩家；打了字就能按「加入」，沒選候選時標紅輸入框並提示，伺服器 H.managers 再重查一次。
+-- 被截字的帳號、陣營標籤與每一間的全名放在提示（滑鼠停留；Checkbox 的提示鍵盤焦點也讀）。
 -- 框架沒有 Autocomplete 時名單照列，新增停用並寫明
 local CO_W = 340               -- 最窄寬度；陣營開關的標籤比較長的語言撐寬（Co.new）
 local QUERY_TIMEOUT_MS = 3000   -- 候選查詢送出後這麼久沒回覆就當作掉了，可以再送
 local TOGGLE_W = 44             -- 勾選框的開關圖樣與間距（標籤截字用）
+local HEAD_FIRST, HEAD_TOP = 6, 12   -- 分段標題上方的留白（第一段只留 HEAD_FIRST；同框架 NavList 的群組標題）
+local HOUSE_ROWS = 3            -- 安全屋那一段看得到幾列，多的捲動（UI.ScrollPanel）
+local TIP_W = 300               -- 提示框的折行寬（同原版 ISToolTip 自動換行的寬度）
 
 local CoBody = ISPanel:derive("KnoxPassCoBody")
 -- 文字畫在 prerender：子元件（搜尋框的下拉）在 prerender 之後、render 之前畫，下拉才蓋得住名單文字
 -- （UIElement.render：prerender → children → render）
 function CoBody:prerender()
     local co = self.co
-    -- 選了候選之後又改字就不算選過：只能加入確實存在的玩家
-    if co.picked and co.ac and co.ac:getText() ~= co.picked then co.picked = nil end
-    co.btnAdd:setEnabled(co.canEdit and co.picked ~= nil and co.count < co.max)
+    if co.ac then
+        local now = co.ac:getText()
+        if co.picked and now ~= co.picked then co.picked = nil end   -- 選了候選之後又改字就不算選過：只能加入確實存在的玩家
+        if now ~= co.typed then                                      -- 改了字：收掉「要從候選選」的紅框
+            co.typed = now
+            if co.ac.field.setInvalid then co.ac.field:setInvalid(false) end
+        end
+    end
+    co.btnAdd:setEnabled(co.canEdit and co.ac ~= nil and co.typed ~= "" and co.count < co.max)
     co:draw(self)
 end
 
+-- 安全屋那一列：框架 Checkbox 畫開關與屋名，這裡在右邊補「屋主 · 人數」或「已失效」（render 在 Checkbox 的 prerender 之後）
+local function houseRowRender(box)
+    if not box.info then return end
+    local c = box._enabled and COL[box.infoToken] or COL.textDisabled or COL.textFaint
+    box:drawTextRight(box.info, box.width - 6, box.infoY, c.r, c.g, c.b, c.a, FS)
+end
+
+-- 家族 Safehouse 的安全屋：原生 owner 是 @MSH:<編號>，屋主帳號問它的公開 API（MinidoracatSafehouse.v1.ownerName：查本機快取、
+-- 不配置；資料還沒到時回 nil，下一次 state 再問）。沒裝家族 Safehouse 就不寫屋主
+local function houseOwner(h)
+    if h.owner then return h.owner end
+    local api = MinidoracatSafehouse and MinidoracatSafehouse.v1
+    if not (api and api.CAPABILITIES and api.CAPABILITIES.ownerName and api.ownerName) then return nil end
+    local ok, name = pcall(api.ownerName, h.key)
+    return ok and type(name) == "string" and name ~= "" and name or nil
+end
+
 function Co.new()
-    local self = setmetatable({ names = {}, rowText = {}, count = 0, max = KP.MAX_MANAGERS, canEdit = false }, Co)
+    local self = setmetatable({ names = {}, rowText = {}, count = 0, max = KP.MAX_MANAGERS, canEdit = false, houses = {},
+        countText = "", footLines = {} }, Co)
     local tm = getTextManager()
     local fh = tm:getFontHeight(FS)
     local ch = fh + 10
     self.lineH, self.ch = fh + 6, ch
+    local lineH = self.lineH
     local addTitle, removeTitle = getText("IGUI_KnoxPass_Add"), getText("IGUI_KnoxPass_Remove")
     local addW = tm:MeasureStringX(FS, addTitle) + 20
     self.removeW = tm:MeasureStringX(FS, removeTitle) + 20
-    -- 寬度跟著語言撐開（同管理視窗）：陣營開關的標籤只有一行，擁有者不在陣營時那句最長；陣營名太長照樣截字
+    -- 寬度跟著語言撐開（同管理視窗）：陣營開關的標籤只有一行，擁有者不在陣營時那句最長；陣營名太長照樣截字（滑過去看全文）
     local w = math.max(CO_W, PAD * 2 + TOGGLE_W + tm:MeasureStringX(FS, getText("IGUI_KnoxPass_ManagersFactionNone")),
         PAD * 2 + TOGGLE_W + tm:MeasureStringX(FS, getText("IGUI_KnoxPass_ManagersFactionOn", "")))
     self.w = w
-    self.note = wrap(getText("IGUI_KnoxPass_ManagersNote"), w - PAD * 2)
-    self.factionHint = wrap(getText("IGUI_KnoxPass_ManagersFactionHint"), w - PAD * 2 - TOGGLE_W)
-    self.empty = fit(getText("IGUI_KnoxPass_ManagersEmpty"), w - PAD * 2)
+    local inner = w - PAD * 2
+    self.note = wrap(getText("IGUI_KnoxPass_ManagersNote"), inner)
+    self.heads = { getText("IGUI_KnoxPass_ManagersFactionHead"), getText("IGUI_KnoxPass_ManagersHousesHead"),
+        getText("IGUI_KnoxPass_ManagersPeopleHead") }
+    self.factionHint = wrap(getText("IGUI_KnoxPass_ManagersFactionHint"), inner - TOGGLE_W)
+    self.housesHint = wrap(getText("IGUI_KnoxPass_ManagersHousesHint"), inner - TOGGLE_W)
+    self.housesNone = wrap(getText("IGUI_KnoxPass_ManagersHousesNone"), inner - 12)
+    self.housesOff = wrap(getText("IGUI_KnoxPass_ManagersHousesOff"), inner - 12)
+    self.empty = fit(getText("IGUI_KnoxPass_ManagersEmpty"), inner)
     self.onlineTag = getText("IGUI_KnoxPass_Online")
-    -- 由上而下：說明、陣營開關與說明、搜尋框＋加入、名單（最多 KP.MAX_MANAGERS 列）、底下一行（人數或只能看的說明，
-    -- 會換行：留最長那句的行數）。搜尋框在名單上面，下拉蓋住名單列
+    -- 由上而下：說明；陣營（標題、開關、說明）；安全屋（標題、HOUSE_ROWS 列、說明）；個別帳號（標題與人數、搜尋框＋加入、
+    -- 名單最多 KP.MAX_MANAGERS 列）；底下一行（只能看、或框架不足的說明，會換行：留最長那句的行數）。搜尋框的下拉蓋住名單列
     local y = PAD
     self.noteY = y
-    y = y + #self.note * self.lineH + GAP
+    y = y + #self.note * lineH + HEAD_FIRST
+    self.factionHeadY = y
+    y = y + lineH
     self.factionY = y
     y = y + ch
     self.factionHintY = y
-    y = y + #self.factionHint * self.lineH + GAP
+    y = y + #self.factionHint * lineH + HEAD_TOP
+    self.housesHeadY = y
+    y = y + lineH
+    self.housesY, self.housesH = y, HOUSE_ROWS * (ch + 2)
+    y = y + self.housesH
+    self.housesHintY = y
+    y = y + #self.housesHint * lineH + HEAD_TOP
+    self.peopleHeadY = y
+    y = y + lineH
     self.addY = y
     y = y + ch + GAP
     self.listY = y
     y = y + KP.MAX_MANAGERS * (ch + 2) + GAP
-    self.countY = y
-    local countLines = math.max(#wrap(getText("IGUI_KnoxPass_ManagersReadOnly"), w - PAD * 2),
-        #wrap(getText("IGUI_KnoxPass_ManagersNeedFramework"), w - PAD * 2), 1)
-    local bodyH = y + countLines * self.lineH + PAD
+    self.footY = y
+    local footLines = math.max(#wrap(getText("IGUI_KnoxPass_ManagersReadOnly"), inner),
+        #wrap(getText("IGUI_KnoxPass_ManagersNeedFramework"), inner), 1)
+    local bodyH = y + footLines * lineH + PAD
 
     self.win = UI.Window.new({ x = 0, y = 0, width = w, height = bodyH + 40, theme = theme, opaque = true,
         title = getText("IGUI_KnoxPass_ManagersTitle") })
@@ -753,13 +811,40 @@ function Co.new()
     body:initialise()
     self.win:addChild(body)
 
-    self.faction = UI.Checkbox.new({ x = PAD, y = self.factionY, width = w - PAD * 2, label = "", theme = theme,
+    self.faction = UI.Checkbox.new({ x = PAD, y = self.factionY, width = inner, label = "", theme = theme,
         target = self, onChange = Co.onFaction })
     body:addChild(self.faction)
-    self.rowButtons = {}
+    -- 安全屋：一列一個開關（同陣營那個開關），先建好、照 state 顯示（同「移除」鈕）。放進捲動容器（框架 rev 16）：鍵盤與手把照
+    -- 框架 Window 的自動目標走，焦點換到看不到的列會自己捲過去
+    -- ponytail: 舊框架沒有捲動容器時只列前 HOUSE_ROWS 間（伺服器排序勾選的在前）；真有人卡在這裡再自己畫捲軸
+    local parent, ox, oy, rows = body, PAD, self.housesY, HOUSE_ROWS
+    if CAPS.scrollPanel and UI.ScrollPanel then
+        self.housesBox = UI.ScrollPanel.new({ x = PAD, y = self.housesY, width = inner, height = self.housesH, theme = theme })
+        body:addChild(self.housesBox)
+        parent, ox, oy, rows = self.housesBox, 0, 0, KP.MAX_HOUSES
+    end
+    self.rowW = self.housesBox and self.housesBox:contentWidth() or inner
+    self.houseRows = {}
+    for i = 1, rows do
+        local box = UI.Checkbox.new({ x = ox, y = oy + (i - 1) * (ch + 2), width = self.rowW, height = ch, label = "",
+            theme = theme, target = self, onChange = Co.onHouse })
+        box.render, box.infoY, box.infoToken = houseRowRender, math.floor((ch - fh) / 2), "textMuted"
+        box:setVisible(false)
+        parent:addChild(box)
+        self.houseRows[i] = box
+    end
+    -- 個別帳號：每列一顆「移除」；帳號被截掉的列蓋一塊 Tip 顯示全文（同耐久那一列）。Tip 在搜尋框之前加，下拉才蓋得住
+    self.rowButtons, self.nameTips = {}, {}
     for i = 1, KP.MAX_MANAGERS do
-        local b = UI.Button.new({ x = w - PAD - self.removeW, y = self.listY + (i - 1) * (ch + 2), width = self.removeW,
-            height = ch, title = removeTitle, theme = theme, target = self, onClick = Co.onRemove })
+        local rowY = self.listY + (i - 1) * (ch + 2)
+        local tip = Tip:new(PAD, rowY, inner, ch)
+        tip:initialise()
+        tip.background = false
+        tip:setVisible(false)
+        body:addChild(tip)
+        self.nameTips[i] = tip
+        local b = UI.Button.new({ x = w - PAD - self.removeW, y = rowY, width = self.removeW, height = ch, title = removeTitle,
+            theme = theme, target = self, onClick = Co.onRemove })
         b:setVisible(false)
         body:addChild(b)
         self.rowButtons[i] = b
@@ -768,14 +853,41 @@ function Co.new()
         style = "primary", theme = theme, target = self, onClick = Co.onAdd })
     body:addChild(self.btnAdd)
     if CAPS.autocomplete then
-        self.ac = UI.Autocomplete.new({ x = PAD, y = self.addY, width = w - PAD * 2 - addW - GAP, theme = theme, font = FS,
+        self.ac = UI.Autocomplete.new({ x = PAD, y = self.addY, width = inner - addW - GAP, theme = theme, font = FS,
             placeholder = getText("IGUI_KnoxPass_PlayerHint"), maxLength = KP.NAME_MAX, target = self, opaque = true,
             onQuery = Co.onQuery, onPick = Co.onPick, labelOf = function(row) return row.name end,
             tagOf = function(row) return row.online and self.onlineTag or nil end })
         self.ac:addTo(body)   -- 下拉最後加，才蓋得住名單列
-        self.ac:anchorList(self.countY - self.addY - ch)
+        self.ac:anchorList(self.footY - self.addY - ch)
     end
     return self
+end
+
+-- 安全屋那一段（伺服器 Server.lua ownerHouses 排好：勾選的在前）：屋名截到右邊放得下「屋主 · 人數」，
+-- 全名、屋主與人數放在提示；已失效（找不到、或擁有者已不在裡面）的列照樣開著，擁有者關掉才移除
+function Co:applyHouses(list)
+    self.houses = list
+    local tm = getTextManager()
+    for i, box in ipairs(self.houseRows) do
+        local h = list[i]
+        box:setVisible(h ~= nil)
+        if h then
+            local owner, n = houseOwner(h), tostring(h.members or 0)
+            local title = h.title ~= nil and h.title ~= "" and h.title or "?"
+            local info = h.gone and getText("IGUI_KnoxPass_ManagersHouseGone")
+                or owner and getText("IGUI_KnoxPass_ManagersHouseInfo", owner, n)
+                or getText("IGUI_KnoxPass_ManagersHouseCount", n)
+            box.internal, box.info = h.key, info
+            box.infoToken = h.gone and (COL.warning and "warning" or "errorText") or "textMuted"
+            box:setLabel(fit(title, self.rowW - TOGGLE_W - tm:MeasureStringX(FS, info) - 18))
+            box:setChecked(h.on == true, true)
+            box:setEnabled(self.canEdit)
+            if box.setTooltip then
+                box:setTooltip(tipText(h.gone and getText("IGUI_KnoxPass_ManagersHouseGoneTip", title)
+                    or getText("IGUI_KnoxPass_ManagersHouseTip", title, owner or "?", n), TIP_W))
+            end
+        end
+    end
 end
 
 -- 照管理視窗的 state 重畫；名單只有擁有者與管理員能改
@@ -783,44 +895,63 @@ function Co:apply(s)
     self.canEdit = s.ownerOrAdmin == true
     self.names = s.co or {}
     self.count, self.max = #self.names, s.maxManagers or KP.MAX_MANAGERS
-    self.faction:setLabel(fit(s.ownerFaction and getText("IGUI_KnoxPass_ManagersFactionOn", s.ownerFaction)
-        or getText("IGUI_KnoxPass_ManagersFactionNone"), self.w - PAD * 2 - TOGGLE_W))
+    -- 陣營：截字時才掛完整標籤（框架 rev 17 的提示；滑鼠停留與鍵盤焦點都看得到）
+    local factionText = s.ownerFaction and getText("IGUI_KnoxPass_ManagersFactionOn", s.ownerFaction)
+        or getText("IGUI_KnoxPass_ManagersFactionNone")
+    local label = fit(factionText, self.w - PAD * 2 - TOGGLE_W)
+    self.faction:setLabel(label)
+    if self.faction.setTooltip then self.faction:setTooltip(label ~= factionText and factionText or nil) end
     self.faction:setChecked(s.coFaction == true, true)
     -- 擁有者不在陣營時不能打開；已經開著（擁有者後來離開陣營）照樣能關
     self.faction:setEnabled(self.canEdit and (s.ownerFaction ~= nil or s.coFaction == true))
+    self:applyHouses(s.houses or {})
+    -- 只能看的人沒有搜尋列：名單往上移到搜尋列的位置
+    local top = self.canEdit and self.listY or self.addY
     local textW = self.w - PAD * 2 - (self.canEdit and (self.removeW + GAP) or 0)
     for i, b in ipairs(self.rowButtons) do
         local name = self.names[i]
-        self.rowText[i] = name and fit(name, textW) or nil
+        local shown = name and fit(name, textW) or nil
+        self.rowText[i] = shown
         b.internal = name
         b:setVisible(name ~= nil and self.canEdit)
+        if name then b:setTooltip(getText("IGUI_KnoxPass_RemoveName", name)) end   -- 手把焦點也顯示（ISButton.lua:317）
+        local tip = self.nameTips[i]
+        tip.tooltip = shown ~= name and name or nil   -- 只有被截掉的列有提示
+        tip:setY(top + (i - 1) * (self.ch + 2))
+        tip:setWidth(textW)
+        tip:setVisible(tip.tooltip ~= nil)
     end
-    local full = self.count >= self.max
     if self.ac then
         self.ac:setVisible(self.canEdit)
-        self.ac:setEnabled(not full)
+        self.ac:setEnabled(self.count < self.max)
     end
     self.btnAdd:setVisible(self.canEdit)
-    if not self.canEdit then
-        self.countText = getText("IGUI_KnoxPass_ManagersReadOnly")
-    elseif not self.ac then
-        self.countText = getText("IGUI_KnoxPass_ManagersNeedFramework")
-    else
-        self.countText = getText("IGUI_KnoxPass_ManagersCount", tostring(self.count), tostring(self.max))
-    end
-    self.countLines = wrap(self.countText, self.w - PAD * 2)
+    self.countText = getText("IGUI_KnoxPass_ManagersCount", tostring(self.count), tostring(self.max))
+    self.footText = not self.canEdit and getText("IGUI_KnoxPass_ManagersReadOnly")
+        or not self.ac and getText("IGUI_KnoxPass_ManagersNeedFramework") or nil
+    self.footLines = self.footText and wrap(self.footText, self.w - PAD * 2) or {}
 end
 
--- 只能看的人沒有搜尋列：名單往上移到搜尋列的位置
 function Co:draw(el)
-    drawLines(el, self.note, PAD, self.noteY, self.lineH, "textMuted")
-    drawLines(el, self.factionHint, PAD + TOGGLE_W, self.factionHintY, self.lineH, "textFaint")
+    local lineH, inner = self.lineH, self.w - PAD * 2
+    drawLines(el, self.note, PAD, self.noteY, lineH, "textMuted")
+    text(el, self.heads[1], PAD, self.factionHeadY, "textMuted")
+    drawLines(el, self.factionHint, PAD + TOGGLE_W, self.factionHintY, lineH, "textFaint")
+    text(el, self.heads[2], PAD, self.housesHeadY, "textMuted")
+    theme:fill(el, PAD, self.housesY, inner, self.housesH, "well")
+    if #self.houses == 0 then
+        drawLines(el, self.canEdit and self.housesNone or self.housesOff, PAD + 6, self.housesY + 5, lineH, "textFaint")
+    end
+    drawLines(el, self.housesHint, PAD + TOGGLE_W, self.housesHintY, lineH, "textFaint")
+    text(el, self.heads[3], PAD, self.peopleHeadY, "textMuted")
+    local c = COL.textMuted
+    el:drawTextRight(self.countText, self.w - PAD, self.peopleHeadY, c.r, c.g, c.b, c.a, FS)
     local top = self.canEdit and self.listY or self.addY
     if self.count == 0 then text(el, self.empty, PAD, top + 5, "textFaint") end
     for i = 1, self.count do
         text(el, self.rowText[i], PAD, top + (i - 1) * (self.ch + 2) + 5, "text")
     end
-    drawLines(el, self.countLines, PAD, self.countY, self.lineH, "textMuted")
+    drawLines(el, self.footLines, PAD, self.footY, lineH, "textMuted")
 end
 
 function Co.show(w)
@@ -830,8 +961,12 @@ function Co.show(w)
         co.win:addToUIManager()
         Co.instance = co
     end
-    co.owner, co.picked, co.pending = w, nil, nil
-    if co.ac then co.ac:setText("") end
+    co.owner, co.picked, co.pending, co.typed = w, nil, nil, nil
+    if co.ac then
+        co.ac:setText("")
+        if co.ac.field.setInvalid then co.ac.field:setInvalid(false) end
+    end
+    if co.housesBox then co.housesBox:setYScroll(0) end
     -- 擺在管理視窗右邊，放不下就擺左邊
     local x = w.win:getX() + w.win:getWidth() + 8
     if x + co.w > getCore():getScreenWidth() then x = math.max(0, w.win:getX() - co.w - 8) end
@@ -862,14 +997,28 @@ function Co:onFaction(checked)
     if w then C.send(w.player, "managers", { key = w.key, faction = checked == true }) end
 end
 
+-- 安全屋的開關：送給伺服器、等新的 state（擁有者已不在那間時伺服器回 NoHouse，Win.onResult 照 state 改回）
+function Co:onHouse(checked, box)
+    local w = self.owner
+    if w and box.internal then C.send(w.player, "managers", { key = w.key, house = box.internal, on = checked == true }) end
+end
+
 function Co:onRemove(button)
     local w = self.owner
     if w and button.internal then C.send(w.player, "managers", { key = w.key, remove = { button.internal } }) end
 end
 
+-- 只能加伺服器認得的玩家（使用者 2026-10-12），所以要從候選選；沒選就按時標紅輸入框並說怎麼做（送出時才檢查：
+-- 停用的按鈕鍵盤與手把停不到，也看不到原因。使用者 2026-10-20）
 function Co:onAdd()
     local w, name = self.owner, self.picked
-    if not (w and name) then return end
+    if not w then return end
+    if not name then
+        local msg = getText("IGUI_KnoxPass_PickCandidate")
+        if self.ac and self.ac.field.setInvalid then self.ac.field:setInvalid(true, msg) end   -- 紅框＋驚嘆號，不只靠顏色
+        C.say(w.player, msg, true)
+        return
+    end
     self.picked = nil
     if self.ac then self.ac:setText("") end
     C.send(w.player, "managers", { key = w.key, add = name })

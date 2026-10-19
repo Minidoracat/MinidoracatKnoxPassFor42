@@ -241,14 +241,20 @@ end
 -- ── 右鍵選單 ────────────────────────────────────────────────────────────
 
 -- client 顯示用的管理權（規則同伺服器 Server.lua canManage／ownerOrAdmin，伺服器照樣重驗）：SP 一律可管；MP 看錨點標記上的
--- 擁有者、共同管理者（帳號名單，或擁有者陣營的成員）與管理員角色。回傳 能管理, 是擁有者或管理員（能拆讀頭、改名單）
+-- 擁有者、共同管理者（帳號名單、擁有者陣營的成員，或和擁有者同在一間勾選的安全屋）與管理員角色。
+-- 回傳 能管理, 是擁有者或管理員（能拆讀頭、改名單）
 local function access(player, md)
     if not isClient() then return true, true end
     local me, owner = player:getUsername(), md[KP.MARKER_OWNER]
     if me == owner or KP.hasAdminRole(player) then return true, true end
     local co = md[KP.MARKER_CO]
     if type(co) == "table" and co[me] then return true, false end
-    return md[KP.MARKER_COFACTION] == true and KP.inFactionOf(owner, me), false
+    if md[KP.MARKER_COFACTION] == true and KP.inFactionOf(owner, me) then return true, false end
+    local houses = md[KP.MARKER_COHOUSES]
+    for key in pairs(type(houses) == "table" and houses or {}) do
+        if KP.sharesHouse(key, owner, me) then return true, false end
+    end
+    return false, false
 end
 
 local function tip(option, textKey)
@@ -394,7 +400,7 @@ local function onFillMenu(playerIndex, context, worldobjects, test)
     local key = G.key(anchor)
     local manager, ownerOrAdmin = access(player, md)
     if not manager then
-        disable(sub:addOption(getText("ContextMenu_KnoxPass_OtherOwner"), nil, nil))
+        disable(sub:addOption(getText("ContextMenu_KnoxPass_OtherOwner"), nil, nil), "IGUI_KnoxPass_OtherOwnerTip")
         tip(addOpenClose(sub, player, adapter, anchor, key), "IGUI_KnoxPass_OpenTip")
         return
     end

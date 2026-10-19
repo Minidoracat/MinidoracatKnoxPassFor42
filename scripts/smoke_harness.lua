@@ -250,6 +250,27 @@ SafeHouse = {
             return inGroup(h, name)
         end }
     end,
+    -- 原生清單（SafeHouse.java:652）：W.houses 每一筆是一塊範圍；owner 可以是家族 Safehouse 的服務帳號 @MSH:<編號>（真正的屋主
+    -- 放 members，同一間的每一塊共用標記與名單）。每塊有 getOwner、getTitle、getPlayers（不含 owner，SafeHouse.java:640-642）、
+    -- playerAllowed(String)＝屋主或成員（:288-290）
+    getSafehouseList = function()
+        local out = {}
+        for _, h in ipairs(W.houses) do
+            local players = {}
+            for name in pairs(h.members) do players[#players + 1] = name end
+            table.sort(players)
+            out[#out + 1] = {
+                getOwner = function() return h.owner end,
+                getTitle = function() return h.title or "Safehouse" end,
+                getPlayers = function() return javaList(players) end,
+                playerAllowed = function(_, name)
+                    assert(type(name) == "string", "SafeHouse:playerAllowed(String)")
+                    return inGroup(h, name)
+                end,
+            }
+        end
+        return javaList(out)
+    end,
 }
 local FactionObj = {}
 FactionObj.__index = FactionObj
@@ -4956,10 +4977,78 @@ local function scenarioCoManagers()
     check(bst ~= nil and cmd(fake, "query", { key = s.key }).why == "NotOwner", "SteamID 相符才是共同管理者，冒名者被擋下")
     W.steam = false
 
-    -- 10. 重開：名單與認得的玩家都還在
+    -- 10. 安全屋：列出擁有者所在的每一間（同一個原生 owner 的多塊算一間），勾選那間的成員是共同管理者；擁有者離開那間就停止，
+    --     勾選留著（標 gone）、回去就恢復；共同管理者只看得到勾選的；不能勾擁有者不在的那間（使用者 2026-10-20）
+    nowMs = nowMs + 10001
+    local function house(st, key)
+        for _, h in ipairs(st and st.houses or {}) do
+            if h.key == key then return h end
+        end
+        return nil
+    end
+    W.houses[1] = { owner = "@MSH:7", title = "Base", members = { owner100 = true, roomie = true } }
+    W.houses[2] = { owner = "@MSH:7", title = "Base", members = { owner100 = true, roomie = true } }   -- 同一間的第二塊
+    W.houses[3] = { owner = "zed", title = "Zed", members = { owner100 = true } }
+    W.houses[4] = { owner = "other", title = "Other", members = { roomie = true } }
+    local roomie = newPlayer("roomie", 100, 101)
+    local _, hst = cmd(a.owner, "query", { key = a.key })
+    local base, zed = house(hst, "@MSH:7"), house(hst, "zed")
+    check(hst and #hst.houses == 2 and base and base.members == 2 and base.owner == nil and base.on == false
+        and zed and zed.owner == "zed" and zed.members == 2 and house(hst, "other") == nil,
+        "列出擁有者所在的安全屋：同一個 owner 的兩塊算一間、服務帳號不算人、擁有者不在的那間不列")
+    check(KP.sharesHouse("@MSH:7", "owner100", "roomie") and not KP.sharesHouse("@MSH:7", "owner100", "stranger")
+        and not KP.sharesHouse("other", "owner100", "roomie") and not KP.sharesHouse(nil, "owner100", "roomie"),
+        "KP.sharesHouse：兩人都在同一個 owner 的名單上才算")
+    check(cmd(roomie, "query", { key = a.key }).why == "NotOwner", "還沒勾選：同屋的人打不開管理視窗")
+    res, st = managers(a.owner, a.key, { house = "@MSH:7", on = true })
+    check(res.ok == true and rec(a).coHouses["@MSH:7"] == "Base" and house(st, "@MSH:7").on == true
+        and a.door._modData[KP.MARKER_COHOUSES]["@MSH:7"] == true
+        and a.door._view.modData[KP.MARKER_COHOUSES]["@MSH:7"] == true, "勾選：帳本記屋名、state 打勾、錨點標記同步給 client")
+    local _, rst = cmd(roomie, "query", { key = a.key })
+    check(rst and rst.ownerOrAdmin == false and #rst.houses == 1 and rst.houses[1].key == "@MSH:7",
+        "同屋的人是共同管理者，state 只帶勾選的那一間（看不到擁有者還在哪些安全屋）")
+    check(cmd(roomie, "lock", { key = a.key, on = true }).ok == true and cmd(roomie, "lock", { key = a.key, on = false }).ok == true,
+        "安全屋的共同管理者能上鎖、解鎖")
+    check(managers(roomie, a.key, { house = "@MSH:7", on = false }).why == "OwnerOnly" and rec(a).coHouses["@MSH:7"] ~= nil,
+        "共同管理者不能改勾選")
+    check(managers(a.owner, a.key, { house = "other", on = true }).why == "NoHouse" and rec(a).coHouses.other == nil,
+        "不能勾擁有者不在的那間（NoHouse）")
+    local badH = 0
+    for _, args in ipairs({ { house = 5, on = true }, { house = "zed" }, { house = "", on = true },
+        { house = string.rep("x", 65), on = true }, { house = "zed", on = "yes" } }) do
+        if managers(a.owner, a.key, args).why ~= "BadArgs" then badH = badH + 1 end
+    end
+    check(badH == 0 and rec(a).coHouses.zed == nil, "house 不是 1-64 字的字串、on 不是布林 → BadArgs")
+    nowMs = nowMs + 10001
+    W.houses[1].title, W.houses[2].title = "Base 2", "Base 2"
+    cmd(a.owner, "query", { key = a.key })
+    check(rec(a).coHouses["@MSH:7"] == "Base 2", "屋名改了：帳本跟著記最新的")
+    -- 擁有者離開那間（兩塊都移出）：成員不再是共同管理者；勾選留著、標成已失效；回去就恢復
+    W.houses[1].members.owner100, W.houses[2].members.owner100 = nil, nil
+    check(cmd(roomie, "query", { key = a.key }).why == "NotOwner", "擁有者離開那間：成員不能管理")
+    local _, gst = cmd(a.owner, "query", { key = a.key })
+    local gone = house(gst, "@MSH:7")
+    check(gone and gone.gone == true and gone.on == true and gone.title == "Base 2" and gst.houses[1].key == "@MSH:7"
+        and rec(a).coHouses["@MSH:7"] ~= nil, "勾選留著：state 標 gone、照帳本的屋名、排在最前面")
+    check(managers(a.owner, a.key, { house = "@MSH:7", on = true }).why == "NoHouse", "已失效的那間不能再勾一次")
+    W.houses[1].members.owner100, W.houses[2].members.owner100 = true, true
+    local _, back = cmd(roomie, "query", { key = a.key })
+    check(back ~= nil and back.ownerOrAdmin == false, "擁有者回到那間：成員又能管理")
+    -- 最多列 KP.MAX_HOUSES 間，勾選的排最前面
+    for i = 1, 13 do W.houses[4 + i] = { owner = "h" .. i, title = string.format("H%02d", i), members = { owner100 = true } } end
+    local _, cst = cmd(a.owner, "query", { key = a.key })
+    check(#cst.houses == KP.MAX_HOUSES and cst.houses[1].key == "@MSH:7", "最多列 12 間，勾選的排最前面")
+    for i = 17, 5, -1 do W.houses[i] = nil end
+
+    -- 11. 重開：名單、勾選的安全屋與認得的玩家都還在；之後取消勾選，帳本與標記都不留空表
     restart()
-    check(rec(a).co.alpine == true and KP.Ledger.known("Alpha") and KP.Ledger.userSid("buddy") == 5550,
-        "重開後名單與認得的玩家都還在")
+    nowMs = nowMs + 10001
+    check(rec(a).co.alpine == true and KP.Ledger.known("Alpha") and KP.Ledger.userSid("buddy") == 5550
+        and rec(a).coHouses["@MSH:7"] == "Base 2", "重開後名單、勾選的安全屋與認得的玩家都還在")
+    W.houses[1].members.owner100, W.houses[2].members.owner100 = nil, nil
+    res = managers(a.owner, a.key, { house = "@MSH:7", on = false })
+    check(res.ok == true and rec(a).coHouses == nil and a.door._modData[KP.MARKER_COHOUSES] == nil,
+        "已失效的那間也關得掉：帳本與標記都拿掉")
     clean(from, "共同管理者")
 end
 

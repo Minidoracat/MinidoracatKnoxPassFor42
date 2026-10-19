@@ -76,9 +76,10 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [h3]Co-managers[/h3]
 [list]
 [*] [b]Open the list[/b]: press the button on the "Co-managers" row of the management window.
-[*] [b]Adding someone[/b]: type a player account in the search box, pick them from the dropdown and press "Add"; up to 8 people.
+[*] [b]Adding someone[/b]: type a player account in the search box, pick them from the dropdown and press "Add"; up to 8 people. Pressing "Add" without picking someone from the dropdown turns the box red and tells you to pick first.
 [*] [b]Who you can find[/b]: online players show up after typing part of the account; offline players need the full account (same upper/lower case); an account that has never been online on this server can't be added, so wait until they log in once.
 [*] [b]Your faction[/b]: turn on "Members of faction "…"" and everyone in the owner's faction counts as a co-manager; people who join later count too, and leaving the faction ends it.
+[*] [b]Your safehouses[/b]: "Safehouses" lists every safehouse the owner is in (name, owner and head count). Turn one on and everyone in it counts as a co-manager; you can turn on several, and people who join later count too. When the owner leaves one, it stops counting and the row says "Inactive"; it comes back when the owner returns, and you turn it off to remove it. Co-managers only see the safehouses that are turned on.
 [*] [b]What they can do[/b]: open the management window, change settings, register and unregister, lock, open and close on foot, and repaint the reader.
 [*] [b]What they can't[/b]: remove the reader or change the co-manager list; only the owner and server admins can.
 [*] Works in multiplayer only.
@@ -350,7 +351,12 @@ Check that:
 [h3]My teammate can't open the management window?[/h3]
 [list]
 [*] Only the owner, co-managers and server admins can; sharing with a faction or safehouse only covers opening and closing on foot.
-[*] To manage the gate together, add them under "Co-managers".
+[*] To manage the gate together, add them under "Co-managers", or hand it to your faction or safehouse there.
+[/list]
+[h3]A co-manager right-clicks the gate and sees no Knox Pass?[/h3]
+[list]
+[*] When the gate is inside a safehouse, the base game doesn't let anyone outside that safehouse right-click things in it, so no mod options show up.
+[*] Add them to the safehouse the gate is in; you can then also hand that safehouse over under "Co-managers".
 [/list]
 [h3]Can't find a teammate's account?[/h3]
 [list]

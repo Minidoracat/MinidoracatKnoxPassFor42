@@ -13,7 +13,9 @@ KP.MARKER_COLOR = "KnoxPassColor"                 -- 大門錨點 modData：讀�
 KP.MARKER_SPEED = "KnoxPassSpeed"                 -- 大門錨點 modData：開關速度 "fast"（沒有＝正常；client 據此選動畫）
 KP.MARKER_CO = "KnoxPassCo"                       -- 大門錨點 modData：共同管理者 { [帳號] = true }（右鍵選單用，伺服器不信它）
 KP.MARKER_COFACTION = "KnoxPassCoFaction"         -- 大門錨點 modData：擁有者陣營的成員也是共同管理者（同上）
+KP.MARKER_COHOUSES = "KnoxPassCoHouses"           -- 大門錨點 modData：勾選的安全屋也是共同管理者 { [原生 owner 字串] = true }（同上）
 KP.MAX_MANAGERS = 8                               -- 每扇門最多幾位個別的共同管理者（陣營另外算）
+KP.MAX_HOUSES = 12                                -- 名單視窗最多列幾間安全屋（擁有者所在的；勾選的排前面，Server.lua ownerHouses）
 KP.NAME_MAX = 32                                  -- 帳號最長幾個字（42.21 起 32，ServerWorldDatabase.isValidUserName）
 KP.MANAGE_RANGE = 3                               -- 操作讀頭要站在大門幾格內（同樓層）
 KP.REGISTER_RANGE = 15                            -- 登記時車要在大門幾格內
@@ -411,6 +413,20 @@ end
 function KP.inFactionOf(owner, name)
     local f = owner and name and Faction.getPlayerFaction(owner)
     return f ~= nil and (f:isOwner(name) or f:isMember(name))
+end
+
+-- 安全屋 key＝原生 SafeHouse:getOwner()（SafeHouse.java:656）：原版是屋主帳號，家族 Safehouse 是服務帳號 @MSH:<編號>，
+-- 同一個 owner 的每一塊範圍算同一間（家族 Safehouse 的多塊共用標記與名單）。a、b 都在同一塊的名單上才算
+-- （屋主或成員，playerAllowed(String)：SafeHouse.java:288-290，不含能進安全屋的角色例外）。伺服器的共同管理者與客戶端選單共用；
+-- 原生清單（SafeHouse.java:652）客戶端也有，登入時整份送來
+function KP.sharesHouse(key, a, b)
+    if type(key) ~= "string" or type(a) ~= "string" or type(b) ~= "string" then return false end
+    local list = SafeHouse.getSafehouseList()
+    for i = 0, list:size() - 1 do
+        local sh = list:get(i)
+        if sh:getOwner() == key and sh:playerAllowed(a) and sh:playerAllowed(b) then return true end
+    end
+    return false
 end
 
 -- sq 在 name 自己的安全屋裡（屋主或成員）：SafeHouse.getSafeHouse(square)（SafeHouse.java:157→:201-222）、

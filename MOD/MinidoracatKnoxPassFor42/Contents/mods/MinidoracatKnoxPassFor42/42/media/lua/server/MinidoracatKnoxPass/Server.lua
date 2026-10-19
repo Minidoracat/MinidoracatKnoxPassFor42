@@ -84,14 +84,19 @@ local function ownerOrAdmin(player, rec)
 end
 
 -- 共同管理者：rec.co[帳號]＝加入時伺服器記下的 SteamID（Ledger.lua L.userSid；非 Steam 伺服器是 true），
--- 或擁有者現在所在陣營的領袖或成員（rec.coFaction，以名字判定，同分享給陣營）。擁有者本人的名字不算：
--- 同名但 SteamID 不同的冒名者要擋在 ownerOrAdmin
+-- 或擁有者現在所在陣營的領袖或成員（rec.coFaction，以名字判定，同分享給陣營），
+-- 或和擁有者同在一間勾選的安全屋（rec.coHouses 的 key＝原生 owner 字串，KP.sharesHouse；擁有者離開那間就不算）。
+-- 擁有者本人的名字不算：同名但 SteamID 不同的冒名者要擋在 ownerOrAdmin
 local function coManager(player, rec)
     local name, sid = KP.principal(player)
     if not name or name == rec.owner then return false end
     local entry = rec.co and rec.co[name]
     if entry ~= nil then return entry == true or entry == sid end
-    return rec.coFaction == true and KP.inFactionOf(rec.owner, name)
+    if rec.coFaction == true and KP.inFactionOf(rec.owner, name) then return true end
+    for key in pairs(rec.coHouses or {}) do
+        if KP.sharesHouse(key, rec.owner, name) then return true end
+    end
+    return false
 end
 
 -- 能管理這扇門（開管理視窗、設定、登記、上鎖、重新上色）：擁有者、管理員、共同管理者
@@ -135,6 +140,7 @@ local function mark(anchor, rec)
     md[KP.MARKER_SPEED] = rec and rec.speed == "fast" and "fast" or nil   -- client 選開關動畫（BarrierAnim.lua）
     md[KP.MARKER_CO] = rec and nameSet(rec.co) or nil
     md[KP.MARKER_COFACTION] = rec and rec.coFaction or nil
+    md[KP.MARKER_COHOUSES] = rec and nameSet(rec.coHouses) or nil
     anchor:transmitModData()
 end
 
@@ -220,14 +226,76 @@ local function factionName(owner)
     return f and f:getName() or nil
 end
 
+-- 這間的屋主與成員（跨每一塊、不重複）：帳號不能含 @（ServerWorldDatabase.java:770），含 @ 的是家族 Safehouse 的服務帳號，不算人
+local function addMembers(sh, seen)
+    local owner = sh:getOwner()
+    if not string.find(owner, "@", 1, true) then seen[owner] = true end
+    local players = sh:getPlayers()                              -- SafeHouse.java:640-642
+    for i = 0, players:size() - 1 do
+        local u = players:get(i)
+        if not string.find(u, "@", 1, true) then seen[u] = true end
+    end
+end
+
+-- 勾選的在前（還有效的再前），其餘照屋名（不分大小寫）
+local function houseBefore(a, b)
+    local ra, rb = a.on and (a.gone and 1 or 0) or 2, b.on and (b.gone and 1 or 0) or 2
+    if ra ~= rb then return ra < rb end
+    return string.lower(a.title or "") < string.lower(b.title or "")
+end
+
+-- 名單視窗的安全屋（state.houses）：擁有者現在所在的每一間（屋主或成員，同 KP.sharesHouse），同一個原生 owner 的每一塊算一間。
+-- canEdit＝false（共同管理者）只列勾選的：擁有者還在哪些安全屋，不給他們看。勾著但找不到、或擁有者已不在裡面的列成 gone：
+-- 勾選留著、擁有者回去就恢復，擁有者關掉才移除（使用者 2026-10-20）。帳本順手記下最新屋名，找不到時照它顯示。
+-- 最多 KP.MAX_HOUSES 間；專案禁用 table.sort（verify_mod.py），用插入排序
+local function ownerHouses(rec, canEdit)
+    local picked, out, byKey, seen = rec.coHouses or {}, {}, {}, {}
+    local list = SafeHouse.getSafehouseList()                    -- SafeHouse.java:652
+    for i = 0, (rec.owner and list:size() or 0) - 1 do
+        local sh = list:get(i)
+        local key = sh:getOwner()
+        if (canEdit or picked[key]) and sh:playerAllowed(rec.owner) then
+            local h = byKey[key]
+            if not h then
+                h = { key = key, title = sh:getTitle() or "", on = picked[key] ~= nil,
+                    owner = not string.find(key, "@", 1, true) and key or nil }   -- 家族 Safehouse：客戶端問它的 ownerName
+                byKey[key], seen[key] = h, {}
+                out[#out + 1] = h
+            end
+            addMembers(sh, seen[key])
+        end
+    end
+    for _, h in ipairs(out) do
+        local n = 0
+        for _ in pairs(seen[h.key]) do n = n + 1 end
+        h.members = n
+        if h.on then picked[h.key] = h.title end
+    end
+    for key, title in pairs(picked) do
+        if not byKey[key] then out[#out + 1] = { key = key, title = title, on = true, gone = true } end
+    end
+    for i = 2, #out do
+        local h, j = out[i], i - 1
+        while j >= 1 and houseBefore(h, out[j]) do
+            out[j + 1] = out[j]
+            j = j - 1
+        end
+        out[j + 1] = h
+    end
+    for i = #out, KP.MAX_HOUSES + 1, -1 do out[i] = nil end
+    return out
+end
+
 -- 只有能管理這扇門的人拿得到（KP.sendState 先查 canManage）
 local function buildState(player, key, rec)
     local rangeLo, rangeHi = KP.settingBounds("ReadRange")
     local delayLo, delayHi = KP.settingBounds("CloseDelay")
     -- 每扇門的設定：range／delay＝生效值；rangeSet／delaySet＝擁有者設的值（nil＝跟沙盒預設走）；上下限來自沙盒。
-    -- cx／cy＝感應距離量起的中心（視窗在地上畫範圍圈）。共同管理者：個別帳號（照字母序）、陣營開關、擁有者現在的陣營名；
+    -- cx／cy＝感應距離量起的中心（視窗在地上畫範圍圈）。共同管理者：個別帳號（照字母序）、陣營開關、擁有者現在的陣營名、
+    -- 安全屋（ownerHouses：擁有者與管理員拿到全部候選，共同管理者只拿到勾選的）；
     -- ownerOrAdmin＝能改共同管理者名單、能拆讀頭；indestructible＝生效值（沙盒或這扇門），indestructibleAll＝沙盒對所有大門開著，
     -- isAdmin＝能替這扇門開關「不會被破壞」
+    local canEdit = ownerOrAdmin(player, rec)
     local state = {
         key = key, kind = rec.kind, owner = rec.owner, lock = rec.lock == true,
         open = rec.open == true, needPower = KP.sandbox("RequirePower") == true, cx = rec.cx, cy = rec.cy,
@@ -237,8 +305,8 @@ local function buildState(player, key, rec)
         delayDefault = KP.clampSetting("CloseDelay", tonumber(KP.sandbox("CloseDelay")) or 2),
         speed = rec.speed == "fast" and "fast" or "default", share = rec.share or "none", maxTags = MAX_TAGS,
         walk = rec.walk ~= false, walkSupported = KP.watchSensing(),   -- 這扇門的手錶步行感應（沒有＝開）
-        ownerOrAdmin = ownerOrAdmin(player, rec), co = sortedNames(rec.co), coFaction = rec.coFaction == true,
-        ownerFaction = factionName(rec.owner), maxManagers = KP.MAX_MANAGERS,
+        ownerOrAdmin = canEdit, co = sortedNames(rec.co), coFaction = rec.coFaction == true,
+        ownerFaction = factionName(rec.owner), maxManagers = KP.MAX_MANAGERS, houses = ownerHouses(rec, canEdit),
         indestructible = KP.gateIndestructible(rec), indestructibleAll = KP.sandbox("Indestructible") == true,
         isAdmin = adminOf(player),
     }
@@ -730,8 +798,24 @@ end
 
 local function isName(v) return type(v) == "string" and v ~= "" and #v <= KP.NAME_MAX end
 
--- 改共同管理者名單（擁有者或管理員）：{ key, faction = true/false }、{ key, add = "帳號" }、{ key, remove = { "帳號"… } }。
--- 加入只收伺服器認得的玩家（Ledger.lua L.known：上線過、或是讀頭擁有者），同時記下伺服器看過的 SteamID（L.userSid）
+-- 安全屋的 key＝原生 owner 字串：原版是帳號（≤ KP.NAME_MAX），家族 Safehouse 是 @MSH:<編號>
+local HOUSE_KEY_MAX = 64
+local function isHouseKey(v) return type(v) == "string" and v ~= "" and #v <= HOUSE_KEY_MAX end
+
+-- 勾選時查：擁有者現在在這間（同一個 owner 的任何一塊）裡才回屋名，不在就是 NoHouse
+local function houseTitle(key, owner)
+    if not owner then return nil end
+    local list = SafeHouse.getSafehouseList()
+    for i = 0, list:size() - 1 do
+        local sh = list:get(i)
+        if sh:getOwner() == key and sh:playerAllowed(owner) then return sh:getTitle() or "" end
+    end
+    return nil
+end
+
+-- 改共同管理者名單（擁有者或管理員）：{ key, faction = true/false }、{ key, add = "帳號" }、{ key, remove = { "帳號"… } }、
+-- { key, house = "原生 owner 字串", on = true/false }。加入只收伺服器認得的玩家（Ledger.lua L.known：上線過、或是讀頭擁有者），
+-- 同時記下伺服器看過的 SteamID（L.userSid）。勾選安全屋只收擁有者現在所在的那幾間；取消一律收（已失效的也關得掉）
 function H.managers(player, args)
     local cmd = "managers"
     local rec, why = gateFor(player, args)
@@ -739,12 +823,15 @@ function H.managers(player, args)
     if not ownerOrAdmin(player, rec) then
         return result(player, cmd, false, canManage(player, rec) and "OwnerOnly" or "NotOwner", args.key)
     end
-    local add, remove, faction = args.add, args.remove, args.faction
+    local add, remove, faction, house = args.add, args.remove, args.faction, args.house
     if (add ~= nil and not isName(add)) or (faction ~= nil and type(faction) ~= "boolean")
-        or (remove ~= nil and not batchOf(remove, isName)) then
+        or (remove ~= nil and not batchOf(remove, isName))
+        or (house ~= nil and not (isHouseKey(house) and type(args.on) == "boolean")) then
         return result(player, cmd, false, "BadArgs", args.key)
     end
     if faction == true and not factionName(rec.owner) then return result(player, cmd, false, "NoFaction", args.key) end
+    local title = house ~= nil and args.on and houseTitle(house, rec.owner)
+    if house ~= nil and args.on and not title then return result(player, cmd, false, "NoHouse", args.key) end
     if add ~= nil then
         onlineNames()
         if add == rec.owner or not L.known(add) then return result(player, cmd, false, "UnknownPlayer", args.key) end
@@ -755,6 +842,11 @@ function H.managers(player, args)
         if n >= KP.MAX_MANAGERS then return result(player, cmd, false, "TooManyManagers", args.key) end
     end
     if faction ~= nil then rec.coFaction = faction or nil end
+    if house ~= nil then
+        rec.coHouses = rec.coHouses or {}
+        rec.coHouses[house] = args.on and title or nil
+        if not nameSet(rec.coHouses) then rec.coHouses = nil end
+    end
     if add ~= nil then
         rec.co = rec.co or {}
         rec.co[add] = L.userSid(add)
@@ -766,7 +858,7 @@ function H.managers(player, args)
     local adapter, anchor = G.findAt(rec)
     if adapter then mark(anchor, rec) end
     KP.log("managers key=" .. args.key .. " add=" .. tostring(add) .. " faction=" .. tostring(faction)
-        .. " by=" .. tostring(player:getUsername()))
+        .. " house=" .. tostring(house) .. " on=" .. tostring(args.on) .. " by=" .. tostring(player:getUsername()))
     result(player, cmd, true, nil, args.key)
     KP.sendState(player, args.key)
 end
