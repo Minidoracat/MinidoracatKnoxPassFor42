@@ -1,5 +1,5 @@
--- 伺服器偵測：有人駕駛、車上裝著已登記且有電的感應盒（或駕駛戴著已登記、有作用的地圖手錶模組），靠近（含行進預測）
--- 已登記的大門就開門；戴著已登記模組的人走向門線也開（scanWalker）。
+-- 伺服器偵測：有人駕駛、車上裝著已登記且有電的感應盒（或駕駛戴著已登記、有作用的地圖手錶模組），車或它拖著的拖車
+-- 靠近（含行進預測）已登記的大門就開門；戴著已登記模組的人走向門線也開（scanWalker）。
 -- 車和拖車整台通過門口後就不再撐住門，範圍內沒有撐門的車滿延遲秒數，把 Knox Pass 開的門關上並鎖回去。
 -- 感應距離與關門延遲每扇門可以不同（擁有者設定、夾在沙盒上下限內：KP.gateRange／KP.gateDelay）。
 -- 「不會被破壞」的門也在這裡墊高耐久（下方「不會被破壞」段）。
@@ -373,14 +373,16 @@ end
 -- 這一輪這台車的位置、速度與參數（scanDriver 填、scanKeys 讀；重複用同一張表）
 local car = {}
 
--- 一組登記的門（感應盒或駕駛的模組）：範圍、預判線段、AutoDrive 車頭朝向、holds 照舊。skip＝已經用感應盒掃過的門
+-- 一組登記的門（感應盒或駕駛的模組）：車與它拖的拖車的範圍、預判線段，AutoDrive 車頭朝向，holds 照舊。skip＝已經用感應盒掃過的門
 -- （同一扇門只掃一次：感應盒開門扣它的電）。serial＝用模組開的，開了記下「上次通過」
 local function scanKeys(p, v, keys, skip, tag, part, serial)
     for key in pairs(keys) do
         local rec = car.gates[key]
         if rec and not (skip and skip[key]) and math.abs(rec.z - car.z) < 1 then
             local range = KP.gateRange(rec)
-            if KP.segDistSq(rec.cx, rec.cy, car.x, car.y, car.ax, car.ay) <= range * range
+            local r2 = range * range
+            if KP.segDistSq(rec.cx, rec.cy, car.x, car.y, car.ax, car.ay) <= r2
+                or (car.tx and KP.segDistSq(rec.cx, rec.cy, car.tx, car.ty, car.tx + car.vx * car.lead, car.ty + car.vy * car.lead) <= r2)
                 or (car.fx and headingAt(rec, car.x, car.y, car.fx, car.fy, car.ahead)) then
                 if holds(key, rec, v, car.vx, car.vy, car.lead) and S.open(key, rec, p, tag, part, v, car.now) and serial then
                     L.touchModule(rec, serial, p)
@@ -411,6 +413,12 @@ local function scanDriver(p, gates, now, lead, ahead)
     -- 停著就是圓形範圍；行進中把「現在位置→lead 秒後位置」這段線段拿去量距離（往遠離大門的方向不延伸）。
     -- 感應距離每扇門自己的（KP.gateRange）
     car.ax, car.ay = x + vx * lead, y + vy * lead
+    -- 拖著的拖車也量（同樣的範圍與預判）：倒車時拖車在前，長掛車（W900 貨櫃掛車，車頭中心到拖車尾 12.4 格）只看車頭時
+    -- 拖車尾先頂到關著的門，停住後速度 0、車頭還在範圍外，門就永遠不開（E2E semirev-mp）。拖車跟著車走，用車的速度推
+    -- （holds 同理）。原版掛車選單可能把掛車設成拖的一方（ISVehicleMenu.lua:434-444），有人坐進被拖的車、拖的那台沒人駕駛時，
+    -- 伺服器把連結反過來（CarController.java:360-366），所以駕駛那台就是拖著拖車的那台
+    local tr = v:getVehicleTowing()
+    car.tx, car.ty = tr and tr:getX(), tr and tr:getY()
     car.fx, car.fy = nil, nil
     if ahead > 0 and autoDriving(v) then car.fx, car.fy = facing(v) end
     if tagKeys then scanKeys(p, v, tagKeys, nil, tag, part, nil) end

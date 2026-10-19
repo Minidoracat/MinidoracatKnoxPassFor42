@@ -4384,6 +4384,39 @@ local function scenarioPassThrough()
     end
     check(backAt ~= nil and backAt < 99, "倒車回門（拖車在前）：拖車到門口前就重開（拖車 y=" .. tostring(backAt) .. "）")
 
+    -- 長掛車倒車（2026-10-19 Workshop 回報：W900 拖貨櫃掛車倒車時門不開）：拖車在前，實機 semirev-mp 量到車頭中心到
+    -- 拖車中心 9.95 格、到拖車尾 12.37 格。只看車頭時拖車尾先到門線；頂到門停住後速度 0、車頭還在範圍外，門就永遠不開
+    local d = gate(400)
+    local vd = car(d, 10, { tag = 0.5 })
+    check(register(d, vd).ok == true, "（前提）登記時車在 15 格內")
+    moveCar(vd, vd._x, d.cy + 24)
+    local td = makeVehicle(vd._x, vd._y - 9.95)
+    vd._towing = td
+    driver(vd)
+    step()
+    check(not d.door:IsOpen(), "（前提）長掛車停在遠處：門關著")
+    local gapAt = nil
+    while td._y - 2.42 > 100 do
+        step(function()
+            moveCar(vd, vd._x, vd._y - 0.28)   -- 約 4 km/h 倒車北行
+            moveCar(td, td._x, td._y - 0.28)
+        end)
+        if d.door:IsOpen() then
+            gapAt = td._y - 2.42 - 100
+            break
+        end
+    end
+    check(gapAt ~= nil and gapAt > 0, "長掛車倒車（車頭在範圍外、拖車在前）：拖車尾到門線前就開（離門線 "
+        .. (gapAt and string.format("%.2f", gapAt) or "沒開") .. " 格）")
+    local e = gate(500)
+    local ve = car(e, 11.96, { tag = 0.5 })
+    local te = makeVehicle(ve._x, ve._y - 9.95)   -- 拖車尾離門線約 0.1 格（實機頂到門時車頭中心離門中心 11.96 格）
+    ve._towing = te
+    register(e, ve)
+    driver(ve)
+    runMs(1000)
+    check(e.door:IsOpen(), "長掛車頂在門前停住（速度 0、車頭在範圍外）：開門")
+
     -- 反面：沒通過（停在原本那一側）就照舊撐著
     local c = gate(300)
     local vc = car(c, 2, { tag = 0.5 })
