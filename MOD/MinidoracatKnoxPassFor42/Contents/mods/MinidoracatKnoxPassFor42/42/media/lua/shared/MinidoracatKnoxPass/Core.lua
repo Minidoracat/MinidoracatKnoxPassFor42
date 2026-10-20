@@ -261,6 +261,32 @@ function KP.canCraft()
     return KP.sandbox("AllowCraft") == true
 end
 
+-- 同一批配方的 OnAddToMenu：服主關掉製作時不列出。只靠 OnTest 的話，合成視窗連材料都不放進輸入，
+-- 每格顯示 0、只寫「缺少必需物品」，玩家以為缺材料（2026-10-19 玩家回報；家族 pitfalls.md「CraftRecipe」）。
+-- 引擎經 callLuaBool 只用全域名稱查（LuaManager.java:5745-5746），所以是全域函式；
+-- 原版清單與圖示兩種排法都問它（ISRecipeScrollingListBox.lua:344-348、ISTiledIconPanel.lua:193-197）
+function MinidoracatKnoxPass_recipeShown()
+    return KP.canCraft()
+end
+
+-- Neat Crafting（Workshop 3502080466）自己畫清單、不問 OnAddToMenu，每條清單路徑都經 NC_FilterBar:shouldIncludeRecipe
+-- （1.7.4 的 NC_FilterBar.lua:351、562、608、630）：本 MOD 的配方（OnAddToMenu 是 MinidoracatKnoxPass_ 開頭的全域函式，
+-- 感應模組的在 Watch.lua）由這裡代問。它是 client 檔、比本檔晚載入，所以遊戲開始才包（同 PackThrow Recipes.lua）
+function KP.wrapNeatCrafting()
+    local F = NC_FilterBar
+    if type(F) ~= "table" or type(F.shouldIncludeRecipe) ~= "function" or F.knoxPassFilter then return false end
+    local orig = F.shouldIncludeRecipe
+    F.shouldIncludeRecipe = function(self, recipe)
+        local hook = recipe ~= nil and recipe:getOnAddToMenu()
+        local shown = type(hook) == "string" and string.find(hook, "MinidoracatKnoxPass_", 1, true) == 1 and _G[hook]
+        if type(shown) == "function" and not shown() then return false end
+        return orig(self, recipe)
+    end
+    F.knoxPassFilter = true
+    return true
+end
+Events.OnGameStart.Add(KP.wrapNeatCrafting)
+
 function KP.isInt(v)
     return type(v) == "number" and v == v and v == math.floor(v) and v > -2147483649 and v < 2147483648
 end

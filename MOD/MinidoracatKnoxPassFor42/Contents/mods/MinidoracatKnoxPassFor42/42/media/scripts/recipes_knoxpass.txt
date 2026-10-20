@@ -4,7 +4,8 @@ module Base
         B42 craftRecipe。版型對齊原版 MakeRemoteControllerV1（recipes_traps.txt:3-25）與家族 AutoDrive。
         放在 module Base：短名引用只在 Base 解析（AutoDrive recipes_autodrive.txt 註解）。
         不需要先學會（沒有 NeedToBeLearn）；SkillRequired 只擋能不能做。
-        OnTest 讀沙盒 AllowCraft，關閉時沒有可用材料、配方無法執行（MinidoracatKnoxPass/Core.lua）。
+        OnTest 讀沙盒 AllowCraft，關閉時沒有可用材料、配方無法執行；OnAddToMenu 同一個條件，關閉時不列出
+        （OnAddToMenu 只認全域名稱，不能寫點號；MinidoracatKnoxPass/Core.lua）。
         原版 Battery 是 drainable：用 flags[ItemCount] 按件消耗，避免空電件被連坐銷毀
         （AutoDrive 正式服實爆，recipes_autodrive.txt:76-86）。
     */
@@ -14,6 +15,7 @@ module Base
         time = 80,
         SkillRequired = Electricity:2,
         OnTest = MinidoracatKnoxPass.canCraft,
+        OnAddToMenu = MinidoracatKnoxPass_recipeShown,
         Tags = AnySurfaceCraft,
         category = Electrical,
         xpAward = Electricity:5,
@@ -36,6 +38,7 @@ module Base
         time = 150,
         SkillRequired = Electricity:4,
         OnTest = MinidoracatKnoxPass.canCraft,
+        OnAddToMenu = MinidoracatKnoxPass_recipeShown,
         Tags = AnySurfaceCraft,
         category = Electrical,
         xpAward = Electricity:10,
@@ -60,6 +63,7 @@ module Base
         time = 200,
         SkillRequired = Electricity:4,
         OnTest = MinidoracatKnoxPass.canCraft,
+        OnAddToMenu = MinidoracatKnoxPass_recipeShown,
         Tags = AnySurfaceCraft,
         category = Electrical,
         xpAward = Electricity:10,

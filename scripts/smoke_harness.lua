@@ -5195,6 +5195,11 @@ local function scenarioWatchWalk()
     SandboxVars.MinidoracatKnoxPass.WatchSensing = nil
     check(KP.canCraftModule() == true and MinidoracatKnoxPass_moduleRecipeShown() == true,
         "沙盒預設（開）：模組配方做得了、列在合成清單")
+    SandboxVars.MinidoracatKnoxPass.AllowCraft = false
+    check(KP.canCraftModule() == false and MinidoracatKnoxPass_moduleRecipeShown() == false
+        and MinidoracatKnoxPass_recipeShown() == false,
+        "沙盒關掉製作：模組配方和其他 Knox Pass 配方都做不了、不列在合成清單")
+    SandboxVars.MinidoracatKnoxPass.AllowCraft = nil
 
     local d = gate(200, { power = false })
     local p4 = newPlayer("walk4", 201, 107)
@@ -5240,11 +5245,16 @@ local function scenarioWatchMissing()
     MinidoracatWatchAPI = nil
 end
 
--- Neat Crafting 自己畫配方清單、不問 OnAddToMenu：遊戲開始時包 NC_FilterBar:shouldIncludeRecipe，只擋用不了的模組配方
-local function scenarioWatchNeatCrafting()
-    out("情境：手錶模組配方在 Neat Crafting 的清單")
-    local module = { getName = function() return "CraftKnoxPassWatchModule" end }
-    local other = { getName = function() return "CraftKnoxPassVehicleTag" end }
+-- Neat Crafting 自己畫配方清單、不問 OnAddToMenu：遊戲開始時包 NC_FilterBar:shouldIncludeRecipe，
+-- 替本 MOD 的配方問它們自己的 OnAddToMenu，其他配方（包括別的 MOD 自己的 OnAddToMenu）照 Neat Crafting 的篩選
+local function scenarioNeatCrafting()
+    out("情境：Knox Pass 配方在 Neat Crafting 的清單")
+    local function fake(name, hook) return { getName = function() return name end, getOnAddToMenu = function() return hook end } end
+    local module = fake("CraftKnoxPassWatchModule", "MinidoracatKnoxPass_moduleRecipeShown")
+    local tag = fake("CraftKnoxPassVehicleTag_Black", "MinidoracatKnoxPass_recipeShown")
+    local plain = fake("MakeSomething", nil)
+    OtherMod_recipeShown = function() return false end
+    local foreign = fake("OtherModRecipe", "OtherMod_recipeShown")
     local answer = true   -- Neat Crafting 自己的篩選（只看能做、已知等）怎麼回答
     local function boot(version)
         answer = true
@@ -5256,14 +5266,25 @@ local function scenarioWatchNeatCrafting()
     end
     local F = boot(nil)
     check(F:shouldIncludeRecipe(module) == false, "沒裝地圖手錶：Neat Crafting 的清單不列模組配方")
-    local shown = F:shouldIncludeRecipe(other)
+    check(F:shouldIncludeRecipe(tag) == true, "其他 Knox Pass 配方照常列出")
+    check(F:shouldIncludeRecipe(plain) == true and F:shouldIncludeRecipe(foreign) == true,
+        "沒有 OnAddToMenu 的配方、別的 MOD 自己的 OnAddToMenu：不代問，照 Neat Crafting 的篩選")
     answer = false
-    check(shown == true and F:shouldIncludeRecipe(other) == false, "其他配方照 Neat Crafting 自己的篩選")
+    check(F:shouldIncludeRecipe(tag) == false and F:shouldIncludeRecipe(plain) == false,
+        "Neat Crafting 自己的篩選說不列：照樣不列")
+    answer = true
+    SandboxVars.MinidoracatKnoxPass.AllowCraft = false
+    check(F:shouldIncludeRecipe(tag) == false and F:shouldIncludeRecipe(plain) == true,
+        "沙盒關掉製作：Knox Pass 配方不列，其他配方不受影響")
     F = boot(2)
     check(F:shouldIncludeRecipe(module) == true, "地圖手錶 2 版：模組配方照 Neat Crafting 自己的篩選列出")
     SandboxVars.MinidoracatKnoxPass.WatchSensing = false
-    check(F:shouldIncludeRecipe(module) == false, "沙盒關掉步行感應：Neat Crafting 的清單不列模組配方")
-    NC_FilterBar, MinidoracatWatchAPI = nil, nil
+    check(F:shouldIncludeRecipe(module) == false and F:shouldIncludeRecipe(tag) == true,
+        "沙盒關掉步行感應：只有模組配方不列")
+    SandboxVars.MinidoracatKnoxPass.WatchSensing = nil
+    SandboxVars.MinidoracatKnoxPass.AllowCraft = false
+    check(F:shouldIncludeRecipe(module) == false, "地圖手錶在、但沙盒關掉製作：模組配方也不列")
+    NC_FilterBar, MinidoracatWatchAPI, OtherMod_recipeShown = nil, nil, nil
 end
 
 -- 開車（駕駛的模組，任何一台車）、登記與取消登記、推送只給本人、右鍵開關門、上限、重啟、物品序號
@@ -5580,7 +5601,7 @@ local tests = {
     scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,
     scenarioReaderPost, scenarioColors, scenarioLoot, scenarioBarrierMirror, scenarioRollDoor, scenarioSettings,
     scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioLaggyEcho, scenarioShare,
-    scenarioCoManagers, scenarioOutsideSafehouse, scenarioWatchWalk, scenarioWatchMissing, scenarioWatchNeatCrafting, scenarioWatchDrive, scenarioIndestructible,
+    scenarioCoManagers, scenarioOutsideSafehouse, scenarioWatchWalk, scenarioWatchMissing, scenarioNeatCrafting, scenarioWatchDrive, scenarioIndestructible,
 }
 for _, t in ipairs(tests) do t() end
 

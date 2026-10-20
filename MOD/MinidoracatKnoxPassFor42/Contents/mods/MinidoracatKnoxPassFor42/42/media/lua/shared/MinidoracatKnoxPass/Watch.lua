@@ -82,26 +82,8 @@ function KP.canCraftModule()
     return KP.canCraft() and KP.watchSensing()
 end
 
--- 同一條配方的 OnAddToMenu：這個世界用不了模組（沒裝 2 版以上的地圖手錶、或服主關掉步行感應）就不列出。
--- 只靠 OnTest 的話，合成視窗連材料都不放進輸入，每格顯示 0、只寫「缺少必需物品」，玩家以為讀不到材料
--- （2026-10-19 玩家回報；家族 pitfalls.md「CraftRecipe」）。引擎經 callLuaBool 只用全域名稱查（LuaManager.java:5745-5746），
--- 所以是全域函式；原版清單與圖示兩種排法都問它（ISRecipeScrollingListBox.lua:344-348、ISTiledIconPanel.lua:193-197）
-KP.WATCH_RECIPE = "CraftKnoxPassWatchModule"
+-- 同一條配方的 OnAddToMenu：做不了（沒裝 2 版以上的地圖手錶、服主關掉步行感應或製作）就不列出。
+-- 為什麼要它、Neat Crafting 怎麼代問：Core.lua 的 MinidoracatKnoxPass_recipeShown 與 KP.wrapNeatCrafting
 function MinidoracatKnoxPass_moduleRecipeShown()
-    return KP.watchSensing()
+    return KP.canCraftModule()
 end
-
--- Neat Crafting（Workshop 3502080466）自己畫清單、不問 OnAddToMenu，每條清單路徑都經 NC_FilterBar:shouldIncludeRecipe
--- （1.7.4 的 NC_FilterBar.lua:351、562、608、630）。它是 client 檔、比本檔晚載入，所以遊戲開始才包（同 PackThrow Recipes.lua）
-function KP.wrapNeatCrafting()
-    local F = NC_FilterBar
-    if type(F) ~= "table" or type(F.shouldIncludeRecipe) ~= "function" or F.knoxPassFilter then return false end
-    local orig = F.shouldIncludeRecipe
-    F.shouldIncludeRecipe = function(self, recipe)
-        if recipe ~= nil and recipe:getName() == KP.WATCH_RECIPE and not KP.watchSensing() then return false end
-        return orig(self, recipe)
-    end
-    F.knoxPassFilter = true
-    return true
-end
-Events.OnGameStart.Add(KP.wrapNeatCrafting)
