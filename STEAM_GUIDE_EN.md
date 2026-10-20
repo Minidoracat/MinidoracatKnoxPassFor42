@@ -268,7 +268,7 @@ All crafted with a screwdriver:
 [*] [b]Looted color[/b]: random.
 [*] [b]Craft in color[/b]: add one use of paint and a paintbrush to craft a tag or reader in that color (see "Shell colors and repainting").
 [*] [b]Gates you build[/b]: roll-up garage doors, two-story roll-up doors, two-story gates and double boom barriers all come from the build menu; see "Build your own gates" for materials and skills.
-[*] [b]Sensor module[/b]: only craftable with the Map Watch installed, and not when the server turns off "Registered watch modules open gates on approach".
+[*] [b]Sensor module[/b]: the recipe only shows in the crafting list with the Map Watch installed, and not when the server turns off "Registered watch modules open gates on approach".
 [/list]
 === ⚙️ Server settings
 {{img:09-sandbox-options-en.jpg}}

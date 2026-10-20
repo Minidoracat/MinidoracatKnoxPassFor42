@@ -78,14 +78,16 @@ module Base
     }
 
     /* 地圖手錶的 Knox Pass 感應模組：一顆感應盒（7 色都收）加兩個電子零件改裝。感應盒是 drainable，
-       要 flags[ItemCount] 按件消耗，空電的才不會被連坐銷毀。OnTest 另外看地圖手錶與沙盒 WatchSensing
-       （MinidoracatKnoxPass/Watch.lua）：沒裝地圖手錶時列出但做不了，名稱寫明「地圖手錶用」 */
+       要 flags[ItemCount] 按件消耗，空電的才不會被連坐銷毀。OnTest 另外看地圖手錶與沙盒 WatchSensing，
+       OnAddToMenu 同一個條件：這個世界用不了模組就不列出（MinidoracatKnoxPass/Watch.lua）。
+       OnAddToMenu 只認全域名稱，不能寫點號 */
     craftRecipe CraftKnoxPassWatchModule
     {
         timedAction = MakingElectrical,
         time = 100,
         SkillRequired = Electricity:3,
         OnTest = MinidoracatKnoxPass.canCraftModule,
+        OnAddToMenu = MinidoracatKnoxPass_moduleRecipeShown,
         Tags = AnySurfaceCraft,
         category = Electrical,
         xpAward = Electricity:5,

@@ -5188,11 +5188,13 @@ local function scenarioWatchWalk()
     local p3 = newPlayer("walk3", 101, 107)
     wear(p3, 777)
     walk(p3, 0, -0.4, 12)
-    check(not g.door:IsOpen() and st.walkSupported == false and KP.canCraftModule() == false,
-        "沙盒關掉步行感應：走近不開、state.walkSupported＝false、模組配方做不了")
+    check(not g.door:IsOpen() and st.walkSupported == false and KP.canCraftModule() == false
+        and MinidoracatKnoxPass_moduleRecipeShown() == false,
+        "沙盒關掉步行感應：走近不開、state.walkSupported＝false、模組配方做不了也不列在合成清單")
     p3._x = 300
     SandboxVars.MinidoracatKnoxPass.WatchSensing = nil
-    check(KP.canCraftModule() == true, "沙盒預設（開）：模組配方做得了")
+    check(KP.canCraftModule() == true and MinidoracatKnoxPass_moduleRecipeShown() == true,
+        "沙盒預設（開）：模組配方做得了、列在合成清單")
 
     local d = gate(200, { power = false })
     local p4 = newPlayer("walk4", 201, 107)
@@ -5229,12 +5231,39 @@ local function scenarioWatchMissing()
         walk(p, 0, -0.4, 12)
         local _, st = cmd(g.owner, "query", { key = g.key })
         check(not KP.watchRegistered() and (not version or #MinidoracatWatchAPI.defs == 0), label .. "：不登記模組")
-        check(res.why == "WearerTooFar" and not g.door:IsOpen() and KP.canCraftModule() == false,
-            label .. "：模組登記不了、走近不開、配方做不了")
+        check(res.why == "WearerTooFar" and not g.door:IsOpen() and KP.canCraftModule() == false
+            and MinidoracatKnoxPass_moduleRecipeShown() == false,
+            label .. "：模組登記不了、走近不開、配方做不了也不列在合成清單")
         check(st.walkSupported == false and #st.nearMods == 0 and #st.mods == 0, label .. "：state 沒有模組，步行感應不支援")
         clean(from, label)
     end
     MinidoracatWatchAPI = nil
+end
+
+-- Neat Crafting 自己畫配方清單、不問 OnAddToMenu：遊戲開始時包 NC_FilterBar:shouldIncludeRecipe，只擋用不了的模組配方
+local function scenarioWatchNeatCrafting()
+    out("情境：手錶模組配方在 Neat Crafting 的清單")
+    local module = { getName = function() return "CraftKnoxPassWatchModule" end }
+    local other = { getName = function() return "CraftKnoxPassVehicleTag" end }
+    local answer = true   -- Neat Crafting 自己的篩選（只看能做、已知等）怎麼回答
+    local function boot(version)
+        answer = true
+        NC_FilterBar = { shouldIncludeRecipe = function() return answer end }
+        MinidoracatWatchAPI = version and fakeWatchAPI(version) or nil
+        freshWorld("sp")
+        fire("OnGameStart")
+        return NC_FilterBar
+    end
+    local F = boot(nil)
+    check(F:shouldIncludeRecipe(module) == false, "沒裝地圖手錶：Neat Crafting 的清單不列模組配方")
+    local shown = F:shouldIncludeRecipe(other)
+    answer = false
+    check(shown == true and F:shouldIncludeRecipe(other) == false, "其他配方照 Neat Crafting 自己的篩選")
+    F = boot(2)
+    check(F:shouldIncludeRecipe(module) == true, "地圖手錶 2 版：模組配方照 Neat Crafting 自己的篩選列出")
+    SandboxVars.MinidoracatKnoxPass.WatchSensing = false
+    check(F:shouldIncludeRecipe(module) == false, "沙盒關掉步行感應：Neat Crafting 的清單不列模組配方")
+    NC_FilterBar, MinidoracatWatchAPI = nil, nil
 end
 
 -- 開車（駕駛的模組，任何一台車）、登記與取消登記、推送只給本人、右鍵開關門、上限、重啟、物品序號
@@ -5551,7 +5580,7 @@ local tests = {
     scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,
     scenarioReaderPost, scenarioColors, scenarioLoot, scenarioBarrierMirror, scenarioRollDoor, scenarioSettings,
     scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioLaggyEcho, scenarioShare,
-    scenarioCoManagers, scenarioOutsideSafehouse, scenarioWatchWalk, scenarioWatchMissing, scenarioWatchDrive, scenarioIndestructible,
+    scenarioCoManagers, scenarioOutsideSafehouse, scenarioWatchWalk, scenarioWatchMissing, scenarioWatchNeatCrafting, scenarioWatchDrive, scenarioIndestructible,
 }
 for _, t in ipairs(tests) do t() end
 
