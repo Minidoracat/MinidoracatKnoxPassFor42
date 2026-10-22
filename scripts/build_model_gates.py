@@ -9,6 +9,8 @@ style / look gets its own tileset:
     4      MinidoracatKnoxPass_barrier2                       blocks 6N 6W 9N 9W
     5-7    MinidoracatKnoxPass_roll2f_industry/green/white    blocks 3N 3W 4N 4W 6N 6W 9N 9W
     8-12   MinidoracatKnoxPass_gate_a .. _e                   blocks 6N 6W 6S 6E 9N 9W 9S 9E
+    13     MinidoracatKnoxPass_readerpillar                   reader on a gate post (ReaderPost.lua)
+    14     MinidoracatKnoxPass_upperwall                      upstairs wall of the two-story gates (Barrier.lua)
 
 index = block * 64 + slot, block = widthIdx * len(faces) + faceIdx. Slots (Lua Core.lua KP.GATE_SLOT):
 
@@ -287,6 +289,21 @@ def pillar_tiles() -> dict[int, tuple]:
             for c in range(len(COLORS.COLORS)) for li, lk in enumerate(GATE_LOOKS) for fi, f in enumerate(gate.faces)}
 
 
+# Upstairs wall (Barrier.lua): a two-story roll door or gate has objects on its ground floor only, so Lua puts this
+# invisible wall on the gate line one floor up, over every lane and end. WallN / WallW = collideN/W + cutN/W + tile type
+# wall (IsoWorld.java:882-906): it blocks walking, and IsoRegions counts the cut flags as a wall (IsoRegions.java:322-349),
+# so the upstairs room closes. *Trans adds transparentN/W (sight passes) for the see-through looks (Lua KP.SEE_THROUGH).
+# firerequirement >= FIRE_IMMUNE_THRESHOLD keeps BurnWalls from turning it into a visible burnt wall
+# (IsoGridSquare.java:301, 6296, 6341-6350). Transparent pack entry. index = 2 * see-through + north
+UPPER_TILESET, UPPER_NUMBER = "MinidoracatKnoxPass_upperwall", 14
+TWO_STORY = ("roll2f", "gate")    # kinds that get the upstairs wall (Lua KP.MODEL_GATES upper = true)
+
+
+def upper_tiles() -> dict[int, dict]:
+    return {i: {("WallN" if i % 2 else "WallW") + ("Trans" if i >= 2 else ""): "", "firerequirement": FIRE}
+            for i in range(4)}
+
+
 def layout() -> dict[str, dict[int, tuple[tuple[str, ...], dict]]]:
     """tileset -> index -> (2D cell sources, props); only indices with a cell, props or (reader pillar) a pack entry."""
     out: dict = {}
@@ -300,6 +317,7 @@ def layout() -> dict[str, dict[int, tuple[tuple[str, ...], dict]]]:
                 if p or cell:
                     t[b.block * STRIDE + slot] = ((str(cell),) if cell else (), p)
     out[PILLAR_TILESET] = {i: ((), {}) for i in pillar_tiles()}
+    out[UPPER_TILESET] = {i: ((), p) for i, p in upper_tiles().items()}
     return out
 
 
@@ -310,7 +328,8 @@ def tileset_specs() -> list[tuple[str, int, int]]:
         for name, number, _ in kind.tilesets:
             last = max(b.block for b in kind.blocks if b.tileset == name)
             out.append((name, number, last * STRIDE + POSE_CLOSE + POSES + 1))
-    return out + [(PILLAR_TILESET, PILLAR_NUMBER, max(pillar_tiles()) + 1)]
+    return out + [(PILLAR_TILESET, PILLAR_NUMBER, max(pillar_tiles()) + 1),
+                  (UPPER_TILESET, UPPER_NUMBER, len(upper_tiles()))]
 
 
 def faces_rows(kind: Kind, b: Block) -> list[tuple[int, ...]]:
@@ -445,16 +464,23 @@ def write() -> None:
 # ---- check ------------------------------------------------------------------------------------------------------
 def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     """Assert the shipped r4 assets; tsets = tiledef name -> tileset, sm_text = spriteModels.txt."""
-    # tiledef: one tileset per style / look, numbers 4..12, the reader pillars 13, <= 512 tiles (IsoWorld.java:639-640)
+    # tiledef: one tileset per style / look, numbers 4..12, the reader pillars 13, the upstairs wall 14,
+    # <= 512 tiles (IsoWorld.java:639-640)
     specs = tileset_specs()
     assert [(n, no) for n, no, _ in specs] == [("MinidoracatKnoxPass_barrier2", 4)] + [
         (f"MinidoracatKnoxPass_roll2f_{s}", 5 + i) for i, s in enumerate(("industry", "green", "white"))] + [
         (f"MinidoracatKnoxPass_gate_{lk.lower()}", 8 + i) for i, lk in enumerate(GATE_LOOKS)] + [
-        ("MinidoracatKnoxPass_readerpillar", 13)], specs
+        ("MinidoracatKnoxPass_readerpillar", 13), ("MinidoracatKnoxPass_upperwall", 14)], specs
     pillar = pillar_tiles()
     assert len(pillar) == len(COLORS.COLORS) * 5 * 4 and not any(tsets[PILLAR_TILESET]["tiles"])
     assert all(f"{PILLAR_TILESET}_{i}" in pack_names for i in pillar)
     lay = layout()
+    # upstairs wall: 0 W, 1 N, 2 / 3 the same with sight passing; nothing else on the tile, empty 2D
+    assert tsets[UPPER_TILESET]["tiles"] == [{"WallW": "", "firerequirement": FIRE}, {"WallN": "", "firerequirement": FIRE},
+                                             {"WallWTrans": "", "firerequirement": FIRE},
+                                             {"WallNTrans": "", "firerequirement": FIRE}], tsets[UPPER_TILESET]
+    assert all(c == () for c, _ in lay[UPPER_TILESET].values()) and all(
+        f"{UPPER_TILESET}_{i}" in pack_names for i in range(4)), "upstairs wall needs 4 transparent pack entries"
     for name, number, count in specs:
         t = tsets[name]
         assert (t["number"], len(t["tiles"])) == (number, count) and count <= 512, (name, t["number"], len(t["tiles"]))
@@ -515,7 +541,11 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     # Lua Core.lua: same tilesets, widths, faces, health, ends
     lua = CORE_LUA.read_text(encoding="utf-8")
     lua_sets = dict(re.findall(r"^    (MinidoracatKnoxPass_\w+) = (\w+),", lua, re.M))
-    assert set(lua_sets) == {n for n, _, _ in specs} - {PILLAR_TILESET}, sorted(lua_sets)
+    assert set(lua_sets) == {n for n, _, _ in specs} - {PILLAR_TILESET, UPPER_TILESET}, sorted(lua_sets)
+    assert f'KP.UPPER_WALL_TILESET = "{UPPER_TILESET}"' in lua
+    see = {t for k in kinds() if k.key in TWO_STORY for t, _, v in k.tilesets if v in k.see_through}
+    m = re.search(r"^KP\.SEE_THROUGH = \{ (.*) \}$", lua, re.M)
+    assert m and set(re.findall(r"(MinidoracatKnoxPass_\w+) = true", m.group(1))) == see, f"Lua KP.SEE_THROUGH != {see}"
     assert f'KP.READER_PILLAR_TILESET = "{PILLAR_TILESET}"' in lua and f"KP.READER_PILLAR_STRIDE = {PILLAR_STRIDE}" in lua
     assert ('string.match(spriteName, "^MinidoracatKnoxPass_(.+)$")' in lua
             and '"MinidoracatKnoxPassFast_" .. rest' in lua), "Lua KP.fastTwin no longer matches fast_tileset()"
@@ -526,6 +556,7 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
             assert re.search(r"widths = \{ " + ", ".join(map(str, kind.widths)) + r" \}", d), (name, d)
             assert re.search(r"faces = \{ " + ", ".join(f'"{f}"' for f in kind.faces) + r" \}", d), (name, d)
             assert re.search(rf"ends = {str(kind.ends).lower()}", d), (name, d)
+            assert ("upper = true" in d) == (kind.key in TWO_STORY), (name, d)
             for w in kind.widths:
                 hp = {h for (v, wd, h) in kind.entities.values() if wd == w}
                 assert len(hp) == 1 and f"[{w}] = {hp.pop()}" in d, (name, w)

@@ -72,13 +72,14 @@ end
 -- IsoDoor.java:793-805），3／4＝兩端 A／B（A 在車道 1 那頭；機箱或門柱，實心 IsoThumpable），16 起＝建造替代 tile
 -- （車道 k＝16＋k−1，沒有 GarageDoor），32-40／48-56＝抬起／放下姿勢（只在 spriteModels，SP 動畫步進用）。
 -- 擺放：N／S 一列西→東 [A] 車道 1..L [B]；W／E 一行北→南 [B] 車道 L..1 [A]。門只能在 N／W 邊，S／E 的車道門片
--- 建在下一列／下一行（同轉 180° 的單臂閘門）。耐久照大小（2026-10-08 使用者決定）：一車 1000、兩車 1500、三車 2000，兩層樓 +500
+-- 建在下一列／下一行（同轉 180° 的單臂閘門）。耐久照大小（2026-10-08 使用者決定）：一車 1000、兩車 1500、三車 2000，兩層樓 +500。
+-- upper＝兩層樓：二樓門線另放看不見的牆（server/Barrier.lua 的二樓隱形牆）
 KP.GATE_SLOT = { END_A = 3, END_B = 4, OPEN = 8, PLACEHOLDER = 16, POSE_OPEN = 32, POSE_CLOSE = 48 }
 local BARRIER2 = { kind = "Barrier", builtin = true, ends = true, widths = { 6, 9 }, faces = { "N", "W" },
     health = { [6] = 1500, [9] = 2000 } }
-local ROLL2F = { kind = "Garage", ends = false, widths = { 3, 4, 6, 9 }, faces = { "N", "W" },
+local ROLL2F = { kind = "Garage", ends = false, upper = true, widths = { 3, 4, 6, 9 }, faces = { "N", "W" },
     health = { [3] = 1500, [4] = 1500, [6] = 2000, [9] = 2500 } }
-local GATE = { kind = "Gate", ends = true, widths = { 6, 9 }, faces = { "N", "W", "S", "E" },
+local GATE = { kind = "Gate", ends = true, upper = true, widths = { 6, 9 }, faces = { "N", "W", "S", "E" },
     health = { [6] = 2000, [9] = 2500 } }
 KP.MODEL_GATES = {
     MinidoracatKnoxPass_barrier2 = BARRIER2,
@@ -91,6 +92,17 @@ KP.MODEL_GATES = {
     MinidoracatKnoxPass_gate_d = GATE,
     MinidoracatKnoxPass_gate_e = GATE,
 }
+
+-- 看得穿的外觀（車道 tile 帶 doorTrans，build_model_gates.py see_through）：二樓隱形牆也讓視線穿過
+KP.SEE_THROUGH = { MinidoracatKnoxPass_gate_a = true, MinidoracatKnoxPass_gate_c = true }
+
+-- 二樓隱形牆（build_model_gates.py UPPER_TILESET）：索引＝2×看得穿＋北邊（0 W 邊、1 N 邊、2／3 視線穿過）；不是回 nil
+KP.UPPER_WALL_TILESET = "MinidoracatKnoxPass_upperwall"
+function KP.upperWall(obj)
+    local spr = obj and obj.getSprite and obj:getSprite()
+    local name = spr and spr:getName()
+    return name and tonumber(string.match(name, "^" .. KP.UPPER_WALL_TILESET .. "_(%d)$")) or nil
+end
 
 -- 物件是哪一扇模型門的哪一格：{ def, tileset, index0（區塊起點）, slot, width, face, fi（方向序，0 起） }；不是模型門回 nil
 function KP.modelGate(obj)

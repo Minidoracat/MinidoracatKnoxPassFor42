@@ -145,13 +145,25 @@ local function newWorld()
         thumpSyncs = 0,   -- IsoThumpable 在伺服器上改耐久時送出的同步（T:281-288）
     }
 end
--- MapObjects.OnLoadWithSprite（Lua/MapObjects.java:134-176）：記下回呼，loadSprites() 模擬區塊載入時逐物件呼叫
+-- MapObjects.OnLoadWithSprite（Lua/MapObjects.java:134-176）：每張 sprite 依 priority 各記一個回呼，同 priority 後來的
+-- 取代先來的（:141-153）。W.onLoadSprite[名稱][priority]；onLoad(名稱, priority) 取一個，loadSprite(物件) 模擬區塊載入時
+-- 引擎照 priority 由高到低逐一呼叫（:184-218）
 MapObjects = {
-    OnLoadWithSprite = function(names, fn)
+    OnLoadWithSprite = function(names, fn, priority)
         if type(names) ~= "table" then names = { names } end
-        for _, n in ipairs(names) do W.onLoadSprite[n] = fn end
+        for _, n in ipairs(names) do
+            W.onLoadSprite[n] = W.onLoadSprite[n] or {}
+            W.onLoadSprite[n][priority] = fn
+        end
     end,
 }
+local function onLoad(name, priority) return (W.onLoadSprite[name] or {})[priority or 5] end
+local function loadSprite(o)
+    local cbs, ps = W.onLoadSprite[o:getSprite():getName()] or {}, {}
+    for p in pairs(cbs) do ps[#ps + 1] = p end
+    table.sort(ps, function(a, b) return a > b end)
+    for _, p in ipairs(ps) do cbs[p](o) end
+end
 
 local Square = {}
 Square.__index = Square
@@ -893,19 +905,30 @@ IsoDoor = {
 -- walls_garage_01 開著只有 doorN／W，industry_trucks_01 開著是 DoorWallN／W（連帶設 cut，IsoWorld.java:928-945）
 IsoFlagType = setmetatable({}, { __index = function(_, k) return k end })
 IsoObjectType = setmetatable({}, { __index = function(_, k) return "type." .. k end })
+-- 單一物件的 tile 屬性：Square:has 逐件看，IsoObject:getProperties（sprite 的屬性，IsoObject.java:3263-3265）看自己
+local function objHas(o, flag)
+    local sp = o.getSprite and o:getSprite()
+    local prefix, i = string.match(sp and sp:getName() or "", "^(.-)_(%d+)$")
+    local gd, open = garageProps(prefix, tonumber(i))
+    if gd and VANILLA_GARAGE[prefix] then
+        local side, industry = o._north and "N" or "W", prefix == "industry_trucks_01"
+        if flag == "cut" .. side and (industry or not open) then return true end
+        if flag == "DoorWall" .. side and industry and open then return true end
+    end
+    -- 二樓隱形牆（WallN／W 載入時連帶設 cut，IsoWorld.java:882-906；索引單數是 N 邊）；_flags＝測試放的牆或門框
+    if prefix == "MinidoracatKnoxPass_upperwall" and flag == (tonumber(i) % 2 == 1 and "cutN" or "cutW") then return true end
+    return o._flags ~= nil and o._flags[flag] == true
+end
 function Square:has(flag)
     if flag == "solidfloor" then return true end
     for _, o in ipairs(self._objects) do
-        local sp = o.getSprite and o:getSprite()
-        local prefix, i = string.match(sp and sp:getName() or "", "^(.-)_(%d+)$")
-        local gd, open = garageProps(prefix, tonumber(i))
-        if gd and VANILLA_GARAGE[prefix] then
-            local side, industry = o._north and "N" or "W", prefix == "industry_trucks_01"
-            if flag == "cut" .. side and (industry or not open) then return true end
-            if flag == "DoorWall" .. side and industry and open then return true end
-        end
+        if objHas(o, flag) then return true end
     end
     return false
+end
+function Base:getProperties()
+    local o = self
+    return { has = function(_, flag) return objHas(o, flag) end }
 end
 function Square:HasStairsNorth() return false end
 function Square:HasStairsWest() return false end
@@ -3320,12 +3343,12 @@ local function scenarioBarrierAnim()
         square(201 + i, 100, 0):AddSpecialObject(d)
         lanes[i] = d
     end
-    local cb = W.onLoadSprite["MinidoracatKnoxPass_barrier_0"]
+    local cb = onLoad("MinidoracatKnoxPass_barrier_0")
     local anchorsOk = cb ~= nil
     for _, i in ipairs({ 8, 3, 11, 80, 88, 83, 91 }) do
-        anchorsOk = anchorsOk and W.onLoadSprite["MinidoracatKnoxPass_barrier_" .. i] == cb
+        anchorsOk = anchorsOk and onLoad("MinidoracatKnoxPass_barrier_" .. i) == cb
     end
-    check(anchorsOk and W.onLoadSprite["MinidoracatKnoxPass_barrier_1"] == nil and W.onLoadSprite["MinidoracatKnoxPass_barrier_81"] == nil,
+    check(anchorsOk and onLoad("MinidoracatKnoxPass_barrier_1") == nil and onLoad("MinidoracatKnoxPass_barrier_81") == nil,
         "區塊載入只收錨點（N／W／S／E × 關／開八種 sprite）")
     cb(lanes[0])
     cb(lanes[1])   -- 不是錨點：不追
@@ -3596,7 +3619,7 @@ local function scenarioReaderPost()
     check(postsAt(150, 100) == "2", "宿主格載入：帳本有、格上沒有 → 補上")
     local orphan = IsoObject.new(nil, nil, "MinidoracatKnoxPass_reader_0")
     square(500, 500, 0):AddTileObject(orphan)
-    W.onLoadSprite["MinidoracatKnoxPass_reader_0"](orphan)
+    onLoad("MinidoracatKnoxPass_reader_0")(orphan)
     step()
     check(not present(orphan) and logHas("not in ledger", from), "孤兒模型（帳本沒有）：區塊載入時移除")
     local extra, dup = IsoObject.new(nil, nil, "MinidoracatKnoxPass_reader_2"), IsoObject.new(nil, nil, "MinidoracatKnoxPass_reader_0")
@@ -3802,7 +3825,7 @@ local function scenarioColors()
     check(postsAt(300, 100) == "24" and logHas("not in ledger", from), "宿主格載入：黑色換成帳本的軍綠（3×8＋0）")
     local orphan = IsoObject.new(nil, nil, "MinidoracatKnoxPass_reader_49")   -- 紅色（6）變體 1
     square(600, 600, 0):AddTileObject(orphan)
-    local cb = W.onLoadSprite["MinidoracatKnoxPass_reader_49"]
+    local cb = onLoad("MinidoracatKnoxPass_reader_49")
     if cb then cb(orphan) end
     step()
     check(cb ~= nil and not present(orphan), "孤兒的彩色讀頭模型：區塊載入時移除")
@@ -4756,8 +4779,10 @@ local function scenarioModelGates()
     W.locals = { me }
     local a = buildModelGate("MinidoracatKnoxPass_roll2f_white", 2, 4, "N", false, 300, 100, me).lanes[1]
     step()
-    check(W.onLoadSprite["MinidoracatKnoxPass_gate_e_448"] ~= nil and W.onLoadSprite["MinidoracatKnoxPass_gate_e_456"] ~= nil
-        and W.onLoadSprite["MinidoracatKnoxPass_gate_e_449"] == nil, "區塊載入收模型門的錨點（關、開），中間片不收")
+    check(onLoad("MinidoracatKnoxPass_gate_e_448") ~= nil and onLoad("MinidoracatKnoxPass_gate_e_456") ~= nil
+        and onLoad("MinidoracatKnoxPass_gate_e_449") == nil, "區塊載入收模型門的錨點（關、開），中間片不收")
+    check(onLoad("MinidoracatKnoxPass_gate_e_448", 6) ~= nil and onLoad("MinidoracatKnoxPass_gate_e_449", 6) ~= nil,
+        "SP 兩邊都在：二樓隱形牆的載入對齊（priority 6）不會取代錨點的動畫追蹤（priority 5）")
     a:ToggleDoor(me)
     step()
     local function smTime(o) return W.spriteModels[o._smName]._time end
@@ -4785,6 +4810,144 @@ local function scenarioModelGates()
     check(a._smName == "MinidoracatKnoxPassFast_roll2f_white_136" and not a:isAnimating(),
         "2.5 秒走完（正常要 4 秒）：換成加速版（開的那張）")
     clean(from, "模型門動畫（SP）")
+end
+
+-- 二樓隱形牆（Barrier.lua upperSpot／placeUpper）：兩層樓捲門與兩層樓大門每片車道與每一端的門線格（擺放格＋GATE_DOOR）
+-- 上一層一道看不見的牆，N／S 向 N 邊、W／E 向 W 邊，索引＝2×看得穿＋北邊；雙桿閘門沒有。那條邊已經有牆就不放。
+-- 拆門下一個 tick 收；chunk 載入時補放更新前蓋的門、收孤兒
+local function scenarioUpperWall()
+    out("情境：兩層樓的門的二樓隱形牆")
+    freshWorld()
+    local from = #logLines + 1
+    local builder = newPlayer("builder", 104, 103)
+    local function walls(x1, y1, x2, y2)   -- 範圍內 z=1 的隱形牆："x,y:索引"，x 外層、y 內層
+        local list = {}
+        for x = x1, x2 do
+            for y = y1, y2 do
+                for _, o in ipairs(square(x, y, 1)._objects) do
+                    local n = KP.upperWall(o)
+                    if n then list[#list + 1] = x .. "," .. y .. ":" .. n end
+                end
+            end
+        end
+        return table.concat(list, " ")
+    end
+    local function line(x1, y1, x2, y2, n)   -- 範圍內每格一道索引 n
+        local list = {}
+        for x = x1, x2 do for y = y1, y2 do list[#list + 1] = x .. "," .. y .. ":" .. n end end
+        return table.concat(list, " ")
+    end
+    local function pieces(g)
+        local list = { g.A, g.B }
+        for _, p in pairs(g.lanes) do list[#list + 1] = p end
+        return list
+    end
+
+    -- 1. 建造時放：位置、邊、看不看得穿
+    local rf = buildModelGate("MinidoracatKnoxPass_roll2f_green", 2, 4, "N", false, 300, 100, builder)
+    check(walls(298, 98, 306, 102) == line(300, 100, 303, 100, 1), "兩層樓捲門 4 格 N：四片車道上一層各一道 N 邊、擋視線（索引 1）")
+    local gc = buildModelGate("MinidoracatKnoxPass_gate_c", 2, 6, "S", true, 400, 100, builder)
+    check(walls(398, 98, 409, 103) == line(400, 101, 407, 101, 3),
+        "兩層樓大門 6 格 S、鐵欄杆：兩端與六片都在門線那列（擺放列的下一列），N 邊、視線穿過（索引 3）")
+    local ge = buildModelGate("MinidoracatKnoxPass_gate_e", 7, 9, "E", true, 500, 100, builder)
+    check(walls(498, 98, 503, 112) == line(501, 100, 501, 110, 0), "兩層樓大門 9 格 E：門線那行（擺放行的東邊一行）11 道 W 邊（索引 0）")
+    buildModelGate("MinidoracatKnoxPass_barrier2", 0, 6, "N", true, 600, 100, builder)
+    check(walls(598, 98, 609, 102) == "", "雙桿閘門不是兩層樓：不放")
+    local mine = IsoObject.new(nil, nil, "walls_exterior_wooden_01_24")
+    mine._flags = { cutW = true }
+    square(700, 103, 1):AddTileObject(mine)
+    local ga = buildModelGate("MinidoracatKnoxPass_gate_a", 1, 6, "W", true, 700, 100, builder)
+    check(walls(698, 98, 702, 109) == line(700, 100, 700, 102, 2) .. " " .. line(700, 104, 700, 107, 2) and present(mine),
+        "那條邊已經有牆（玩家自己蓋的）：那格不放、牆照留；其他格照放（鐵網看得穿，索引 2）")
+    step()
+    check(walls(298, 98, 306, 102) == line(300, 100, 303, 100, 1), "建好之後的 tick：門片都在，一道都不收")
+    -- 玩家拆掉門線二樓自己的牆（當初因為它才沒放）：下一個 tick 那格補上；門線外的牆、隱形牆自己被移走都不補
+    square(700, 103, 1):transmitRemoveItemFromSquare(mine)
+    local stray = IsoObject.new(nil, nil, "walls_exterior_wooden_01_24")
+    stray._flags = { cutW = true }
+    square(699, 103, 1):AddTileObject(stray)
+    square(699, 103, 1):transmitRemoveItemFromSquare(stray)
+    step()
+    check(walls(698, 98, 702, 109) == line(700, 100, 700, 107, 2),
+        "門線二樓玩家自己的牆被拆：下一個 tick 那格補上（索引 2）；門線外那格的牆被拆不放")
+    local w101
+    for _, o in ipairs(square(700, 101, 1)._objects) do if KP.upperWall(o) then w101 = o end end
+    square(700, 101, 1):transmitRemoveItemFromSquare(w101)
+    step()
+    check(walls(700, 101, 700, 101) == "", "隱形牆自己被移走（門還在）：不馬上補，等門片下次載入")
+    -- 同一格另一條邊（N）有玩家的牆，給下面「大錘整排收」看它不被誤收
+    mine = IsoObject.new(nil, nil, "walls_exterior_wooden_01_25")
+    mine._flags = { cutN = true }
+    square(700, 103, 1):AddTileObject(mine)
+
+    -- 2. 拆除與打壞：下一個 tick 跟著收
+    ISDismantleAction.complete({ thumpable = gc.A })
+    step()
+    step()
+    check(walls(398, 98, 409, 103) == "", "拆兩層樓大門的一端：整座移除，二樓那排一起收")
+    for k = 1, 4 do rf.lanes[k]._square:transmitRemoveItemFromSquare(rf.lanes[k]) end
+    step()
+    check(walls(298, 98, 306, 102) == "", "兩層樓捲門被打壞（引擎逐片移除）：二樓那排一起收")
+    for k = 1, 9 do ge.lanes[k]._square:transmitRemoveItemFromSquare(ge.lanes[k]) end
+    step()
+    step()
+    check(walls(498, 98, 503, 112) == "", "大門門片被打壞：兩端下一個 tick 跟著移除，二樓整排都收")
+    ISDestroyStuffAction.complete({ item = ga.lanes[2] })
+    step()
+    step()
+    check(walls(698, 98, 702, 109) == "" and present(mine), "大錘敲大門一片：整排收，玩家自己蓋的牆不動")
+
+    -- 3. chunk 載入：更新前蓋的門補上（重複載入不會多放），沒有門的牆移除，有門的留著
+    local gb = buildModelGate("MinidoracatKnoxPass_gate_b", 0, 6, "N", true, 800, 100, builder)
+    for x = 800, 807 do
+        local keep = {}
+        for _, o in ipairs(square(x, 100, 1)._objects) do if not KP.upperWall(o) then keep[#keep + 1] = o end end
+        square(x, 100, 1)._objects = keep
+    end
+    check(walls(798, 98, 809, 102) == "", "（模擬更新前蓋的門：二樓沒有牆）")
+    for _, p in ipairs(pieces(gb)) do loadSprite(p) end
+    step()
+    for _, p in ipairs(pieces(gb)) do loadSprite(p) end
+    step()
+    check(walls(798, 98, 809, 102) == line(800, 100, 807, 100, 1), "門片與兩端載入：補上八道（鋼板擋視線，索引 1），再載入一次也不重複")
+    local orphan = IsoObject.new(nil, nil, "MinidoracatKnoxPass_upperwall_1")
+    square(900, 100, 1):AddTileObject(orphan)
+    loadSprite(orphan)
+    for _, o in ipairs(square(803, 100, 1)._objects) do loadSprite(o) end
+    step()
+    check(not present(orphan) and walls(798, 98, 809, 102) == line(800, 100, 807, 100, 1),
+        "隱形牆載入：底下沒有門的移除，有門的留著")
+    -- 存檔裡的室內判定是舊的（同一個 tick 建好整座門時，原版的區塊快照最後寫進存檔）：牆載入時對不上就重算那一格
+    W.regions["803,100,1"], W.regionJobs = 16, 0
+    for _, o in ipairs(square(803, 100, 1)._objects) do loadSprite(o) end
+    step()
+    check(W.regions["803,100,1"] == 17 and W.regionJobs == 1, "隱形牆載入時室內判定的位元是舊的：重算那一格，補上 N 牆位元")
+    for _, o in ipairs(square(803, 100, 1)._objects) do loadSprite(o) end
+    step()
+    check(W.regionJobs == 1, "位元對得上：不再重算")
+
+    -- 4. S 向的一端跨 chunk：門線那格還沒載入就先不放，那一端再載入時補；檢查時那格沒載入當作還要
+    W.unloaded["1000,112,0"] = true
+    local gs = buildModelGate("MinidoracatKnoxPass_gate_d", 2, 6, "S", true, 1000, 111, builder)
+    check(walls(998, 110, 1009, 114) == line(1001, 112, 1007, 112, 1), "A 端門線那格（下一個 chunk）沒載入：先不放，其他七道照放")
+    W.unloaded["1000,112,0"] = nil
+    loadSprite(gs.A)
+    step()
+    check(walls(998, 110, 1009, 114) == line(1000, 112, 1007, 112, 1), "那一端再載入：補上")
+    W.unloaded["1000,111,0"] = true
+    for _, o in ipairs(square(1000, 112, 1)._objects) do loadSprite(o) end
+    step()
+    check(walls(998, 110, 1009, 114) == line(1000, 112, 1007, 112, 1), "A 端擺放格沒載入時檢查那道牆：當作還要，不收")
+    W.unloaded["1000,111,0"] = nil
+    clean(from, "二樓隱形牆")
+
+    -- 5. SP 走同一套；MP client 只有大錘過濾
+    freshWorld("sp")
+    buildModelGate("MinidoracatKnoxPass_roll2f_white", 7, 9, "W", false, 300, 100, newPlayer("me", 301, 103))
+    check(walls(298, 98, 302, 110) == line(300, 100, 300, 108, 0) and W.postTx == 0, "SP：兩層樓捲門 9 格 W 照放九道、沒有網路傳送")
+    freshWorld("client")
+    check(ISDestroyCursor.canDestroy({}, IsoObject.new(nil, nil, "MinidoracatKnoxPass_upperwall_3")) == false,
+        "大錘游標不列出隱形牆（MP client 也生效）")
 end
 
 -- 正式服（2026-10-11，0.3.0）：上鎖的九格雙桿閘門附近有 4–5 個客戶端，Knox Pass 開門後各連線每秒送 200–1914 個
@@ -5600,7 +5763,7 @@ local tests = {
     scenarioDoubleDoorway, scenarioAutoDrive, scenarioLoadChunk, scenarioTagScript,
     scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,
     scenarioReaderPost, scenarioColors, scenarioLoot, scenarioBarrierMirror, scenarioRollDoor, scenarioSettings,
-    scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioLaggyEcho, scenarioShare,
+    scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioUpperWall, scenarioLaggyEcho, scenarioShare,
     scenarioCoManagers, scenarioOutsideSafehouse, scenarioWatchWalk, scenarioWatchMissing, scenarioNeatCrafting, scenarioWatchDrive, scenarioIndestructible,
 }
 for _, t in ipairs(tests) do t() end

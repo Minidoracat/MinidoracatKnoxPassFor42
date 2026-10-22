@@ -273,6 +273,39 @@ function B.fullHealth(o, width, hp)
     return nil
 end
 
+-- 二樓隱形牆：兩層樓捲門與兩層樓大門（KP.MODEL_GATES 的 upper）只有一樓有物件，上半截只是錨點的 3D 模型，二樓不擋人、
+-- 二樓的房間也圍不起來（2026-10-22 Workshop 玩家回報）。每片車道與每一端的門線格（擺放格＋KP.GATE_DOOR）上一層，
+-- N／S 向放 N 邊、W／E 向放 W 邊一道看不見的牆（KP.UPPER_WALL_TILESET：擋人，IsoRegions 認它的 cut 旗標，二樓的房間
+-- 才封閉；看得穿的外觀用視線穿過的那張），門開著也留著。那條邊已經有牆、門框或窗框（cut 旗標）就不放，玩家自己蓋的照用。
+-- 放：建造時（MG.onCreate）；更新前蓋的門在門片載入時補；門線二樓玩家自己的牆被拆時補。收：任何途徑移走一片或一端，
+-- 下一個 tick 沒有別片還要它就移除；載入時沒有門的孤兒牆一樣移除（都在下方 server／SP 段）。
+-- 回傳門片或一端 o 那道牆的 x, y, z、是不是北邊、視線穿不穿過；o 不是兩層樓的門片或一端回 nil
+local function upperSpot(o)
+    local mg = KP.modelGate(o)
+    local sq = mg and mg.def.upper and o:getSquare()
+    if not sq then return nil end
+    local s, dx, dy = mg.slot, 0, 0
+    if mg.def.ends and (s == SLOT.END_A or s == SLOT.END_B) then
+        local d = KP.GATE_DOOR[mg.face]   -- 一端在擺放格，S／E 向的門線在下一列／下一行
+        dx, dy = d[1], d[2]
+    elseif s >= SLOT.PLACEHOLDER or s % SLOT.OPEN > 2 then
+        return nil
+    end
+    return sq:getX() + dx, sq:getY() + dy, sq:getZ() + 1, mg.face == "N" or mg.face == "S", KP.SEE_THROUGH[mg.tileset] == true
+end
+
+-- 放上一道隱形牆。門線那格（下一層）不在就不放：S／E 向的一端跨 chunk 時那格還沒載入，之後這一端再載入時補。
+-- IsoObject(cell, square, spriteName) → AddTileObject（重算碰撞、尋路與室內判定，IsoGridSquare.java:5855-5891）→ 送給客戶端
+local function placeUpper(x, y, z, north, trans)
+    local cell = getCell()
+    if not (x and cell:getGridSquare(x, y, z - 1)) then return end
+    local sq = cell:getGridSquare(x, y, z) or cell:createNewGridSquare(x, y, z, true)
+    if sq:has(north and IsoFlagType.cutN or IsoFlagType.cutW) then return end
+    local o = IsoObject.new(cell, sq, KP.UPPER_WALL_TILESET .. "_" .. ((trans and 2 or 0) + (north and 1 or 0)))
+    sq:AddTileObject(o)
+    o:transmitCompleteItemToClients()
+end
+
 -- 模型門的 SpriteConfig OnCreate：替代 tile（格位 16＋k−1）換成車道 k 的門片（第 1 片 GarageDoor 1 是錨點、掛 3D 模型，
 -- 中間 GarageDoor 2，最後 GarageDoor 3），耐久照 KP.MODEL_GATES；兩端（格位 3／4）回 nil，照原版送 IsoThumpable。
 -- 內建讀頭的（雙桿閘門）下一個 tick 登記，擁有者是建造者（B.settle）
@@ -283,7 +316,10 @@ function MG.onCreate(params)
     local thump = params and params.thumpable
     local mg = KP.modelGate(thump)
     local k = mg and mg.slot - SLOT.PLACEHOLDER + 1
-    if not k or k < 1 or k > mg.width then return nil end
+    if not k or k < 1 or k > mg.width then
+        placeUpper(upperSpot(thump))   -- 兩端
+        return nil
+    end
     local sq = thump:getSquare()
     local d = KP.GATE_DOOR[mg.face]
     local x, y, z = sq:getX() + d[1], sq:getY() + d[2], sq:getZ()
@@ -291,6 +327,7 @@ function MG.onCreate(params)
     local real = mg.index0 + (k == 1 and 0 or k == mg.width and 2 or 1)
     local door = toGarageDoor(thump, dest, getSprite(mg.tileset .. "_" .. real), mg.face == "N" or mg.face == "S",
         mg.def.health[mg.width])
+    placeUpper(upperSpot(door))
     if k == 1 then
         if mg.def.builtin then pending[#pending + 1] = { anchor = door, who = params.character } end
         if KP.BarrierAnim then KP.BarrierAnim.track(door) end   -- SP 建造不觸發 OnObjectAdded（見 B.onCreate）
@@ -361,4 +398,88 @@ if not isClient() then
         doomed = {}
         for _, d in ipairs(list) do B.remove(d[1], d[2]) end
     end)
+
+    -- 二樓隱形牆（上方 upperSpot）：一片或一端要被移走（handler 裡還在），下一個 tick 沒有別片還要那道牆就收。
+    -- 那道牆是誰的：門線格本身（車道、N／W 向的一端）與 S／E 向一端的擺放格（上一列／左一行）有沒有對到它的；
+    -- 那格沒載入（跨 chunk）當作還要，下次載入再對。留下的牆核對一次室內判定的位元（G.syncRegions，對不上才重算）：
+    -- 原版第一次在沒認得的 chunk 改格子時拍下周圍 7x7 chunk 的快照，同一批存檔時快照最後寫（IsoRegionWorker.java:394-395、
+    -- 243-259），同一個 tick 蓋好整座門時，牆的位元可能沒進存檔，重開服後二樓又不算室內（upperwall-mp 1022c 的夾具實踩）。
+    -- 門線二樓玩家自己的牆、門框或窗框被拆（當初因為它才沒放）：下一個 tick 那條邊沒有別的牆就補上
+    local upperAdd, upperCheck, upperFill = {}, {}, {}
+    local NEAR = { [true] = { { 0, 0 }, { 0, -1 } }, [false] = { { 0, 0 }, { -1, 0 } } }
+    -- 對到的回 true 與視線穿不穿過；那格沒載入回 true（不知道穿不穿過）；都沒有回 false
+    local function upperOwner(x, y, z, north)
+        for _, d in ipairs(NEAR[north]) do
+            local sq = getCell():getGridSquare(x + d[1], y + d[2], z - 1)
+            if not sq then return true end
+            local objects = sq:getObjects()
+            for i = 0, objects:size() - 1 do
+                local ux, uy, uz, un, trans = upperSpot(objects:get(i))
+                if ux == x and uy == y and uz == z and un == north then return true, trans end
+            end
+        end
+        return false
+    end
+    local function upperWallsAt(x, y, z, north)
+        local sq = getCell():getGridSquare(x, y, z)
+        local objects, out = sq and sq:getObjects(), {}
+        for i = 0, (objects and objects:size() or 0) - 1 do
+            local o = objects:get(i)
+            local n = KP.upperWall(o)
+            if n and (n % 2 == 1) == north then out[#out + 1] = o end
+        end
+        return out
+    end
+    Events.OnObjectAboutToBeRemoved.Add(function(obj)
+        local x, y, z, north = upperSpot(obj)
+        if x then upperCheck[#upperCheck + 1] = { x, y, z, north } end
+        local sq, props = obj:getSquare(), obj:getProperties()
+        if sq and props and sq:getZ() > 0 and not KP.upperWall(obj) then
+            local sx, sy, sz = sq:getX(), sq:getY(), sq:getZ()
+            if props:has(IsoFlagType.cutN) then upperFill[#upperFill + 1] = { sx, sy, sz, true } end
+            if props:has(IsoFlagType.cutW) then upperFill[#upperFill + 1] = { sx, sy, sz, false } end
+        end
+    end)
+    Events.OnTick.Add(function()
+        if #upperAdd == 0 and #upperCheck == 0 and #upperFill == 0 then return end
+        local add, chk, fill = upperAdd, upperCheck, upperFill
+        upperAdd, upperCheck, upperFill = {}, {}, {}
+        for _, q in ipairs(add) do placeUpper(q[1], q[2], q[3], q[4], q[5]) end
+        for _, q in ipairs(fill) do
+            local _, trans = upperOwner(q[1], q[2], q[3], q[4])
+            if trans ~= nil then placeUpper(q[1], q[2], q[3], q[4], trans) end
+        end
+        for _, q in ipairs(chk) do
+            local list = upperWallsAt(q[1], q[2], q[3], q[4])
+            if upperOwner(q[1], q[2], q[3], q[4]) then
+                G.syncRegions(list)
+            else
+                -- 普通 IsoObject 不是多格 entity：safelyRemove 照讀頭模型給 false（ReaderPost.lua）
+                for _, o in ipairs(list) do o:getSquare():transmitRemoveItemFromSquare(o, false) end
+            end
+        end
+    end)
+
+    -- 載入時對齊（chunk 載入逐物件回呼，Lua/MapObjects.java:184-218，伺服器與 SP；ReaderPost.lua 同法）：兩層樓的門片
+    -- 與兩端→補放（更新前蓋的門），隱形牆→檢查（孤兒）。同一張 sprite 同 priority 的回呼會被後來的取代（:141-153），
+    -- 錨點那兩張 client/BarrierAnim.lua 已經用 5，這裡用 6
+    local pieces, walls = {}, {}
+    for ts, def in pairs(KP.MODEL_GATES) do
+        if def.upper then
+            for b = 0, #def.widths * #def.faces - 1 do
+                for _, s in ipairs(def.ends and { 0, 1, 2, 3, 4, 8, 9, 10 } or { 0, 1, 2, 8, 9, 10 }) do
+                    pieces[#pieces + 1] = ts .. "_" .. (b * 64 + s)
+                end
+            end
+        end
+    end
+    for i = 0, 3 do walls[#walls + 1] = KP.UPPER_WALL_TILESET .. "_" .. i end
+    MapObjects.OnLoadWithSprite(pieces, function(obj)
+        local x, y, z, north, trans = upperSpot(obj)
+        if x then upperAdd[#upperAdd + 1] = { x, y, z, north, trans } end
+    end, 6)
+    MapObjects.OnLoadWithSprite(walls, function(obj)
+        local sq, n = obj:getSquare(), KP.upperWall(obj)
+        if sq and n then upperCheck[#upperCheck + 1] = { sq:getX(), sq:getY(), sq:getZ(), n % 2 == 1 } end
+    end, 6)
 end
