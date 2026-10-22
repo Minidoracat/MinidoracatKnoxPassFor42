@@ -100,13 +100,15 @@ local function syncDoor(p) p:syncIsoObject(false, 0, nil, nil) end
 -- 開關聲在錨點那格播（playServerSound 送給約 10 格內的人，LuaManager.java:3892-3894、GameServer.java:2136-2154）：
 -- 原版靠封包裡的開關者 ID 在他身上播（IsoDoor.java:1776-1806），這個 ID 只有 ToggleDoorActual 寫得到（:1502-1505）。
 -- 不查擋車：呼叫端關門前先看 isBlocked（同 toggleGarageDoor，AGENTS.md 踩坑錄）
-local function setGarageOpen(anchor, open)
+-- indoor＝這扇門勾了「算室內」（rec.indoor）：翻完才記位元，引擎看到位元沒變就不重算，紀錄留著勾選時寫的牆（G.syncRegions）
+local function setGarageOpen(anchor, open, indoor)
     for _, p in ipairs(garagePieces(anchor)) do
         if p:IsOpen() ~= open then
             local sq = p:getSquare()
-            IsoRegions.setPreviousFlags(sq)
+            if not indoor then IsoRegions.setPreviousFlags(sq) end
             p:ToggleDoorSilent()
             sq:RecalcAllWithNeighbours(true)
+            if indoor then IsoRegions.setPreviousFlags(sq) end
             sq:setSquareChanged()
             p:invalidateRenderChunkLevel(256)
         end
@@ -139,19 +141,37 @@ local function regionFlags(sq)
     return f
 end
 
--- 伺服器：各片的格子現在該有的位元和引擎記著的（getSquareFlags，沒有資料回 -1）不同，才重算那一格。
+-- 伺服器：一格現在該有的位元和引擎記著的（getSquareFlags，沒有資料回 -1）不同，才重算那一格。
 -- 重算一格會存檔並把整塊區域資料廣播給所有客戶端（IsoRegionWorker.java:242-262），所以只在對不上時呼叫。
 -- squareChanged 只在位元和靜態 previousFlags 不同時排工作，setPreviousFlags(nil) 把它歸 0（calculateSquareFlags(null)＝0）
 -- ponytail: 位元 0 的格（沒地板、門片開著）排不進去、維持原狀；真遇到再找別的方法讓 previousFlags 不等於 0
-function G.syncRegions(pieces)
+local function syncSquare(sq)
+    local stored = IsoRegions.getSquareFlags(sq:getX(), sq:getY(), sq:getZ())
+    if stored ~= -1 and stored ~= regionFlags(sq) then
+        IsoRegions.setPreviousFlags(nil)
+        IsoRegions.squareChanged(sq)
+    end
+end
+
+-- 「算室內」的門片：先替那一格補上門線的牆旗標（cutN／cutW，calculateSquareFlags 認它），核對完拿掉。squareChanged 當下就算好
+-- 位元交給背景工作（IsoRegions.java:309-317），拿掉後紀錄照樣是牆。只動這一格合併後的屬性（IsoGridSquare.getProperties），
+-- 碰撞與尋路不看室內紀錄、這段期間也不重算；原本就有的旗標（關著的原版車庫門、玩家在門線蓋的牆）不拿
+local function syncSquareAsWall(piece, sq)
+    local props = sq:getProperties()
+    local flag = piece:getNorth() and IsoFlagType.cutN or IsoFlagType.cutW
+    local had = props:has(flag)
+    if not had then props:set(flag) end
+    syncSquare(sq)
+    if not had then props:unset(flag) end
+end
+
+-- indoor＝這扇門勾了「算室內」（rec.indoor）：門開著也照牆核對
+function G.syncRegions(pieces, indoor)
     for i = 1, #pieces do
-        local sq = pieces[i]:getSquare()
+        local p = pieces[i]
+        local sq = p:getSquare()
         if sq then
-            local stored = IsoRegions.getSquareFlags(sq:getX(), sq:getY(), sq:getZ())
-            if stored ~= -1 and stored ~= regionFlags(sq) then
-                IsoRegions.setPreviousFlags(nil)
-                IsoRegions.squareChanged(sq)
-            end
+            if indoor then syncSquareAsWall(p, sq) else syncSquare(sq) end
         end
     end
 end
@@ -176,9 +196,9 @@ local doorAdapter = {
     end,
     isOpen = function(anchor) return anchor:IsOpen() end,
     -- ToggleDoor 必須傳真的 IsoPlayer：IsoDoor 傳 nil 什麼都不做（IsoDoor.java:1501）。車庫門鏈不經 ToggleDoor（setGarageOpen）
-    setOpen = function(anchor, open, player)
+    setOpen = function(anchor, open, player, indoor)
         if anchor:IsOpen() ~= open then
-            if isGarage(anchor) then setGarageOpen(anchor, open) else anchor:ToggleDoor(player) end
+            if isGarage(anchor) then setGarageOpen(anchor, open, indoor) else anchor:ToggleDoor(player) end
         end
         return anchor:IsOpen() == open
     end,
@@ -390,8 +410,10 @@ function G.isOpen(adapter, anchor)
     return ok and open == true
 end
 
-function G.setOpen(adapter, anchor, open, player)
-    local ok, done = call(adapter, "setOpen", anchor, open, player)
+-- indoor＝這扇門勾了「算室內」（rec.indoor，4 版起傳給 adapter）：原版車庫門鏈開關時紀錄留著牆；
+-- 其他 MOD 的 adapter 不理也沒關係，Sensor 每 5 秒的核對會補回
+function G.setOpen(adapter, anchor, open, player, indoor)
+    local ok, done = call(adapter, "setOpen", anchor, open, player, indoor)
     if not ok then KP.log("adapter " .. tostring(adapter.id) .. " setOpen failed: " .. tostring(done)) end
     return ok and done == true
 end
@@ -403,6 +425,18 @@ end
 
 function G.supportsLock(adapter)
     return adapter.unlock ~= nil and adapter.lock ~= nil and adapter.unlockKnox ~= nil
+end
+
+-- 「算室內」（rec.indoor）：原版車庫門鏈（地圖車庫門、捲門、模型門、閘門）開著也記成牆，回 "yes"。
+-- 每片都在門框裡的門開著也算牆（doorFrN／doorFrW，IsoRegions.java:329-341），回 "framed"；其他門（柵欄門、MOD 的門）回 "no"
+function G.indoorSupport(adapter, anchor)
+    if adapter == doorAdapter and isGarage(anchor) then return "yes" end
+    for _, p in ipairs(G.pieces(adapter, anchor)) do
+        local sq = p:getSquare()
+        local north = p.getNorth and p:getNorth()
+        if not (sq and sq:has(north and IsoObjectType.doorFrN or IsoObjectType.doorFrW)) then return "no" end
+    end
+    return "framed"
 end
 
 -- 回傳原本的鎖別，關好後原封不動傳回 lock；會存進帳本，只收純量
@@ -452,11 +486,12 @@ function G.findAt(rec)
     return false, nil, sq
 end
 
--- 公開給其他 MOD：註冊自己的門。必填 id、match、anchor、isOpen、setOpen；
--- 選填 pieces、kind、isBlocked；門鎖要 unlock(anchor, pieces)→原本的鎖別（純量，沒鎖回 nil）、
--- lock(anchor, pieces, knoxLock, keyed)（keyed 是 unlock 當初的回傳值）、unlockKnox(anchor, pieces) 三個都提供
+-- 公開給其他 MOD：註冊自己的門。必填 id、match、anchor、isOpen、setOpen(anchor, open, player, indoor)
+-- （indoor 是 4 版加的，可以不理）；選填 pieces、kind、isBlocked；門鎖要 unlock(anchor, pieces)→原本的鎖別（純量，沒鎖回 nil）、
+-- lock(anchor, pieces, knoxLock, keyed)（keyed 是 unlock 當初的回傳值）、unlockKnox(anchor, pieces) 三個都提供。
+-- VERSION 4：讀頭的「算室內」開關（家族 Safehouse 的室內檢查看這個版本決定提不提）
 KnoxPassAPI = KnoxPassAPI or {}
-KnoxPassAPI.VERSION = 3
+KnoxPassAPI.VERSION = 4
 
 function KnoxPassAPI.registerGateAdapter(adapter)
     if type(adapter) ~= "table" or type(adapter.id) ~= "string" then return false, "id" end

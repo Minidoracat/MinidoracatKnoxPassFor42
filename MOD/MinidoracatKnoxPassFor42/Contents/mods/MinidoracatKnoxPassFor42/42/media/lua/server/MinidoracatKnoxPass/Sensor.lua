@@ -171,7 +171,7 @@ function S.open(key, rec, who, tag, part, vehicle, now, holdMs)
     rec.doorway = doorwayOf(pieces)   -- 門還關著：記下各片的門口格
     local keyed = reopen and rec.keyed or nil
     if G.supportsLock(adapter) then keyed = G.unlock(adapter, anchor, pieces) or keyed end
-    if not G.setOpen(adapter, anchor, true, who) then
+    if not G.setOpen(adapter, anchor, true, who, rec.indoor) then
         r.failAt = now + S.FAIL_MS
         if reopen then
             rec.keyed = keyed
@@ -205,7 +205,7 @@ local function closeNow(key, rec, now, who)
     local pieces = G.pieces(adapter, anchor)
     who = who or actor(r, rec)
     if not who or G.isBlocked(adapter, anchor) or doorwayOccupied(rec, pieces)
-        or not G.setOpen(adapter, anchor, false, who) then
+        or not G.setOpen(adapter, anchor, false, who, rec.indoor) then
         return false, "Blocked"
     end
     settleClosed(key, rec, adapter, anchor)
@@ -496,11 +496,12 @@ function S.relock(gates)
 end
 
 -- 室內判定跟上門現在的狀態（Gates.lua G.syncRegions）：原版右鍵、會開門的殭屍開關門都不通知引擎，Knox Pass 自己開關時
--- 已經通知過（setGarageOpen），這裡補其他路徑。只看已載入的登記大門，位元對得上就什麼都不做
+-- 已經通知過（setGarageOpen），這裡補其他路徑。勾了「算室內」的門照牆核對（開著也是牆）。只看已載入的登記大門，
+-- 位元對得上就什麼都不做
 function S.syncRegions(gates)
     for _, rec in pairs(gates) do
         local adapter, anchor = G.findAt(rec)
-        if adapter then G.syncRegions(G.pieces(adapter, anchor)) end
+        if adapter then G.syncRegions(G.pieces(adapter, anchor), rec.indoor) end
     end
 end
 

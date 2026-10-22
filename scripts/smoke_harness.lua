@@ -921,10 +921,22 @@ local function objHas(o, flag)
 end
 function Square:has(flag)
     if flag == "solidfloor" then return true end
+    if self._props and self._props[flag] then return true end
     for _, o in ipairs(self._objects) do
         if objHas(o, flag) then return true end
     end
     return false
+end
+-- 格子合併後的屬性（IsoGridSquare.getProperties，IsoGridSquare.java:9249-9251）：has 照 Square:has；set／unset 只動這格自己的那份
+-- （「算室內」核對時暫時補的牆旗標，Gates.lua syncSquareAsWall）。原版照物件重建格子屬性（RecalcProperties）這裡不模擬
+function Square:getProperties()
+    local sq = self
+    sq._props = sq._props or {}
+    return {
+        has = function(_, flag) return sq:has(flag) end,
+        set = function(_, flag) sq._props[flag] = true end,
+        unset = function(_, flag) sq._props[flag] = nil end,
+    }
 end
 function Base:getProperties()
     local o = self
@@ -3011,8 +3023,8 @@ local function scenarioWillOpenFor()
     freshWorld()
     local from = #logLines + 1
     local api = KnoxPassAPI.willOpenFor
-    check(KnoxPassAPI.VERSION == 3 and type(api) == "function" and type(KnoxPassAPI.whyText) == "function",
-        "KnoxPassAPI.VERSION 3 提供 willOpenFor 與 whyText")
+    check(KnoxPassAPI.VERSION >= 3 and type(api) == "function" and type(KnoxPassAPI.whyText) == "function",
+        "KnoxPassAPI.VERSION 3 起提供 willOpenFor 與 whyText（AutoDrive 照這個條件判斷）")
     local a = gate(100)
     local c = gate(104, { power = false })
     local d = gate(108, { double = true })
@@ -4148,6 +4160,54 @@ local function scenarioRollDoor()
     n[1]._modData[KP.FULL_HP_KEY] = nil
     check(B.fullHealth(n[1], 3, 1000) == 1000 and B.fullHealth(n[1], 3, 500) == nil,
         "之前蓋的 3 格捲門比 maxHealth 高才認得出；不超過 maxHealth 的跟原版車庫門（同一套 sprite、3 片）一樣照 maxHealth")
+    -- 算室內（rec.indoor；Gates.lua G.syncRegions／setGarageOpen、Server.lua H.settings／H.uninstall）：車庫門鏈開著也記成牆
+    local _, s0 = cmd(owner, "query", { key = res.key })
+    check(s0.indoor == false and s0.indoorSupport == "yes" and s0.indoorCut == false,
+        "算室內：預設沒勾；捲門是車庫門鏈能勾；不是模型門或閘門，說明不多那一句")
+    check(cmd(owner, "settings", { key = res.key, indoor = "yes" }).why == "BadArgs", "indoor 只收布林")
+    local jobs = W.regionJobs
+    local r1, s1 = cmd(owner, "settings", { key = res.key, indoor = true })
+    check(r1.ok == true and KP.Ledger.get(res.key).indoor == true and s1.indoor == true and regions() == "18,18,18,18"
+        and W.regionJobs == jobs, "勾了：帳本記 indoor；門關著本來就是牆，不重算")
+    moveCar(v, 305.5, 101.5)
+    step()
+    check(w[1]:IsOpen() and w[4]:IsOpen() and regions() == "18,18,18,18" and W.regionJobs == jobs,
+        "勾了的門 Knox Pass 開門：四片開了，紀錄留著牆（不重算、不廣播）")
+    runMs(5000)
+    check(regions() == "18,18,18,18" and W.regionJobs == jobs, "巡檢把勾了的門開著也當牆：對得上，不重算")
+    IsoRegions.setPreviousFlags(nil)
+    IsoRegions.squareChanged(square(300, 101, 0))   -- 有人在門那格蓋或拆東西：引擎照門現在的樣子重算
+    check(regions() == "18,16,18,18", "（引擎）門那格被別的動作重算：照開著記成缺口")
+    runMs(5000)
+    check(regions() == "18,18,18,18" and W.regionJobs == jobs + 2 and not square(300, 101, 0):has(IsoFlagType.cutW),
+        "5 秒內的巡檢補回牆；補的旗標只在核對當下，格子上沒有留下 cutW")
+    local r2, s2 = cmd(owner, "settings", { key = res.key, indoor = false })
+    check(r2.ok == true and KP.Ledger.get(res.key).indoor == nil and s2.indoor == false and regions() == "16,16,16,16",
+        "取消：帳本不存；門開著，馬上照開著改回缺口")
+    cmd(owner, "settings", { key = res.key, indoor = true })
+    check(regions() == "18,18,18,18", "門開著時勾：馬上記成牆")
+    jobs = W.regionJobs
+    hand._x, hand._y = 320.5, 120.5   -- 站在門線上的人先走開（門口有人不關）
+    moveCar(v, v._x + 60, v._y)
+    runMs(5000)
+    check(not w[1]:IsOpen() and regions() == "18,18,18,18" and W.regionJobs == jobs,
+        "車開走、Knox Pass 關門：紀錄還是牆，不重算")
+    w[4]:ToggleDoor(hand)
+    runMs(5000)
+    check(w[1]:IsOpen() and regions() == "18,18,18,18", "原版右鍵開門：勾了的門巡檢照樣當牆")
+    check(cmd(owner, "uninstall", { key = res.key }).ok == true and w[1]:IsOpen() and regions() == "16,16,16,16",
+        "拆讀頭：不是 Knox Pass 開的門不關，照門現在的樣子改回缺口，不留下記成牆的紀錄")
+    -- 其他門：每片都在門框裡的開著也算牆（停用、寫「本來就算」），柵欄門這類不支援；勾不了，取消一律可以
+    local plain = gate(720)
+    local _, ps = cmd(plain.owner, "query", { key = plain.key })
+    local fr = IsoObject.new(nil, nil, "walls_exterior_wooden_01_9")
+    fr._flags = { ["type.doorFrN"] = true }
+    square(720, 100, 0):AddTileObject(fr)
+    local _, fs = cmd(plain.owner, "query", { key = plain.key })
+    check(ps.indoorSupport == "no" and fs.indoorSupport == "framed"
+        and cmd(plain.owner, "settings", { key = plain.key, indoor = true }).why == "BadArgs"
+        and cmd(plain.owner, "settings", { key = plain.key, indoor = false }).ok == true and rec(plain).indoor == nil,
+        "一般門：沒門框不支援、有門框寫本來就算；勾不了（BadArgs），取消一律可以")
     clean(from, "車庫捲門")
 end
 

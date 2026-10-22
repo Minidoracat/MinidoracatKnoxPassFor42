@@ -294,7 +294,8 @@ local function buildState(player, key, rec)
     -- cx／cy＝感應距離量起的中心（視窗在地上畫範圍圈）。共同管理者：個別帳號（照字母序）、陣營開關、擁有者現在的陣營名、
     -- 安全屋（ownerHouses：擁有者與管理員拿到全部候選，共同管理者只拿到勾選的）；
     -- ownerOrAdmin＝能改共同管理者名單、能拆讀頭；indestructible＝生效值（沙盒或這扇門），indestructibleAll＝沙盒對所有大門開著，
-    -- isAdmin＝能替這扇門開關「不會被破壞」
+    -- isAdmin＝能替這扇門開關「不會被破壞」；indoor＝這扇門「算室內」，門載入時另帶 indoorSupport（Gates.lua G.indoorSupport）
+    -- 與 indoorCut（模型門與閘門：勾了以後門片擋住角色時被切掉，說明多一句）
     local canEdit = ownerOrAdmin(player, rec)
     local state = {
         key = key, kind = rec.kind, owner = rec.owner, lock = rec.lock == true,
@@ -305,6 +306,7 @@ local function buildState(player, key, rec)
         delayDefault = KP.clampSetting("CloseDelay", tonumber(KP.sandbox("CloseDelay")) or 2),
         speed = rec.speed == "fast" and "fast" or "default", share = rec.share or "none", maxTags = MAX_TAGS,
         walk = rec.walk ~= false, walkSupported = KP.watchSensing(),   -- 這扇門的手錶步行感應（沒有＝開）
+        indoor = rec.indoor == true,
         ownerOrAdmin = canEdit, co = sortedNames(rec.co), coFaction = rec.coFaction == true,
         ownerFaction = factionName(rec.owner), maxManagers = KP.MAX_MANAGERS, houses = ownerHouses(rec, canEdit),
         indestructible = KP.gateIndestructible(rec), indestructibleAll = KP.sandbox("Indestructible") == true,
@@ -317,6 +319,8 @@ local function buildState(player, key, rec)
         state.speedSupported = KP.speedSupported(anchor)
         state.lockAllowed = KP.lockAllowedAt(anchor:getSquare(), rec.owner)   -- 沙盒「安全屋外的讀頭」
         state.hp, state.hpFull = S.durability(adapter, anchor)   -- 耐久：剩下最少的那一片（不會被破壞時視窗不寫數字）
+        state.indoorSupport = G.indoorSupport(adapter, anchor)
+        state.indoorCut = KP.gateKind(anchor) ~= nil
     end
     local now = getGameTime():getWorldAgeHours()
     local near = {}
@@ -443,6 +447,7 @@ function H.uninstall(player, args)
         end
         S.shield(rec, adapter, anchor, false)   -- 不會被破壞的門還原耐久
         mark(anchor, nil)
+        if rec.indoor then G.syncRegions(pieces) end   -- 算室內：照門現在的樣子重算，不留下記成牆的紀錄
     end
     L.remove(args.key)
     S.forget(args.key)
@@ -609,15 +614,18 @@ function H.settings(player, args)
     local okH, share = shareArg(args.share)
     local okW = args.walk == nil or type(args.walk) == "boolean"   -- 手錶步行感應：true／false、沒送＝不改
     local okI = args.indestructible == nil or type(args.indestructible) == "boolean"   -- 不會被破壞：同上
-    if not (okR and okD and okS and okH and okW and okI) then return result(player, cmd, false, "BadArgs", args.key) end
+    local okIn = args.indoor == nil or type(args.indoor) == "boolean"   -- 算室內：同上
+    if not (okR and okD and okS and okH and okW and okI and okIn) then return result(player, cmd, false, "BadArgs", args.key) end
     -- 擁有者與共同管理者也改不了：誰都能替自己的門開的話，等於整台伺服器都開
     if args.indestructible ~= nil and not adminOf(player) then return result(player, cmd, false, "AdminOnly", args.key) end
-    -- 速度存在帳本，也標在錨點給 client 選動畫，所以門要載入
+    -- 速度存在帳本，也標在錨點給 client 選動畫；算室內當下就改室內紀錄。兩者都要門載入
     local adapter, anchor = nil, nil
-    if speed ~= nil then
+    if speed ~= nil or args.indoor ~= nil then
         adapter, anchor = G.findAt(rec)
         if not adapter then return result(player, cmd, false, "NotLoaded", args.key) end
         if speed and not KP.speedSupported(anchor) then return result(player, cmd, false, "NoSpeedSupport", args.key) end
+        -- 只有車庫門鏈能勾（管理視窗對其他門停用）；取消一律可以
+        if args.indoor and G.indoorSupport(adapter, anchor) ~= "yes" then return result(player, cmd, false, "BadArgs", args.key) end
     end
     if range ~= nil then rec.range = range and KP.clampSetting("ReadRange", range) or nil end
     if delay ~= nil then rec.closeDelay = delay and KP.clampSetting("CloseDelay", delay) or nil end
@@ -627,6 +635,11 @@ function H.settings(player, args)
         rec.speed = speed or nil
         mark(anchor, rec)
     end
+    -- 算室內：勾了就把門片記成牆（開著也是），取消就照門現在的樣子重算（Gates.lua G.syncRegions）
+    if args.indoor ~= nil then
+        rec.indoor = args.indoor or nil
+        G.syncRegions(G.pieces(adapter, anchor), rec.indoor)
+    end
     if args.indestructible ~= nil then
         rec.indestructible = args.indestructible or nil
         local a, an = G.findAt(rec)
@@ -634,7 +647,8 @@ function H.settings(player, args)
     end
     KP.log("settings key=" .. args.key .. " range=" .. tostring(rec.range) .. " delay=" .. tostring(rec.closeDelay)
         .. " speed=" .. tostring(rec.speed) .. " share=" .. tostring(rec.share) .. " walk=" .. tostring(rec.walk ~= false)
-        .. " indestructible=" .. tostring(rec.indestructible == true) .. " by=" .. tostring(player:getUsername()))
+        .. " indestructible=" .. tostring(rec.indestructible == true) .. " indoor=" .. tostring(rec.indoor == true)
+        .. " by=" .. tostring(player:getUsername()))
     result(player, cmd, true, nil, args.key)
     KP.sendState(player, args.key)
 end

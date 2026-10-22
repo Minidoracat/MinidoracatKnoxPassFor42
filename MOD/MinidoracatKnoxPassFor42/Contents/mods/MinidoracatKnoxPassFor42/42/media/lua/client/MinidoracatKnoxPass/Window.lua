@@ -215,11 +215,12 @@ function Win.new(admin)
         getText("IGUI_KnoxPass_DurabilityShielded"), getText("IGUI_KnoxPass_DurabilityValue", "2500", "2500") }) do
         info = math.max(info, tm:MeasureStringX(FS, t))
     end
-    -- 門鎖、手錶步行感應與不會被破壞（只有管理員的視窗有）三個開關的標籤（含不支援、不准上鎖、伺服器沒開放）：
+    -- 門鎖、算室內、手錶步行感應與不會被破壞（只有管理員的視窗有）四個開關的標籤（含不支援、不准上鎖、伺服器沒開放）：
     -- 開關 36 px＋間距 8 px（UI 框架 Controls.lua:615-616 TOGGLE_WIDTH、LABEL_GAP）。沒裝地圖手錶就不建步行感應那一列
     local hasWalk = KP.watchRegistered()
     local toggle = 0
     local toggleKeys = { "IGUI_KnoxPass_Lock", "IGUI_KnoxPass_LockUnsupported", "IGUI_KnoxPass_LockSafehouseOnly",
+        "IGUI_KnoxPass_Indoor", "IGUI_KnoxPass_IndoorFramed", "IGUI_KnoxPass_IndoorUnsupported",
         "IGUI_KnoxPass_Walk", "IGUI_KnoxPass_WalkOff" }
     if admin then
         toggleKeys[#toggleKeys + 1] = "IGUI_KnoxPass_Indestructible"
@@ -237,8 +238,8 @@ function Win.new(admin)
         tm:MeasureStringX(FS, getText("IGUI_KnoxPass_UnregisterN", "64"))) + 20
     W = math.max(460, PAD * 2 + self.labelW + math.max(DD_W + 10 + aside, info), PAD * 2 + tabsW + GAP * 2 + allW + actW,
         PAD * 2 + 36 + 8 + toggle)
-    -- 高度跟字型走：資訊五列＋門鎖（與步行感應、管理員的不會被破壞）與五列設定（含共同管理）＋說明＋分頁列＋清單＋頁尾
-    local toggles = 1 + (hasWalk and 1 or 0) + (admin and 1 or 0)
+    -- 高度跟字型走：資訊五列＋門鎖與算室內（與步行感應、管理員的不會被破壞）與五列設定（含共同管理）＋說明＋分頁列＋清單＋頁尾
+    local toggles = 2 + (hasWalk and 1 or 0) + (admin and 1 or 0)
     local bodyH = PAD + self.lineH * 5 + (ch + GAP) * (toggles + 5) + self.lineH + GAP + ch + GAP + self.listH
         + PAD + ch + PAD
     local sw, sh = getCore():getScreenWidth(), getCore():getScreenHeight()
@@ -263,6 +264,11 @@ function Win.new(admin)
     self.lock = UI.Checkbox.new({ x = PAD, y = y, width = W - PAD * 2, label = getText("IGUI_KnoxPass_Lock"),
         theme = theme, target = self, onChange = Win.onLock })
     body:addChild(self.lock)
+    y = y + ch + GAP
+    -- 算室內（這扇門 rec.indoor）：車庫門鏈才能勾，其他門停用並寫原因；說明放提示（applySettings 照門的種類換字）
+    self.indoor = UI.Checkbox.new({ x = PAD, y = y, width = W - PAD * 2, label = getText("IGUI_KnoxPass_Indoor"),
+        theme = theme, target = self, onChange = Win.onIndoor })
+    body:addChild(self.indoor)
     y = y + ch + GAP
     if hasWalk then
         self.walk = UI.Checkbox.new({ x = PAD, y = y, width = W - PAD * 2, label = getText("IGUI_KnoxPass_Walk"),
@@ -417,6 +423,17 @@ function Win:applySettings(s)
         self.indestructible:setLabel(getText(s.indestructibleAll and "IGUI_KnoxPass_IndestructibleAll"
             or "IGUI_KnoxPass_Indestructible"))
     end
+    -- 算室內（這扇門 rec.indoor）：只有車庫門鏈能勾（state.indoorSupport＝"yes"）；有門框的門寫「本來就算」，其他門寫不支援。
+    -- 說明在提示：模型門與閘門多一句「門片擋住角色時會像牆一樣切掉」（state.indoorCut）。提示要框架 rev 17（Checkbox.setTooltip）
+    local support = s.indoorSupport
+    self.indoor:setChecked(s.indoor == true, true)
+    self.indoor:setEnabled(support == "yes")
+    self.indoor:setLabel(getText(support == "framed" and "IGUI_KnoxPass_IndoorFramed"
+        or support == "no" and "IGUI_KnoxPass_IndoorUnsupported" or "IGUI_KnoxPass_Indoor"))
+    if self.indoor.setTooltip then
+        self.indoor:setTooltip(support == "yes" and tipText(getText(s.indoorCut and "IGUI_KnoxPass_IndoorTipCut"
+            or "IGUI_KnoxPass_IndoorTip"), W - PAD * 2) or nil)
+    end
     self.btnManagers:setTitle(managersSummary(s))
     self.btnManagers:setEnabled(true)
     self.managersAside = getText("IGUI_KnoxPass_ManagersHint")
@@ -516,6 +533,8 @@ function Win:reset()
     self.list:setItems({})
     self.lock:setChecked(false, true)
     self.lock:setEnabled(false)
+    self.indoor:setChecked(false, true)
+    self.indoor:setEnabled(false)
     if self.indestructible then
         self.indestructible:setChecked(false, true)
         self.indestructible:setEnabled(false)
@@ -626,6 +645,11 @@ end
 -- 手錶步行感應：這扇門要不要讓已登記的模組走近就開（開車與右鍵不受影響）
 function Win:onWalk(checked)
     C.send(self.player, "settings", { key = self.key, walk = checked == true })
+end
+
+-- 算室內：這扇門一直記成牆（門開著也算）；伺服器回 BadArgs／NotLoaded 時 Win.onResult 照 state 改回
+function Win:onIndoor(checked)
+    C.send(self.player, "settings", { key = self.key, indoor = checked == true })
 end
 
 -- 不會被破壞：只有管理員能改（伺服器回 AdminOnly 時 Win.onResult 照 state 改回）
