@@ -294,16 +294,17 @@ local function upperSpot(o)
     return sq:getX() + dx, sq:getY() + dy, sq:getZ() + 1, mg.face == "N" or mg.face == "S", KP.SEE_THROUGH[mg.tileset] == true
 end
 
--- 放上一道隱形牆。門線那格（下一層）不在就不放：S／E 向的一端跨 chunk 時那格還沒載入，之後這一端再載入時補。
+-- 放上一道隱形牆，回傳有沒有放。門線那格（下一層）不在就不放：S／E 向的一端跨 chunk 時那格還沒載入，之後這一端再載入時補。
 -- IsoObject(cell, square, spriteName) → AddTileObject（重算碰撞、尋路與室內判定，IsoGridSquare.java:5855-5891）→ 送給客戶端
 local function placeUpper(x, y, z, north, trans)
     local cell = getCell()
-    if not (x and cell:getGridSquare(x, y, z - 1)) then return end
+    if not (x and cell:getGridSquare(x, y, z - 1)) then return false end
     local sq = cell:getGridSquare(x, y, z) or cell:createNewGridSquare(x, y, z, true)
-    if sq:has(north and IsoFlagType.cutN or IsoFlagType.cutW) then return end
+    if sq:has(north and IsoFlagType.cutN or IsoFlagType.cutW) then return false end
     local o = IsoObject.new(cell, sq, KP.UPPER_WALL_TILESET .. "_" .. ((trans and 2 or 0) + (north and 1 or 0)))
     sq:AddTileObject(o)
     o:transmitCompleteItemToClients()
+    return true
 end
 
 -- 模型門的 SpriteConfig OnCreate：替代 tile（格位 16＋k−1）換成車道 k 的門片（第 1 片 GarageDoor 1 是錨點、掛 3D 模型，
@@ -440,14 +441,18 @@ if not isClient() then
             if props:has(IsoFlagType.cutW) then upperFill[#upperFill + 1] = { sx, sy, sz, false } end
         end
     end)
+    -- 一個 tick 有補放（載入補、玩家的牆被拆後補）或移除時記一行，正式機與玩家 console 看得到二樓的牆有沒有跟上
     Events.OnTick.Add(function()
         if #upperAdd == 0 and #upperCheck == 0 and #upperFill == 0 then return end
         local add, chk, fill = upperAdd, upperCheck, upperFill
         upperAdd, upperCheck, upperFill = {}, {}, {}
-        for _, q in ipairs(add) do placeUpper(q[1], q[2], q[3], q[4], q[5]) end
+        local healed, refilled, removed = 0, 0, 0
+        for _, q in ipairs(add) do
+            if placeUpper(q[1], q[2], q[3], q[4], q[5]) then healed = healed + 1 end
+        end
         for _, q in ipairs(fill) do
             local _, trans = upperOwner(q[1], q[2], q[3], q[4])
-            if trans ~= nil then placeUpper(q[1], q[2], q[3], q[4], trans) end
+            if trans ~= nil and placeUpper(q[1], q[2], q[3], q[4], trans) then refilled = refilled + 1 end
         end
         for _, q in ipairs(chk) do
             local list = upperWallsAt(q[1], q[2], q[3], q[4])
@@ -455,8 +460,14 @@ if not isClient() then
                 G.syncRegions(list)
             else
                 -- 普通 IsoObject 不是多格 entity：safelyRemove 照讀頭模型給 false（ReaderPost.lua）
-                for _, o in ipairs(list) do o:getSquare():transmitRemoveItemFromSquare(o, false) end
+                for _, o in ipairs(list) do
+                    o:getSquare():transmitRemoveItemFromSquare(o, false)
+                    removed = removed + 1
+                end
             end
+        end
+        if healed + refilled + removed > 0 then
+            KP.log(string.format("upper walls healed=%d refilled=%d removed=%d", healed, refilled, removed))
         end
     end)
 
