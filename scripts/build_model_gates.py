@@ -292,16 +292,20 @@ def pillar_tiles() -> dict[int, tuple]:
 # Upstairs wall (Barrier.lua): a two-story roll door or gate has objects on its ground floor only, so Lua puts this
 # invisible wall on the gate line one floor up, over every lane and end. WallN / WallW = collideN/W + cutN/W + tile type
 # wall (IsoWorld.java:882-906): it blocks walking, and IsoRegions counts the cut flags as a wall (IsoRegions.java:322-349),
-# so the upstairs room closes. *Trans adds transparentN/W (sight passes) for the see-through looks (Lua KP.SEE_THROUGH).
-# firerequirement >= FIRE_IMMUNE_THRESHOLD keeps BurnWalls from turning it into a visible burnt wall
+# so the upstairs room closes. CarSlowFactor keeps cars from hitting it: the physics world builds walls on every floor,
+# and a truck taller than one floor (F700 box truck) stuck under the open gate (tallcar-mp); a square carrying the
+# property gets no wall / door physics (IsoChunk.calcPhysics), while cars read the property only on their own floor
+# (BaseVehicle.breakingObjects / damageObjects), so nothing changes on the ground floor. The closed gate still stops
+# cars with its ground-floor door. *Trans adds transparentN/W (sight passes) for the see-through looks (Lua
+# KP.SEE_THROUGH). firerequirement >= FIRE_IMMUNE_THRESHOLD keeps BurnWalls from turning it into a visible burnt wall
 # (IsoGridSquare.java:301, 6296, 6341-6350). Transparent pack entry. index = 2 * see-through + north
 UPPER_TILESET, UPPER_NUMBER = "MinidoracatKnoxPass_upperwall", 14
 TWO_STORY = ("roll2f", "gate")    # kinds that get the upstairs wall (Lua KP.MODEL_GATES upper = true)
 
 
 def upper_tiles() -> dict[int, dict]:
-    return {i: {("WallN" if i % 2 else "WallW") + ("Trans" if i >= 2 else ""): "", "firerequirement": FIRE}
-            for i in range(4)}
+    return {i: {("WallN" if i % 2 else "WallW") + ("Trans" if i >= 2 else ""): "", "CarSlowFactor": "0",
+                "firerequirement": FIRE} for i in range(4)}
 
 
 def layout() -> dict[str, dict[int, tuple[tuple[str, ...], dict]]]:
@@ -475,10 +479,10 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     assert len(pillar) == len(COLORS.COLORS) * 5 * 4 and not any(tsets[PILLAR_TILESET]["tiles"])
     assert all(f"{PILLAR_TILESET}_{i}" in pack_names for i in pillar)
     lay = layout()
-    # upstairs wall: 0 W, 1 N, 2 / 3 the same with sight passing; nothing else on the tile, empty 2D
-    assert tsets[UPPER_TILESET]["tiles"] == [{"WallW": "", "firerequirement": FIRE}, {"WallN": "", "firerequirement": FIRE},
-                                             {"WallWTrans": "", "firerequirement": FIRE},
-                                             {"WallNTrans": "", "firerequirement": FIRE}], tsets[UPPER_TILESET]
+    # upstairs wall: 0 W, 1 N, 2 / 3 the same with sight passing; no car physics; nothing else on the tile, empty 2D
+    car = {"CarSlowFactor": "0", "firerequirement": FIRE}
+    assert tsets[UPPER_TILESET]["tiles"] == [{"WallW": ""} | car, {"WallN": ""} | car, {"WallWTrans": ""} | car,
+                                             {"WallNTrans": ""} | car], tsets[UPPER_TILESET]
     assert all(c == () for c, _ in lay[UPPER_TILESET].values()) and all(
         f"{UPPER_TILESET}_{i}" in pack_names for i in range(4)), "upstairs wall needs 4 transparent pack entries"
     for name, number, count in specs:
