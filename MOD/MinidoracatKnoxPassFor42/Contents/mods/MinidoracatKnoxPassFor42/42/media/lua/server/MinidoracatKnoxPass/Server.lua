@@ -296,10 +296,11 @@ local function buildState(player, key, rec)
     -- ownerOrAdmin＝能改共同管理者名單、能拆讀頭；indestructible＝生效值（沙盒或這扇門），indestructibleAll＝沙盒對所有大門開著，
     -- isAdmin＝能替這扇門開關「不會被破壞」；indoor＝這扇門「算室內」，門載入時另帶 indoorSupport（Gates.lua G.indoorSupport）
     -- 與 indoorCut（模型門與閘門：勾了以後門片擋住角色時被切掉，說明多一句）
+    -- 門開著沒有不放：視窗的「大門」那列照客戶端看到的門寫，開著視窗時跟著更新（Window.lua Win:readDoor）
     local canEdit = ownerOrAdmin(player, rec)
     local state = {
         key = key, kind = rec.kind, owner = rec.owner, lock = rec.lock == true,
-        open = rec.open == true, needPower = KP.sandbox("RequirePower") == true, cx = rec.cx, cy = rec.cy,
+        needPower = KP.sandbox("RequirePower") == true, cx = rec.cx, cy = rec.cy,
         range = KP.gateRange(rec), rangeSet = rec.range, rangeMin = rangeLo, rangeMax = rangeHi,
         rangeDefault = KP.clampSetting("ReadRange", tonumber(KP.sandbox("ReadRange")) or 8),
         delay = KP.gateDelay(rec), delaySet = rec.closeDelay, delayMin = delayLo, delayMax = delayHi,

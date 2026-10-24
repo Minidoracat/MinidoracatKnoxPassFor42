@@ -2,12 +2,14 @@
 -- 每扇門設定的下拉選單要 rev 14 的 Dropdown，沒有時只顯示數字；共同管理者名單的搜尋框要 rev 11 的 Autocomplete，
 -- 安全屋那一段的捲動要 rev 16 的 ScrollPanel，截字的全文提示要 rev 17 的 Checkbox tooltip，輸入框的紅框要 rev 16 的 setInvalid）。
 -- 只有能管理這扇門的人（擁有者、共同管理者、管理員）拿得到 state；伺服器回 NotOwner 時視窗關掉。
--- 畫面只顯示伺服器 state；所有變更送指令後等新的 state，不做樂觀更新。視窗開著時地上畫出這扇門的感應範圍。
+-- 畫面只顯示伺服器 state（「大門」那列例外：照這台客戶端看到的門寫，Win:readDoor）；所有變更送指令後等新的 state，
+-- 不做樂觀更新。視窗開著時地上畫出這扇門的感應範圍。
 -- 框架不足時整檔在這裡結束：KP.Window 不存在，右鍵「管理讀頭」改成停用並提示（Client.lua）。
 require "MinidoracatKnoxPass/Client"
 require "MinidoracatKnoxPass/Watch"
 local KP = MinidoracatKnoxPass
 local C = KP.Client
+local G = KP.Gates
 
 -- widget 檔不由 V1 載入，也不保證排在本檔之前（MinidoracatKnoxPass < MinidoracatUI），自己 pcall require
 if not (MinidoracatUI and MinidoracatUI.v1) then pcall(require, "MinidoracatUI/V1") end
@@ -34,6 +36,7 @@ local DD_W = 210                                  -- 設定下拉選單寬度（
 local AMBER = { 0.91, 0.64, 0.24 }                -- 地上範圍圈＝Knox Pass 琥珀色 #e8a33d
 local LAYOUT = "MinidoracatKnoxPassWindow"
 local RETRY_MS = 2000                             -- 讀取失敗後，站進大門 3 格內每隔多久重讀一次
+local DOOR_MS = 250                               -- 「大門」那列多久看一次門現在開著沒
 
 local function text(el, s, x, y, token)
     local c = COL[token]
@@ -125,7 +128,7 @@ function Cell:render()
     text(self, self.sub, 28, mid + 1, "textMuted")
 end
 
--- ── 內容區：prerender 檢查距離、讀取失敗時重讀並畫清單底，render 畫資訊列與空清單說明 ─
+-- ── 內容區：prerender 檢查距離、跟上門的開關、讀取失敗時重讀並畫清單底，render 畫資訊列與空清單說明 ─
 local Body = ISPanel:derive("KnoxPassBody")
 function Body:prerender()
     local w = self.kp
@@ -136,9 +139,15 @@ function Body:prerender()
         w.win:close()
         return
     end
+    -- 「大門」那列跟上門現在的開關（Win:readDoor），最多每 DOOR_MS 一次
+    local now = getTimestampMs()
+    if now >= w.doorAt then
+        w.doorAt = now + DOOR_MS
+        w:readDoor()
+    end
     -- 讀取失敗：站進大門 3 格內（同伺服器 gateFor 的判定）就重讀，最多每 RETRY_MS 一次
-    if w.failed and getTimestampMs() >= w.retryAt and KP.near(p, w.ax, w.ay, w.gz, KP.MANAGE_RANGE) then
-        w.retryAt = getTimestampMs() + RETRY_MS
+    if w.failed and now >= w.retryAt and KP.near(p, w.ax, w.ay, w.gz, KP.MANAGE_RANGE) then
+        w.retryAt = now + RETRY_MS
         C.send(p, "query", { key = w.key })
     end
     theme:fill(self, PAD, w.listY, W - PAD * 2, w.listH, "well")
@@ -470,6 +479,15 @@ function Win:applySettings(s)
     end
 end
 
+-- 「大門」那列照這台客戶端看到的門寫（伺服器 state 不帶）：Knox Pass、原版右鍵、尋路穿過門、殭屍或別人打開的都照實寫，
+-- 視窗開著時 Body:prerender 每 DOOR_MS 再看一次，變了才換字
+function Win:readDoor()
+    local open = self.adapter ~= nil and G.isOpen(self.adapter, self.anchor)
+    if open == self.doorOpen then return end
+    self.doorOpen = open
+    self.rows[4] = open and self.doorOpenText or self.doorClosedText
+end
+
 -- state 到達時算好資訊列字串與兩頁的列（draw 每幀只畫）
 function Win:apply(s)
     self.state, self.failed = s, nil
@@ -479,7 +497,7 @@ function Win:apply(s)
     if not s.needPower then rows[3], self.powerToken = getText("IGUI_KnoxPass_PowerNotNeeded"), "textMuted"
     elseif s.powered then rows[3], self.powerToken = getText("IGUI_KnoxPass_Powered"), "text"
     else rows[3], self.powerToken = getText("IGUI_KnoxPass_NoPower"), "errorText" end
-    rows[4] = getText(s.open and "IGUI_KnoxPass_DoorOpen" or "IGUI_KnoxPass_DoorClosed")
+    self:readDoor()
     -- 耐久：剩下耐久最少的那一片（伺服器 S.durability，墊高的照墊之前的值）；不會被破壞時不寫數字
     rows[5] = s.indestructible and getText("IGUI_KnoxPass_DurabilityShielded")
         or s.hp and getText("IGUI_KnoxPass_DurabilityValue", tostring(s.hp), tostring(s.hpFull)) or "?"
@@ -1074,6 +1092,7 @@ local function ensure(admin)
     -- 固定字串建立時取一次，draw 不查譯文（資訊列與設定列的標籤在 Win.new 量寬度時就取了）
     w.loading = getText("IGUI_KnoxPass_Loading")
     w.retryHint = getText("IGUI_KnoxPass_RetryHint")
+    w.doorOpenText, w.doorClosedText = getText("IGUI_KnoxPass_DoorOpen"), getText("IGUI_KnoxPass_DoorClosed")
     w.ownerOnly = getText("IGUI_KnoxPass_Why_OwnerOnly")
     w.emptyTags = wrap(getText("IGUI_KnoxPass_NoTags"), W - PAD * 2 - 16)
     w.emptyNear = wrap(getText("IGUI_KnoxPass_NoNearby"), W - PAD * 2 - 16)
@@ -1090,6 +1109,8 @@ function Win.open(player, anchor, key)
     w.player, w.anchor, w.key = player, anchor, key
     w.ax, w.ay, w.gz = sq:getX(), sq:getY(), sq:getZ()
     w.gx, w.gy = w.ax + 0.5, w.ay + 0.5
+    w.adapter = G.resolve(anchor)   -- 只取第一個回傳值（adapter）
+    w.doorOpen, w.doorAt = nil, 0   -- 換一扇門：下一次 prerender 就重寫「大門」那列
     w.page, w.failed, w.retryAt = "tags", nil, 0
     w.tabs:setSelected("tags", true)
     w.list:setScrollOffset(0)
