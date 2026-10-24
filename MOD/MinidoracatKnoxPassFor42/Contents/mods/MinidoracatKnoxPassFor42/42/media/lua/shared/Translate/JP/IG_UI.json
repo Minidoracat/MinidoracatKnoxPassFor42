@@ -220,5 +220,6 @@
     "IGUI_KnoxPass_MapSection": "Knox Pass",
     "IGUI_KnoxPass_MapLayer": "ウォッチモジュールで開くゲート",
     "IGUI_KnoxPass_MapNamesMini": "ミニマップにゲートの種類を表示",
-    "IGUI_KnoxPass_MapNamesWorld": "ワールドマップにゲートの種類を表示"
+    "IGUI_KnoxPass_MapNamesWorld": "ワールドマップにゲートの種類を表示",
+    "IGUI_KnoxPass_WhatsNew": "管理ウィンドウの「ゲート」欄が実際の開閉を表示し、ウィンドウを開いている間も更新されるようになりました。"
 }

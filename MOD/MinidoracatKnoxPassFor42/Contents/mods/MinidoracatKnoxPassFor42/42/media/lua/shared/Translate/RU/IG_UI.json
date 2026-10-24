@@ -220,5 +220,6 @@
     "IGUI_KnoxPass_MapSection": "Knox Pass",
     "IGUI_KnoxPass_MapLayer": "Ворота, которые открывает ваш модуль часов",
     "IGUI_KnoxPass_MapNamesMini": "Показывать типы ворот на мини-карте",
-    "IGUI_KnoxPass_MapNamesWorld": "Показывать типы ворот на карте мира"
+    "IGUI_KnoxPass_MapNamesWorld": "Показывать типы ворот на карте мира",
+    "IGUI_KnoxPass_WhatsNew": "Строка «Ворота» в окне управления теперь показывает, открыты ли ворота на самом деле, и обновляется, пока окно открыто."
 }

@@ -220,5 +220,6 @@
     "IGUI_KnoxPass_MapSection": "Knox Pass",
     "IGUI_KnoxPass_MapLayer": "Bramy otwierane przez twój moduł zegarka",
     "IGUI_KnoxPass_MapNamesMini": "Pokaż typy bram na minimapie",
-    "IGUI_KnoxPass_MapNamesWorld": "Pokaż typy bram na mapie świata"
+    "IGUI_KnoxPass_MapNamesWorld": "Pokaż typy bram na mapie świata",
+    "IGUI_KnoxPass_WhatsNew": "Wiersz „Brama” w oknie zarządzania pokazuje teraz, czy brama jest naprawdę otwarta, i odświeża się przy otwartym oknie."
 }

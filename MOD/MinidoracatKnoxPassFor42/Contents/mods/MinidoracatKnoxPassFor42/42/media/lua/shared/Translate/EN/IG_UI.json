@@ -220,5 +220,6 @@
     "IGUI_KnoxPass_MapSection": "Knox Pass",
     "IGUI_KnoxPass_MapLayer": "Gates your watch module opens",
     "IGUI_KnoxPass_MapNamesMini": "Show gate types on the minimap",
-    "IGUI_KnoxPass_MapNamesWorld": "Show gate types on the world map"
+    "IGUI_KnoxPass_MapNamesWorld": "Show gate types on the world map",
+    "IGUI_KnoxPass_WhatsNew": "The management window's Gate row now shows if the gate is really open, and updates live."
 }

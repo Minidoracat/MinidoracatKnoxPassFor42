@@ -220,5 +220,6 @@
     "IGUI_KnoxPass_MapSection": "Knox Pass",
     "IGUI_KnoxPass_MapLayer": "시계 모듈로 여는 대문",
     "IGUI_KnoxPass_MapNamesMini": "미니맵에 대문 종류 표시",
-    "IGUI_KnoxPass_MapNamesWorld": "세계 지도에 대문 종류 표시"
+    "IGUI_KnoxPass_MapNamesWorld": "세계 지도에 대문 종류 표시",
+    "IGUI_KnoxPass_WhatsNew": "관리 창의 \"대문\" 항목이 이제 대문이 실제로 열려 있는지 보여 주고, 창을 열어 둔 동안에도 갱신됩니다."
 }

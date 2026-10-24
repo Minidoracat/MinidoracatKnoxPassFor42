@@ -220,5 +220,6 @@
     "IGUI_KnoxPass_MapSection": "Knox Pass",
     "IGUI_KnoxPass_MapLayer": "Portões que seu módulo de relógio abre",
     "IGUI_KnoxPass_MapNamesMini": "Mostrar tipos de portão no minimapa",
-    "IGUI_KnoxPass_MapNamesWorld": "Mostrar tipos de portão no mapa do mundo"
+    "IGUI_KnoxPass_MapNamesWorld": "Mostrar tipos de portão no mapa do mundo",
+    "IGUI_KnoxPass_WhatsNew": "A linha “Portão” da janela de gerenciamento agora mostra na hora se o portão está mesmo aberto."
 }

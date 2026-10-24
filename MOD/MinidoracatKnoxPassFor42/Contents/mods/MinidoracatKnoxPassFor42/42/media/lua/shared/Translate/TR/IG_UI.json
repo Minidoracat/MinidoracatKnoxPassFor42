@@ -220,5 +220,6 @@
     "IGUI_KnoxPass_MapSection": "Knox Pass",
     "IGUI_KnoxPass_MapLayer": "Saat modülünün açtığı kapılar",
     "IGUI_KnoxPass_MapNamesMini": "Kapı türlerini mini haritada göster",
-    "IGUI_KnoxPass_MapNamesWorld": "Kapı türlerini dünya haritasında göster"
+    "IGUI_KnoxPass_MapNamesWorld": "Kapı türlerini dünya haritasında göster",
+    "IGUI_KnoxPass_WhatsNew": "Yönetim penceresindeki “Kapı” satırı artık kapının gerçekten açık olup olmadığını anında gösterir."
 }

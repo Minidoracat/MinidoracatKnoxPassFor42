@@ -220,5 +220,6 @@
     "IGUI_KnoxPass_MapSection": "Knox Pass",
     "IGUI_KnoxPass_MapLayer": "手表模块能开的大门",
     "IGUI_KnoxPass_MapNamesMini": "小地图显示门的种类",
-    "IGUI_KnoxPass_MapNamesWorld": "世界地图显示门的种类"
+    "IGUI_KnoxPass_MapNamesWorld": "世界地图显示门的种类",
+    "IGUI_KnoxPass_WhatsNew": "管理窗口的「大门」一栏改成按门现在的开关显示，窗口开着时也会跟着更新。"
 }

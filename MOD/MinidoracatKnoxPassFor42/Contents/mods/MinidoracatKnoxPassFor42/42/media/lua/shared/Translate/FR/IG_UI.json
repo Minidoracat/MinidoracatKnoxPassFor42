@@ -220,5 +220,6 @@
     "IGUI_KnoxPass_MapSection": "Knox Pass",
     "IGUI_KnoxPass_MapLayer": "Portails ouverts par votre module de montre",
     "IGUI_KnoxPass_MapNamesMini": "Afficher les types de portail sur la mini-carte",
-    "IGUI_KnoxPass_MapNamesWorld": "Afficher les types de portail sur la carte du monde"
+    "IGUI_KnoxPass_MapNamesWorld": "Afficher les types de portail sur la carte du monde",
+    "IGUI_KnoxPass_WhatsNew": "La ligne « Portail » de la fenêtre de gestion indique désormais en direct si le portail est ouvert."
 }
