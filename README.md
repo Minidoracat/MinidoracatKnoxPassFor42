@@ -47,6 +47,8 @@ Project Zomboid Build 42 MOD。
 | ![兩層樓大門](docs/screenshots/steam/zh/16-two-story-gates-zh.jpg) | ![寬門](docs/screenshots/steam/zh/17-wide-doors-zh.jpg) |
 | **車庫捲門：工業白、綠色、白色** | **抬升閘門可以朝四個方向蓋** |
 | ![車庫捲門](docs/screenshots/steam/zh/12-roll-doors-zh.jpg) | ![抬升閘門的方向](docs/screenshots/steam/zh/13-barrier-directions-zh.jpg) |
+| **鐵網大門的油漆色（圖為黑、深灰、墨綠）** | **兩層樓車庫捲門 16 色** |
+| ![油漆色的鐵網大門](docs/screenshots/steam/zh/18-painted-gates-zh.jpg) | ![16 色的兩層樓車庫捲門](docs/screenshots/steam/zh/19-painted-roll-doors-zh.jpg) |
 
 ### 大門讀頭
 
