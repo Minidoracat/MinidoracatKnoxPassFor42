@@ -814,6 +814,11 @@ local MODEL_SETS = {}
 for _, s in ipairs({ "barrier2", "roll2f_industry", "roll2f_green", "roll2f_white", "gate_a", "gate_b", "gate_c", "gate_d", "gate_e" }) do
     MODEL_SETS["MinidoracatKnoxPass_" .. s] = true
 end
+for _, c in ipairs({ "black", "grey", "brown", "red", "orange", "yellow", "lightbrown", "pink", "purple", "blue", "lightblue", "cyan", "turquoise" }) do
+    MODEL_SETS["MinidoracatKnoxPass_roll2f_" .. c] = true   -- 上色款（2026-11-01）：捲門 13 色，鐵網大門再加綠、白共 15 色
+    MODEL_SETS["MinidoracatKnoxPass_gate_a" .. c] = true
+end
+MODEL_SETS.MinidoracatKnoxPass_gate_agreen, MODEL_SETS.MinidoracatKnoxPass_gate_awhite = true, true
 function garageProps(prefix, i)
     if prefix == "MinidoracatKnoxPass_barrier" then
         local rel = i % 80
@@ -4816,6 +4821,15 @@ local function scenarioModelGates()
     check(not gc.lanes[1]:IsOpen() and not gc.lanes[6]:IsOpen(), "車開走後關上")
     check(W.regionJobs == 0, "模型門開關：門片沒有牆屬性、位元不變，不重算室內判定（不存檔、不廣播區域資料）")
 
+    -- 鐵網上色款（KP.GATE_SKIN）：用 A 的模型與門柱，柱面讀頭也照 A（外觀 0）
+    local gk = buildModelGate("MinidoracatKnoxPass_gate_ablack", 0, 6, "N", true, 600, 100, builder)
+    square(601, 100, 0)._grid = true
+    local painter = newPlayer("skinowner", 603, 102)
+    res = cmd(painter, "install", { x = 603, y = 100, z = 0, index = gk.lanes[3]:getObjectIndex(), itemId = painter._inv:AddItem(READER):getID() })
+    local post = res.ok and KP.Ledger.get(res.key).post
+    check(res.key == "601,100,0N" and post and post.i == 8 and readersAt(600, 100) == "pillar_0",
+        "上色款（黑色鐵網）裝讀頭：柱面讀頭照 A，掛在 A 端門柱那格（外觀 A、N 向＝0）")
+
     -- 拆除與打壞：整座一起移除、帳本刪除、柱面讀頭拿掉；拆除只退被拆那一端的材料
     local pipes = W.dropped["Base.MetalPipe"] or 0
     ISDismantleAction.complete({ thumpable = gc.A })
@@ -4919,6 +4933,8 @@ local function scenarioUpperWall()
     local ga = buildModelGate("MinidoracatKnoxPass_gate_a", 1, 6, "W", true, 700, 100, builder)
     check(walls(698, 98, 702, 109) == line(700, 100, 700, 102, 2) .. " " .. line(700, 104, 700, 107, 2) and present(mine),
         "那條邊已經有牆（玩家自己蓋的）：那格不放、牆照留；其他格照放（鐵網看得穿，索引 2）")
+    buildModelGate("MinidoracatKnoxPass_gate_agreen", 0, 6, "N", true, 1200, 100, builder)
+    check(walls(1198, 98, 1209, 102) == line(1200, 100, 1207, 100, 3), "上色款（墨綠鐵網）照 A 看得穿：N 向八道、視線穿過（索引 3）")
     step()
     check(walls(298, 98, 306, 102) == line(300, 100, 303, 100, 1), "建好之後的 tick：門片都在，一道都不收")
     -- 玩家拆掉門線二樓自己的牆（當初因為它才沒放）：下一個 tick 那格補上；門線外的牆、隱形牆自己被移走都不補

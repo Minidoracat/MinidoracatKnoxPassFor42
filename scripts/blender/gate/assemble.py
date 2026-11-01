@@ -4,7 +4,11 @@ Outputs: icons/gate_<look>_<L>.png (64x64), previews/sheet_<look><L>.png (N/S x 
 previews/cells_<look><L>.png (each face's cells re-assembled at their tile positions), manifest.json.
 End cells: 9-wide blocks reuse the 6-wide endA / endB file when the two renders differ in < 2 % of the opaque pixels
 (B / E: identical; A brace angle / C bar spacing / D brace angle inside the end tile change with the width by 1-2 px;
-the cell is a build-ghost only), so all 40 end cells of the 9-wide blocks share the 6-wide files.
+the cell is a build-ghost only), so all end cells of the 9-wide blocks share the 6-wide files.
+Painted skins (spec.SKINS) get tilesets, textures, entities and blocks of their own; their spriteModels name the base
+look's leaf / post models plus their own texture, so models, posts and reader mounts stay per geometry look
+(spec.LOOKS). Their 2D cells are the base look's (user 2026-11-01: a set per colour would grow the .pack from 4 to 13
+pages of 1024x4096, ~144 MB more VRAM, for the build ghost only), so the ghost of a painted gate shows look A's colours.
 """
 import json
 from pathlib import Path
@@ -37,6 +41,7 @@ def near_same(a, b):
 
 
 def end_cell(look, L, face, end):
+    look = S.geometry(look)
     own = HERE / "cells" / f"{look}{L}" / face / f"{end}.png"
     if L == 6:
         return own, 0.0
@@ -46,7 +51,7 @@ def end_cell(look, L, face, end):
 
 
 def sheets():
-    for look in S.LOOKS:
+    for look in S.ALL:
         for L in S.WIDTHS:
             ims = [[Image.open(HERE / "previews" / f"{look}{L}_{f}_{s}.png").convert("RGBA") for s in ("closed", "half", "open")]
                    for f in "NS"]
@@ -58,6 +63,8 @@ def sheets():
                     sheet.alpha_composite(im, (c * w, r * h))
             sheet.thumbnail((2400, 2400))
             sheet.save(HERE / "previews" / f"sheet_{look}{L}.png")
+            if look in S.SKINS:      # cells = the base look's (cells_<base><L>.png)
+                continue
             # cells re-assembled: tile (x, y) top corner at (64 (x - y), 32 (x + y)) + offset, painter's order x + y
             canvas = Image.new("RGBA", (4 * 1500, 1100), (96, 96, 96, 255))
             for fi, f in enumerate(S.FACES):
@@ -72,8 +79,9 @@ def sheets():
 def slot_table(look, L, face):
     edge = "N" if face in "NS" else "W"
     rot = list(S.ROTATE[face])
-    leaf = {"model": S.leaf_model(look, L), "translate": list(S.leaf_translate(face, L)), "rotate": rot}
-    post = {"model": S.post_model(look), "translate": [0.0, 0.0, 0.0], "rotate": rot}
+    tex = {"texture": f"IsoObject/{S.texture(look)}"} if look in S.SKINS else {}
+    leaf = {"model": S.leaf_model(look, L), "translate": list(S.leaf_translate(face, L)), "rotate": rot} | tex
+    post = {"model": S.post_model(look), "translate": [0.0, 0.0, 0.0], "rotate": rot} | tex
     cell = lambda p: rel(p)  # noqa: E731
     t = {}
     for k, gd in ((0, 1), (1, 2), (2, 3)):
@@ -86,10 +94,10 @@ def slot_table(look, L, face):
     for slot, end in ((3, "endA"), (4, "endB")):
         p, d = end_cell(look, L, face, end)
         t[str(slot)] = {"role": f"{end} post (solid)", "cell": cell(p), "spriteModel": dict(post),
-                        "shared_from_width6": L == 9 and "/" + f"{look}6/" in rel(p), "diff_vs_width6": round(d, 4)}
+                        "shared_from_width6": L == 9 and "/" + f"{S.geometry(look)}6/" in rel(p), "diff_vs_width6": round(d, 4)}
     for k in range(1, L + 1):
         t[str(15 + k)] = {"role": f"placeholder lane {k} (build only, no GarageDoor)", "props": {f"door{edge}": ""},
-                          "cell": cell(HERE / "cells" / f"{look}{L}" / face / f"lane{k}.png"), "spriteModel": None}
+                          "cell": cell(HERE / "cells" / f"{S.geometry(look)}{L}" / face / f"lane{k}.png"), "spriteModel": None}
     for k in range(S.POSE_FRAMES + 1):
         for base, what in ((32, "opening"), (48, "closing")):
             t[str(base + k)] = {"role": f"{what} pose {k}/8 (spriteModel only)", "cell": None,
@@ -102,9 +110,12 @@ def manifest():
     assert verify.rstrip().endswith("ALL OK"), "run verify_gate.py first"
     m = {
         "kind": "gate",
-        "contract": "r4-contract.md + 2026-10-08 split: one tileset per look",
+        "contract": "r4-contract.md + 2026-10-08 split: one tileset per look + 2026-11-01 painted chain-link skins",
         "tilesets": {look: {"name": f"{FAMILY}{look.lower()}", "blockInTileset": "widthIdx * 4 + faceIdx",
-                            "index": "blockInTileset * 64 + slot"} for look in S.LOOKS},
+                            "index": "blockInTileset * 64 + slot"} for look in S.ALL},
+        "skins": {skin: {"base": base, "paint": paint, "spriteModels": "base look's leaf / post models, texture = "
+                         f"IsoObject/{S.texture(skin)}", "recipe": f"look {base}'s + one can of Base.Paint{paint}"}
+                  for skin, (base, paint) in S.SKINS.items()},
         "globalBlock": "(look * 2 + widthIdx) * 4 + faceIdx (original contract numbering; blocks below carry both)",
         "units": {"tile": 1.0, "story": S.STORY, "cell": [128, 256], "cellAnchor": "tile top corner (64,192)",
                   "cellContent": "lower story only (frame cut), world-position mask per tile footprint"},
@@ -135,11 +146,13 @@ def manifest():
                   "hinge_x": {look: round(S.hinge_x(look), 4) for look in S.LOOKS}},
         "models": {}, "posts": {}, "textures": {}, "reader_mount": {}, "entities": {}, "blocks": [],
     }
-    for look in S.LOOKS:
+    for look in S.ALL:
         tex = S.texture(look)
         m["textures"][look] = {"src": rel(HERE / "textures" / f"{tex}.png"), "ship": f"textures/IsoObject/{tex}.png",
                                "size": [512, 512], "alpha": "chain-link cut-out (binary alpha, door shader discards a < 0.01)"
-                               if look == "A" else "opaque"}
+                               if S.geometry(look) == "A" else "opaque"}
+    for look in S.LOOKS:
+        tex = S.texture(look)
         for L in S.WIDTHS:
             name = S.leaf_model(look, L)
             m["models"][name] = {
@@ -163,6 +176,7 @@ def manifest():
             "geometry": "reader_post() parts (bracket dropped), back plate 0.005 off both post faces normal to traffic, "
                         "centred on the post along the line, 0.92 high; same reader item texture and UVs",
             "host": "end A tile", "faces": {f: {"translate": [0.0, 0.0, 0.0], "rotate": list(S.ROTATE[f])} for f in S.FACES}}
+    for look in S.ALL:
         for L in S.WIDTHS:
             e = S.entity(look, L)
             icon = HERE / "icons" / S.icon(look, L)
@@ -184,7 +198,7 @@ def manifest():
 
 
 if __name__ == "__main__":
-    for look in S.LOOKS:
+    for look in S.ALL:
         for L in S.WIDTHS:
             fit_icon(Image.open(HERE / "icons" / "_render" / f"{look}{L}.png").convert("RGBA")).save(
                 HERE / "icons" / S.icon(look, L), optimize=True)

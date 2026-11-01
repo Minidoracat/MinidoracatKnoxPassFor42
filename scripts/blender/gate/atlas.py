@@ -1,15 +1,18 @@
 """Knox Pass gate texture atlases (one 512x512 per look, shared by that look's leaf and post models): layout
 (imported by build_gate.py inside Blender) + PIL painter.
-用法：uv run --with pillow python atlas.py      -> textures/MinidoracatKnoxPass_gate_{A..E}.png
+用法：uv run --with pillow python atlas.py      -> textures/MinidoracatKnoxPass_gate_<look>.png (spec.ALL)
 
 Regions repeat per world unit (build_gate.py splits faces at unit boundaries): PANEL = 1 x 1 unit of leaf infill,
 PANEL2 = 1 x 1 unit of post surface, STRIP = 1 unit along x x the full height of a rail / band.
-Only look A has transparent pixels (chain-link wires on alpha 0, binary alpha): the door shader discards
-texSample.a < 0.01 (media/shaders/door.frag), the same cut-out the vanilla wire fence gates use
-(MODELS_fixtures_doors_fences_01.png, 64 % alpha 0, shader = door). Everything else is opaque.
+Only look A and its painted skins (spec.SKINS) have transparent pixels (chain-link wires on alpha 0, binary alpha):
+the door shader discards texSample.a < 0.01 (media/shaders/door.frag), the same cut-out the vanilla wire fence gates
+use (MODELS_fixtures_doors_fences_01.png, 64 % alpha 0, shader = door). Everything else is opaque.
 """
+import importlib.util
 import random
 from pathlib import Path
+
+import spec as S
 
 SIZE = 512
 PANEL = (0, 0, 256, 256)
@@ -35,6 +38,35 @@ COLORS = {
 for c in COLORS.values():                  # every look carries every swatch (unused ones grey)
     for n in NAMES:
         c.setdefault(n, "#808080")
+
+# Painted chain-link skins (spec.SKINS): look A's swatches and pattern with the frame family and the wire recoloured.
+# The dark three are hand-picked darker than their vanilla swatch (2026-11-01, user kept them after a comparison: the
+# vanilla Grey #808080 frame vanishes on asphalt, the vanilla Green is #69CC69 mint); the rest take the vanilla swatch
+# (scripts/blender/paint.py) x SKIN_SHADE per part. Wire pixels = skin wire colour + half of A's shade jitter.
+DARK_SKINS = {
+    "ABlack": ({"frame": "#1e1f22", "post": "#24262a", "cap": "#2d2f33", "hinge": "#121214", "edge": "#1e1f22",
+                "brace": "#1c1d20"}, (40, 42, 46)),
+    "AGrey": ({"frame": "#36393d", "post": "#303337", "cap": "#26292c", "hinge": "#18191b", "edge": "#36393d",
+               "brace": "#33363a"}, (66, 69, 73)),
+    "AGreen": ({"frame": "#1f3527", "post": "#22382a", "cap": "#1a2a20", "hinge": "#101813", "edge": "#1f3527",
+                "brace": "#1d3225"}, (36, 64, 46)),
+}
+SKIN_SHADE = {"frame": 1.0, "post": 0.92, "cap": 0.8, "hinge": 0.45, "edge": 1.0, "brace": 0.95}
+WIRE_SHADE = 1.1
+
+
+def skin(look):
+    """(swatch colours, wire base sRGB) of a painted skin."""
+    if look in DARK_SKINS:
+        over, wire = DARK_SKINS[look]
+    else:
+        ps = importlib.util.spec_from_file_location("kp_paint", Path(__file__).resolve().parent.parent / "paint.py")
+        p = importlib.util.module_from_spec(ps)
+        ps.loader.exec_module(p)
+        name = S.SKINS[look][1]
+        over = {k: "#%02x%02x%02x" % p.rgb(name, f) for k, f in SKIN_SHADE.items()}
+        wire = p.rgb(name, WIRE_SHADE)
+    return {**COLORS[S.geometry(look)], **over}, wire
 
 
 def swatch_uv(name):
@@ -73,7 +105,7 @@ def paint(look, out):
     from PIL import Image, ImageDraw
 
     rnd = random.Random(f"knoxpass-gate-{look}")
-    col = COLORS[look]
+    col, wire = skin(look) if look in S.SKINS else (COLORS[look], None)
     img = Image.new("RGBA", (SIZE, SIZE), col["frame"])
     d = ImageDraw.Draw(img)
     for name, (x, y) in SWATCHES.items():
@@ -94,7 +126,7 @@ def paint(look, out):
                 d.ellipse((kx - 4, ky - 6, kx + 4, ky + 6), fill=_jit(_rgb(seam), rnd, 6))
             d.rectangle((a, y0, a + 2, y1 - 1), fill=seam)        # seam / gap at the plank's left edge
 
-    if look == "A":   # chain-link: 45 deg wire lattice, 0.125 unit mesh (32 px), wires 4 px, transparent between
+    if S.geometry(look) == "A":   # chain-link: 45 deg wire lattice, 0.125 unit mesh (32 px), wires 4 px, transparent between
         d.rectangle(PANEL, fill=(0, 0, 0, 0))
         px = img.load()
         x0, y0, x1, y1 = PANEL
@@ -103,7 +135,8 @@ def paint(look, out):
                 a, b = (x + y) % 32, (x - y) % 32
                 if a < 4 or b < 4:
                     shade = 132 + (12 if a < 2 or b < 2 else 0) + rnd.randint(-6, 6)
-                    px[x, y] = (shade - 8, shade - 4, shade, 255)
+                    px[x, y] = ((shade - 8, shade - 4, shade, 255) if wire is None else
+                                tuple(max(0, min(255, c + (shade - 140) // 2)) for c in wire) + (255,))
         # post steel: vertical streaks
         d.rectangle(PANEL2, fill=col["post"])
         for _ in range(60):
@@ -171,10 +204,5 @@ def paint(look, out):
 
 if __name__ == "__main__":
     here = Path(__file__).resolve().parent
-    import sys
-
-    sys.path.insert(0, str(here))
-    import spec
-
-    for look in spec.LOOKS:
-        paint(look, here / "textures" / f"{spec.texture(look)}.png")
+    for look in S.ALL:
+        paint(look, here / "textures" / f"{S.texture(look)}.png")

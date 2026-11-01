@@ -4,13 +4,19 @@ Imported by build_barrier_tiles.py, which owns the single .pack / .tiles / sprit
 Blender deliverables under scripts/blender/<kind>/ (manifest.json; rebuild order in each folder's README.md).
 
 Tilesets (tiledef file 7430). A mod tiledef holds at most 512 tiles per tileset (IsoWorld.java:639-640), so every
-style / look gets its own tileset:
+style / look gets its own tileset; the numbers are fixed in NUMBERS (a placed sprite is keyed by its tileset number,
+IsoWorld.java:632-634, so a shipped number never moves):
 
     4      MinidoracatKnoxPass_barrier2                       blocks 6N 6W 9N 9W
     5-7    MinidoracatKnoxPass_roll2f_industry/green/white    blocks 3N 3W 4N 4W 6N 6W 9N 9W
     8-12   MinidoracatKnoxPass_gate_a .. _e                   blocks 6N 6W 6S 6E 9N 9W 9S 9E
     13     MinidoracatKnoxPass_readerpillar                   reader on a gate post (ReaderPost.lua)
     14     MinidoracatKnoxPass_upperwall                      upstairs wall of the two-story gates (Barrier.lua)
+    15-29  MinidoracatKnoxPass_gate_ablack .. _aturquoise     painted chain-link skins of look A (2026-11-01)
+    30-42  MinidoracatKnoxPass_roll2f_black .. _turquoise     painted roll door styles (2026-11-01)
+
+Painted gate skins and roll door styles: look A's / the roll door's models with their own atlas (spriteModels
+texture), the base recipe plus one can of the vanilla paint (scripts/blender/paint.py).
 
 index = block * 64 + slot, block = widthIdx * len(faces) + faceIdx. Slots (Lua Core.lua KP.GATE_SLOT):
 
@@ -56,6 +62,25 @@ FIRE = "900000"
 # 加速版：車道 1 關／開兩格（錨點靜止時的 sprite），clip 秒數（Blender CLIP_S；KNOXPASS_FAST=1）
 FAST_SLOTS = (0, OPEN)
 CLIP_S, FAST_CLIP_S = 6.0, 3.75
+# tiledef numbers of the model gate tilesets (the reader pillar and upstairs wall: PILLAR_NUMBER, UPPER_NUMBER)
+NUMBERS = {
+    "MinidoracatKnoxPass_barrier2": 4,
+    "MinidoracatKnoxPass_roll2f_industry": 5, "MinidoracatKnoxPass_roll2f_green": 6, "MinidoracatKnoxPass_roll2f_white": 7,
+    "MinidoracatKnoxPass_gate_a": 8, "MinidoracatKnoxPass_gate_b": 9, "MinidoracatKnoxPass_gate_c": 10,
+    "MinidoracatKnoxPass_gate_d": 11, "MinidoracatKnoxPass_gate_e": 12,
+    "MinidoracatKnoxPass_gate_ablack": 15, "MinidoracatKnoxPass_gate_agrey": 16, "MinidoracatKnoxPass_gate_agreen": 17,
+    "MinidoracatKnoxPass_gate_awhite": 18, "MinidoracatKnoxPass_gate_ared": 19, "MinidoracatKnoxPass_gate_aorange": 20,
+    "MinidoracatKnoxPass_gate_ayellow": 21, "MinidoracatKnoxPass_gate_abrown": 22,
+    "MinidoracatKnoxPass_gate_alightbrown": 23, "MinidoracatKnoxPass_gate_apink": 24, "MinidoracatKnoxPass_gate_apurple": 25,
+    "MinidoracatKnoxPass_gate_ablue": 26, "MinidoracatKnoxPass_gate_alightblue": 27, "MinidoracatKnoxPass_gate_acyan": 28,
+    "MinidoracatKnoxPass_gate_aturquoise": 29,
+    "MinidoracatKnoxPass_roll2f_black": 30, "MinidoracatKnoxPass_roll2f_grey": 31, "MinidoracatKnoxPass_roll2f_brown": 32,
+    "MinidoracatKnoxPass_roll2f_red": 33, "MinidoracatKnoxPass_roll2f_orange": 34, "MinidoracatKnoxPass_roll2f_yellow": 35,
+    "MinidoracatKnoxPass_roll2f_lightbrown": 36, "MinidoracatKnoxPass_roll2f_pink": 37,
+    "MinidoracatKnoxPass_roll2f_purple": 38, "MinidoracatKnoxPass_roll2f_blue": 39,
+    "MinidoracatKnoxPass_roll2f_lightblue": 40, "MinidoracatKnoxPass_roll2f_cyan": 41,
+    "MinidoracatKnoxPass_roll2f_turquoise": 42,
+}
 
 
 def fast_tileset(name: str) -> str:
@@ -103,6 +128,8 @@ class Kind:
     textures: list = field(default_factory=list)  # (source, ship under media/)
     icons: dict = field(default_factory=dict)     # entity -> (source, ship under media/)
     entities: dict = field(default_factory=dict)  # entity -> (variant, width, health)
+    base: dict = field(default_factory=dict)      # painted skin -> the look whose recipe and reader pillar it uses
+    paint: dict = field(default_factory=dict)     # painted variant -> vanilla paint its recipe takes a can of
 
 
 def _ship(p: str) -> str:
@@ -140,7 +167,8 @@ def _roll2f() -> Kind:
     m = _manifest("roll2f")
     styles = m["styles"]
     k = Kind("roll2f", "Knox Pass Two-Story Roll Door", tuple(m["widths"]), tuple(m["faces"]), False,
-             [(f"MinidoracatKnoxPass_roll2f_{s.lower()}", 5 + i, s) for i, s in enumerate(styles)], frozenset())
+             [(f"MinidoracatKnoxPass_roll2f_{s.lower()}", NUMBERS[f"MinidoracatKnoxPass_roll2f_{s.lower()}"], s)
+              for s in styles], frozenset(), paint=m["paint"])
     for b in m["blocks"]:
         k.blocks.append(Block(b["style_tileset"], b["style_block"], b["width"], b["face"], b["entity"],
                               {int(s): _sm(e["modelScript"], e) for s, e in b["spriteModels"].items()},
@@ -154,13 +182,15 @@ def _roll2f() -> Kind:
     return k
 
 
-GATE_LOOKS = ("A", "B", "C", "D", "E")
+GATE_LOOKS = ("A", "B", "C", "D", "E")   # geometry looks (own models and reader pillars); painted skins reuse A's
 
 
 def _gate() -> Kind:
     m = _manifest("gate")
     k = Kind("gate", "Knox Pass Gate", (6, 9), ("N", "W", "S", "E"), True,
-             [(m["tilesets"][lk]["name"], 8 + i, lk) for i, lk in enumerate(GATE_LOOKS)], frozenset({"A", "C"}))
+             [(v["name"], NUMBERS[v["name"]], lk) for lk, v in m["tilesets"].items()],
+             frozenset(lk for lk in m["tilesets"] if m["skins"].get(lk, {}).get("base", lk) in ("A", "C")),
+             base={s: v["base"] for s, v in m["skins"].items()}, paint={s: v["paint"] for s, v in m["skins"].items()})
     for b in m["blocks"]:
         slots = {int(s): v for s, v in b["slots"].items()}
         k.blocks.append(Block(b["tileset"], b["blockInTileset"], b["width"], b["face"], b["entity"],
@@ -202,6 +232,7 @@ def variant_of(kind: Kind, tileset: str):
 ROLL_ONE_STORY = {3: (300, 6, 6, 4, 4, 4), 4: (400, 8, 8, 5, 5, 5), 6: (600, 12, 12, 8, 8, 8), 9: (900, 18, 18, 12, 12, 12)}
 SCREWDRIVER = "item 1 tags[base:screwdriver] mode:keep flags[Prop1;MayDegradeVeryLight]"
 HAMMER = "item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight]"
+PAINT_USES = 10   # one full can: vanilla paint UseDelta 0.1 (drainable.txt); a drainable input counts uses
 
 
 def _item(n: int, full: str, tool: bool = False) -> str:
@@ -209,7 +240,14 @@ def _item(n: int, full: str, tool: bool = False) -> str:
 
 
 def recipe(kind: Kind, variant, width: int) -> tuple[dict, list[str]]:
-    """(header fields in order, input lines)."""
+    """(header fields in order, input lines): the base look's recipe, plus one can of paint for a painted variant."""
+    head, inputs = _recipe(kind, kind.base.get(variant, variant), width)
+    if variant in kind.paint:
+        inputs.append(_item(PAINT_USES, f"Base.Paint{kind.paint[variant]}", True))
+    return head, inputs
+
+
+def _recipe(kind: Kind, variant, width: int) -> tuple[dict, list[str]]:
     if kind.key == "barrier2":
         n = {6: 1, 9: 1.5}[width]
         return ({"timedAction": "BuildWoodenStructureMedium", "time": {6: 250, 9: 350}[width], "category": "Furniture",
@@ -468,15 +506,17 @@ def write() -> None:
 # ---- check ------------------------------------------------------------------------------------------------------
 def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     """Assert the shipped r4 assets; tsets = tiledef name -> tileset, sm_text = spriteModels.txt."""
-    # tiledef: one tileset per style / look, numbers 4..12, the reader pillars 13, the upstairs wall 14,
-    # <= 512 tiles (IsoWorld.java:639-640)
+    # tiledef: one tileset per style / look at its NUMBERS number, the reader pillars 13, the upstairs wall 14,
+    # <= 512 tiles (IsoWorld.java:639-640); the numbers that shipped before the painted colours never move
     specs = tileset_specs()
-    assert [(n, no) for n, no, _ in specs] == [("MinidoracatKnoxPass_barrier2", 4)] + [
-        (f"MinidoracatKnoxPass_roll2f_{s}", 5 + i) for i, s in enumerate(("industry", "green", "white"))] + [
-        (f"MinidoracatKnoxPass_gate_{lk.lower()}", 8 + i) for i, lk in enumerate(GATE_LOOKS)] + [
-        ("MinidoracatKnoxPass_readerpillar", 13), ("MinidoracatKnoxPass_upperwall", 14)], specs
+    nums = {n: no for n, no, _ in specs}
+    assert nums == NUMBERS | {PILLAR_TILESET: PILLAR_NUMBER, UPPER_TILESET: UPPER_NUMBER} and len(set(nums.values())) == len(nums)
+    shipped = {"MinidoracatKnoxPass_barrier2": 4, PILLAR_TILESET: 13, UPPER_TILESET: 14,
+               **{f"MinidoracatKnoxPass_roll2f_{s}": 5 + i for i, s in enumerate(("industry", "green", "white"))},
+               **{f"MinidoracatKnoxPass_gate_{lk.lower()}": 8 + i for i, lk in enumerate(GATE_LOOKS)}}
+    assert all(nums[n] == no for n, no in shipped.items()), "a shipped tileset number moved: saved sprites would change"
     pillar = pillar_tiles()
-    assert len(pillar) == len(COLORS.COLORS) * 5 * 4 and not any(tsets[PILLAR_TILESET]["tiles"])
+    assert len(pillar) == len(COLORS.COLORS) * len(GATE_LOOKS) * 4 and not any(tsets[PILLAR_TILESET]["tiles"])
     assert all(f"{PILLAR_TILESET}_{i}" in pack_names for i in pillar)
     lay = layout()
     # upstairs wall: 0 W, 1 N, 2 / 3 the same with sight passing; no car physics; nothing else on the tile, empty 2D
@@ -493,6 +533,7 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     n_blocks = 0
     for kind in kinds():
         assert {(b.width, b.face) for b in kind.blocks} == {(w, f) for w in kind.widths for f in kind.faces}
+        variant = {t: v for t, _, v in kind.tilesets}
         for b in kind.blocks:
             n_blocks += 1
             t, base, e = tsets[b.tileset]["tiles"], b.block * STRIDE, edge_of(b.face)
@@ -513,7 +554,10 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
             assert sm[0][4:] == ("Open", 0.0) and sm[OPEN][4:] == ("Close", 0.0), b
             for f in range(POSES + 1):
                 assert sm[POSE_OPEN + f][4:] == sm[POSE_CLOSE + f][4:] == ("Open", f / POSES), (b, f)
-                assert sm[POSE_OPEN + f][:3] == sm[0][:3], (b, f)
+                assert sm[POSE_OPEN + f][:3] == sm[0][:3], (b, f)   # texture may differ: barrier2 lights go green
+            if variant[b.tileset] in kind.paint:   # a painted variant wears its own atlas on every model slot
+                tex = {s[3] for s in sm.values()}
+                assert len(tex) == 1 and next(iter(tex)).lower().endswith("_" + variant[b.tileset].lower()), (b, tex)
     # spriteModels: the generated blocks, in order, after the existing tilesets
     gen = sprite_model_tilesets()
     assert sm_text.endswith("\n" + "\n".join(gen) + "}\n"), "r4 spriteModels are stale: rerun the builder"
@@ -547,13 +591,20 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     lua_sets = dict(re.findall(r"^    (MinidoracatKnoxPass_\w+) = (\w+),", lua, re.M))
     assert set(lua_sets) == {n for n, _, _ in specs} - {PILLAR_TILESET, UPPER_TILESET}, sorted(lua_sets)
     assert f'KP.UPPER_WALL_TILESET = "{UPPER_TILESET}"' in lua
-    see = {t for k in kinds() if k.key in TWO_STORY for t, _, v in k.tilesets if v in k.see_through}
+    see = {t for k in kinds() if k.key in TWO_STORY for t, _, v in k.tilesets if v in k.see_through and v not in k.base}
     m = re.search(r"^KP\.SEE_THROUGH = \{ (.*) \}$", lua, re.M)
     assert m and set(re.findall(r"(MinidoracatKnoxPass_\w+) = true", m.group(1))) == see, f"Lua KP.SEE_THROUGH != {see}"
     assert f'KP.READER_PILLAR_TILESET = "{PILLAR_TILESET}"' in lua and f"KP.READER_PILLAR_STRIDE = {PILLAR_STRIDE}" in lua
     assert ('string.match(spriteName, "^MinidoracatKnoxPass_(.+)$")' in lua
             and '"MinidoracatKnoxPassFast_" .. rest' in lua), "Lua KP.fastTwin no longer matches fast_tileset()"
-    assert re.search(r'KP\.GATE_LOOKS = \{ ' + ", ".join(f'"{t}"' for t, _, _ in kinds()[2].tilesets) + r" \}", lua)
+    gate = kinds()[2]
+    assert re.search(r'KP\.GATE_LOOKS = \{ ' + ", ".join(f'"{t}"' for t, _, v in gate.tilesets if v in GATE_LOOKS) + r" \}", lua)
+    # painted skins: Lua KP.GATE_SKIN maps every KP.MODEL_GATES tileset named gate_a<colour> to look A (reader pillar,
+    # see-through upstairs wall), so those tilesets must be exactly the skins, all of look A
+    assert ('if string.match(ts, "^MinidoracatKnoxPass_gate_a%l") then KP.GATE_SKIN[ts] = "MinidoracatKnoxPass_gate_a" end'
+            in lua), "Lua KP.GATE_SKIN no longer derives the skins from KP.MODEL_GATES"
+    assert {t for t, _, v in gate.tilesets if v in gate.base} == {
+        t for t in lua_sets if re.match(r"MinidoracatKnoxPass_gate_a[a-z]", t)} and set(gate.base.values()) == {"A"}
     for kind in kinds():
         for name, _, _ in kind.tilesets:
             d = re.search(rf"^local {lua_sets[name]} = \{{(.*?)\}}\n(?!\s)", lua, re.M | re.S).group(1)

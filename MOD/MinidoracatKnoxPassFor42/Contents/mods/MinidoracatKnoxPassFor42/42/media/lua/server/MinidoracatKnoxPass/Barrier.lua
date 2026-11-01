@@ -292,7 +292,8 @@ local function upperSpot(o)
     elseif s >= SLOT.PLACEHOLDER or s % SLOT.OPEN > 2 then
         return nil
     end
-    return sq:getX() + dx, sq:getY() + dy, sq:getZ() + 1, mg.face == "N" or mg.face == "S", KP.SEE_THROUGH[mg.tileset] == true
+    local see = KP.SEE_THROUGH[KP.GATE_SKIN[mg.tileset] or mg.tileset] == true
+    return sq:getX() + dx, sq:getY() + dy, sq:getZ() + 1, mg.face == "N" or mg.face == "S", see
 end
 
 -- 放上一道隱形牆，回傳有沒有放。門線那格（下一層）不在就不放：S／E 向的一端跨 chunk 時那格還沒載入，之後這一端再載入時補。

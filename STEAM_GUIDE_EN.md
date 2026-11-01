@@ -146,9 +146,9 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [/list]
 [h3]Two-story roll-up doors[/h3]
 [list]
-[*] [b]Styles[/b]: the same three colors, 3, 4, 6 or 9 wide.
+[*] [b]Styles[/b]: 16 colors: Industrial White, Green and White, plus Black, Dark Gray, Dark Brown, Red, Orange, Yellow, Light Brown, Pink, Purple, Blue, Light Blue, Cyan and Turquoise, each 3, 4, 6 or 9 wide.
 [*] [b]What's different[/b]: the curtain rolls all the way up into the box on top, so vans fit through.
-[*] [b]Needs[/b]: Welding 4 and twice the materials of the one-story door of the same width.
+[*] [b]Needs[/b]: Welding 4 and twice the materials of the one-story door of the same width; colors other than Industrial White, Green and White also take a full can of that vanilla paint (you keep the empty can; Dark Gray takes Gray paint, Dark Brown takes Brown).
 [*] [b]Reader[/b]: none built in.
 [/list]
 {{img:17-wide-doors-en.jpg}}
@@ -168,8 +168,10 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [tr][td]Ranch Wood[/td][td]Carpentry 5[/td][/tr]
 [tr][td]Medieval Oak[/td][td]Carpentry 5, plus Welding 2 for its iron bands[/td][/tr]
 [/table]
+Chain-link also comes in 15 paint colors: Black, Dark Gray, Dark Green, White, Red, Orange, Yellow, Brown, Light Brown, Pink, Purple, Blue, Light Blue, Cyan and Turquoise. They take the chain-link materials plus a full can of that vanilla paint (Dark Gray takes Gray paint, Dark Green takes Green). Black, Dark Gray and Dark Green are darker than the vanilla paint, so a two-story gate still stands out.
 [list]
 [*] [b]Swing side[/b]: rotating while building picks which side the leaves swing to.
+[*] [b]Placement preview[/b]: painted chain-link gates show the plain gray chain-link while you place them; the paint color appears once built.
 [*] [b]Reader[/b]: none built in; once installed, the reader hangs on the face of the post.
 [/list]
 [h3]Durability, removing and animation[/h3]

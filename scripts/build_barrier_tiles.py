@@ -853,6 +853,11 @@ def check() -> None:
     info = (OUT / "42" / "mod.info").read_text(encoding="utf-8").splitlines()
     assert f"pack={PACK}" in info and f"tiledef={TILEDEF} {FILE_NUMBER}" in info, "mod.info lacks pack=/tiledef="
     r4 = MG.check({t["name"]: t for t in tsets}, sm_all, set(names))
+    # painted styles: the paint cans their recipes take exist in vanilla (a wrong ID = a recipe nobody can craft)
+    cans = {f"Paint{p}" for k in MG.kinds() for p in k.paint.values()}
+    vanilla = set(re.findall(r"^\s*item (Paint\w+)$", (GAME / "scripts/generated/items/drainable.txt").read_text(
+        encoding="utf-8"), re.M))
+    assert cans and cans <= vanilla, sorted(cans - vanilla)
     print(f"OK: pack {len(names)} sprites / {len(rects)} cells ({len(pages)} pages), tiledef "
           + " + ".join(f"{t['name']} {len(t['tiles'])}" for t in tsets)
           + f" tiles, spriteModels {sm_all.count('tile' + chr(10))} tiles, entities 16 + {rd_sprites} sprites, "

@@ -11,7 +11,16 @@ Model space (Blender, 1 unit = 1 tile, one story = STORY units), shared by leaf 
 
 import os
 
-LOOKS = "ABCDE"
+LOOKS = "ABCDE"                      # geometry looks: each has its own leaf, post and reader-pillar models
+# Painted chain-link skins (2026-11-01): look A's models with their own atlas (spriteModels texture, like the roll door
+# styles), look A's recipe + one can of the vanilla paint. skin -> (geometry look, paint, scripts/blender/paint.py).
+# Order = tileset / build-menu order: append only (tileset numbers: scripts/build_model_gates.py NUMBERS).
+SKINS = {"ABlack": ("A", "Black"), "AGrey": ("A", "Grey"), "AGreen": ("A", "Green"), "AWhite": ("A", "White"),
+         "ARed": ("A", "Red"), "AOrange": ("A", "Orange"), "AYellow": ("A", "Yellow"), "ABrown": ("A", "Brown"),
+         "ALightBrown": ("A", "LightBrown"), "APink": ("A", "Pink"), "APurple": ("A", "Purple"),
+         "ABlue": ("A", "Blue"), "ALightBlue": ("A", "LightBlue"), "ACyan": ("A", "Cyan"),
+         "ATurquoise": ("A", "Turquoise")}
+ALL = tuple(LOOKS) + tuple(SKINS)
 WIDTHS = (6, 9)
 FACES = "NWSE"
 TILESET = "MinidoracatKnoxPass_gate"
@@ -44,16 +53,21 @@ LOOK = {
 def hinge_x(look):
     """Hinge axis x of the origin-side leaf: the leaf's hinge stile clears the post by 0.02 and, swung 90 deg, lies
     beside the post face instead of through it."""
-    p = LOOK[look]
+    p = LOOK[geometry(look)]
     return p["post_hw"] + p["t"] / 2 + 0.02
 
 
+def geometry(look):
+    """The look whose models a look uses (a skin's base look, else itself)."""
+    return SKINS[look][0] if look in SKINS else look
+
+
 def leaf_model(look, w):
-    return f"MinidoracatKnoxPass_gate_{look}{w}"
+    return f"MinidoracatKnoxPass_gate_{geometry(look)}{w}"
 
 
 def post_model(look):
-    return f"MinidoracatKnoxPass_gatepost_{look}"
+    return f"MinidoracatKnoxPass_gatepost_{geometry(look)}"
 
 
 def texture(look):
@@ -69,7 +83,7 @@ def icon(look, w):
 
 
 def block(look, w, face):
-    return (LOOKS.index(look) * 2 + WIDTHS.index(w)) * 4 + FACES.index(face)
+    return (ALL.index(look) * 2 + WIDTHS.index(w)) * 4 + FACES.index(face)
 
 
 # Entity cells in PZ coordinates relative to the entity origin (x0, y0) (contract "Entity faces"):
@@ -108,7 +122,8 @@ def leaf_translate(face, L):
 
 
 if __name__ == "__main__":   # self-check against the contract and the barrier's XFORM pattern
-    assert [block(l, w, f) for l in LOOKS for w in WIDTHS for f in FACES] == list(range(40))
+    assert [block(l, w, f) for l in ALL for w in WIDTHS for f in FACES] == list(range(8 * len(ALL)))
+    assert block("E", 9, "E") == 39 and leaf_model("ABlack", 6) == leaf_model("A", 6) and texture("ABlack") != texture("A")
     assert leaf_translate("N", 6) == (-1, 0, 0) and leaf_translate("W", 6) == (0, 0, 1)
     assert leaf_translate("S", 6) == (6, 0, -1) and leaf_translate("E", 9) == (-1, 0, -9)
     for L in WIDTHS:

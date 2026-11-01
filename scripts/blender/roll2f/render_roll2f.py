@@ -1,5 +1,6 @@
 """PZ 2x renders of the two-story roll door: 2D cell canvases, icon renders, game-camera previews.
 用法：blender -b --factory-startup --python render_roll2f.py [-- cells icons game]   (default: all; then assemble_roll2f.py)
+KNOXPASS_STYLES=Black,Grey limits every step to those styles (default atlas.STYLES).
 
 Camera, engine placement (pz_matrix), tile mask and ground are imported read-only from
 scripts/blender/barrier/render_tiles.py (orthographic, 30 deg elevation, PZ 2x scale: 1 tile = 90.51 px, one story =
@@ -15,6 +16,7 @@ game:  previews/game_<face>_<style>_<w>_<closed|half|open>.png: asphalt + tile g
        box-truck proxy 2.4 x 6.5 x 2.9 driving through (open). N face all widths, W face width 4 Industry.
 """
 import importlib.util
+import os
 import sys
 from pathlib import Path
 
@@ -32,6 +34,7 @@ _spec.loader.exec_module(RT)                      # helpers only (its steps run 
 ROTATE = {"N": (0.0, 180.0, 0.0), "W": (0.0, -90.0, 0.0)}
 TILE = {"N": lambda k: (k - 1, 0), "W": lambda k: (0, k - 1)}   # lane k tile centre, scene (x east, y north)
 STATES = {"closed": ("Open", 0.0), "half": ("Open", 0.5), "open": ("Close", 0.0)}
+STYLES = [s for s in os.environ.get("KNOXPASS_STYLES", "").split(",") if s] or list(A.STYLES)
 
 
 def glb(width):
@@ -107,7 +110,7 @@ def clip_z(rig, zmax):
 
 
 def cells():
-    for style in A.STYLES:
+    for style in STYLES:
         for face in ROTATE:
             RT.reset()
             rig = door(3, face, style)
@@ -122,7 +125,7 @@ def cells():
 
 
 def icons():
-    for style in A.STYLES:
+    for style in STYLES:
         for w in A.WIDTHS:
             RT.reset()
             rig = door(w, "N", style)
@@ -159,12 +162,13 @@ def game_one(face, style, w, state):
 
 
 def game():
-    for style in A.STYLES:
+    for style in STYLES:
         for w in A.WIDTHS:
             for state in STATES:
                 game_one("N", style, w, state)
-    for state in STATES:
-        game_one("W", "Industry", 4, state)
+    if "Industry" in STYLES:
+        for state in STATES:
+            game_one("W", "Industry", 4, state)
 
 
 STEPS = {"cells": cells, "icons": icons, "game": game}

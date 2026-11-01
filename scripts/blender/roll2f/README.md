@@ -1,15 +1,15 @@
 # roll2f：兩層樓高捲門模型
 
-Knox Pass r4 的兩層樓捲門（tileset `MinidoracatKnoxPass_roll2f`，編號 5；寬 3／4／6／9；款式 Industry／Green／White；N、W 兩向）。整合者要的東西全部在 `manifest.json`；本目錄只產生素材，不寫 `MOD/`。
+Knox Pass r4 的兩層樓捲門（每個款式一個 tileset `MinidoracatKnoxPass_roll2f_<款式>`，編號見 `scripts/build_model_gates.py` 的 `NUMBERS`；寬 3／4／6／9；款式 Industry／Green／White 照原版車庫門取色，2026-11-01 加的 13 個油漆色照 `../paint.py`（Black、Grey、Brown 手調深色，`atlas.DARK`），配方多一罐該色原版油漆；N、W 兩向）。整合者要的東西全部在 `manifest.json`；本目錄只產生素材，不寫 `MOD/`。
 
 ## 重建（在本目錄執行；`blender` = `C:/Program Files/Blender Foundation/Blender 5.2/blender.exe`）
 
 ```bash
-uv run --with pillow python atlas.py                              # textures/knoxpass_roll2f_{industry,green,white}.png
+uv run --with pillow python atlas.py                              # textures/knoxpass_roll2f_<款式>.png（16 款）
 blender -b --factory-startup --python build_roll2f.py             # export/knoxpass_roll2f_{3,4,6,9}.glb
 KNOXPASS_FAST=1 blender -b --factory-startup --python build_roll2f.py   # export/knoxpass_roll2f_{3,4,6,9}_fast.glb（「加速」，clip 3.75 s）
 blender -b --factory-startup --python verify_roll2f.py            # export/knoxpass_roll2f_verify.txt（FAIL 時 exit 1）
-blender -b --factory-startup --python render_roll2f.py            # cells/_canvas、previews/icon_*、previews/game_*
+blender -b --factory-startup --python render_roll2f.py            # cells/_canvas、previews/icon_*、previews/game_*（KNOXPASS_STYLES=Black,Grey 只跑這些款式）
 uv run assemble_roll2f.py                                         # cells/、icons/、previews/sheet_*、ghost_*、manifest.json
 ```
 

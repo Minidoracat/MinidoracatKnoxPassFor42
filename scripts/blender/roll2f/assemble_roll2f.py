@@ -14,7 +14,7 @@ cells/<style>/<N|W>/lane_{first,mid,last}.png  128x256 build-ghost cells = LOWER
     (lane 1 / 2 / 3) and are shared by every width: middle lanes 2..L-1 differ only in curtain grime texels, which a
     tinted build ghost cannot show.
 icons/rolldoor2f_<style>_<w>.png  64x64 entity icons (closed N render, build_barrier_tiles.fit_icon)
-previews/sheet_<w>.png            game-camera closed / half / open x Industry / Green / White, half scale
+previews/sheet_<w>.png            game-camera closed / half / open x every style, half scale
 previews/ghost_<face>_<style>_<w>.png  the placeholder cells laid out as the build cursor draws them
 manifest.json                     everything the integrator needs (see the "_doc" keys)
 """
@@ -95,7 +95,7 @@ def sheets():
                  for st in ("closed", "half", "open")] for s in A.STYLES]
         cw = max(i.width for row in imgs for i in row)
         ch = max(i.height for row in imgs for i in row)
-        sheet = Image.new("RGB", (cw * 3, ch * 3), (40, 40, 40))
+        sheet = Image.new("RGB", (cw * 3, ch * len(imgs)), (40, 40, 40))
         for r, row in enumerate(imgs):
             for c, im in enumerate(row):
                 sheet.paste(im, (c * cw, r * ch))
@@ -106,7 +106,9 @@ def manifest(icon_paths):
     tex = {s: {"source": rel(HERE / "textures" / f"knoxpass_roll2f_{s.lower()}.png"),
                "ship": f"media/textures/IsoObject/MinidoracatKnoxPass_roll2f_{s.lower()}.png",
                "spriteModels_texture": f"IsoObject/MinidoracatKnoxPass_roll2f_{s.lower()}",
-               "vanilla_colour_source": f"{A.VANILLA[s][0]}_{A.VANILLA[s][1]} / _{A.VANILLA[s][1] + 1} (Tiles2x)"}
+               **({"vanilla_colour_source": f"{A.VANILLA[s][0]}_{A.VANILLA[s][1]} / _{A.VANILLA[s][1] + 1} (Tiles2x)"}
+                  if s in A.VANILLA else {"colour_source": "atlas.DARK (hand-picked)" if s in A.DARK else
+                                          "vanilla paint swatch (scripts/blender/paint.py) x atlas.PAINT_SHADE"})}
            for s in A.STYLES}
     models = {str(w): {
         "source": rel(HERE / "export" / f"knoxpass_roll2f_{w}.glb"),
@@ -153,6 +155,8 @@ def manifest(icon_paths):
                          "style_block = widthIdx * 2 + faceIdx, index = style_block * 64 + slot (fields per block)",
         "placeholder_cell_dedupe": "lane_mid is one file per style+face, used for every middle lane of every width",
         "styles": list(A.STYLES), "widths": list(A.WIDTHS), "faces": list(FACES), "ends": None,
+        "paint": {s: s for s in A.PAINTED},
+        "paint_note": "painted style -> vanilla paint: its recipe takes one can of Base.Paint<paint> (2026-11-01)",
         "health": {str(w): HEALTH[w] for w in A.WIDTHS},
         "model_space": "Blender metres = tile units, Z up, one story = 2.44949. Origin = centre of lane tile 1 (the "
                        "chain anchor, slot 0) on the floor; +X along the lanes (lane k centre x = k - 1); door line = "
@@ -206,6 +210,7 @@ if __name__ == "__main__":
     m = manifest(icon_paths)
     for b in m["blocks"]:
         assert all((REPO / p).exists() for p in b["placeholder_cells"].values()), b["block"]
-    assert len(m["blocks"]) == 24 and sorted(b["block"] for b in m["blocks"]) == list(range(24))
+    n = len(A.STYLES) * len(A.WIDTHS) * len(FACES)
+    assert len(m["blocks"]) == n and sorted(b["block"] for b in m["blocks"]) == list(range(n))
     (HERE / "manifest.json").write_text(json.dumps(m, indent=1) + "\n", encoding="utf-8", newline="\n")
     print(f"wrote cells, {len(icon_paths)} icons, sheets, manifest.json ({len(m['blocks'])} blocks)")

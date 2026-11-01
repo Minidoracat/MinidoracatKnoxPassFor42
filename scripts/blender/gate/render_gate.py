@@ -1,6 +1,9 @@
 """Knox Pass gate: 2D cells, game-camera previews, icon renders, reader-on-post check.
 用法：blender -b --factory-startup --python render_gate.py [-- step ...]   steps: cells game icons reader (default all)
 then: uv run --with pillow python assemble.py
+KNOXPASS_LOOKS=ABlack,AGrey limits cells / game / icons to those looks (default spec.ALL); a painted skin (spec.SKINS)
+renders its base look's glbs with its own atlas, as spriteModels texture does in game (previews and icons only: its
+2D cells are the base look's, assemble.py).
 
 Camera, lighting, glb placement = scripts/blender/barrier/render_tiles.py (imported, not copied): orthographic, 30 deg
 elevation, PZ 2x scale (1 tile = 90.51 px, 1 story = 192 px), models placed with the engine's spriteModels formula
@@ -16,6 +19,7 @@ previews/<look><L>_<face>_<closed|half|open>.png  game camera, asphalt with a ti
 icons/_render/<look><L>.png  N closed on transparent, for the 64x64 entity icons (assemble.py).
 previews/reader_<look>_<face>.png  door reader model on the end-A post (cream reader texture), closed gate, 2.5x.
 """
+import os
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -33,6 +37,7 @@ import spec as S  # noqa: E402
 
 EXPORT = HERE / "export"
 STATES = {"closed": ("Open", 0.0), "half": ("Open", 0.5), "open": ("Close", 0.0)}
+LOOKS = [lk for lk in os.environ.get("KNOXPASS_LOOKS", "").split(",") if lk] or list(S.ALL)
 
 
 def at(p):
@@ -46,6 +51,11 @@ def place(look, L, face, reader=False):
                        at(S.real_lane(face, L, 1)) @ R.pz_matrix(S.leaf_translate(face, L), rot))
     statics = [R.import_glb(EXPORT / f"{S.post_model(look)}.glb", at(p) @ R.pz_matrix((0, 0, 0), rot))
                for p in (S.end_a(face, L), S.end_b(face, L))]
+    meshes = [o for o in rig.children if o.type == "MESH"] + statics
+    if look in S.SKINS:
+        img = bpy.data.images.load(str(HERE / "textures" / f"{S.texture(look)}.png"))
+        for n in (n for o in meshes for mat in o.data.materials for n in mat.node_tree.nodes if n.type == "TEX_IMAGE"):
+            n.image = img
     if reader:
         statics.append(R.import_glb(EXPORT / f"knoxpass_reader_pillar_{look}.glb",
                                     at(S.end_a(face, L)) @ R.pz_matrix((0, 0, 0), rot)))
@@ -75,7 +85,7 @@ def masks(meshes):
 
 
 def cells():
-    for look in S.LOOKS:
+    for look in (lk for lk in LOOKS if lk not in S.SKINS):   # painted skins use their base look's cells (assemble.py)
         for L in S.WIDTHS:
             for face in S.FACES:
                 R.reset()
@@ -135,7 +145,7 @@ def fit(objs, margin=24, zoom=1.0):
 
 
 def game():
-    for look in S.LOOKS:
+    for look in LOOKS:
         for L in S.WIDTHS:
             for face in "NS":
                 for state, (clip, t) in STATES.items():
@@ -152,7 +162,7 @@ def game():
 
 
 def icons():
-    for look in S.LOOKS:
+    for look in LOOKS:
         for L in S.WIDTHS:
             R.reset()
             rig, meshes = place(look, L, "N")

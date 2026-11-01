@@ -1,8 +1,9 @@
 """Knox Pass two-story roll-up door: shared geometry numbers + texture atlas layout (imported by Blender scripts,
 no Pillow needed) + painter (system Python + Pillow).
 用法：uv run --with pillow python atlas.py
-    -> textures/knoxpass_roll2f_{industry,green,white}.png  (512x512, same UV layout; colours sampled from the
-       vanilla one-story roll door sprites in Tiles2x.pack via scripts/build_barrier_tiles.py vanilla_cells, read-only)
+    -> textures/knoxpass_roll2f_<style>.png  (512x512, same UV layout; Industry / Green / White colours sampled from the
+       vanilla one-story roll door sprites in Tiles2x.pack via scripts/build_barrier_tiles.py vanilla_cells, read-only;
+       the painted styles from painted_palette())
 
 Model space (Blender, 1 unit = 1 tile, Z up; one story = 2.44949): origin = centre of lane tile 1 on the floor,
 +X = along the lanes (lane k centre at x = k - 1), +Y = toward the door line (tile edge at y = +0.5), -Y = the side
@@ -31,9 +32,24 @@ CURTAIN_INSET = 0.05                 # curtain ends run 5 cm into the rail chann
 BAR_H, BAR_T = 0.08, 0.06            # bottom bar on slat 0
 U_SPAN = 9.0                         # u = (x + 0.5) / 9: same texel density on every width (widest door = 1.0)
 WIDTHS = (3, 4, 6, 9)
-STYLES = ("Industry", "Green", "White")
+STYLES = ("Industry", "Green", "White", "Black", "Grey", "Brown", "Red", "Orange", "Yellow", "LightBrown", "Pink",
+          "Purple", "Blue", "LightBlue", "Cyan", "Turquoise")      # tileset / build-menu order: append only
 # style -> (vanilla tileset, GarageDoor 1 sprite index of the N piece) = build_barrier_tiles.ROLLDOOR_STYLES
 VANILLA = {"Industry": ("industry_trucks_01", 35), "Green": ("walls_garage_01", 19), "White": ("walls_garage_01", 51)}
+# Painted styles (2026-11-01): recipe + one can of Base.Paint<style> (scripts/blender/paint.py). The dark three are
+# hand-picked darker than their vanilla swatch (user kept them after a comparison: the vanilla Grey #808080 curtain
+# vanishes on asphalt); the rest = the vanilla swatch x PAINT_SHADE.
+PAINTED = tuple(s for s in STYLES if s not in VANILLA)
+DARK = {
+    "Black": {"light": (70, 72, 76), "mid": (42, 44, 48), "dark": (18, 19, 21), "header": (52, 54, 58),
+              "header_dark": (37, 39, 42), "post": (48, 50, 54), "post_dark": (28, 29, 31), "bottom": (40, 40, 40)},
+    "Grey": {"light": (110, 113, 117), "mid": (74, 77, 81), "dark": (38, 40, 43), "header": (88, 91, 95),
+             "header_dark": (63, 65, 68), "post": (80, 83, 87), "post_dark": (46, 48, 51), "bottom": (60, 60, 60)},
+    "Brown": {"light": (112, 86, 66), "mid": (78, 58, 44), "dark": (40, 29, 22), "header": (92, 76, 62),
+              "header_dark": (66, 55, 45), "post": (84, 68, 54), "post_dark": (48, 38, 30), "bottom": (60, 55, 50)},
+}
+PAINT_SHADE = {"light": 1.25, "mid": 1.0, "dark": 0.5, "header": 1.1, "header_dark": 0.8, "post": 1.05,
+               "post_dark": 0.6, "bottom": 0.75}
 
 SIZE = 512
 SLAT_PX = 10
@@ -69,6 +85,17 @@ def classify(u, v):
 
 
 # ---------------------------------------------------------------- painter (Pillow)
+def painted_palette(style):
+    """Palette of a painted style: DARK, else its vanilla paint swatch x PAINT_SHADE."""
+    if style in DARK:
+        return DARK[style]
+    import importlib.util
+    ps = importlib.util.spec_from_file_location("kp_paint", Path(__file__).resolve().parent.parent / "paint.py")
+    p = importlib.util.module_from_spec(ps)
+    ps.loader.exec_module(p)
+    return {k: p.rgb(style, f) for k, f in PAINT_SHADE.items()}
+
+
 def sample_palette():
     """style -> colours sampled from the vanilla closed N pieces (GarageDoor 1 / 2 at 2x): curtain light/mid/dark
     (luminance 88-100 / 40-60 / 0-12 percentile over the curtain), header (wall above the door -> housing),
@@ -183,7 +210,7 @@ def paint(out: Path, style: str, p: dict):
 
 if __name__ == "__main__":
     here = Path(__file__).resolve().parent
-    pal = sample_palette()
+    pal = sample_palette() | {s: painted_palette(s) for s in PAINTED}
     for style in STYLES:
         print(style, {k: "#%02x%02x%02x" % v for k, v in pal[style].items()})
         paint(here / "textures" / f"knoxpass_roll2f_{style.lower()}.png", style, pal[style])

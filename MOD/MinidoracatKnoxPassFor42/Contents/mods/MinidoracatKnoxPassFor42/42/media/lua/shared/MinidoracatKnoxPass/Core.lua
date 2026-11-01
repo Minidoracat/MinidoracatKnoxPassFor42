@@ -66,7 +66,7 @@ function KP.fastTwin(spriteName)
     return rest and ("MinidoracatKnoxPassFast_" .. rest) or nil
 end
 
--- 模型門（scripts/build_model_gates.py 產生）：雙桿閘門、兩層樓捲門（三款）、兩層樓大門（五種外觀）。MOD 的 tiledef
+-- 模型門（scripts/build_model_gates.py 產生）：雙桿閘門、兩層樓捲門（16 色）、兩層樓大門（五種外觀＋鐵網上色款）。MOD 的 tiledef
 -- 每個 tileset 最多 512 格（IsoWorld.java:639-640），所以每個款式一個 tileset。編號＝區塊×64＋格位，區塊＝寬度序×方向數＋方向序。
 -- 格位：0／1／2＝車道（關，GarageDoor 1、中間片、最後一片；第 1 片是錨點、掛 3D 模型），8-10＝開（關＋8，
 -- IsoDoor.java:793-805），3／4＝兩端 A／B（A 在車道 1 那頭；機箱或門柱，實心 IsoThumpable），16 起＝建造替代 tile
@@ -91,9 +91,45 @@ KP.MODEL_GATES = {
     MinidoracatKnoxPass_gate_c = GATE,
     MinidoracatKnoxPass_gate_d = GATE,
     MinidoracatKnoxPass_gate_e = GATE,
+    -- 2026-11-01 上色款（原版油漆色，配方多一罐該色油漆）
+    MinidoracatKnoxPass_roll2f_black = ROLL2F,
+    MinidoracatKnoxPass_roll2f_grey = ROLL2F,
+    MinidoracatKnoxPass_roll2f_brown = ROLL2F,
+    MinidoracatKnoxPass_roll2f_red = ROLL2F,
+    MinidoracatKnoxPass_roll2f_orange = ROLL2F,
+    MinidoracatKnoxPass_roll2f_yellow = ROLL2F,
+    MinidoracatKnoxPass_roll2f_lightbrown = ROLL2F,
+    MinidoracatKnoxPass_roll2f_pink = ROLL2F,
+    MinidoracatKnoxPass_roll2f_purple = ROLL2F,
+    MinidoracatKnoxPass_roll2f_blue = ROLL2F,
+    MinidoracatKnoxPass_roll2f_lightblue = ROLL2F,
+    MinidoracatKnoxPass_roll2f_cyan = ROLL2F,
+    MinidoracatKnoxPass_roll2f_turquoise = ROLL2F,
+    MinidoracatKnoxPass_gate_ablack = GATE,
+    MinidoracatKnoxPass_gate_agrey = GATE,
+    MinidoracatKnoxPass_gate_agreen = GATE,
+    MinidoracatKnoxPass_gate_awhite = GATE,
+    MinidoracatKnoxPass_gate_ared = GATE,
+    MinidoracatKnoxPass_gate_aorange = GATE,
+    MinidoracatKnoxPass_gate_ayellow = GATE,
+    MinidoracatKnoxPass_gate_abrown = GATE,
+    MinidoracatKnoxPass_gate_alightbrown = GATE,
+    MinidoracatKnoxPass_gate_apink = GATE,
+    MinidoracatKnoxPass_gate_apurple = GATE,
+    MinidoracatKnoxPass_gate_ablue = GATE,
+    MinidoracatKnoxPass_gate_alightblue = GATE,
+    MinidoracatKnoxPass_gate_acyan = GATE,
+    MinidoracatKnoxPass_gate_aturquoise = GATE,
 }
 
--- 看得穿的外觀（車道 tile 帶 doorTrans，build_model_gates.py see_through）：二樓隱形牆也讓視線穿過
+-- 鐵網 A 的上色款（scripts/blender/gate/spec.py SKINS，tileset gate_a<顏色>）：用 A 的模型（spriteModels 換貼圖），所以柱面讀頭
+-- （server/ReaderPost.lua）與二樓隱形牆看不看得穿（server/Barrier.lua）都照 A。外觀 → 照哪個外觀
+KP.GATE_SKIN = {}
+for ts in pairs(KP.MODEL_GATES) do
+    if string.match(ts, "^MinidoracatKnoxPass_gate_a%l") then KP.GATE_SKIN[ts] = "MinidoracatKnoxPass_gate_a" end
+end
+
+-- 看得穿的外觀（車道 tile 帶 doorTrans，build_model_gates.py see_through）：二樓隱形牆也讓視線穿過；上色款查 KP.GATE_SKIN
 KP.SEE_THROUGH = { MinidoracatKnoxPass_gate_a = true, MinidoracatKnoxPass_gate_c = true }
 
 -- 二樓隱形牆（build_model_gates.py UPPER_TILESET）：索引＝2×看得穿＋北邊（0 W 邊、1 N 邊、2／3 視線穿過）；不是回 nil

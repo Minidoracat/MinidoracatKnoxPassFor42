@@ -40,7 +40,8 @@ local DOOR_ADAPTERS = { ["vanilla.IsoDoor"] = true, ["vanilla.IsoThumpable"] = t
 -- - 雙開門（IsoDoor.java:120-129）：N 向第 1 片在西端、第 4 片在東端，開門時第 2、3 片搬到 y+1（往南擺）；
 --   W 向第 1 片在南端（y 最大）、第 4 片在北端，開門搬到 x+1（往東擺）。兩扇門葉的鉸鏈都在外端，第 1／4 片不搬格
 -- - 車庫門：第 1 片在 N 向最小 x、W 向最大 y（getGarageDoorPrev 往 x-1／y+1，IsoDoor.java:3241-3280），外端＝西／南端，捲起不擺
--- - 兩層樓大門：門柱 0.34-0.60 格厚，上面的讀頭會埋進去，改用柱面讀頭掛在 A 端門柱（宿主＝A 端那格）
+-- - 兩層樓大門：門柱 0.34-0.60 格厚，上面的讀頭會埋進去，改用柱面讀頭掛在 A 端門柱（宿主＝A 端那格）；鐵網上色款用 A 的門柱，
+--   柱面讀頭照 A（KP.GATE_SKIN）
 -- 回傳宿主 x, y, 變體（0 N 西端、1 N 東端、2 W 北端、3 W 南端；大門 8＋外觀×4＋方向序）；閘門（機箱頂已有讀頭）與其他 MOD 的門回 nil
 function R.spot(adapter, anchor)
     if not DOOR_ADAPTERS[adapter.id] or KP.isBarrier(anchor) then return nil end
@@ -49,8 +50,9 @@ function R.spot(adapter, anchor)
     local mg = KP.modelGate(anchor)
     if mg and mg.def.kind == "Gate" then
         local ex, ey = KP.gateEnds(mg, x, y)
+        local look = KP.GATE_SKIN[mg.tileset] or mg.tileset
         for i, ts in ipairs(KP.GATE_LOOKS) do
-            if ts == mg.tileset then return ex, ey, 8 + (i - 1) * 4 + mg.fi end
+            if ts == look then return ex, ey, 8 + (i - 1) * 4 + mg.fi end
         end
         return nil
     end
