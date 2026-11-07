@@ -303,5 +303,7 @@
     "IGUI_KnoxPass_MapLayer": "Tore, die dein Uhrmodul öffnet",
     "IGUI_KnoxPass_MapNamesMini": "Tortypen auf der Minimap anzeigen",
     "IGUI_KnoxPass_MapNamesWorld": "Tortypen auf der Weltkarte anzeigen",
+    "IGUI_KnoxPass_RoadText": "KNOX PASS-Schriftzug auf der Fahrbahn",
+    "IGUI_KnoxPass_RoadText_tooltip": "Vor Schranken und Doppelschranken steht KNOX PASS auf der Fahrbahn, damit man sieht, dass das Tor Fahrzeuge aufhält. Abgewählt verschwindet der Schriftzug nur auf deinem eigenen Bildschirm. Die weiße Haltelinie bleibt.",
     "IGUI_KnoxPass_WhatsNew": "Zweistöckige Maschendrahttore: 15 Farben. Zweistöckige Rolltore: 16. Jedes braucht eine Dose Farbe."
 }

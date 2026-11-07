@@ -95,7 +95,9 @@ def verify(glb):
         out_parts("static", mesh)
         p = parts(mesh)
         if "lines" in glb.name:   # paint on both sides of the gate line (y = 0.5), flat 2 cm above the floor
-            for k in ("paint_white", "amber"):
+            plain = "plain" in glb.name   # *_plain: stop lines only, no KNOX PASS text (client/RoadText.lua)
+            assert ("amber" in p) != plain, (glb.name, p.keys())
+            for k in ("paint_white",) if plain else ("paint_white", "amber"):
                 assert p[k][0][1] < 0 and p[k][1][1] > 1 and p[k][0][2] == p[k][1][2] == 0.02, (k, p[k])
         if "cabinet" in glb.name:
             assert {"FRONT", "SIDE", "amber"} <= p.keys(), p.keys()

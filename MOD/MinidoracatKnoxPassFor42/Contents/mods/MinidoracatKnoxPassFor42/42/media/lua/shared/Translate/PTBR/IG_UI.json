@@ -303,5 +303,7 @@
     "IGUI_KnoxPass_MapLayer": "Portões que seu módulo de relógio abre",
     "IGUI_KnoxPass_MapNamesMini": "Mostrar tipos de portão no minimapa",
     "IGUI_KnoxPass_MapNamesWorld": "Mostrar tipos de portão no mapa do mundo",
+    "IGUI_KnoxPass_RoadText": "Texto KNOX PASS no asfalto",
+    "IGUI_KnoxPass_RoadText_tooltip": "As cancelas e as cancelas duplas têm KNOX PASS pintado no asfalto, para mostrar que o portão bloqueia veículos. Desmarque para esconder o texto só na sua tela. A linha de parada branca continua.",
     "IGUI_KnoxPass_WhatsNew": "Portão de tela de dois andares: 15 cores. Porta de enrolar de dois andares: 16. Cada um leva tinta."
 }

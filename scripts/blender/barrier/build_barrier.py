@@ -25,6 +25,8 @@ export/knoxpass_barrier_arm.glb      skinned: armature Dummy01, DoorBone = 0.16 
                                      keyed every frame on the shared ease (scripts/blender/ease.py; Close = reverse)
 export/knoxpass_barrier_lines.glb    static: road paint, 2 cm above the floor: white stop line + amber KNOX PASS on
                                      both sides of the gate line, text facing oncoming traffic (Barlow, OFL)
+export/knoxpass_barrier_lines_plain.glb  static: the same stop lines without KNOX PASS (player option
+                                     "KNOX PASS text on barrier roads" off, client/RoadText.lua)
 export/knoxpass_barrier_empty.glb    static: one ~1 mm triangle 1 cm under the floor ("render nothing")
 export/knoxpass_reader_post.glb      static: Knox Pass reader hung on a door post (gate reader install), both faces
                                      of the wall line: steel back plate + cream radome with the navy KNOX PASS band
@@ -256,15 +258,16 @@ def arm(m):
               lambda ax, s: "dark")
 
 
-def lines(m):
+def lines(m, text=True):
     """Road paint over lanes 1..3 (x 0.5..3.5), mirrored about the gate line: stop line 0.55-0.75 from the line,
-    KNOX PASS beyond it, letters upright for the driver approaching that side."""
+    KNOX PASS beyond it (text=False: stop lines only), letters upright for the driver approaching that side."""
     z, xa, xb = 0.02, 0.56, 3.44
     for side in (-1, 1):                                  # -1 = lane-tile side (Blender -Y), +1 = the far side
         near, far = GATE_Y + side * 0.55, GATE_Y + side * 0.75
         m.quad_up(xa, min(near, far), xb, max(near, far), z, POST, "paint_white")
-        t0, t1 = GATE_Y + side * 0.95, GATE_Y + side * 1.55
-        m.text_up("KNOX PASS", xa + 0.12, min(t0, t1), xb - 0.12, max(t0, t1), z, side > 0, POST, "amber")
+        if text:
+            t0, t1 = GATE_Y + side * 0.95, GATE_Y + side * 1.55
+            m.text_up("KNOX PASS", xa + 0.12, min(t0, t1), xb - 0.12, max(t0, t1), z, side > 0, POST, "amber")
 
 
 def empty(m):
@@ -385,5 +388,6 @@ def build_variant(name, parts, rigged, blend=None, tex=TEX):
 build_variant("knoxpass_barrier_cabinet", cabinet, False, blend="barrier_cabinet.blend")
 build_variant("knoxpass_barrier_arm", arm, True, blend="barrier_arm.blend")
 build_variant("knoxpass_barrier_lines", lines, False)
+build_variant("knoxpass_barrier_lines_plain", lambda m: lines(m, text=False), False)
 build_variant("knoxpass_barrier_empty", empty, False)
 build_variant("knoxpass_reader_post", reader_post, False, tex=READER_TEX)

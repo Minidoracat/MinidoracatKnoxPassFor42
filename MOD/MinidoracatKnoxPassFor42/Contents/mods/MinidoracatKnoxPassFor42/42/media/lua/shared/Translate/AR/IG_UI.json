@@ -303,5 +303,7 @@
     "IGUI_KnoxPass_MapLayer": "Portones que abre tu módulo de reloj",
     "IGUI_KnoxPass_MapNamesMini": "Mostrar tipos de portón en el minimapa",
     "IGUI_KnoxPass_MapNamesWorld": "Mostrar tipos de portón en el mapa del mundo",
+    "IGUI_KnoxPass_RoadText": "Texto KNOX PASS en la calzada",
+    "IGUI_KnoxPass_RoadText_tooltip": "Las barreras levadizas y las barreras levadizas dobles tienen KNOX PASS pintado en la calzada, para que se vea que el portón detiene vehículos. Desmárcalo para ocultar el texto solo en tu pantalla. La línea de detención blanca se mantiene.",
     "IGUI_KnoxPass_WhatsNew": "Portones de malla de dos pisos: 15 colores. Puertas enrollables de dos pisos: 16. Cada uno lleva pintura."
 }

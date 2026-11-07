@@ -303,5 +303,7 @@
     "IGUI_KnoxPass_MapLayer": "ウォッチモジュールで開くゲート",
     "IGUI_KnoxPass_MapNamesMini": "ミニマップにゲートの種類を表示",
     "IGUI_KnoxPass_MapNamesWorld": "ワールドマップにゲートの種類を表示",
+    "IGUI_KnoxPass_RoadText": "遮断機の路面の KNOX PASS 表示",
+    "IGUI_KnoxPass_RoadText_tooltip": "遮断機とダブル遮断機の路面には KNOX PASS と描かれていて、\n車を止めるゲートだと分かります。\nチェックを外すと、自分の画面でだけ文字が消えます。\n白い停止線はそのまま残ります。",
     "IGUI_KnoxPass_WhatsNew": "2 階建てゲートの金網に 15 色、2 階建てガレージシャッターは 16 色になりました。建てるには同じ色の塗料缶が 1 つ必要です。"
 }

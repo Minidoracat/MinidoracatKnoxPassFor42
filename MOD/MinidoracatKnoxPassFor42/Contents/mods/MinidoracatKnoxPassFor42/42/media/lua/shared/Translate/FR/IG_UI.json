@@ -303,5 +303,7 @@
     "IGUI_KnoxPass_MapLayer": "Portails ouverts par votre module de montre",
     "IGUI_KnoxPass_MapNamesMini": "Afficher les types de portail sur la mini-carte",
     "IGUI_KnoxPass_MapNamesWorld": "Afficher les types de portail sur la carte du monde",
+    "IGUI_KnoxPass_RoadText": "Texte KNOX PASS sur la chaussée",
+    "IGUI_KnoxPass_RoadText_tooltip": "Les barrières levantes et les doubles barrières levantes ont KNOX PASS peint sur la chaussée, pour montrer que le portail arrête les véhicules. Décochez pour masquer le texte sur votre écran uniquement. La ligne d'arrêt blanche reste.",
     "IGUI_KnoxPass_WhatsNew": "Portails grillagés de 2 étages : 15 couleurs. Portes enroulables de 2 étages : 16. Un pot de peinture."
 }

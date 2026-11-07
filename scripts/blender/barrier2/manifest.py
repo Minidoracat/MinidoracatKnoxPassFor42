@@ -106,6 +106,16 @@ for L in WIDTHS:
                        "rest_posts_x": [3 * c + 0.5 for c in range(1, L // 3)],
                        "stop_sign_x": [2.0, round(2 * m - 2.0, 3)]},
     }
+    # 沒有路面字的版本（玩家選項關掉時 client/RoadText.lua 換上）：同一套骨架與 clip，只少了 KNOX PASS 字
+    plain = f"barrier2_boom{L}_plain"
+    models[model(L) + "Plain"] = {
+        **models[model(L)],
+        "glb": f"{REL}/export/knoxpass_{plain}.glb",
+        "ship": f"media/models_X/IsoObject/MinidoracatKnoxPass_{plain}.glb",
+        "model_script": {**models[model(L)]["model_script"], "mesh": f"IsoObject/MinidoracatKnoxPass_{plain}",
+                         "animationsMesh": model(L) + "Plain",
+                         "animationsMesh_meshFile": f"IsoObject/MinidoracatKnoxPass_{plain}"},
+    }
 
 manifest = {
     "kind": "barrier2", "tileset": "MinidoracatKnoxPass_barrier2", "tileset_number": 4,

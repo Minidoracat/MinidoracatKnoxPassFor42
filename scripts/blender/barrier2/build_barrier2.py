@@ -1,7 +1,10 @@
 """Knox Pass double boom barrier (barrier2): one animated model per width, exported to export/*.glb.
 用法：blender -b --factory-startup --python build_barrier2.py      (rebuild order: README.md)
-    KNOXPASS_FAST=1 blender -b --factory-startup --python build_barrier2.py   # export/knoxpass_barrier2_boom{6,9}_fast.glb:
+    KNOXPASS_FAST=1 blender -b --factory-startup --python build_barrier2.py   # export/knoxpass_barrier2_boom{6,9}{,_plain}_fast.glb:
                                                                     # 每扇門可選的「加速」，clip 3.75 s（build_barrier.py FAST）
+
+export/knoxpass_barrier2_boom{6,9}_plain.glb  the same model without the KNOX PASS road text, stop lines kept (player
+    option "KNOX PASS text on barrier roads" off, client/RoadText.lua)
 
 export/knoxpass_barrier2_boom{6,9}.glb  skinned, armature Dummy01:
     DoorBone  = boom A (pivot at the end-A cabinet, tip toward +X), same 0.16 x 0.10 red/white boom, end cap and
@@ -120,16 +123,18 @@ def rest_posts(m, L):
             m.box((px - 0.015, yc - 0.006, top - 0.02), (px + 0.015, yc + 0.006, top + 0.12), POST, lambda ax, s: "dark")
 
 
-def paint(m, L):
-    """Road paint of the single barrier (build_barrier.py lines()) repeated per 3-tile car lane."""
+def paint(m, L, text=True):
+    """Road paint of the single barrier (build_barrier.py lines()) repeated per 3-tile car lane; text=False: stop
+    lines only."""
     z = 0.02
     for c in range(L // 3):
         xa, xb = 0.56 + 3 * c, 3.44 + 3 * c
         for side in (-1, 1):                              # -1 = lane-tile side, +1 = far side of the gate line
             near, far = B.GATE_Y + side * 0.55, B.GATE_Y + side * 0.75
             m.quad_up(xa, min(near, far), xb, max(near, far), z, POST, "paint_white")
-            t0, t1 = B.GATE_Y + side * 0.95, B.GATE_Y + side * 1.55
-            m.text_up("KNOX PASS", xa + 0.12, min(t0, t1), xb - 0.12, max(t0, t1), z, side > 0, POST, "amber")
+            if text:
+                t0, t1 = B.GATE_Y + side * 0.95, B.GATE_Y + side * 1.55
+                m.text_up("KNOX PASS", xa + 0.12, min(t0, t1), xb - 0.12, max(t0, t1), z, side > 0, POST, "amber")
 
 
 def add_rig(sc, obj, L):
@@ -179,8 +184,9 @@ def add_rig(sc, obj, L):
     return rig
 
 
-def build(L):
-    name = f"knoxpass_barrier2_boom{L}" + ("_fast" if B.FAST else "")   # KNOXPASS_FAST=1：同一個模型，clip 用 B.F1 的加速版
+def build(L, text=True):
+    # KNOXPASS_FAST=1：同一個模型，clip 用 B.F1 的加速版；text=False：沒有路面字的版本
+    name = f"knoxpass_barrier2_boom{L}" + ("" if text else "_plain") + ("_fast" if B.FAST else "")
     bpy.ops.wm.read_factory_settings(use_empty=True)
     sc = bpy.context.scene
     sc.render.fps, sc.render.fps_base = B.FPS, 1.0
@@ -189,7 +195,7 @@ def build(L):
     m = B.Builder()
     booms(m, L)
     rest_posts(m, L)
-    paint(m, L)
+    paint(m, L, text)
     me = m.to_mesh(name)
     me.materials.append(B.build_material())
     obj = bpy.data.objects.new(name, me)
@@ -210,3 +216,4 @@ def build(L):
 
 for L in WIDTHS:
     build(L)
+    build(L, text=False)

@@ -1,4 +1,4 @@
-"""Re-import export/knoxpass_barrier2_boom*.glb (and the KNOXPASS_FAST=1 *_fast.glb) into an empty scene and check what
+"""Re-import export/knoxpass_barrier2_boom*.glb (the *_plain.glb without road text and the KNOXPASS_FAST=1 *_fast.glb) into an empty scene and check what
 the engine will get: glTF nodes, skin joints, clips (6.0 s; *_fast 3.75 s), both boom angles at clip start / middle /
 end, closed / open boxes, per-part boxes (atlas classify, as scripts/blender/barrier/verify_export.py). Fails on any
 mismatch.
@@ -141,10 +141,13 @@ def verify(glb, L):
     assert posts == [3 * c + 0.5 for c in range(1, L // 3)], posts           # car-lane boundaries only
     paint = box([ws[i] for i in cls["paint_white"]])
     assert paint[0][2] == paint[1][2] == 0.02 and paint[0][1] < 0 < 1 < paint[1][1], paint
+    road_text = [i for i in cls.get("amber", []) if abs(ws[i].z - 0.02) < 1e-4]   # KNOX PASS on the road (2 cm up)
+    out(f"  road text verts {len(road_text)}")
+    assert bool(road_text) != glb.stem.startswith(f"knoxpass_barrier2_boom{L}_plain"), (glb.name, len(road_text))
 
 
 for L in (6, 9):
-    for suffix in ("", "_fast"):
+    for suffix in ("", "_fast", "_plain", "_plain_fast"):
         verify(HERE / "export" / f"knoxpass_barrier2_boom{L}{suffix}.glb", L)
 (HERE / "export" / "verify.txt").write_text("\n".join(log) + "\n", encoding="utf-8")
 print("[verify] OK")

@@ -344,6 +344,15 @@ MODEL_SCRIPT = """module Base
         undoCoreScale = true,
     }
 
+    model MinidoracatKnoxPass_BarrierLinesPlain
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_barrier_lines_plain,
+        texture = IsoObject/MinidoracatKnoxPass_barrier,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
     model MinidoracatKnoxPass_BarrierEmpty
     {
         mesh = IsoObject/MinidoracatKnoxPass_barrier_empty,
@@ -655,7 +664,7 @@ KIT_ICON = MEDIA / "textures" / "Item_MinidoracatKnoxPassBarrierKit.png"
 def assets() -> list[tuple[Path, Path]]:
     out = [(BLENDER / "export" / f"knoxpass_barrier_{p}.glb",
             MEDIA / "models_X" / "IsoObject" / f"MinidoracatKnoxPass_barrier_{p}.glb")
-           for p in ("arm", "arm_fast", "cabinet", "lines", "empty")]
+           for p in ("arm", "arm_fast", "cabinet", "lines", "lines_plain", "empty")]
     for suffix in ("", "_green"):
         out.append((BLENDER / "textures" / f"knoxpass_barrier{suffix}.png",
                     MEDIA / "textures" / "IsoObject" / f"MinidoracatKnoxPass_barrier{suffix}.png"))

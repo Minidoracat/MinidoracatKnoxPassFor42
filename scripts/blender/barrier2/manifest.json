@@ -103,6 +103,91 @@
     ]
    }
   },
+  "MinidoracatKnoxPass_Barrier2Boom6Plain": {
+   "glb": "scripts/blender/barrier2/export/knoxpass_barrier2_boom6_plain.glb",
+   "ship": "media/models_X/IsoObject/MinidoracatKnoxPass_barrier2_boom6_plain.glb",
+   "model_script": {
+    "mesh": "IsoObject/MinidoracatKnoxPass_barrier2_boom6_plain",
+    "animationsMesh": "MinidoracatKnoxPass_Barrier2Boom6Plain",
+    "animationsMesh_meshFile": "IsoObject/MinidoracatKnoxPass_barrier2_boom6_plain",
+    "keepMeshAnimations": true,
+    "texture": "IsoObject/MinidoracatKnoxPass_barrier",
+    "shader": "door",
+    "static": false,
+    "scale": 1.0,
+    "undoCoreScale": true
+   },
+   "origin": "end-A cabinet tile centre on the floor; +X along the lane row (lane k centre x = k, end B x = L+1), +Y toward the gate edge (y = +0.5); glb +Y up (Khronos exporter), 1 unit = 1 tile",
+   "armature": "Dummy01",
+   "bones": {
+    "PostBone": {
+     "head": [
+      0,
+      0,
+      0
+     ],
+     "moves": false,
+     "carries": "both pivot lamps, rest posts, road paint"
+    },
+    "DoorBone": {
+     "head": [
+      0.27,
+      0.3,
+      1.0
+     ],
+     "moves": true,
+     "carries": "boom A (tip +X), STOP sign"
+    },
+    "DoorBoneB": {
+     "head": [
+      6.73,
+      0.3,
+      1.0
+     ],
+     "moves": true,
+     "carries": "boom B (tip -X), STOP sign"
+    }
+   },
+   "clips": {
+    "Open": {
+     "seconds": 6.0,
+     "fps": 24,
+     "frames": [
+      1,
+      145
+     ],
+     "deg": [
+      0.0,
+      86.0
+     ]
+    },
+    "Close": {
+     "seconds": 6.0,
+     "fps": 24,
+     "frames": [
+      1,
+      145
+     ],
+     "deg": [
+      86.0,
+      0.0
+     ]
+    },
+    "curve": "ease (scripts/blender/ease.py): angle = 86 * ease(t), baked on every frame; Close = Open reversed; shared with MinidoracatKnoxPass_BarrierArm",
+    "note": "both booms together, same angles/timing as MinidoracatKnoxPass_BarrierArm"
+   },
+   "boom_reach": {
+    "pivot_to_cap_end": 3.215,
+    "booms_meet_x": 3.5,
+    "rest_posts_x": [
+     3.5
+    ],
+    "stop_sign_x": [
+     2.0,
+     5.0
+    ]
+   }
+  },
   "MinidoracatKnoxPass_Barrier2Boom9": {
    "glb": "scripts/blender/barrier2/export/knoxpass_barrier2_boom9.glb",
    "ship": "media/models_X/IsoObject/MinidoracatKnoxPass_barrier2_boom9.glb",
@@ -110,6 +195,92 @@
     "mesh": "IsoObject/MinidoracatKnoxPass_barrier2_boom9",
     "animationsMesh": "MinidoracatKnoxPass_Barrier2Boom9",
     "animationsMesh_meshFile": "IsoObject/MinidoracatKnoxPass_barrier2_boom9",
+    "keepMeshAnimations": true,
+    "texture": "IsoObject/MinidoracatKnoxPass_barrier",
+    "shader": "door",
+    "static": false,
+    "scale": 1.0,
+    "undoCoreScale": true
+   },
+   "origin": "end-A cabinet tile centre on the floor; +X along the lane row (lane k centre x = k, end B x = L+1), +Y toward the gate edge (y = +0.5); glb +Y up (Khronos exporter), 1 unit = 1 tile",
+   "armature": "Dummy01",
+   "bones": {
+    "PostBone": {
+     "head": [
+      0,
+      0,
+      0
+     ],
+     "moves": false,
+     "carries": "both pivot lamps, rest posts, road paint"
+    },
+    "DoorBone": {
+     "head": [
+      0.27,
+      0.3,
+      1.0
+     ],
+     "moves": true,
+     "carries": "boom A (tip +X), STOP sign"
+    },
+    "DoorBoneB": {
+     "head": [
+      9.73,
+      0.3,
+      1.0
+     ],
+     "moves": true,
+     "carries": "boom B (tip -X), STOP sign"
+    }
+   },
+   "clips": {
+    "Open": {
+     "seconds": 6.0,
+     "fps": 24,
+     "frames": [
+      1,
+      145
+     ],
+     "deg": [
+      0.0,
+      86.0
+     ]
+    },
+    "Close": {
+     "seconds": 6.0,
+     "fps": 24,
+     "frames": [
+      1,
+      145
+     ],
+     "deg": [
+      86.0,
+      0.0
+     ]
+    },
+    "curve": "ease (scripts/blender/ease.py): angle = 86 * ease(t), baked on every frame; Close = Open reversed; shared with MinidoracatKnoxPass_BarrierArm",
+    "note": "both booms together, same angles/timing as MinidoracatKnoxPass_BarrierArm"
+   },
+   "boom_reach": {
+    "pivot_to_cap_end": 4.715,
+    "booms_meet_x": 5.0,
+    "rest_posts_x": [
+     3.5,
+     6.5
+    ],
+    "stop_sign_x": [
+     2.0,
+     8.0
+    ]
+   }
+  },
+  "MinidoracatKnoxPass_Barrier2Boom9Plain": {
+   "glb": "scripts/blender/barrier2/export/knoxpass_barrier2_boom9_plain.glb",
+   "ship": "media/models_X/IsoObject/MinidoracatKnoxPass_barrier2_boom9_plain.glb",
+   "model_script": {
+    "mesh": "IsoObject/MinidoracatKnoxPass_barrier2_boom9_plain",
+    "animationsMesh": "MinidoracatKnoxPass_Barrier2Boom9Plain",
+    "animationsMesh_meshFile": "IsoObject/MinidoracatKnoxPass_barrier2_boom9_plain",
     "keepMeshAnimations": true,
     "texture": "IsoObject/MinidoracatKnoxPass_barrier",
     "shader": "door",

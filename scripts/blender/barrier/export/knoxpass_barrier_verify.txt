@@ -133,3 +133,15 @@ vertex groups [] verts=1238 tris=1214 uv=['UVMap'] images=[('knoxpass_barrier', 
 static bbox ([0.56, -1.05, 0.02], [3.44, 2.05, 0.02])
   static part amber        min [0.68, -1.05, 0.02] max [3.32, 2.05, 0.02] size [2.64, 3.1, 0.0]
   static part paint_white  min [0.56, -0.25, 0.02] max [3.44, 1.25, 0.02] size [2.88, 1.5, 0.0]
+
+==================== knoxpass_barrier_lines_plain.glb (19712 bytes)
+asset {'generator': 'Khronos glTF Blender I/O v5.2.41', 'version': '2.0'}
+node 0 {'mesh': 0, 'name': 'knoxpass_barrier_lines_plain'}
+skins None
+materials [{'doubleSided': True, 'name': 'knoxpass_barrier', 'pbrMetallicRoughness': {'baseColorTexture': {'index': 0}, 'metallicFactor': 0, 'roughnessFactor': 0.5}}]
+images [{'bufferView': 4, 'mimeType': 'image/png', 'name': 'knoxpass_barrier'}]
+mesh knoxpass_barrier_lines_plain attrs=['NORMAL', 'POSITION', 'TEXCOORD_0'] POSITION(glTF Y-up) min=[0.56, 0.02, -1.25] max=[3.44, 0.02, 0.25]
+-- re-import: objects [('knoxpass_barrier_lines_plain', 'MESH')] (Icosphere = importer bone shape)
+vertex groups [] verts=8 tris=4 uv=['UVMap'] images=[('knoxpass_barrier', (512, 512))]
+static bbox ([0.56, -0.25, 0.02], [3.44, 1.25, 0.02])
+  static part paint_white  min [0.56, -0.25, 0.02] max [3.44, 1.25, 0.02] size [2.88, 1.5, 0.0]

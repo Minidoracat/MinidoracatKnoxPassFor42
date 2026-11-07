@@ -17,6 +17,23 @@ module Base
         keepMeshAnimations = true,
     }
 
+    model MinidoracatKnoxPass_Barrier2Boom6Plain
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_barrier2_boom6_plain,
+        animationsMesh = MinidoracatKnoxPass_Barrier2Boom6Plain,
+        texture = IsoObject/MinidoracatKnoxPass_barrier,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_Barrier2Boom6Plain
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_barrier2_boom6_plain,
+        keepMeshAnimations = true,
+    }
+
     model MinidoracatKnoxPass_Barrier2Boom9
     {
         mesh = IsoObject/MinidoracatKnoxPass_barrier2_boom9,
@@ -31,6 +48,23 @@ module Base
     animationsMesh MinidoracatKnoxPass_Barrier2Boom9
     {
         meshFile = IsoObject/MinidoracatKnoxPass_barrier2_boom9,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_Barrier2Boom9Plain
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_barrier2_boom9_plain,
+        animationsMesh = MinidoracatKnoxPass_Barrier2Boom9Plain,
+        texture = IsoObject/MinidoracatKnoxPass_barrier,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_Barrier2Boom9Plain
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_barrier2_boom9_plain,
         keepMeshAnimations = true,
     }
 
@@ -51,6 +85,23 @@ module Base
         keepMeshAnimations = true,
     }
 
+    model MinidoracatKnoxPass_Barrier2Boom6PlainFast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_barrier2_boom6_plain_fast,
+        animationsMesh = MinidoracatKnoxPass_Barrier2Boom6PlainFast,
+        texture = IsoObject/MinidoracatKnoxPass_barrier,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_Barrier2Boom6PlainFast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_barrier2_boom6_plain_fast,
+        keepMeshAnimations = true,
+    }
+
     model MinidoracatKnoxPass_Barrier2Boom9Fast
     {
         mesh = IsoObject/MinidoracatKnoxPass_barrier2_boom9_fast,
@@ -65,6 +116,23 @@ module Base
     animationsMesh MinidoracatKnoxPass_Barrier2Boom9Fast
     {
         meshFile = IsoObject/MinidoracatKnoxPass_barrier2_boom9_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_Barrier2Boom9PlainFast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_barrier2_boom9_plain_fast,
+        animationsMesh = MinidoracatKnoxPass_Barrier2Boom9PlainFast,
+        texture = IsoObject/MinidoracatKnoxPass_barrier,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_Barrier2Boom9PlainFast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_barrier2_boom9_plain_fast,
         keepMeshAnimations = true,
     }
 

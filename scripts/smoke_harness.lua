@@ -1215,22 +1215,32 @@ local function templateHook(key)
     for seg in string.gmatch(string.match(TEMPLATE_SRC, key .. " = ([%w_.]+),") or "", "[^.]+") do f = f and f[seg] end
     return f ~= _G and f or nil
 end
--- 加速版 spriteModel（虛擬 tileset MinidoracatKnoxPassFast_*）只認真正登錄在 spriteModels.txt 的名稱
--- （build_barrier_tiles.py FAST_TILESET；名稱＝tileset_索引，SpriteModels.java:81-96）。檔案不在（植入破壞的暫存複本）就一個都沒有
-local FAST_SM = (function()
-    local set = {}
+-- spriteModels.txt 每一格（名稱＝tileset_索引，SpriteModels.java:81-96）的模型腳本名稱；加速版（虛擬 tileset
+-- MinidoracatKnoxPassFast_*，build_barrier_tiles.py FAST_TILESET）只認真正登錄在檔案裡的名稱。
+-- 檔案不在（植入破壞的暫存複本）就一個都沒有
+local SM_MODEL, FAST_SM = (function()
+    local models, fast = {}, {}
     local f = io.open(MEDIA .. "/../../../common/media/spriteModels.txt", "r")
-    if not f then return set end
+    if not f then return models, fast end
     local src = f:read("*a")
     f:close()
     for block in string.gmatch(src, "tileset%s*{(.-)\n    }") do
-        local name = string.match(block, "name = (MinidoracatKnoxPassFast_[%w_]+),")
-        if name then
-            for c, r in string.gmatch(block, "xy = (%d+) (%d+),") do set[name .. "_" .. (tonumber(c) + 8 * tonumber(r))] = true end
+        local name = string.match(block, "name = ([%w_]+),")
+        for c, r, m in string.gmatch(block, "xy = (%d+) (%d+),%s*modelScript = ([%w_.]+),") do
+            local key = name .. "_" .. (tonumber(c) + 8 * tonumber(r))
+            models[key] = m
+            if string.match(name, "^MinidoracatKnoxPassFast_") then fast[key] = true end
         end
     end
-    return set
+    return models, fast
 end)()
+local function mockSpriteModel(model)
+    return { _time = 0, _model = model,
+        setAnimationTime = function(s, t) s._time = t; W.smSets = (W.smSets or 0) + 1 end,
+        getAnimationTime = function(s) return s._time end,
+        getModelScriptName = function(s) return s._model end,
+        setModelScriptName = function(s, m) s._model = m end }
+end
 function getScriptManager()
     return {
         getVehicleTemplate = function(_, name)
@@ -1245,20 +1255,39 @@ function getScriptManager()
             return { getMeshName = function() if m ~= true then return m end end }
         end,
         -- spriteModels.txt 的每個 tile 都登錄成名稱「tileset_索引」的 SpriteModel 腳本物件（SpriteModels.java:81-96）；
-        -- 同名回同一個物件。setAnimationTime 改的就是畫面用的那個（IsoObject.getSpriteModel 照名稱取，IsoObject.java:6280-6286）
+        -- 同名回同一個物件。setAnimationTime 改的就是畫面用的那個（IsoObject.getSpriteModel 照名稱取，IsoObject.java:6280-6286）；
+        -- 模型名稱照檔案（SpriteModel.java:39），setModelScriptName 改了之後畫面照新名稱取模型（IsoObjectModelDrawer.java:101）
         getSpriteModel = function(_, name)
             if not string.match(name, "^MinidoracatKnoxPass_") and not FAST_SM[name] then return nil end
             W.spriteModels = W.spriteModels or {}
             local sm = W.spriteModels[name]
             if not sm then
-                sm = { _time = 0, setAnimationTime = function(s, t) s._time = t; W.smSets = (W.smSets or 0) + 1 end,
-                    getAnimationTime = function(s) return s._time end }
+                sm = mockSpriteModel(SM_MODEL[name])
                 W.spriteModels[name] = sm
             end
             return sm
         end,
     }
 end
+-- 同一格的 tile 那份（SpriteModelsFile.Tile.spriteModel，IsoSprite.spriteModel 指的就是它，門靜止時畫它：
+-- IsoObject.java:6288-6294）：載入時腳本那份從它複製（SpriteModels.java:85-88），之後兩份互不相干，
+-- 只有 SpriteModelManager 拿得到（LuaManager.java:2395）。模組 ID 照引擎：原版 "game" 加各 MOD
+local SM_MOD_ID, SM_TILESETS = "MinidoracatKnoxPassFor42", {}
+for name in pairs(SM_MODEL) do SM_TILESETS[string.match(name, "^(.+)_%d+$")] = true end
+SpriteModelManager = { getInstance = function()
+    local function known(id, ts) return id == SM_MOD_ID and SM_TILESETS[ts] == true end
+    return {
+        getModIDs = function() return javaList({ "game", SM_MOD_ID }) end,
+        findTileset = function(_, id, ts) return known(id, ts) and { name = ts } or nil end,
+        getTileProperties = function(_, id, ts, col, row)
+            local name = ts .. "_" .. math.floor(col + 8 * row)
+            if not known(id, ts) or not SM_MODEL[name] then return nil end
+            W.tileModels = W.tileModels or {}
+            W.tileModels[name] = W.tileModels[name] or mockSpriteModel(SM_MODEL[name])
+            return W.tileModels[name]
+        end,
+    }
+end }
 
 -- ===== GOS（零物件系統）與存檔 =====
 local SAVE = {}       -- 模擬 gos_<name>.bin
@@ -5833,6 +5862,94 @@ local function scenarioIndestructible()
     check(ok and door:getHealth() == KP.Sensor.SHIELD_HP, "SP：玩家自己就能替門開，當下墊高")
 end
 
+-- 路面 KNOX PASS 字的 MOD 選項（client/RoadText.lua，2026-11-08 Workshop 玩家要求）：spriteModel 帶真的 spriteModels.txt 的模型名稱。
+-- 預設不換；關掉時路面（BarrierLines）與雙桿臂模型（Barrier2Boom*，含加速版與 BarrierAnim 的姿勢通道）每一格都換成同寬、
+-- 同速的沒字版本，換上的名稱在模型腳本裡真的有（名稱錯了引擎畫不出來，整支閘門消失：IsoObjectModelDrawer.java:101-103），
+-- 其他格不動；每格的腳本與 tile 兩份都換（只換腳本那份時靜止的門照樣有字：E2E knoxpass-roadtext-1108x1）；
+-- 再套用一次不疊加；勾回來還原；進遊戲時已經關著也照換；Lua 重載後勾著進遊戲也換回來
+local function scenarioRoadText()
+    out("情境：路面 KNOX PASS 字的 MOD 選項")
+    freshWorld("sp")
+    local models = {}
+    for _, f in ipairs({ "models_knoxpass_barrier.txt", "models_knoxpass_gates.txt" }) do
+        local h = assert(io.open(MEDIA .. "/../scripts/" .. f, "r"))
+        for name in string.gmatch(h:read("*a"), "\n%s*model ([%w_]+)") do models["Base." .. name] = true end
+        h:close()
+    end
+    local page, opt = nil, nil
+    PZAPI = { ModOptions = {
+        create = function(_, id, title)
+            page = { id = id, title = title }
+            function page:addTickBox(oid, label, value)
+                opt = { id = oid, label = label, value = value, getValue = function(s) return s.value end }
+                return opt
+            end
+            function page:getOption(oid) return opt and opt.id == oid and opt or nil end
+            return page
+        end,
+        load = function() end,
+    } }
+    assert(loadfile(MEDIA .. "/client/MinidoracatKnoxPass/RoadText.lua"))()
+    check(page and page.id == "MinidoracatKnoxPass" and opt and opt.id == "RoadText" and opt.value == true,
+        "選項頁 MinidoracatKnoxPass 有 RoadText 勾選框，預設勾著")
+    local sms, mgr = getScriptManager(), SpriteModelManager.getInstance()
+    -- 任一份和檔案不同就記下；兩份不一樣時記成 script=…/tile=…，一定對不上預期
+    local function changed()
+        local out = {}
+        for name, orig in pairs(SM_MODEL) do
+            local ts, i = string.match(name, "^(.+)_(%d+)$")
+            i = tonumber(i)
+            local a = sms:getSpriteModel(name):getModelScriptName()
+            local b = mgr:getTileProperties(SM_MOD_ID, ts, i % 8, math.floor(i / 8)):getModelScriptName()
+            if a ~= orig or b ~= orig then out[name] = a == b and a or ("script=" .. a .. " tile=" .. b) end
+        end
+        return out
+    end
+    fire("OnGameStart")
+    check(next(changed()) == nil, "勾著進遊戲：一格都不換")
+
+    opt.value = false
+    page:apply()
+    local got = changed()
+    local textTiles, ok = 0, true
+    for name, orig in pairs(SM_MODEL) do
+        local want = nil
+        local fast = string.match(orig, "Fast$") or ""
+        local base = string.sub(orig, 1, #orig - #fast)
+        if base == "Base.MinidoracatKnoxPass_BarrierLines" or string.match(base, "^Base%.MinidoracatKnoxPass_Barrier2Boom%d$") then
+            want = base .. "Plain" .. fast
+            textTiles = textTiles + 1
+        end
+        if got[name] ~= want or (want and not models[want]) then
+            ok = false
+            out("    " .. name .. " " .. orig .. " -> " .. tostring(got[name]) .. "（應為 " .. tostring(want) .. "）")
+        end
+    end
+    check(ok and textTiles > 0, "取消勾選套用：有字的 " .. textTiles .. " 格換成同寬同速的沒字版本、模型腳本裡都有，其他格不動")
+    check(got["MinidoracatKnoxPass_barrier2_33"] == "Base.MinidoracatKnoxPass_Barrier2Boom6Plain",
+        "BarrierAnim 的姿勢通道（雙桿 6N 抬起組）也換：補播時同樣沒字")
+    page:apply()
+    local again, same = changed(), true
+    for name, m in pairs(got) do if again[name] ~= m then same = false end end
+    check(same, "關著再套用一次：不疊加")
+
+    opt.value = true
+    page:apply()
+    check(next(changed()) == nil, "勾回來套用：每一格回到原本的模型")
+
+    opt.value = false
+    fire("OnGameStart")
+    check(changed()["MinidoracatKnoxPass_barrier_1"] == "Base.MinidoracatKnoxPass_BarrierLinesPlain",
+        "進遊戲時已經關著：單臂閘門的路面直接是沒字的版本")
+
+    -- Lua 重載：SpriteModel 是 Java 物件、換過的名稱還在，新的 Lua 狀態不知道換過哪些
+    handlers.OnGameStart = nil
+    assert(loadfile(MEDIA .. "/client/MinidoracatKnoxPass/RoadText.lua"))()
+    fire("OnGameStart")
+    check(opt.value == true and next(changed()) == nil, "Lua 重載後勾著進遊戲：上一次換掉的每一格都換回有字的模型")
+    PZAPI = nil
+end
+
 local tests = {
     scenarioParts, scenarioDock, scenarioDetection, scenarioAutoClose, scenarioLocks, scenarioCommands,
     scenarioSinglePlayer, scenarioLedger, scenarioCharging, scenarioReopen, scenarioUninstallOpen, scenarioGarage,
@@ -5841,6 +5958,7 @@ local tests = {
     scenarioReaderPost, scenarioColors, scenarioLoot, scenarioBarrierMirror, scenarioRollDoor, scenarioSettings,
     scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioUpperWall, scenarioLaggyEcho, scenarioShare,
     scenarioCoManagers, scenarioOutsideSafehouse, scenarioWatchWalk, scenarioWatchMissing, scenarioNeatCrafting, scenarioWatchDrive, scenarioIndestructible,
+    scenarioRoadText,
 }
 for _, t in ipairs(tests) do t() end
 
