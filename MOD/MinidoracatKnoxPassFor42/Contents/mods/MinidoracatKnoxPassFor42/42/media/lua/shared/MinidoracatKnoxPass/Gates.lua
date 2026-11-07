@@ -145,7 +145,10 @@ end
 -- 重算一格會存檔並把整塊區域資料廣播給所有客戶端（IsoRegionWorker.java:242-262），所以只在對不上時呼叫。
 -- squareChanged 只在位元和靜態 previousFlags 不同時排工作，setPreviousFlags(nil) 把它歸 0（calculateSquareFlags(null)＝0）
 -- ponytail: 位元 0 的格（沒地板、門片開著）排不進去、維持原狀；真遇到再找別的方法讓 previousFlags 不等於 0
+-- 地下室（z < 0）不在室內判定裡：getSquareFlags 拿 z 當陣列索引，負數丟 ArrayIndexOutOfBoundsException（DataRoot.java:400、
+-- DataChunk.java:124-126），引擎自己的 squareChanged 也略過（IsoRegionWorker.java:379）。不擋的話每 5 秒的巡檢整輪中斷
 local function syncSquare(sq)
+    if sq:getZ() < 0 then return end
     local stored = IsoRegions.getSquareFlags(sq:getX(), sq:getY(), sq:getZ())
     if stored ~= -1 and stored ~= regionFlags(sq) then
         IsoRegions.setPreviousFlags(nil)
@@ -428,8 +431,11 @@ function G.supportsLock(adapter)
 end
 
 -- 「算室內」（rec.indoor）：原版車庫門鏈（地圖車庫門、捲門、模型門、閘門）開著也記成牆，回 "yes"。
--- 每片都在門框裡的門開著也算牆（doorFrN／doorFrW，IsoRegions.java:329-341），回 "framed"；其他門（柵欄門、MOD 的門）回 "no"
+-- 每片都在門框裡的門開著也算牆（doorFrN／doorFrW，IsoRegions.java:329-341），回 "framed"；其他門（柵欄門、MOD 的門）回 "no"。
+-- 地下室的門也回 "no"：引擎不記負樓層的室內判定，核對整個略過（syncSquare），勾了也沒作用
 function G.indoorSupport(adapter, anchor)
+    local at = anchor:getSquare()
+    if at and at:getZ() < 0 then return "no" end
     if adapter == doorAdapter and isGarage(anchor) then return "yes" end
     for _, p in ipairs(G.pieces(adapter, anchor)) do
         local sq = p:getSquare()
