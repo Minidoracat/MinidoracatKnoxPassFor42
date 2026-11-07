@@ -127,7 +127,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [list]
 [*] [b]Closed[/b]: the pivot lamp is red and a STOP sign hangs from the arm.
 [*] [b]Opening for a registered car[/b]: the arm lifts over about 4 seconds, easing in and out, and the lamp turns green.
-[*] [b]Lane[/b]: stop lines and KNOX PASS lettering are painted on both sides.
+[*] [b]Lane[/b]: stop lines and KNOX PASS lettering are painted on both sides. To hide the lettering, untick "KNOX PASS text on barrier roads" under Options → MODS → Minidoracat Knox Pass and press Apply; it works for the double boom barrier too, and the white stop lines stay. The option only changes your own screen.
 [/list]
 [h3]Removing and damage[/h3]
 [list]

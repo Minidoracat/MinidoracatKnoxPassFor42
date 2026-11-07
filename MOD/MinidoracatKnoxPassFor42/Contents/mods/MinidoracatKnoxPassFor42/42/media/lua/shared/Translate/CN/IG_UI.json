@@ -305,5 +305,5 @@
     "IGUI_KnoxPass_MapNamesWorld": "世界地图显示门的种类",
     "IGUI_KnoxPass_RoadText": "闸门路面的 KNOX PASS 字样",
     "IGUI_KnoxPass_RoadText_tooltip": "升降闸门与双杆升降闸门的路面印着 KNOX PASS，\n让人看出这是会挡车的大门。\n取消勾选只会在你自己的画面去掉字样，\n白色停止线照旧。",
-    "IGUI_KnoxPass_WhatsNew": "两层楼铁网大门多了 15 种油漆色，两层楼车库卷帘门变成 16 色；在建造菜单建造，多带一罐同色原版油漆。"
+    "IGUI_KnoxPass_WhatsNew": "闸门路面的 KNOX PASS 字可以关掉了：在「游戏选项」的「模组」页取消勾选，只改你自己的画面。"
 }

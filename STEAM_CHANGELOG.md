@@ -1,7 +1,14 @@
-[h1]Minidoracat Knox Pass for B42 42.21.0-0.9.0[/h1]
-[i]2026-11-01[/i]
+[h1]Minidoracat Knox Pass for B42 42.21.0-0.10.0[/h1]
+[i]2026-11-08[/i]
+
+[b]English summary[/b]
+[list]
+[*] The KNOX PASS text painted on barrier roads can now be hidden: untick "KNOX PASS text on barrier roads" under Options → MODS → Minidoracat Knox Pass and press Apply.
+[*] It covers the boom barrier and the double boom barrier, including gates you have already built. The white stop lines stay.
+[*] It only changes your own screen; on servers each player chooses for themselves. The text is still shown by default.
+[/list]
 
 [h3]✨ 新增[/h3]
 [list]
-[*] [b]兩層樓大門與兩層樓車庫捲門多了油漆色[/b]：鐵網的兩層樓大門只有淺灰色，蓋到兩層樓高時和柏油路、背景混在一起，看不清楚。現在建造選單多了 15 種顏色的鐵網大門（黑、深灰、墨綠、白、紅、橘、黃、棕、淺棕、粉紅、紫、藍、淺藍、青、青綠），兩層樓車庫捲門也從 3 色變成 16 色（多了黑、深灰、深棕、紅、橘、黃、淺棕、粉紅、紫、藍、淺藍、青、青綠）。黑、深灰、墨綠、深棕比原版油漆深，其他顏色照原版油漆。每種顏色都有原本的寬度，材料和原本的款式一樣，再多一整罐同色的原版油漆（用完剩空桶）；深灰用灰色油漆、墨綠用綠色油漆、深棕用棕色油漆。鐵網大門擺放時的預覽還是淺灰鐵網，蓋好才是選的顏色。原本的款式和已經蓋好的門都不變。
+[*] [b]閘門路面的 KNOX PASS 字可以關掉[/b]：抬升閘門與雙桿抬升閘門的路面印著 KNOX PASS，提醒大家這是會擋車的大門，不是可以直接穿過的柵欄。不想看到字的話，到「選項 → 模組 → Minidoracat Knox Pass」取消勾選「閘門路面的 KNOX PASS 字樣」再按套用，已經蓋好的閘門馬上就沒有字，白色停止線照舊。這個選項只改你自己的畫面，多人伺服器上其他玩家照他們自己的設定。預設照舊有字。
 [/list]
