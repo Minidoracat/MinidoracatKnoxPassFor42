@@ -142,6 +142,7 @@ local function newWorld()
         vehicleQueries = 0, postTx = 0, paintUses = 0, modelFlags = 0, npe = {}, echoClosed = 0,
         echoQueued = 0, echoLagMs = 250, sounds = {},
         regions = {}, prevFlags = 0, regionJobs = 0,   -- 引擎記著的室內判定位元（格子 key → 位元）、IsoRegions 的 previousFlags、排了幾次重算
+        engineErrors = 0,   -- Lua 呼叫的 Java 方法丟了幾次例外（引擎記錯誤、回 nil，Lua 照樣往下跑：MethodCaller.java:34-49）
         thumpSyncs = 0,   -- IsoThumpable 在伺服器上改耐久時送出的同步（T:281-288）
     }
 end
@@ -951,9 +952,10 @@ function Square:HasStairsNorth() return false end
 function Square:HasStairsWest() return false end
 -- 引擎那一側（IsoRegions.java:241-349）：getSquareFlags 回記著的位元（沒有資料 -1）；squareChanged 位元和 previousFlags 不同才排
 -- 工作（這裡直接寫入、W.regionJobs 加一），排了就把 previousFlags 歸 0；setPreviousFlags(nil) 是 0；MP client 什麼都不做。
--- 地下室（z < 0）不在室內判定裡：getSquareFlags 拿 z 當陣列索引，負數丟例外（DataRoot.java:400、DataChunk.java:124-126）。
--- 引擎只在有那個 chunk 的資料（附近蓋過、放過東西）時才丟，沒資料回 -1（:394-408）；mock 一律丟，比引擎嚴；
--- squareChanged 的背景工作只收 z >= 0（IsoRegionWorker.java:379），previousFlags 照樣歸 0
+-- 地下室（z < 0）不在室內判定裡：getSquareFlags 拿 z 當陣列索引，負數丟例外（DataRoot.java:400、DataChunk.java:124-126；
+-- 引擎只在有那個 chunk 的資料時才丟，沒資料回 -1，DataRoot.java:394-408，mock 一律當有資料）。例外不會中斷 Lua：
+-- MethodCaller.call 接住、記一大段錯誤、不回傳值（MethodCaller.java:34-49），Lua 拿到 nil 照樣往下跑；mock 照這樣記進
+-- W.engineErrors、回 nil。squareChanged 的背景工作只收 z >= 0（IsoRegionWorker.java:379），previousFlags 照樣歸 0
 local function engineRegionFlags(sq)
     if sq == nil then return 0 end
     local f = 16
@@ -963,7 +965,7 @@ local function engineRegionFlags(sq)
 end
 IsoRegions = {
     getSquareFlags = function(x, y, z)
-        if z < 0 then error("java.lang.ArrayIndexOutOfBoundsException: Index " .. z .. " out of bounds for length 32") end
+        if z < 0 then W.engineErrors = W.engineErrors + 1; return nil end
         return W.regions[x .. "," .. y .. "," .. z] or -1
     end,
     setPreviousFlags = function(sq) W.prevFlags = engineRegionFlags(sq) end,
@@ -5959,9 +5961,9 @@ local function scenarioRoadText()
 end
 
 -- 地下室的門（Workshop 玩家 2026-11-08 回報：SP、原版地下室，console 每 5 秒一筆 ArrayIndexOutOfBoundsException）：
--- 引擎的室內判定不收負樓層（見上方 IsoRegions 的 mock）。裝了讀頭的地下室門：裝得上、Knox Pass 開得了；每 5 秒的巡檢
--- （Sensor.lua：relock → syncRegions → shieldAll）不出錯，同一輪接著做的「不會被破壞」照樣墊高地面與地下室的門
--- （巡檢出錯時整輪中斷，連地面的門都不墊）；地下室那格不寫室內判定；地下室的車庫門「算室內」寫不支援、勾不了
+-- 引擎的室內判定不收負樓層（見上方 IsoRegions 的 mock）。修正前每 5 秒的巡檢（Sensor.lua syncRegions）替地下室門的每一片
+-- 查一次，引擎每次記一大段錯誤；例外不中斷 Lua，同一輪的「不會被破壞」照樣墊高。裝了讀頭的地下室門：裝得上、Knox Pass
+-- 開得了；巡檢不讓引擎記錯誤；中途打開「不會被破壞」照樣墊高；地下室那格不寫室內判定；地下室的車庫門「算室內」寫不支援、勾不了
 local function scenarioBasement()
     out("情境：地下室的門")
     freshWorld()   -- 巡檢是伺服器那段程式（Sensor.lua），SP 跑的是同一段
@@ -5973,14 +5975,11 @@ local function scenarioBasement()
     local res = cmd(owner, "install", { x = 700, y = 100, z = -1, index = base:getObjectIndex(), itemId = reader:getID() })
     check(res.ok == true and KP.Ledger.get(res.key) ~= nil, "地下室的門裝得上讀頭")
     check(cmd(owner, "open", { key = res.key }).ok == true and base:IsOpen(), "擁有者用 Knox Pass 開地下室的門")
-    local ground = gate(720)
-    ground.door:setHealth(80)
     sb.Indestructible = true
-    local ok, err = pcall(runMs, 5250)
+    runMs(5250)
     sb.Indestructible = nil
-    check(ok, "每 5 秒的巡檢不出錯（引擎的室內判定不收負樓層）" .. (ok and "" or "：" .. tostring(err)))
-    check(ground.door:getHealth() == KP.Sensor.SHIELD_HP and base:getHealth() == KP.Sensor.SHIELD_HP,
-        "同一輪的「不會被破壞」照樣墊高地面與地下室的門")
+    check(W.engineErrors == 0, "每 5 秒的巡檢不讓引擎記錯誤（地下室的門不查引擎的室內判定）：" .. W.engineErrors .. " 筆")
+    check(base:getHealth() == KP.Sensor.SHIELD_HP, "中途打開「不會被破壞」：地下室的門照樣墊高")
     check(W.regions["700,100,-1"] == nil, "地下室那格不寫室內判定")
     local gg = makeGarage(740, 100, -1)
     local gowner = newPlayer("garage740", 741, 102, { z = -1 })

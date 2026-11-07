@@ -146,7 +146,8 @@ end
 -- squareChanged 只在位元和靜態 previousFlags 不同時排工作，setPreviousFlags(nil) 把它歸 0（calculateSquareFlags(null)＝0）
 -- ponytail: 位元 0 的格（沒地板、門片開著）排不進去、維持原狀；真遇到再找別的方法讓 previousFlags 不等於 0
 -- 地下室（z < 0）不在室內判定裡：getSquareFlags 拿 z 當陣列索引，負數丟 ArrayIndexOutOfBoundsException（DataRoot.java:400、
--- DataChunk.java:124-126），引擎自己的 squareChanged 也略過（IsoRegionWorker.java:379）。不擋的話每 5 秒的巡檢整輪中斷
+-- DataChunk.java:124-126），引擎自己的 squareChanged 也略過（IsoRegionWorker.java:379）。不擋的話每 5 秒的巡檢替每一片門
+-- 記一大段錯誤（例外不中斷 Lua：MethodCaller.java:34-49 接住、記錯誤、回 nil，巡檢的其他工作照做）
 local function syncSquare(sq)
     if sq:getZ() < 0 then return end
     local stored = IsoRegions.getSquareFlags(sq:getX(), sq:getY(), sq:getZ())
