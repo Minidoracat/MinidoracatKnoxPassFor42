@@ -566,7 +566,11 @@ function Square:transmitRemoveItemFromSquare(o, safelyRemove)
     end
 end
 function Square:RecalcAllWithNeighbours() end
-function Square:setSquareChanged() IsoRegions.squareChanged(self) end   -- IsoGridSquare.java:4734-4739（這裡只模擬室內判定那段）
+function Square:setSquareChanged()   -- IsoGridSquare.java:4734-4739（這裡只模擬室內判定那段；尋路通知記在 W.pathChanged）
+    W.pathChanged = W.pathChanged or {}
+    W.pathChanged[self] = true
+    IsoRegions.squareChanged(self)
+end
 function Square:playSound(name) W.sounds[#W.sounds + 1] = { name = name, sq = self } end   -- IsoGridSquare.java:9738-9741（本機播）
 function playServerSound(name, sq) W.sounds[#W.sounds + 1] = { name = name, sq = sq, server = true } end   -- LuaManager.java:3892-3894
 function Square:AddTileObject(o)   -- IsoGridSquare.java:5851-5880（門柱讀頭模型用）
@@ -5021,10 +5025,15 @@ local function scenarioModelGates()
     k[5]:setAnimating(true)
     k[1] = piece(1, 401)
     local syncs = #(W.syncLog or {})
+    W.pathChanged = {}
     loadSprite(k[1])
     local aligned = true
     for i = 1, 9 do aligned = aligned and k[i]:IsOpen() end
     check(aligned and #(W.syncLog or {}) == syncs, "錨點側停在舊的關、中間片已開：載入時整條對齊成開，沒有送任何同步")
+    local notified = true
+    for i = 1, 4 do notified = notified and W.pathChanged[k[i]._square] == true end
+    check(notified and not W.pathChanged[k[5]._square],
+        "對齊改到的片（第 1–4 片）都呼叫 setSquareChanged 通知尋路（PolygonalMap2.squareChanged），沒改的中間片不呼叫")
     check(not k[5]:isAnimating() and k[5]._smName == ts .. "_" .. (base + 13),
         "中間片沒模型時收到同步留下的 animating 旗標：第一次追蹤時清掉，掛開的靜止模型")
     k[9]._open = false   -- 尾端那片在第三個 chunk，晚到又漏了同步
