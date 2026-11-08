@@ -191,12 +191,10 @@ function B.onCreate(params)
     end
     local dest = getCell():getGridSquare(x, y, z) or getCell():createNewGridSquare(x, y, z, true)
     local door = toGarageDoor(thump, dest, getSprite(KP.BARRIER_TILESET .. "_" .. real), north, KP.BARRIER_HEALTH)
-    if base == 0 or base == 3 then
-        pending[#pending + 1] = { anchor = door, who = params.character }
-        -- SP 建造不觸發 OnObjectAdded（只有 MP client 收 AddItemToMapPacket 時，AddItemToMapPacket.java:94），
-        -- 本機的動畫補播要直接收；專用伺服器沒有載 client 檔，KP.BarrierAnim 是 nil
-        if KP.BarrierAnim then KP.BarrierAnim.track(door) end
-    end
+    if base == 0 or base == 3 then pending[#pending + 1] = { anchor = door, who = params.character } end
+    -- SP 建造不觸發 OnObjectAdded（只有 MP client 收 AddItemToMapPacket 時，AddItemToMapPacket.java:94），
+    -- 本機的模型掛載與動畫補播要直接收（每片都給：錨點與中間片哪片後放好都找得到）；專用伺服器沒有載 client 檔，KP.BarrierAnim 是 nil
+    if KP.BarrierAnim then KP.BarrierAnim.track(door) end
     return { replaceObject = true, object = door }
 end
 
@@ -309,8 +307,8 @@ local function placeUpper(x, y, z, north, trans)
     return true
 end
 
--- 模型門的 SpriteConfig OnCreate：替代 tile（格位 16＋k−1）換成車道 k 的門片（第 1 片 GarageDoor 1 是錨點、掛 3D 模型，
--- 中間 GarageDoor 2，最後 GarageDoor 3），耐久照 KP.MODEL_GATES；兩端（格位 3／4）回 nil，照原版送 IsoThumpable。
+-- 模型門的 SpriteConfig OnCreate：替代 tile（格位 16＋k−1）換成車道 k 的門片（第 1 片 GarageDoor 1 是錨點，
+-- 中間 GarageDoor 2，最後 GarageDoor 3；3D 模型由 client 的 BarrierAnim 掛在中間那片），耐久照 KP.MODEL_GATES；兩端（格位 3／4）回 nil，照原版送 IsoThumpable。
 -- 內建讀頭的（雙桿閘門）下一個 tick 登記，擁有者是建造者（B.settle）
 local MG = {}
 KP.ModelGate = MG
@@ -331,10 +329,8 @@ function MG.onCreate(params)
     local door = toGarageDoor(thump, dest, getSprite(mg.tileset .. "_" .. real), mg.face == "N" or mg.face == "S",
         mg.def.health[mg.width])
     placeUpper(upperSpot(door))
-    if k == 1 then
-        if mg.def.builtin then pending[#pending + 1] = { anchor = door, who = params.character } end
-        if KP.BarrierAnim then KP.BarrierAnim.track(door) end   -- SP 建造不觸發 OnObjectAdded（見 B.onCreate）
-    end
+    if k == 1 and mg.def.builtin then pending[#pending + 1] = { anchor = door, who = params.character } end
+    if KP.BarrierAnim then KP.BarrierAnim.track(door) end   -- SP 建造不觸發 OnObjectAdded（見 B.onCreate）
     return { replaceObject = true, object = door }
 end
 
@@ -475,7 +471,7 @@ if not isClient() then
 
     -- 載入時對齊（chunk 載入逐物件回呼，Lua/MapObjects.java:184-218，伺服器與 SP；ReaderPost.lua 同法）：兩層樓的門片
     -- 與兩端→補放（更新前蓋的門），隱形牆→檢查（孤兒）。同一張 sprite 同 priority 的回呼會被後來的取代（:141-153），
-    -- 錨點那兩張 client/BarrierAnim.lua 已經用 5，這裡用 6
+    -- 錨點與門片 1／9 client/BarrierAnim.lua 已經用 5，這裡用 6
     local pieces, walls = {}, {}
     for ts, def in pairs(KP.MODEL_GATES) do
         if def.upper then

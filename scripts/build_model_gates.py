@@ -20,9 +20,11 @@ texture), the base recipe plus one can of the vanilla paint (scripts/blender/pai
 
 index = block * 64 + slot, block = widthIdx * len(faces) + faceIdx. Slots (Lua Core.lua KP.GATE_SLOT):
 
-    0 1 2   lane closed: GarageDoor 1 (chain anchor, carries the animated model) / every middle piece / last piece
+    0 1 2   lane closed: GarageDoor 1 (chain anchor: ledger, reader, markers) / every middle piece / last piece
     8 9 10  lane open: GarageDoor 4 / 5 / 6 (engine open sprite = closed + 8, IsoDoor.java:793-805)
     3 4     end A (lane-1 side) / end B: solid IsoThumpable (cabinet or post), static model
+    5 13    spriteModels only: the animated model at rest, closed (Open t0) / open (Close t0), hosted on the middle piece
+            (lane host_lane(width)); lanes carry no spriteModel of their own (see HOST below)
     16..    build placeholder of lane k = 16 + k - 1: doorN/W + CustomName only, NO GarageDoor (mods that take over
             ISBuildIsoEntity:setInfo for GarageDoor sprites leave the build alone); Lua OnCreate swaps it for the lane
     32..40  opening poses (Open clip at k/8), 48..56 closing poses: spriteModels only, SP stepper (BarrierAnim.lua)
@@ -33,8 +35,8 @@ Lane tiles carry no DoorWall in the .tiles (Core.lua adds the flag at runtime, s
 
 Speed (per gate, Lua KP.fastTwin): every animated model has a <name>Fast twin (Blender KNOXPASS_FAST=1 *_fast.glb, same
 model, clips 3.75 s instead of 6.0 s -> 2.5 s / 4 s in game). Virtual tilesets MinidoracatKnoxPassFast_<style> (no
-tiledef, spriteModels only) hold lane 1 closed / open with the twin; BarrierAnim.lua sets them as the anchor's
-spriteModel override, and the engine plays the clip of whatever getSpriteModel() returns.
+tiledef, spriteModels only) hold the rest models (slots 5 / 13) with the twin; BarrierAnim.lua names them as the middle
+piece's spriteModel override, and the engine plays the clip of whatever getSpriteModel() returns.
 """
 from __future__ import annotations
 
@@ -59,9 +61,17 @@ PLACEHOLDER = 16
 POSE_OPEN, POSE_CLOSE, POSES = 32, 48, 8
 ONCREATE = "MinidoracatKnoxPass.ModelGate.onCreate"
 FIRE = "900000"
-# 加速版：車道 1 關／開兩格（錨點靜止時的 sprite），clip 秒數（Blender CLIP_S；KNOXPASS_FAST=1）
-FAST_SLOTS = (0, OPEN)
+# 加速版：中間片靜止時的關／開模型（HOST 兩格），clip 秒數（Blender CLIP_S；KNOXPASS_FAST=1）
+# The animated model hangs on the middle piece, not on lane 1: the translucent pass draws an object only while its square
+# IsOnScreen() (FBORenderCell.java:3558, IsoGridSquare.java:7839-7869), so a 9-wide gate hosted on lane 1 vanished
+# whole when lane 1 left the screen (offscreen-sp). Lane 1 stays the chain anchor (ledger, reader, markers). Middle
+# pieces share one sprite (slot 1 / 9), so the host is picked per object: the manifest's lane-1 models move to the
+# spriteModels-only slots HOST / HOST + OPEN, re-based on lane host_lane(width) (hosted), and the client sets that name
+# as the host's override (BarrierAnim.lua; old saves need nothing). Even widths take the lane past the centre line.
+HOST = 5
+FAST_SLOTS = (HOST, HOST + OPEN)
 CLIP_S, FAST_CLIP_S = 6.0, 3.75
+ALONG = {"N": (1, 0), "S": (1, 0), "W": (0, -1), "E": (0, -1)}   # lane 1 -> lane L, one square (Lua Core.lua ALONG)
 # tiledef numbers of the model gate tilesets (the reader pillar and upstairs wall: PILLAR_NUMBER, UPPER_NUMBER)
 NUMBERS = {
     "MinidoracatKnoxPass_barrier2": 4,
@@ -223,6 +233,27 @@ def kinds() -> tuple[Kind, ...]:
 
 def variant_of(kind: Kind, tileset: str):
     return next(v for t, _, v in kind.tilesets if t == tileset)
+
+
+def host_lane(width: int) -> int:
+    """Lane (1-based) that hosts the animated model: the middle, past the centre line on even widths (Lua KP.hostLane)."""
+    return width // 2 + 1
+
+
+def hosted(b: Block) -> dict[int, tuple]:
+    """The block's spriteModels as shipped: the manifest hangs the animated model on lane 1 (slots 0 / OPEN, poses);
+    move the rest models to HOST / HOST + OPEN and re-base them and the poses on the host lane: spriteModels translate
+    is the world offset (x, -, y) from the hosting square to the model origin, so subtract (host - lane 1)."""
+    k = host_lane(b.width) - 1
+    dx, dy = ALONG[b.face][0] * k, ALONG[b.face][1] * k
+
+    def mv(v: tuple) -> tuple:
+        return (v[0], (v[1][0] - dx, v[1][1], v[1][2] - dy), *v[2:])
+
+    out = {s: v for s, v in b.sm.items() if s in (END_A, END_B)}
+    out[HOST], out[HOST + OPEN] = mv(b.sm[0]), mv(b.sm[OPEN])
+    return out | {s: mv(v) for s, v in b.sm.items() if s >= POSE_OPEN}
+
 
 
 # ---- recipes ----------------------------------------------------------------------------------------------------
@@ -399,21 +430,21 @@ def _sm_tile(i: int, model, tr, rot, tex, anim, t) -> str:
 
 def sprite_model_tilesets() -> list[str]:
     """One spriteModels 'tileset' block per tileset (same text layout as build_barrier_tiles.sm_tile), then the fast
-    virtual tilesets (lane 1 closed / open only, model -> <model>Fast)."""
+    virtual tilesets (rest models HOST / HOST + OPEN only, model -> <model>Fast)."""
     blocks = []
     for kind in kinds():
         for name, _, _ in kind.tilesets:
-            tiles = [_sm_tile(b.block * STRIDE + slot, *b.sm[slot])
+            tiles = [_sm_tile(b.block * STRIDE + slot, *sm[slot])
                      for b in sorted((b for b in kind.blocks if b.tileset == name), key=lambda b: b.block)
-                     for slot in sorted(b.sm)]
+                     for sm in (hosted(b),) for slot in sorted(sm)]
             blocks.append(f"    tileset\n    {{\n        name = {name},\n\n" + "".join(tiles) + "    }\n")
     tiles = [_sm_tile(i, *v) for i, v in sorted(pillar_tiles().items())]
     blocks.append(f"    tileset\n    {{\n        name = {PILLAR_TILESET},\n\n" + "".join(tiles) + "    }\n")
     for kind in kinds():
         for name, _, _ in kind.tilesets:
-            tiles = [_sm_tile(b.block * STRIDE + slot, b.sm[slot][0] + "Fast", *b.sm[slot][1:])
+            tiles = [_sm_tile(b.block * STRIDE + slot, sm[slot][0] + "Fast", *sm[slot][1:])
                      for b in sorted((b for b in kind.blocks if b.tileset == name), key=lambda b: b.block)
-                     for slot in FAST_SLOTS]
+                     for sm in (hosted(b),) for slot in FAST_SLOTS]
             blocks.append(f"    tileset\n    {{\n        name = {fast_tileset(name)},\n\n" + "".join(tiles) + "    }\n")
     return blocks
 
@@ -476,8 +507,10 @@ def assets() -> list[tuple[Path, Path]]:
 # Tiles that host a 3D model draw every frame instead of from the chunk FBO cache, like the vanilla animated fence
 # gates (media/tileGeometry.txt fixtures_doors_fences_01 Translucent = true; TileGeometryFile.java:897-900 ->
 # sprite.depthFlags 2 -> FBORenderCell.isObjectRenderLayer_Translucent). Reason (inference, not seen in game): a cached
-# copy would be bound to its chunk's FBO area, and a 9-wide leaf or roll door hosted on lane 1 crosses into the next
-# chunk. doorTrans would do it too but also lets sight through a closed solid door (IsoDoor.TestVision, :1106-1160).
+# copy would be bound to its chunk's FBO area, and a 9-wide leaf or roll door crosses into the next chunk; the host's
+# override also changes without the sprite changing (BarrierAnim.lua). The host is one of the middle pieces, which
+# share slot 1 / 9, so every middle piece is Translucent (no 2D cell: nothing else to draw); lane 1 hosts nothing.
+# doorTrans would do it too but also lets sight through a closed solid door (IsoDoor.TestVision, :1106-1160).
 TILE_GEOMETRY = OUT / "common" / "media" / "tileGeometry.txt"
 
 
@@ -487,7 +520,7 @@ def tile_geometry() -> str:
         for name, _, _ in kind.tilesets:
             tiles = []
             for b in sorted((b for b in kind.blocks if b.tileset == name), key=lambda b: b.block):
-                for slot in (0, OPEN) + ((END_A, END_B) if kind.ends else ()):
+                for slot in (1, OPEN + 1) + ((END_A, END_B) if kind.ends else ()):
                     i = b.block * STRIDE + slot
                     tiles.append(f"        tile\n        {{\n            xy = {i % 8}x{i // 8},\n\n"
                                  "            properties\n            {\n                Translucent = true,\n"
@@ -547,7 +580,7 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
                 assert f"{b.tileset}_{base + PLACEHOLDER + k - 1}" in pack_names, (b, k)
             for s in (END_A, END_B):
                 assert ("solid" in t[base + s]) == kind.ends and (f"{b.tileset}_{base + s}" in pack_names) == kind.ends
-            # model on lane 1 only: closed = Open t0, open = Close t0, 9 + 9 poses; ends static
+            # manifest: model on lane 1 only: closed = Open t0, open = Close t0, 9 + 9 poses; ends static
             sm = b.sm
             assert set(sm) == {0, OPEN, *range(POSE_OPEN, POSE_OPEN + 9), *range(POSE_CLOSE, POSE_CLOSE + 9)} | (
                 {END_A, END_B} if kind.ends else set()), (b, sorted(sm))
@@ -558,6 +591,21 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
             if variant[b.tileset] in kind.paint:   # a painted variant wears its own atlas on every model slot
                 tex = {s[3] for s in sm.values()}
                 assert len(tex) == 1 and next(iter(tex)).lower().endswith("_" + variant[b.tileset].lower()), (b, tex)
+            # shipped: rest models on HOST / HOST + OPEN, nothing on any lane tile, poses re-based with them
+            h, (dx, dy) = hosted(b), (ALONG[b.face][0] * (b.width // 2), ALONG[b.face][1] * (b.width // 2))
+            assert set(h) == set(sm) - {0, OPEN} | {HOST, HOST + OPEN} and not {0, 1, 2, OPEN, OPEN + 1, OPEN + 2} & set(h)
+            for s, o in ((HOST, 0), (HOST + OPEN, OPEN), *((p, p) for p in sm if p >= POSE_OPEN)):
+                tr = sm[o][1]
+                assert h[s] == (sm[o][0], (tr[0] - dx, tr[1], tr[2] - dy), *sm[o][2:]), (b, s)
+    # host lane: 3 -> 2, 4 -> 3, 6 -> 4, 9 -> 5; re-based origin (spot values: same world point as lane 1's)
+    assert [host_lane(w) for w in (3, 4, 6, 9)] == [2, 3, 4, 5]
+    spot = {("MinidoracatKnoxPass_barrier2", 9, "W"): (0, 0, 5), ("MinidoracatKnoxPass_gate_a", 9, "S"): (5, 0, -1),
+            ("MinidoracatKnoxPass_gate_a", 9, "E"): (-1, 0, -5), ("MinidoracatKnoxPass_roll2f_green", 4, "N"): (-2, 0, 0)}
+    for kind in kinds():
+        for b in kind.blocks:
+            if (b.tileset, b.width, b.face) in spot:
+                assert hosted(b)[HOST][1] == spot.pop((b.tileset, b.width, b.face)), b
+    assert not spot, spot
     # spriteModels: the generated blocks, in order, after the existing tilesets
     gen = sprite_model_tilesets()
     assert sm_text.endswith("\n" + "\n".join(gen) + "}\n"), "r4 spriteModels are stale: rerun the builder"
@@ -567,7 +615,7 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     assert TILE_GEOMETRY.read_text(encoding="ascii") == tile_geometry(), "tileGeometry.txt is stale"
     names = set(re.findall(r"^    model (\w+)", ms, re.M))
     used = {v[0] for kind in kinds() for b in kind.blocks for v in b.sm.values()}
-    used |= {b.sm[s][0] + "Fast" for kind in kinds() for b in kind.blocks for s in FAST_SLOTS}
+    used |= {hosted(b)[s][0] + "Fast" for kind in kinds() for b in kind.blocks for s in FAST_SLOTS}
     assert used <= names | {"MinidoracatKnoxPass_BarrierCabinet"}, used - names
     # 加速：每個有動畫的模型都有 <名稱>Fast；clip 正常 6.0 s、加速 3.75 s（引擎 1.5 倍速：4 s／2.5 s）
     animated = [m for kind in kinds() for m in kind.models if m[3]]
@@ -591,6 +639,8 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     lua_sets = dict(re.findall(r"^    (MinidoracatKnoxPass_\w+) = (\w+),", lua, re.M))
     assert set(lua_sets) == {n for n, _, _ in specs} - {PILLAR_TILESET, UPPER_TILESET}, sorted(lua_sets)
     assert f'KP.UPPER_WALL_TILESET = "{UPPER_TILESET}"' in lua
+    assert re.search(rf"^KP\.GATE_SLOT = \{{ .*\bHOST = {HOST},", lua, re.M) and (
+        "function KP.hostLane(width)\n    return math.floor(width / 2) + 1\nend" in lua), "Lua KP.GATE_SLOT.HOST / KP.hostLane"
     see = {t for k in kinds() if k.key in TWO_STORY for t, _, v in k.tilesets if v in k.see_through and v not in k.base}
     m = re.search(r"^KP\.SEE_THROUGH = \{ (.*) \}$", lua, re.M)
     assert m and set(re.findall(r"(MinidoracatKnoxPass_\w+) = true", m.group(1))) == see, f"Lua KP.SEE_THROUGH != {see}"

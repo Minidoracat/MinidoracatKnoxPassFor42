@@ -88,7 +88,9 @@ local KNOX_LOCKED = "KnoxPassLocked"
 local function syncDoor(p) p:syncIsoObject(false, 0, nil, nil) end
 
 -- 車庫門鏈的開關：逐片做原版 toggleGarageDoorObject 除了清鎖以外的事（IsoDoor.java:3344-3366），鎖不動，
--- 再由錨點同步一次（同 :3384-3386；客戶端照片段清單更新整條鏈、錨點播 clip，:1798-1835）。
+-- 再由一片同步一次（同 :3384-3386；客戶端照片段清單更新整條鏈、只有被同步的那片播 clip，:1798-1835）。
+-- 同步的是中間片（KP.hostLane）：模型門與閘門的 3D 模型掛在那片（build_model_gates.py HOST），同步別片就沒有原生動畫；
+-- 原版與捲門的鏈沒有模型，同步哪一片都一樣。
 -- 原版 toggle 逐片清鑰匙鎖（:3352），上鎖的門開一次、關好鎖回一次，鏈上的鎖就各翻一次；客戶端改到鏈上其他片的鎖時，
 -- 會把那片當下的開關回送伺服器（:1811-1822、:2013-2023），伺服器照單全收、轉給其他附近客戶端（:1845-1856）。
 -- 客戶端一卡，晚到的回送就把門翻回去，附近兩人以上時互相觸發（正式服 2026-10-11，0.3.0：九格閘門附近 4–5 條連線
@@ -102,7 +104,8 @@ local function syncDoor(p) p:syncIsoObject(false, 0, nil, nil) end
 -- 不查擋車：呼叫端關門前先看 isBlocked（同 toggleGarageDoor，AGENTS.md 踩坑錄）
 -- indoor＝這扇門勾了「算室內」（rec.indoor）：翻完才記位元，引擎看到位元沒變就不重算，紀錄留著勾選時寫的牆（G.syncRegions）
 local function setGarageOpen(anchor, open, indoor)
-    for _, p in ipairs(garagePieces(anchor)) do
+    local pieces = garagePieces(anchor)
+    for _, p in ipairs(pieces) do
         if p:IsOpen() ~= open then
             local sq = p:getSquare()
             if not indoor then IsoRegions.setPreviousFlags(sq) end
@@ -115,7 +118,7 @@ local function setGarageOpen(anchor, open, indoor)
     end
     local sound = anchor:getSoundPrefix() .. (open and "Open" or "Close")
     if isServer() then
-        syncDoor(anchor)
+        syncDoor(pieces[KP.hostLane(#pieces)])
         playServerSound(sound, anchor:getSquare())
     else
         anchor:getSquare():playSound(sound)
