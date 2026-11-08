@@ -320,7 +320,7 @@ function B.allowDismantle(list, player)
         local sq = o:getSquare()
         if not (sq and SafeHouse.isSafehouseAllowInteract(sq, player)) then return false end
         local x, y, z = upperSpot(o)
-        local below = x and cell:getGridSquare(x, y, z - 1)
+        local below = x and (cell:getGridSquare(x, y, z - 1) or cell:getGridSquare(x, y, 0))   -- 只看 x、y，下面那層沒建過就看地面
         if x and not (below and SafeHouse.isSafehouseAllowInteract(below, player)) then return false end
     end
     return true
