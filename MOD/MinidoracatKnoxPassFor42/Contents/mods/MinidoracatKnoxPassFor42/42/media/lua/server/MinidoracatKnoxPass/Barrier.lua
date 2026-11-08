@@ -311,6 +311,21 @@ local function upperSpot(o)
     return sq:getX() + dx, sq:getY() + dy, sq:getZ() + 1, mg.face == "N" or mg.face == "S", see
 end
 
+-- 拆除（Server.lua H.dismantle）前的安全屋預檢：整座每一片所在的格子，加上兩層樓的門下一個 tick 跟著收的二樓隱形牆
+-- （S／E 向一端的牆在下一列／下一行，不在 list 的格子上）都要讓 player 互動才回 true。原版安全屋只看 x、y
+-- （SafeHouse.java:144-155），傳 nil 格子一律放行（:245-247），所以牆那一格看它下面那層，沒載入當作不行
+function B.allowDismantle(list, player)
+    local cell = getCell()
+    for _, o in ipairs(list) do
+        local sq = o:getSquare()
+        if not (sq and SafeHouse.isSafehouseAllowInteract(sq, player)) then return false end
+        local x, y, z = upperSpot(o)
+        local below = x and cell:getGridSquare(x, y, z - 1)
+        if x and not (below and SafeHouse.isSafehouseAllowInteract(below, player)) then return false end
+    end
+    return true
+end
+
 -- 放上一道隱形牆，回傳有沒有放。門線那格（下一層）不在就不放：S／E 向的一端跨 chunk 時那格還沒載入，之後這一端再載入時補。
 -- IsoObject(cell, square, spriteName) → AddTileObject（重算碰撞、尋路與室內判定，IsoGridSquare.java:5855-5891）→ 送給客戶端
 local function placeUpper(x, y, z, north, trans)

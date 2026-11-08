@@ -5159,6 +5159,14 @@ local function scenarioDismantle()
     check(dismantle(stranger, gc.A).why == "Safehouse" and present(gc.A) and present(gc.lanes[3]) and noDrops()
         and torch:getCurrentUses() == 10, "沒裝讀頭、點的那一端能互動，但門跨進別人的安全屋：Safehouse，焊槍不扣")
     W.safehouse[gc.lanes[3]:getSquare()] = nil
+    -- S 向 A 端的二樓隱形牆在門線那一列（擺放格＋GATE_DOOR.S），不在任何一片的格子上；拆除下一個 tick 會跟著收它
+    local d = KP.GATE_DOOR.S
+    local wallSq = square(400 + d[1], 100 + d[2], 0)
+    W.safehouse[wallSq] = { someoneElse = true }
+    check(wallSq ~= gc.A:getSquare() and wallSq ~= gc.lanes[1]:getSquare()
+        and dismantle(stranger, gc.A).why == "Safehouse" and present(gc.A) and noDrops() and torch:getCurrentUses() == 10,
+        "只有 A 端的二樓隱形牆那格在別人的安全屋：Safehouse，門與焊槍都不動")
+    W.safehouse[wallSq] = nil
     check(dismantle(stranger, gc.A).ok == true and not present(gc.A) and not present(gc.B) and not present(gc.lanes[3])
         and torch:getCurrentUses() == 9 and between("Base.MetalPipe", 1, 4),
         "沒裝讀頭：誰都能拆（焊槍＋面罩），整座移除、焊槍扣一格、退 1..4")
@@ -5182,6 +5190,10 @@ local function scenarioDismantle()
     check(dismantle(stranger, rf.lanes[3]).why == "OwnerOnly" and present(rf.lanes[1]), "裝了讀頭的捲門：陌生人 OwnerOnly")
     owner._inv:AddItem("Base.BlowTorch")
     owner._inv:AddItem("Base.WeldingMask")
+    W.safehouse[rf.lanes[2]:getSquare()] = { someoneElse = true }
+    check(dismantle(owner, rf.lanes[3]).why == "Safehouse" and present(rf.lanes[2]) and KP.Ledger.get(rkey) ~= nil,
+        "裝了讀頭也照查：擁有者拆跨進別人安全屋的捲門 → Safehouse（裝讀頭只查點到的那一格）")
+    W.safehouse[rf.lanes[2]:getSquare()] = nil
     check(dismantle(owner, rf.lanes[3]).ok == true and not present(rf.lanes[1]) and not present(rf.lanes[2])
         and not present(rf.lanes[4]) and KP.Ledger.get(rkey) == nil and readersIn(298, 98, 306, 102) == 0
         and W.dropSq == square(302, 100, 0), "擁有者拆兩層樓捲門第 3 片：整條鏈移除、讀頭模型與帳本一起清、退料落在那一片")
