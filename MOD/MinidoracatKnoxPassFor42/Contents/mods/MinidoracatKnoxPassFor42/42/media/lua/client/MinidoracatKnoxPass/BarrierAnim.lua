@@ -80,10 +80,12 @@ end
 
 -- MP 客戶端：鏈上其他片的開關對齊掛模型那片。伺服器開關時同步的是掛模型那片（Gates.lua syncPiece）；那格沒載入時整包丟掉
 -- （GameClient.java:1626-1629），載入了但片段清單裡有一片沒載入時，接收端改到那片就 return（IsoDoor.java:1811-1816），
--- 之後的片停在舊狀態（含碰撞）。掛模型那片是封包對象，有載入就是最新。只改本機、不送封包、不動鎖：照接收端的做法
--- （:1820-1832）setOpen、changeSprite（都只設欄位，:144-146、:3340-3342）、RecalcAllWithNeighbours、setSquareChanged
--- （內含接收端的 PolygonalMap2.squareChanged，IsoGridSquare.java:4734-4740；順帶的 IsoRegions.squareChanged 在客戶端一開頭就
--- return，IsoRegions.java:309-311）、invalidateRenderChunkLevel。中間片的區塊快照比較舊、或錨點沒載入時對不了，等下一次開關封包
+-- 之後的片停在舊狀態（含碰撞）。以掛模型那片為準：它是封包對象，通常最新。例外是它的區塊快照在開關前取、同步又在它載入前
+-- 到而被丟（PlayerDownloadServer.java:221-250），這時整條對成舊狀態；錨點沒載入時也對不了。兩種都等下一次開關封包（gates.md
+-- 已知坑「伺服器序列化區塊快照與開關同步的競態」）。只改本機、不送封包、不動鎖：照接收端的做法（:1820-1832）setOpen、
+-- changeSprite（都只設欄位，:144-146、:3340-3342）、RecalcAllWithNeighbours、setSquareChanged（內含接收端的
+-- PolygonalMap2.squareChanged，IsoGridSquare.java:4734-4740；順帶的 IsoRegions.squareChanged 在客戶端一開頭就 return，
+-- IsoRegions.java:309-311）、invalidateRenderChunkLevel。
 local function align(host)
     if not isClient() then return end
     local open = host:IsOpen()
