@@ -55,7 +55,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [list]
 [*] gate type, owner, power, durability, lock, counts as indoors
 [*] durability: how much the weakest part of the gate has left, out of its full value; the gate breaks open when that part breaks. It says "Indestructible" when that is on. For regular players, hovering over this row tells how an admin can turn it on. The number is from when you opened the window; reopen it to update
-[*] this gate's read range, close delay, speed, sharing and co-managers
+[*] this gate's read range, close delay, opening trigger, speed, sharing and co-managers
 [*] "Registered" tab: registered cars and watch modules (charge, last pass), most recent pass first; 64 entries at most, cars and modules together
 [*] "Nearby" tab: unregistered cars with a tag and people wearing a sensor module within 15 tiles, nearest first
 [/list]
@@ -68,6 +68,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]Read range and close delay[/b]: the owner, a co-manager or an admin picks them from two dropdowns in the window, limited to what the server allows (2–30 tiles and 0–30 seconds by default).
 [*] [b]Server default[/b]: follows the sandbox setting.
 [*] [b]If the server narrows the limits[/b]: gates that were set follow the new limits and keep their value.
+[*] [b]Opens on[/b]: [b]Approach[/b] by default. With [b]Headlight flash[/b], a registered car first flashes its headlights at the gate (toggle them twice within 1.5 seconds: press the headlight key twice, F by default or whatever you bound it to, or click the dashboard light button twice), then the gate opens if the car gets within the read range in the next 5 seconds. No extra key to learn, and unlike the horn it doesn't draw zombies. Cars on AutoDrive still get the gate opened for them. When you drive toward such a gate yourself, a one-time hint tells you to flash your headlights.
 [*] [b]Speed[/b]: boom barriers, double boom barriers, two-story roll-up doors and two-story gates can be set to [b]Normal (4 s)[/b] or [b]Fast (2.5 s)[/b] under "Speed", and every player sees the same speed.
 [*] [b]Fixed speed[/b]: one-story roll-up doors and vanilla doors; the dropdown says "Not adjustable".
 [*] [b]Share with[/b]: pick [b]Faction[/b], [b]Safehouse[/b] or [b]Faction + safehouse[/b] to let teammates open and close this gate on foot without a tag (see "Opening and closing on foot"). Not shared by default.
@@ -333,6 +334,7 @@ Check that:
 [list]
 [*] you're in the driver's seat, the tag is in the car you drive (not in a trailer), and it has charge
 [*] this tag is registered at this gate
+[*] if the gate opens on [b]Headlight flash[/b], you flashed your headlights at it first
 [*] the reader has power (the window shows it)
 [/list]
 [h3]The gate won't close?[/h3]

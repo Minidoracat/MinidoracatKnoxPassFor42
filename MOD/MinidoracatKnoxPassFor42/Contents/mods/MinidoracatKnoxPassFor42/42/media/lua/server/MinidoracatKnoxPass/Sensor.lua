@@ -1,7 +1,8 @@
 -- 伺服器偵測：有人駕駛、車上裝著已登記且有電的感應盒（或駕駛戴著已登記、有作用的地圖手錶模組），車或它拖著的拖車
 -- 靠近（含行進預測）已登記的大門就開門；戴著已登記模組的人走向門線也開（scanWalker）。
 -- 車和拖車整台通過門口後就不再撐住門，範圍內沒有撐門的車滿延遲秒數，把 Knox Pass 開的門關上並鎖回去。
--- 感應距離與關門延遲每扇門可以不同（擁有者設定、夾在沙盒上下限內：KP.gateRange／KP.gateDelay）。
+-- 感應距離與關門延遲每扇門可以不同（擁有者設定、夾在沙盒上下限內：KP.gateRange／KP.gateDelay）；開門方式設成
+-- 「閃一下大燈才開」的門，車要先閃燈（S.noteHeadlights）。
 -- 「不會被破壞」的門也在這裡墊高耐久（下方「不會被破壞」段）。
 -- 專用伺服器也會觸發 OnTick（GameServer.java:840,1020 → IngameState.java:1520,1563）；
 -- OnPlayerUpdate 在伺服器不觸發（IsoPlayer.java:2234-2286），所以走 OnTick＋玩家清單。
@@ -25,6 +26,8 @@ S.MISSING_MS = 30000   -- 格子載入但門不在，持續多久才當作門被
 S.PASSES_MS = 5000     -- 已授權大門清單沒變動時，多久補推一次給本人
 S.WALK_MS = 5000       -- 右鍵開門至少開這麼久才開始算延遲（人還要走到門口；延遲設 0 時人也走得過去）
 S.RELOCK_MS = 5000     -- 多久替關著的上鎖門補一次鎖（S.relock）、核對一次室內判定（S.syncRegions）與耐久（S.shieldAll）
+S.FLASH_PAIR_MS = 1500     -- 同一台車兩次切大燈相隔多久內算一次閃燈
+S.FLASH_WINDOW_MS = 5000   -- 閃燈後多久內進到感應距離，「閃一下大燈才開」的門才開
 
 -- gateKey → { presence, retryAt, failAt, missingSince, by, holdUntil, cars }；
 -- cars＝這扇門範圍內每台登記車的通過紀錄（車輛 runtime id → { from, passed }），只在記憶體
@@ -33,6 +36,8 @@ local tracks = {}      -- 車輛 runtime id → { x, y, t, vx, vy }（算行進�
 local walkers = {}     -- 戴模組走路的人：使用者名稱 → { x, y, t, vx, vy }（同上）
 local lastScan = 0
 local lastRelock = 0
+local toggles = {}    -- 車輛 runtime id → 上次切大燈的時間（還沒湊成一對）
+local flashed = {}    -- 車輛 runtime id → 上次閃燈的時間
 
 local function rt(key)
     local r = runtime[key]
@@ -237,6 +242,22 @@ local function autoDriving(v)
     return ok and yes == true
 end
 
+-- 原版切大燈的指令（Server.lua onClientCommand 轉來；SP 的 sendClientCommand 同樣經 SinglePlayerServer 觸發
+-- OnClientCommand，SinglePlayerServer.java:172-198）。只認伺服器看到的駕駛：乘客切大燈、別台車閃燈都不算。
+-- 只數指令不看開關值：MP 連按兩下時客戶端還沒收到第一下的同步，兩次都送 on=true（ISVehicleMenu.lua:1114-1118）
+function S.noteHeadlights(p)
+    local v = p and p:getVehicle()
+    if not v or v:getDriver() ~= p then return end
+    local id, now = v:getId(), getTimestampMs()
+    local last = toggles[id]
+    if last and now - last <= S.FLASH_PAIR_MS then
+        flashed[id], toggles[id] = now, nil
+        lastScan = 0   -- 下一個 tick 就掃，不等節流
+    else
+        toggles[id] = now
+    end
+end
+
 -- AutoDrive 把關著的門當硬障礙，一看到就依 blocked 接近包絡減速（停止線前壓到 20 km/h）；它看得到多遠受
 -- 玩家端載入範圍限制（1080p 約 72 格，IsoChunkMap.java:106-120），而玩家端的區塊是伺服器先載入再送過去的
 -- （ServerMap.java:251-271 以 64 格為單位往外取整），所以伺服器一載入門所在的格子就開，門會搶在它看到之前打開。
@@ -374,7 +395,9 @@ end
 local car = {}
 
 -- 一組登記的門（感應盒或駕駛的模組）：車與它拖的拖車的範圍、預判線段，AutoDrive 車頭朝向，holds 照舊。skip＝已經用感應盒掃過的門
--- （同一扇門只掃一次：感應盒開門扣它的電）。serial＝用模組開的，開了記下「上次通過」
+-- （同一扇門只掃一次：感應盒開門扣它的電）。serial＝用模組開的，開了記下「上次通過」。
+-- 「閃一下大燈才開」的門（rec.trigger）：這台車閃燈後 FLASH_WINDOW_MS 內、或 AutoDrive 自駕中才開；Knox Pass 已經開著
+-- （rec.open）就照舊撐門，車開過去照延遲關
 local function scanKeys(p, v, keys, skip, tag, part, serial)
     for key in pairs(keys) do
         local rec = car.gates[key]
@@ -384,7 +407,9 @@ local function scanKeys(p, v, keys, skip, tag, part, serial)
             if KP.segDistSq(rec.cx, rec.cy, car.x, car.y, car.ax, car.ay) <= r2
                 or (car.tx and KP.segDistSq(rec.cx, rec.cy, car.tx, car.ty, car.tx + car.vx * car.lead, car.ty + car.vy * car.lead) <= r2)
                 or (car.fx and headingAt(rec, car.x, car.y, car.fx, car.fy, car.ahead)) then
-                if holds(key, rec, v, car.vx, car.vy, car.lead) and S.open(key, rec, p, tag, part, v, car.now) and serial then
+                local allowed = rec.trigger ~= "flash" or car.flashed or car.auto or rec.open
+                if allowed and holds(key, rec, v, car.vx, car.vy, car.lead) and S.open(key, rec, p, tag, part, v, car.now)
+                    and serial then
                     L.touchModule(rec, serial, p)
                 end
             elseif runtime[key] and runtime[key].cars then
@@ -420,7 +445,10 @@ local function scanDriver(p, gates, now, lead, ahead)
     local tr = v:getVehicleTowing()
     car.tx, car.ty = tr and tr:getX(), tr and tr:getY()
     car.fx, car.fy = nil, nil
-    if ahead > 0 and autoDriving(v) then car.fx, car.fy = facing(v) end
+    car.auto = autoDriving(v)
+    if ahead > 0 and car.auto then car.fx, car.fy = facing(v) end
+    local f = flashed[v:getId()]
+    car.flashed = f ~= nil and now - f <= S.FLASH_WINDOW_MS
     if tagKeys then scanKeys(p, v, tagKeys, nil, tag, part, nil) end
     if modKeys then scanKeys(p, v, modKeys, tagKeys, nil, nil, serial) end
 end

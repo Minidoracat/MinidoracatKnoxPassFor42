@@ -11,6 +11,7 @@ KP.MARKER_OWNER = "KnoxPassReader"                -- 大門錨點 modData：讀�
 KP.MARKER_LOCK = "KnoxPassLock"                   -- 大門錨點 modData：Knox Pass 門鎖是否開啟（同上）
 KP.MARKER_COLOR = "KnoxPassColor"                 -- 大門錨點 modData：讀頭顏色索引（同上；沒有＝米白）
 KP.MARKER_SPEED = "KnoxPassSpeed"                 -- 大門錨點 modData：開關速度 "fast"（沒有＝正常；client 據此選動畫）
+KP.MARKER_TRIGGER = "KnoxPassTrigger"             -- 大門錨點 modData：開門方式 "flash"＝閃一下大燈才開（沒有＝靠近就開；KnoxPassAPI.willOpenFor 用）
 KP.MARKER_CO = "KnoxPassCo"                       -- 大門錨點 modData：共同管理者 { [帳號] = true }（右鍵選單用，伺服器不信它）
 KP.MARKER_COFACTION = "KnoxPassCoFaction"         -- 大門錨點 modData：擁有者陣營的成員也是共同管理者（同上）
 KP.MARKER_COHOUSES = "KnoxPassCoHouses"           -- 大門錨點 modData：勾選的安全屋也是共同管理者 { [原生 owner 字串] = true }（同上）
@@ -58,6 +59,12 @@ end
 -- 模型門 build_model_gates.py fast_tileset）。一層樓車庫捲門與原版的門是 2D 門片或原版模型，沒有加速版
 function KP.speedSupported(anchor)
     return KP.barrierIndex(anchor) ~= nil or KP.modelGate(anchor) ~= nil
+end
+
+-- 按鍵設定裡切大燈的鍵名（原版預設 F，keyBinding.lua:115-116；玩家可能改過）：管理視窗「開門方式」與 NeedFlash 提示用，
+-- 只在客戶端呼叫。寫法同原版 ISEntityBuildMenu.lua:208
+function KP.headlightKeyName()
+    return Keyboard.getKeyName(getCore():getKey(KeybindId.TOGGLE_VEHICLE_HEADLIGHTS))
 end
 
 -- 加速版 spriteModel 的名稱：同一個索引，tileset 前綴換成 MinidoracatKnoxPassFast_

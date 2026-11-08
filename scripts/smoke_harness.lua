@@ -3545,6 +3545,12 @@ local function scenarioDriveWarn()
 
     _, cnt = drive(201.5, 130.5, 101.5)
     check(cnt == 1 and pairL.key ~= pairR.key, "並排兩座不會開的門：同一次接近只提示一則（" .. cnt .. " 則）")
+    -- 並排的門分在兩輪掃描進到前方範圍（車頭偏、換到另一扇前面）：同一個原因、離已提示的門 10 格內不再提示
+    local sideL, sideR = gate(220), gate(226)
+    local _, c1 = drive(220.5, 130.5, 112.5)
+    local _, c2 = drive(226.5, 112.5, 101.5)
+    check(c1 == 1 and c2 == 0 and sideL.key ~= sideR.key,
+        "並排的門分兩輪掃到：同一個原因只提示一則（" .. tostring(c1) .. "＋" .. tostring(c2) .. " 則）")
 
     local nOpen = #said
     n.door:ToggleDoor(n.owner)
@@ -4367,6 +4373,144 @@ local function scenarioSettings()
     check(res.ok == true and KP.Ledger.get("701,100,0N").speed == nil and bl[0]._modData[KP.MARKER_SPEED] == nil
         and st.speed == "default", "\"default\"：改回正常，帳本不存值、拿掉標記")
     clean(from, "每扇門設定")
+end
+
+-- 開門方式「閃一下大燈才開」（Server.lua H.settings 的 trigger、Sensor.lua S.noteHeadlights／scanKeys、Gates.lua willOpenFor）：
+-- 原版切大燈送 module vehicle、command setHeadlightsOn（VehicleCommands.lua:105-111），伺服器看到的駕駛 1.5 秒內切兩次＝閃燈，
+-- 閃燈後 5 秒內在感應距離內才開；開了以後撐門、關門照舊；AutoDrive 自駕照開
+local function scenarioFlash()
+    out("情境：閃一下大燈才開")
+    freshWorld()
+    local from = #logLines + 1
+    local function lights(p) fire("OnClientCommand", "vehicle", "setHeadlightsOn", p, { on = true }) end
+    local function flash(p) lights(p); step(); lights(p) end   -- 相隔 250 ms
+    local function parked(g, d)   -- 登記一台車、停在門南 d 格、有人坐駕駛座
+        local v = car(g, 3, { tag = 0.5 })
+        register(g, v)
+        local p = driver(v)
+        moveCar(v, g.cx, g.cy + d)
+        return v, p
+    end
+
+    -- 設定：存帳本、標在錨點給 client、state 帶回；權限同其他設定
+    local a = gate(100)
+    local res, st = cmd(a.owner, "settings", { key = a.key, trigger = "flash" })
+    check(res.ok == true and rec(a).trigger == "flash" and a.door._modData[KP.MARKER_TRIGGER] == "flash"
+        and a.door._view.modData[KP.MARKER_TRIGGER] == "flash" and st.trigger == "flash",
+        "擁有者設閃一下大燈才開：帳本、錨點標記（同步給 client）、state")
+    check(cmd(a.owner, "settings", { key = a.key, trigger = "horn" }).why == "BadArgs" and rec(a).trigger == "flash",
+        "不認得的值：BadArgs，帳本不動")
+    local other = newPlayer("other", 100, 101)
+    res = cmd(other, "settings", { key = a.key, trigger = "default" })
+    check(res.ok == false and res.why == "NotOwner" and rec(a).trigger == "flash", "非擁有者改不了開門方式")
+    cmd(a.owner, "lock", { key = a.key, on = true })
+    check(a.door._modData[KP.MARKER_TRIGGER] == "flash", "開門鎖重寫標記時保留開門方式")
+    cmd(a.owner, "lock", { key = a.key, on = false })
+
+    -- 沒閃不開、只切一次不算、相隔超過 1.5 秒不算、1.5 秒內兩次算
+    local va, pa = parked(a, 5)
+    runMs(2000)
+    check(not a.door:IsOpen(), "登記車停在感應距離內、沒閃燈：不開")
+    lights(pa)
+    runMs(1000)
+    check(not a.door:IsOpen(), "只切一次大燈：不開")
+    runMs(1000)
+    lights(pa)
+    runMs(1750)
+    lights(pa)
+    step()
+    check(not a.door:IsOpen(), "兩次切大燈相隔 1.75 秒：不算閃燈")
+    runMs(2000)
+    flash(pa)
+    step()
+    check(a.door:IsOpen(), "1.5 秒內切兩次：下一輪掃描就開")
+    runMs(8000)
+    check(a.door:IsOpen(), "開了以後車還停在範圍內：閃燈 5 秒＋關門延遲過了照樣撐門")
+    moveCar(va, a.cx, a.cy + 40)
+    runMs(3000)
+    check(not a.door:IsOpen(), "車離開範圍：照關門延遲關上")
+
+    -- 閃燈 5 秒後失效
+    moveCar(va, a.cx, a.cy + 20)
+    runMs(2000)
+    flash(pa)
+    runMs(5250)
+    moveCar(va, a.cx, a.cy + 5)
+    runMs(1000)
+    check(not a.door:IsOpen(), "閃燈 5 秒後才開進感應距離：不開")
+    flash(pa)
+    step()
+    check(a.door:IsOpen(), "在範圍內再閃一次：開")
+    unseat(pa)
+    moveCar(va, a.cx, a.cy + 40)
+    runMs(3000)
+
+    -- 乘客切大燈不算；別台車閃燈不替你開；不在車上的人送這個指令不出錯
+    local b = gate(200)
+    cmd(b.owner, "settings", { key = b.key, trigger = "flash" })
+    local vb = parked(b, 5)
+    local rider = newPlayer("rider", 0, 0)
+    seat(rider, vb, 1)
+    flash(rider)
+    step()
+    check(not b.door:IsOpen(), "乘客切大燈兩次：不算閃燈")
+    local vo, po = parked(b, 20)
+    flash(po)
+    step()
+    check(not b.door:IsOpen() and vo._id ~= vb._id, "別台登記車在範圍外閃燈：不替範圍內沒閃的車開")
+    flash(newPlayer("walker", 200, 110))
+    step()
+    check(not b.door:IsOpen(), "不在車上的人送切大燈：忽略")
+
+    -- AutoDrive 自駕（伺服器的自駕租約 MDAD.isAutoUsageActive）照開
+    local c = gate(300)
+    cmd(c.owner, "settings", { key = c.key, trigger = "flash" })
+    local vc = parked(c, 5)
+    MDAD = { isAutoUsageActive = function(v) return v == vc end }
+    step()
+    check(c.door:IsOpen(), "AutoDrive 自駕的車：不必閃燈照開")
+    MDAD = nil
+
+    -- 預設（靠近就開）的門行為不變；改回 "default" 拿掉帳本值與標記
+    local d = gate(400)
+    res, st = cmd(d.owner, "settings", { key = d.key, range = 8 })
+    check(rec(d).trigger == nil and st.trigger == "default" and d.door._modData[KP.MARKER_TRIGGER] == nil,
+        "沒設過的門：靠近就開（state default、沒有標記）")
+    parked(d, 5)
+    step()
+    check(d.door:IsOpen(), "靠近就開的門：登記車停進範圍就開，不必閃燈")
+    res, st = cmd(c.owner, "settings", { key = c.key, trigger = "default" })
+    check(res.ok == true and rec(c).trigger == nil and c.door._modData[KP.MARKER_TRIGGER] == nil and st.trigger == "default",
+        "\"default\"：改回靠近就開，帳本不存值、拿掉標記")
+
+    -- 客戶端 willOpenFor：閃燈的門不是 AutoDrive 在開時回 NeedFlash；whyText 帶切大燈的鍵
+    local e = gate(500)
+    cmd(e.owner, "settings", { key = e.key, trigger = "flash" })
+    local ve = car(e, 3, { tag = 0.5 })
+    register(e, ve)
+    local pe = driver(ve)
+    pe._local = true
+    local mark = #W.sent
+    step()
+    local got = passesSince(pe, mark)
+    KP.passes = { tag = got[1].tag, keys = (keySet(got[1])) }
+    local ok, why = KnoxPassAPI.willOpenFor(ve, e.door)
+    check(ok == false and why == "NeedFlash", "willOpenFor：閃燈的門、自己開 → false, NeedFlash")
+    local asked
+    MDAD = { Drive = { isActive = function(pn) asked = pn; return true end } }
+    check(KnoxPassAPI.willOpenFor(ve, e.door) == true and asked == 0, "willOpenFor：AutoDrive 在替本機駕駛開（Drive.isActive）→ true")
+    MDAD = nil
+    cmd(e.owner, "settings", { key = e.key, trigger = "default" })
+    check(KnoxPassAPI.willOpenFor(ve, e.door) == true, "willOpenFor：改回靠近就開 → true")
+    KP.passes = nil
+    local realGetText = getText
+    Keyboard = { getKeyName = function(k) return k == 33 and "F" or "?" end }
+    KeybindId = { TOGGLE_VEHICLE_HEADLIGHTS = "ToggleVehicleHeadlights" }
+    getCore = function() return { getKey = function(_, id) return id == "ToggleVehicleHeadlights" and 33 or 0 end } end
+    getText = function(key, arg) return arg and (key .. "|" .. arg) or key end
+    check(KnoxPassAPI.whyText("NeedFlash") == "IGUI_KnoxPass_Why_NeedFlash|F", "whyText：NeedFlash 帶按鍵設定裡切大燈的鍵")
+    getText, Keyboard, KeybindId, getCore = realGetText, nil, nil, nil
+    clean(from, "閃一下大燈才開")
 end
 
 -- 分享給陣營／安全屋（Server.lua sharedWith、H.settings 的 share）：擁有者或管理員設定；成員不用感應盒就能用右鍵開關門
@@ -6000,6 +6144,7 @@ local tests = {
     scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioUpperWall, scenarioLaggyEcho, scenarioShare,
     scenarioCoManagers, scenarioOutsideSafehouse, scenarioWatchWalk, scenarioWatchMissing, scenarioNeatCrafting, scenarioWatchDrive, scenarioIndestructible,
     scenarioRoadText, scenarioBasement,
+    scenarioFlash,
 }
 for _, t in ipairs(tests) do t() end
 

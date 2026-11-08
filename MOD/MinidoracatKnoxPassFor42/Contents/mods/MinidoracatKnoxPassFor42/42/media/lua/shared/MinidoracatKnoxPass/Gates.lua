@@ -516,13 +516,24 @@ function KnoxPassAPI.registerGateAdapter(adapter)
     return true
 end
 
+-- 家族 AutoDrive 正在替這位本機玩家開車（MinidoracatAutoDriveFor42 client/MDAD_Driver.lua `Drive.isActive(playerNum)`
+-- ＝有自駕 session 或行程準備中）。沒裝 AutoDrive、在伺服器上（MDAD.Drive 只在客戶端）或對方出錯就當自己開
+function KP.autoDriveActive(playerNum)
+    local drive = type(MDAD) == "table" and MDAD.Drive
+    local fn = type(drive) == "table" and drive.isActive
+    if type(fn) ~= "function" then return false end
+    local ok, yes = pcall(fn, playerNum)
+    return ok and yes == true
+end
+
 -- 公開給其他 MOD（家族 AutoDrive 用）：obj 是一扇 Knox Pass 大門的任一片、而且 Knox Pass 會替這台車開它時回 true。
 -- 條件：車上裝著有電的感應盒、這顆感應盒登記在這扇門（伺服器推送的清單，Sensor.lua pushPasses），或駕駛是本機玩家、
 -- 戴著有作用的地圖手錶模組、這顆模組登記在這扇門（任何一台車都算，Sensor.lua scanDriver 同一份規則）；
 -- 門需要供電時有電（KP.squarePowered 在客戶端可用：發電機看區塊資料、電網看沙盒，IsoGridSquare.java:9696,11799）。
 -- 是預告不是保證：伺服器仍可能開不了（門片擺動範圍被擋、剛斷電、延遲），呼叫端要能在門前停住。
 -- 裝了讀頭的門不會開時，第二個回傳值是原因代碼（whyText 轉成玩家語言）：NoTag、NotRegistered、TagEmpty、NoPower，
--- 模組登記了這扇門但手錶沒作用（沒戴、沒電、槽位失效）時是 WatchOff。
+-- 模組登記了這扇門但手錶沒作用（沒戴、沒電、槽位失效）時是 WatchOff，開門方式是「閃一下大燈才開」、而且不是 AutoDrive
+-- 在開時是 NeedFlash（伺服器替 AutoDrive 自駕照開；自己開的閃了燈也開，這裡不追蹤閃燈）。
 -- 一般門、或還沒收到這顆感應盒的推送（剛上車、剛換感應盒）時不帶原因，免得把「還不知道」說成「沒登記」。
 -- 在 MP 客戶端與單機有效；專用伺服器沒有推送清單，一律 false。每次呼叫配置一個短字串與一個小 table
 function KnoxPassAPI.willOpenFor(vehicle, obj)
@@ -543,13 +554,18 @@ function KnoxPassAPI.willOpenFor(vehicle, obj)
         if KP.charge(tag) <= 0 then return false, "TagEmpty" end
     end
     if KP.sandbox("RequirePower") == true and not G.powered(G.pieces(adapter, anchor)) then return false, "NoPower" end
+    if reader and anchor:getModData()[KP.MARKER_TRIGGER] == "flash"
+        and not (driver and driver:isLocalPlayer() and KP.autoDriveActive(driver:getPlayerNum())) then
+        return false, "NeedFlash"
+    end
     return true
 end
 
--- 原因代碼 → 玩家語言的一句說明（willOpenFor 的第二個回傳值、伺服器拒絕的 why 共用）；不認得的代碼回通用說法
+-- 原因代碼 → 玩家語言的一句說明（willOpenFor 的第二個回傳值、伺服器拒絕的 why 共用）；不認得的代碼回通用說法。
+-- NeedFlash 帶入切大燈的鍵（KP.headlightKeyName：客戶端才有按鍵設定）
 function KnoxPassAPI.whyText(why)
     local key = "IGUI_KnoxPass_Why_" .. tostring(why)
-    local text = getText(key)
+    local text = why == "NeedFlash" and getText(key, KP.headlightKeyName()) or getText(key)
     if text == key then text = getText("IGUI_KnoxPass_Why_Error") end -- getText 找不到鍵回鍵本身
     return text
 end

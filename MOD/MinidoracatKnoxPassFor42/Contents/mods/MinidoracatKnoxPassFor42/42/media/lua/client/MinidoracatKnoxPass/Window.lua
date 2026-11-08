@@ -162,8 +162,8 @@ Co.__index = Co
 Win.Co = Co     -- E2E 與報告情境取用名單視窗（Win.Co.instance）
 
 local LABELS = { "IGUI_KnoxPass_Kind", "IGUI_KnoxPass_Owner", "IGUI_KnoxPass_Power", "IGUI_KnoxPass_Door",
-    "IGUI_KnoxPass_Durability", "IGUI_KnoxPass_Range", "IGUI_KnoxPass_Delay", "IGUI_KnoxPass_Speed", "IGUI_KnoxPass_Share",
-    "IGUI_KnoxPass_Managers" }
+    "IGUI_KnoxPass_Durability", "IGUI_KnoxPass_Range", "IGUI_KnoxPass_Delay", "IGUI_KnoxPass_Trigger", "IGUI_KnoxPass_Speed",
+    "IGUI_KnoxPass_Share", "IGUI_KnoxPass_Managers" }
 -- 分享對象（伺服器 rec.share，沒分享是 "none"）的選項文字；順序就是下拉選單的順序
 local SHARES = { { id = "none", key = "IGUI_KnoxPass_ShareNone" }, { id = "faction", key = "IGUI_KnoxPass_ShareFaction" },
     { id = "safehouse", key = "IGUI_KnoxPass_ShareSafehouse" }, { id = "both", key = "IGUI_KnoxPass_ShareBoth" } }
@@ -217,7 +217,8 @@ function Win.new(admin)
     local tm = getTextManager()
     local aside, info = 0, 0
     for _, t in ipairs({ getText("IGUI_KnoxPass_CellsRange", "99", "99"), getText("IGUI_KnoxPass_SecondsRange", "99", "99"),
-        getText("IGUI_KnoxPass_SpeedUnsupported"), getText("IGUI_KnoxPass_ShareHint"), getText("IGUI_KnoxPass_ManagersHint") }) do
+        getText("IGUI_KnoxPass_TriggerHint", KP.headlightKeyName()), getText("IGUI_KnoxPass_SpeedUnsupported"),
+        getText("IGUI_KnoxPass_ShareHint"), getText("IGUI_KnoxPass_ManagersHint") }) do
         aside = math.max(aside, tm:MeasureStringX(FS, t))
     end
     for _, t in ipairs({ getText("IGUI_KnoxPass_NoPower"), getText("IGUI_KnoxPass_PowerNotNeeded"),
@@ -247,9 +248,9 @@ function Win.new(admin)
         tm:MeasureStringX(FS, getText("IGUI_KnoxPass_UnregisterN", "64"))) + 20
     W = math.max(460, PAD * 2 + self.labelW + math.max(DD_W + 10 + aside, info), PAD * 2 + tabsW + GAP * 2 + allW + actW,
         PAD * 2 + 36 + 8 + toggle)
-    -- 高度跟字型走：資訊五列＋門鎖與算室內（與步行感應、管理員的不會被破壞）與五列設定（含共同管理）＋說明＋分頁列＋清單＋頁尾
+    -- 高度跟字型走：資訊五列＋門鎖與算室內（與步行感應、管理員的不會被破壞）與六列設定（含共同管理）＋說明＋分頁列＋清單＋頁尾
     local toggles = 2 + (hasWalk and 1 or 0) + (admin and 1 or 0)
-    local bodyH = PAD + self.lineH * 5 + (ch + GAP) * (toggles + 5) + self.lineH + GAP + ch + GAP + self.listH
+    local bodyH = PAD + self.lineH * 5 + (ch + GAP) * (toggles + 6) + self.lineH + GAP + ch + GAP + self.listH
         + PAD + ch + PAD
     local sw, sh = getCore():getScreenWidth(), getCore():getScreenHeight()
     self.win = UI.Window.new({ x = math.floor((sw - W) / 2), y = math.floor((sh - bodyH) / 2) - 20, width = W,
@@ -300,14 +301,20 @@ function Win.new(admin)
         self.durabilityTip = tip
     end
 
-    -- 每扇門的感應距離、關門延遲、開關速度與分享對象：距離與延遲只列沙盒上下限內的值；框架沒有 Dropdown 時 draw 只寫目前的值。
+    -- 每扇門的感應距離、關門延遲、開門方式、開關速度與分享對象：距離與延遲只列沙盒上下限內的值；框架沒有 Dropdown 時 draw 只寫目前的值。
     -- 視窗本體半透明，清單會蓋住下面幾列：opaque（框架 rev 18）讓清單不透明，才不會透出底下的按鈕與說明（舊框架忽略）
-    self.rangeY, self.delayY, self.speedY, self.shareY = y, y + ch + GAP, y + (ch + GAP) * 2, y + (ch + GAP) * 3
+    local rowH = ch + GAP
+    self.rangeY, self.delayY, self.triggerY = y, y + rowH, y + rowH * 2
+    self.speedY, self.shareY = y + rowH * 3, y + rowH * 4
     if CAPS.dropdown then
         self.rangeDD = UI.Dropdown.new({ x = PAD + self.labelW, y = self.rangeY, width = DD_W, height = ch, font = FS,
             theme = theme, target = self, onChange = Win.onRange, opaque = true })
         self.delayDD = UI.Dropdown.new({ x = PAD + self.labelW, y = self.delayY, width = DD_W, height = ch, font = FS,
             theme = theme, target = self, onChange = Win.onDelay, opaque = true })
+        self.triggerDD = UI.Dropdown.new({ x = PAD + self.labelW, y = self.triggerY, width = DD_W, height = ch, font = FS,
+            theme = theme, target = self, onChange = Win.onTrigger, opaque = true })
+        self.triggerDD:setOptions({ { id = "default", label = getText("IGUI_KnoxPass_TriggerNear") },
+            { id = "flash", label = getText("IGUI_KnoxPass_TriggerFlash") } })
         self.speedDD = UI.Dropdown.new({ x = PAD + self.labelW, y = self.speedY, width = DD_W, height = ch, font = FS,
             theme = theme, target = self, onChange = Win.onSpeed, opaque = true })
         self.speedDD:setOptions({ { id = "default", label = getText("IGUI_KnoxPass_SpeedNormal") },
@@ -319,6 +326,7 @@ function Win.new(admin)
         self.shareDD:setOptions(opts)
         body:addChild(self.rangeDD)
         body:addChild(self.delayDD)
+        body:addChild(self.triggerDD)
         body:addChild(self.speedDD)
         body:addChild(self.shareDD)
     end
@@ -451,22 +459,28 @@ function Win:applySettings(s)
     local fast = s.speed == "fast"
     local sb = s.speedSupported and "" or getText("IGUI_KnoxPass_SpeedUnsupported")
     local hb = getText("IGUI_KnoxPass_ShareHint")
+    -- 開門方式：閃一下大燈才開時，右邊寫按鍵設定裡切大燈的鍵（玩家可能改過，KP.headlightKeyName）
+    local flash = s.trigger == "flash"
+    local tb = flash and getText("IGUI_KnoxPass_TriggerHint", KP.headlightKeyName()) or ""
     if not self.rangeDD then
         local shareKey = SHARES[1].key
         for _, o in ipairs(SHARES) do if o.id == s.share then shareKey = o.key end end
         self.rangeAside = getText("IGUI_KnoxPass_Cells", tostring(s.range)) .. "   " .. rb
         self.delayAside = getText("IGUI_KnoxPass_Seconds", tostring(s.delay)) .. "   " .. db
+        self.triggerAside = getText(flash and "IGUI_KnoxPass_TriggerFlash" or "IGUI_KnoxPass_TriggerNear") .. "   " .. tb
         self.speedAside = getText(fast and "IGUI_KnoxPass_SpeedFast" or "IGUI_KnoxPass_SpeedNormal") .. "   " .. sb
         self.shareAside = getText(shareKey) .. "   " .. hb
         return
     end
-    self.rangeAside, self.delayAside, self.speedAside, self.shareAside = rb, db, sb, hb
+    self.rangeAside, self.delayAside, self.triggerAside, self.speedAside, self.shareAside = rb, db, tb, sb, hb
     self.rangeDD:setOptions(settingOptions(s.rangeMin, s.rangeMax, s.rangeDefault, "IGUI_KnoxPass_Cells"))
     self.rangeDD:setSelected(s.rangeSet ~= nil and s.range or "default", true)
     self.rangeDD:setEnabled(true)
     self.delayDD:setOptions(settingOptions(s.delayMin, s.delayMax, s.delayDefault, "IGUI_KnoxPass_Seconds"))
     self.delayDD:setSelected(s.delaySet ~= nil and s.delay or "default", true)
     self.delayDD:setEnabled(true)
+    self.triggerDD:setSelected(flash and "flash" or "default", true)
+    self.triggerDD:setEnabled(true)
     self.speedDD:setSelected(fast and "fast" or "default", true)
     self.speedDD:setEnabled(s.speedSupported == true)
     self.shareDD:setSelected(s.share or "none", true)
@@ -562,6 +576,7 @@ function Win:reset()
     if self.rangeDD then
         self.rangeDD:setEnabled(false)
         self.delayDD:setEnabled(false)
+        self.triggerDD:setEnabled(false)
         self.speedDD:setEnabled(false)
         self.shareDD:setEnabled(false)
     end
@@ -599,12 +614,13 @@ end
 
 function Win:draw(el)
     local s = self.state
-    -- 設定四列與下拉選單同高（高 fh+10，文字下移 5 置中）；標籤在讀取中與讀取失敗時也畫，停用的選單看得出是什麼
+    -- 設定五列與下拉選單同高（高 fh+10，文字下移 5 置中）；標籤在讀取中與讀取失敗時也畫，停用的選單看得出是什麼
     text(el, self.labels[6], PAD, self.rangeY + 5, "textMuted")
     text(el, self.labels[7], PAD, self.delayY + 5, "textMuted")
-    text(el, self.labels[8], PAD, self.speedY + 5, "textMuted")
-    text(el, self.labels[9], PAD, self.shareY + 5, "textMuted")
-    text(el, self.labels[10], PAD, self.managersY + 5, "textMuted")
+    text(el, self.labels[8], PAD, self.triggerY + 5, "textMuted")
+    text(el, self.labels[9], PAD, self.speedY + 5, "textMuted")
+    text(el, self.labels[10], PAD, self.shareY + 5, "textMuted")
+    text(el, self.labels[11], PAD, self.managersY + 5, "textMuted")
     if not s then
         if self.failed then
             drawLines(el, self.failed, PAD, self.infoY, self.lineH, "errorText")
@@ -625,6 +641,7 @@ function Win:draw(el)
     if self.rangeDD then asideX, asideToken = valueX + DD_W + 10, "textFaint" end
     text(el, self.rangeAside, asideX, self.rangeY + 5, asideToken)
     text(el, self.delayAside, asideX, self.delayY + 5, asideToken)
+    text(el, self.triggerAside, asideX, self.triggerY + 5, asideToken)
     text(el, self.speedAside, asideX, self.speedY + 5, asideToken)
     text(el, self.shareAside, asideX, self.shareY + 5, asideToken)
     text(el, self.managersAside, valueX + DD_W + 10, self.managersY + 5, "textFaint")   -- 名單按鈕一律有，右邊寫說明
@@ -648,6 +665,11 @@ end
 
 function Win:onDelay(id)
     C.send(self.player, "settings", { key = self.key, delay = id })
+end
+
+-- 開門方式：id＝"flash"（閃一下大燈才開）或 "default"（靠近就開）
+function Win:onTrigger(id)
+    C.send(self.player, "settings", { key = self.key, trigger = id })
 end
 
 -- 開關速度：id＝"fast"（加速）或 "default"（正常）

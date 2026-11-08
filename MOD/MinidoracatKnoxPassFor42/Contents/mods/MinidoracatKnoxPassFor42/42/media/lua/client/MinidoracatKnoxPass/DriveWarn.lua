@@ -14,29 +14,31 @@ D.AHEAD = 20       -- 往前看幾格
 D.HALF_WIDTH = 2   -- 行進線左右各看幾格
 D.LEAVE = 30       -- 離門超過幾格就當這次接近結束
 D.MIN_SPEED = 1    -- 格／秒（約 3.6 km/h）；更慢不算在接近
+D.PAIR = 10        -- 同一個原因、離已提示的門這麼近（並排的門）就不再提示
 
-local state = {}   -- playerNum → { v, x, y, t, warned = { key → { x, y } } }
+local state = {}   -- playerNum → { v, x, y, t, warned = { key → { x, y, why } } }
 local lastScan = 0
 
--- 家族 AutoDrive 正在替這位本機玩家開車：它自己會提示大門（AutoDrive 1005e 起），這裡不重複。
--- MinidoracatAutoDriveFor42 client/MDAD_Driver.lua:41-42（MDAD.Drive = Drive）、:1341-1343
--- （Drive.isActive(playerNum)＝有自駕 session 或行程準備中）。沒裝 AutoDrive 或對方出錯就當自己開
-local function autoDriving(playerNum)
-    local drive = type(MDAD) == "table" and MDAD.Drive
-    local fn = type(drive) == "table" and drive.isActive
-    if type(fn) ~= "function" then return false end
-    local ok, yes = pcall(fn, playerNum)
-    return ok and yes == true
+-- 這次接近已經為同一個原因提示過旁邊的門：並排的門不一定同一輪掃描進到前方範圍（車頭偏一點，另一扇下一輪才進來；
+-- knoxpass-flash-sp-1109a 兩扇並排、閃燈才開的門隔約 1 秒各跳一則）
+local function pairedWith(st, why, x, y)
+    for _, w in pairs(st.warned) do
+        local dx, dy = w.x - x, w.y - y
+        if w.why == why and dx * dx + dy * dy <= D.PAIR * D.PAIR then return true end
+    end
+    return false
 end
 
 -- 回傳 true＝這扇門會擋住這台車（關著、不會開、有原因）。quiet＝同一輪已經提示過更近的門，只記下不再提示：
--- 並排的閘門或大門一次開過去只跳一則（訊息本來就是「前方的大門」）
+-- 並排的閘門或大門一次開過去只跳一則（訊息本來就是「前方的大門」）；不同輪掃到的並排的門見 pairedWith
 local function warn(player, st, v, adapter, anchor, key, quiet)
     if G.isOpen(adapter, anchor) then return false end
     local ok, why = KnoxPassAPI.willOpenFor(v, anchor)
     if ok or not why then return false end
     local sq = anchor:getSquare()
-    st.warned[key] = { x = sq:getX() + 0.5, y = sq:getY() + 0.5 }
+    local x, y = sq:getX() + 0.5, sq:getY() + 0.5
+    quiet = quiet or pairedWith(st, why, x, y)
+    st.warned[key] = { x = x, y = y, why = why }
     KP.log("drive warn " .. key .. " why=" .. tostring(why) .. (quiet and " quiet" or ""))
     if not quiet then
         KP.Client.say(player, getText("IGUI_KnoxPass_AheadWarn", KnoxPassAPI.whyText(why)), true, true)
@@ -69,7 +71,7 @@ end
 local function update(player, now)
     local pn = player:getPlayerNum()
     local v = player:getVehicle()
-    if not v or v:getDriver() ~= player or autoDriving(pn) then
+    if not v or v:getDriver() ~= player or KP.autoDriveActive(pn) then
         state[pn] = nil
         return
     end

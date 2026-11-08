@@ -138,6 +138,7 @@ local function mark(anchor, rec)
     md[KP.MARKER_LOCK] = rec and rec.lock or nil
     md[KP.MARKER_COLOR] = rec and rec.color ~= 0 and rec.color or nil   -- 只給右鍵選單列出「其他顏色」用
     md[KP.MARKER_SPEED] = rec and rec.speed == "fast" and "fast" or nil   -- client 選開關動畫（BarrierAnim.lua）
+    md[KP.MARKER_TRIGGER] = rec and rec.trigger or nil   -- 閃一下大燈才開：willOpenFor 回 NeedFlash（Gates.lua）
     md[KP.MARKER_CO] = rec and nameSet(rec.co) or nil
     md[KP.MARKER_COFACTION] = rec and rec.coFaction or nil
     md[KP.MARKER_COHOUSES] = rec and nameSet(rec.coHouses) or nil
@@ -306,6 +307,7 @@ local function buildState(player, key, rec)
         delay = KP.gateDelay(rec), delaySet = rec.closeDelay, delayMin = delayLo, delayMax = delayHi,
         delayDefault = KP.clampSetting("CloseDelay", tonumber(KP.sandbox("CloseDelay")) or 2),
         speed = rec.speed == "fast" and "fast" or "default", share = rec.share or "none", maxTags = MAX_TAGS,
+        trigger = rec.trigger or "default",   -- 開門方式："flash"＝閃一下大燈才開（Sensor.lua scanKeys）
         walk = rec.walk ~= false, walkSupported = KP.watchSensing(),   -- 這扇門的手錶步行感應（沒有＝開）
         indoor = rec.indoor == true,
         ownerOrAdmin = canEdit, co = sortedNames(rec.co), coFaction = rec.coFaction == true,
@@ -596,6 +598,13 @@ local function speedArg(v)
     return v == "fast", v
 end
 
+-- 開門方式："flash"＝閃一下大燈才開、"default"＝靠近就開、沒送＝不改
+local function triggerArg(v)
+    if v == nil then return true, nil end
+    if v == "default" then return true, false end
+    return v == "flash", v
+end
+
 -- 分享對象（sharedWith）："faction"／"safehouse"／"both"、"none"＝不分享、沒送＝不改
 local SHARES = { faction = true, safehouse = true, both = true }
 local function shareArg(v)
@@ -612,16 +621,19 @@ function H.settings(player, args)
     local okR, range = settingArg(args.range)
     local okD, delay = settingArg(args.delay)
     local okS, speed = speedArg(args.speed)
+    local okT, trigger = triggerArg(args.trigger)
     local okH, share = shareArg(args.share)
     local okW = args.walk == nil or type(args.walk) == "boolean"   -- 手錶步行感應：true／false、沒送＝不改
     local okI = args.indestructible == nil or type(args.indestructible) == "boolean"   -- 不會被破壞：同上
     local okIn = args.indoor == nil or type(args.indoor) == "boolean"   -- 算室內：同上
-    if not (okR and okD and okS and okH and okW and okI and okIn) then return result(player, cmd, false, "BadArgs", args.key) end
+    if not (okR and okD and okS and okT and okH and okW and okI and okIn) then
+        return result(player, cmd, false, "BadArgs", args.key)
+    end
     -- 擁有者與共同管理者也改不了：誰都能替自己的門開的話，等於整台伺服器都開
     if args.indestructible ~= nil and not adminOf(player) then return result(player, cmd, false, "AdminOnly", args.key) end
-    -- 速度存在帳本，也標在錨點給 client 選動畫；算室內當下就改室內紀錄。兩者都要門載入
+    -- 速度與開門方式存在帳本，也標在錨點給 client（選動畫、willOpenFor）；算室內當下就改室內紀錄。三者都要門載入
     local adapter, anchor = nil, nil
-    if speed ~= nil or args.indoor ~= nil then
+    if speed ~= nil or trigger ~= nil or args.indoor ~= nil then
         adapter, anchor = G.findAt(rec)
         if not adapter then return result(player, cmd, false, "NotLoaded", args.key) end
         if speed and not KP.speedSupported(anchor) then return result(player, cmd, false, "NoSpeedSupport", args.key) end
@@ -632,10 +644,9 @@ function H.settings(player, args)
     if delay ~= nil then rec.closeDelay = delay and KP.clampSetting("CloseDelay", delay) or nil end
     if share ~= nil then rec.share = share or nil end
     if args.walk == false then rec.walk = false elseif args.walk == true then rec.walk = nil end   -- 沒有＝開，舊存檔不用轉換
-    if speed ~= nil then
-        rec.speed = speed or nil
-        mark(anchor, rec)
-    end
+    if speed ~= nil then rec.speed = speed or nil end
+    if trigger ~= nil then rec.trigger = trigger or nil end
+    if speed ~= nil or trigger ~= nil then mark(anchor, rec) end
     -- 算室內：勾了就把門片記成牆（開著也是），取消就照門現在的樣子重算（Gates.lua G.syncRegions）
     if args.indoor ~= nil then
         rec.indoor = args.indoor or nil
@@ -647,7 +658,8 @@ function H.settings(player, args)
         if a then S.shield(rec, a, an) end   -- 門沒載入時由 Sensor 每 5 秒的巡檢補上
     end
     KP.log("settings key=" .. args.key .. " range=" .. tostring(rec.range) .. " delay=" .. tostring(rec.closeDelay)
-        .. " speed=" .. tostring(rec.speed) .. " share=" .. tostring(rec.share) .. " walk=" .. tostring(rec.walk ~= false)
+        .. " speed=" .. tostring(rec.speed) .. " trigger=" .. tostring(rec.trigger) .. " share=" .. tostring(rec.share)
+        .. " walk=" .. tostring(rec.walk ~= false)
         .. " indestructible=" .. tostring(rec.indestructible == true) .. " indoor=" .. tostring(rec.indoor == true)
         .. " by=" .. tostring(player:getUsername()))
     result(player, cmd, true, nil, args.key)
@@ -878,7 +890,10 @@ function H.managers(player, args)
     KP.sendState(player, args.key)
 end
 
+-- 原版切大燈（ISVehicleMenu.onToggleHeadlights → module vehicle、command setHeadlightsOn，VehicleCommands.lua:105-111）
+-- 也經過這裡：交給 Sensor 記下閃燈（S.noteHeadlights）。原版自己的處理照跑（各自註冊的 OnClientCommand）
 local function onClientCommand(module, command, player, args)
+    if module == "vehicle" and command == "setHeadlightsOn" then return S.noteHeadlights(player) end
     if module ~= KP.MODULE then return end
     local handler = H[command]
     if not handler or not player or type(args) ~= "table" then return end
