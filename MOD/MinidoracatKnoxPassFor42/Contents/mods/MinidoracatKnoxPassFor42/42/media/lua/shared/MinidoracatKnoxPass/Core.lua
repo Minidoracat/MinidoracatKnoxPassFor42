@@ -54,8 +54,8 @@ function KP.barrierIndex(obj)
     return n and tonumber(n) or nil
 end
 
--- 每扇門可選的開關速度：錨點要有加速版 spriteModel（虛擬 tileset：單臂閘門 build_barrier_tiles.py FAST_TILESET、
--- 模型門 build_model_gates.py fast_tileset）。一層樓車庫捲門與原版的門是 2D 門片或原版模型，沒有加速版
+-- 每扇門可選的開關速度：要有加速版 spriteModel，登錄在掛模型的格位（虛擬 tileset：單臂閘門車道 2 的關／開，
+-- build_barrier_tiles.py FAST_TILESET；模型門 HOST 兩格，build_model_gates.py fast_tileset）。模型掛中間片（KP.hostLane），錨點只綁帳本與標記。一層樓車庫捲門與原版的門是 2D 門片或原版模型，沒有加速版
 function KP.speedSupported(anchor)
     return KP.barrierIndex(anchor) ~= nil or KP.modelGate(anchor) ~= nil
 end

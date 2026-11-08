@@ -663,6 +663,8 @@ function Door:syncIsoObject(bRemote)
     if bRemote then return end
     W.syncLog = W.syncLog or {}
     W.syncLog[#W.syncLog + 1] = self   -- 哪一片送出（client 只有被同步的那片播 clip，D:1798-1808）
+    W.syncIds = W.syncIds or {}
+    W.syncIds[#W.syncIds + 1] = self._lastPlayerId or -1   -- 封包帶的開關者 ID（D:1776-1806 在他身上播門聲、setNoCollision）
     syncView(self)
     if self._garage then
         echoChain(self, self._open, self._lockedByKey)
@@ -700,6 +702,10 @@ end
 function Door:ToggleDoorSilent()
     self._open = not self._open
     if self._closedName then self._spriteObj = namedSprite(self._open and self._openName or self._closedName) end
+end
+function Door:setOpen(b) self._open = b end   -- D:144-146：只設欄位，不 sync
+function Door:changeSprite(d)                  -- D:3340-3342：照開關換 sprite，不 sync
+    if d._closedName then d._spriteObj = namedSprite(d._open and d._openName or d._closedName) end
 end
 function Door:getSoundPrefix() return "WoodDoor" end   -- D:3593-3600：tile 沒有 DoorSound 屬性時
 
@@ -1487,6 +1493,7 @@ local function step(fn)
             later[#later + 1] = e
         else
             local chain = garageChain(e[1])
+            e[1]._lastPlayerId = 7   -- 伺服器把回送者記成那片的 lastPlayerOnlineId（D:1758），之後同步那片都帶著
             if chain[1]._open and not e[3] then W.echoClosed = W.echoClosed + 1 end
             for _, p in ipairs(chain) do
                 p._locked, p._lockedByKey, p._open = e[2], e[2], e[3]
@@ -4173,7 +4180,11 @@ local function scenarioRollDoor()
     check(W.regionJobs == 0, "巡檢：引擎記著的位元和門的狀態一致時不重算（不存檔、不廣播區域資料）")
     W.prevFlags = 16   -- 上一個呼叫者（別格放家具、位元沒變）留下的值，剛好等於門開著的位元
     driver(v)
+    local synced0 = #(W.syncLog or {})
     step()
+    local _, wAnchor = KP.Gates.resolve(w[2])
+    check((W.syncLog or {})[synced0 + 1] == wAnchor and #(W.syncLog or {}) == synced0 + 1,
+        "捲門（沒有模型）開門照原版同步錨點一片，不換成中間片（Gates.lua syncPiece）")
     check(w[1]:IsOpen() and w[4]:IsOpen() and w[4]:getSprite():getName() == "walls_garage_01_56",
         "登記的車接近：四片一起開（原版開啟 sprite＋8）")
     check(regions() == "16,16,16,16" and W.regionJobs == 4,
@@ -4867,6 +4878,23 @@ local function scenarioModelGates()
     runMs(3000)
     check(not gc.lanes[1]:IsOpen() and not gc.lanes[6]:IsOpen(), "車開走後關上")
     check(W.regionJobs == 0, "模型門開關：門片沒有牆屬性、位元不變，不重算室內判定（不存檔、不廣播區域資料）")
+    -- 門鎖切換：逐片同步時掛模型那片排第一（Gates.lua syncOrder），客戶端回送的是其他片，伺服器記的回送者 ID
+    -- （D:1758）不會落在掛模型那片；之後自動開門同步那片時帶 -1，不會在某位玩家身上播門聲、setNoCollision（D:1777-1806）
+    check(cmd(owner, "lock", { key = key, on = true }).ok == true, "大門開 Knox 門鎖")
+    runMs(1000)   -- 客戶端回送到伺服器
+    check(cmd(owner, "lock", { key = key, on = false }).ok == true, "大門關 Knox 門鎖")
+    runMs(1000)
+    local ids0 = #(W.syncIds or {})
+    moveCar(v, 404.0, 104.5)
+    step()
+    local hostIds = {}
+    for i = ids0 + 1, #W.syncIds do
+        if W.syncLog[i] == gc.lanes[4] then hostIds[#hostIds + 1] = W.syncIds[i] end
+    end
+    check(gc.lanes[4]:IsOpen() and #hostIds == 1 and hostIds[1] == -1,
+        "鎖切換後自動開門：同步掛模型的第 4 片，封包的開關者 ID 是 -1（" .. table.concat(hostIds, ",") .. "）")
+    moveCar(v, v._x, v._y + 40)
+    runMs(3000)
 
     -- 鐵網上色款（KP.GATE_SKIN）：用 A 的模型與門柱，柱面讀頭也照 A（外觀 0）
     local gk = buildModelGate("MinidoracatKnoxPass_gate_ablack", 0, 6, "N", true, 600, 100, builder)
@@ -4984,6 +5012,33 @@ local function scenarioModelGates()
     step()
     check(h[5]._smName == ts .. "_" .. (base + 13) and h[5]:isAnimating(),
         "原生 clip 播放中不插手補播，只把覆寫換成開的靜止模型（＋13，綠燈貼圖）")
+    -- 跨 chunk 漏掉的同步：中間片（封包對象）已開，錨點側的片停在舊的關；鏈上一片載入時對齊，只改本機、不送封包
+    -- 中間片還沒指名覆寫時收到同步：PlayAnimation 取不到模型只 setAnimating(true)（D:1657-1664），第一次追蹤時清掉
+    viewer._x, viewer._y = 405, 103   -- 站到這座門邊（FAR 範圍內），前兩座就出了範圍
+    local k = {}
+    for i = 2, 9 do k[i] = piece(i, 401) end
+    for i = 5, 9 do k[i]._open = true end
+    k[5]:setAnimating(true)
+    k[1] = piece(1, 401)
+    local syncs = #(W.syncLog or {})
+    loadSprite(k[1])
+    local aligned = true
+    for i = 1, 9 do aligned = aligned and k[i]:IsOpen() end
+    check(aligned and #(W.syncLog or {}) == syncs, "錨點側停在舊的關、中間片已開：載入時整條對齊成開，沒有送任何同步")
+    check(not k[5]:isAnimating() and k[5]._smName == ts .. "_" .. (base + 13),
+        "中間片沒模型時收到同步留下的 animating 旗標：第一次追蹤時清掉，掛開的靜止模型")
+    k[9]._open = false   -- 尾端那片在第三個 chunk，晚到又漏了同步
+    runMs(1000)
+    check(k[9]:IsOpen() and #(W.syncLog or {}) == syncs, "每秒對齊：晚載入的尾端片也對齊成開，沒有送同步")
+    -- 分割畫面：第一位玩家在 120 格外、第二位在門邊，照樣追蹤（手關時中間片換成補播通道，不停在開的靜止模型）
+    local far = newPlayer("far", 401 + 200, 103)
+    W.locals = { far, viewer }
+    runMs(1000)
+    k[1]:ToggleDoor(viewer)
+    step()
+    check(not k[5]:IsOpen() and k[5]._smName ~= ts .. "_" .. (base + 13) and k[5]._smName ~= ts .. "_" .. (base + 5),
+        "分割畫面第二位玩家在門邊：追蹤不被清掉，手關時中間片走補播通道（" .. tostring(k[5]._smName) .. "）")
+    W.locals = { viewer }
     clean(from, "模型門掛載（MP client）")
 end
 

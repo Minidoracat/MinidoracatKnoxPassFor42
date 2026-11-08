@@ -1,7 +1,8 @@
 -- 抬升閘門：entity 建造（scripts/entities/entity_knoxpass_barrier.txt）的 OnCreate 把三格車道換成 IsoDoor 車庫門鏈，
 -- 建好後自動登記內建讀頭（建造者是擁有者）；拆除機箱、機箱被打壞、大錘敲任一格、車道被打壞時整座移除。
 -- 形態：機箱格是 entity 建出的 IsoThumpable（sprite 帶 solid，永遠擋車）；車道 1-3 是 GarageDoor 1-3 的 IsoDoor，
--- 第 1 片是錨點，臂的 3D 模型掛在它身上（common/media/spriteModels.txt，原點平移到機箱格）。
+-- 第 1 片是錨點，只綁帳本與標記；臂的 3D 模型掛在中間那片（車道 2，KP.hostLane；common/media/spriteModels.txt，原點平移到機箱格），
+-- 車道 1 掛路面停止線與字。
 -- 四個方向：N／W 向機箱緊鄰第 1 片；S／E 向是 N／W 轉 180°（編號＋80），機箱在第 3 片那端，車道門片建在下一列／下一行。
 -- 車庫捲門（KP.RollDoor）走同一段換門程式：原版捲門 sprite 換成 IsoDoor，不內建讀頭。
 -- 建造放的是沒有 GarageDoor 屬性的替代 tile（Core.lua）：改寫 ISBuildIsoEntity:setInfo、看到這個屬性就自己建門的
@@ -271,7 +272,7 @@ function B.fullHealth(o, width, hp)
     return nil
 end
 
--- 二樓隱形牆：兩層樓捲門與兩層樓大門（KP.MODEL_GATES 的 upper）只有一樓有物件，上半截只是錨點的 3D 模型，二樓不擋人、
+-- 二樓隱形牆：兩層樓捲門與兩層樓大門（KP.MODEL_GATES 的 upper）只有一樓有物件，上半截只是中間片（KP.hostLane）的 3D 模型，二樓不擋人、
 -- 二樓的房間也圍不起來（2026-10-22 Workshop 玩家回報）。每片車道與每一端的門線格（擺放格＋KP.GATE_DOOR）上一層，
 -- N／S 向放 N 邊、W／E 向放 W 邊一道看不見的牆（KP.UPPER_WALL_TILESET：擋人，IsoRegions 認它的 cut 旗標，二樓的房間
 -- 才封閉；看得穿的外觀用視線穿過的那張；tile 帶 CarSlowFactor，物理不在那格放牆，比一層樓高的車照樣開得過開著的門，

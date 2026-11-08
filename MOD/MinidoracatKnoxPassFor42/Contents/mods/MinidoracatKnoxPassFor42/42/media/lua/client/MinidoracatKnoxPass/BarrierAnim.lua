@@ -78,6 +78,28 @@ local function gateOf(obj)
     end
 end
 
+-- MP 客戶端：鏈上其他片的開關對齊掛模型那片。伺服器開關時同步的是掛模型那片（Gates.lua syncPiece）；那格沒載入時整包丟掉
+-- （GameClient.java:1626-1629），載入了但片段清單裡有一片沒載入時，接收端改到那片就 return（IsoDoor.java:1811-1816），
+-- 之後的片停在舊狀態（含碰撞）。掛模型那片是封包對象，有載入就是最新。只改本機、不送封包、不動鎖：照接收端的做法
+-- （:1820-1832）setOpen、changeSprite（都只設欄位，:144-146、:3340-3342）、RecalcAllWithNeighbours、invalidateRenderChunkLevel；
+-- 接收端另外呼叫的 PolygonalMap2.squareChanged 沒曝露給 Lua，尋路快取等下一次那格變動才更新
+local function align(host)
+    if not isClient() then return end
+    local open = host:IsOpen()
+    for _, step in ipairs({ IsoDoor.getGarageDoorPrev, IsoDoor.getGarageDoorNext }) do
+        local p = step(host)
+        while p do
+            if p:IsOpen() ~= open then
+                p:setOpen(open)
+                p:changeSprite(p)
+                p:getSquare():RecalcAllWithNeighbours(true)
+                p:invalidateRenderChunkLevel(256)
+            end
+            p = step(p)
+        end
+    end
+end
+
 -- 沿車庫門鏈從錨點走到掛模型那片並開始追（已在追就只更新錨點）；那一格還沒載入（跨 chunk）回 false，每秒再找
 local function resolve(anchor)
     local g = gateOf(anchor)
@@ -85,11 +107,16 @@ local function resolve(anchor)
     for _ = 2, KP.hostLane(g.width) do host = host and IsoDoor.getGarageDoorNext(host) end
     if not host then return false end
     anchors[anchor] = host
+    align(host)
     local s = tracked[host]
     if s then
         s.anchor = anchor
         return true
     end
+    -- 模型門的中間片在指名覆寫之前沒有模型，那時收到同步，PlayAnimation 取不到模型只 setAnimating(true)（IsoDoor.java:1657-1664），
+    -- 沒有 clip 會把它清掉，之後 toggled 會當成引擎在播。這時清掉是安全的：沒有模型就沒有加進 IsoObjectAnimations，
+    -- 引擎沒有東西在播。單臂閘門的車道 2 自己帶模型，可能真的在播，不清
+    if g.rest then host:setAnimating(false) end
     g.anchor, g.open, g.fast = anchor, host:IsOpen(), isFast(anchor)
     tracked[host] = g
     g.sm = restName(host, g)
@@ -145,9 +172,18 @@ local function finish(obj, s)
     obj:invalidateRenderChunkLevel(256)   -- 同引擎播完時的收尾（IsoObjectAnimations.java:76-78）；帶 doorTrans 的門本來就每幀畫（FBORenderCell.java:1835-1837）
 end
 
+-- 任一本機玩家（分割畫面）在範圍內就算近
 local function nearPlayer(sq)
-    local p = getSpecificPlayer(0)
-    return p == nil or (math.abs(p:getX() - sq:getX()) <= FAR and math.abs(p:getY() - sq:getY()) <= FAR)
+    local n = getNumActivePlayers()
+    local any = false
+    for i = 0, n - 1 do
+        local p = getSpecificPlayer(i)
+        if p then
+            any = true
+            if math.abs(p:getX() - sq:getX()) <= FAR and math.abs(p:getY() - sq:getY()) <= FAR then return true end
+        end
+    end
+    return not any
 end
 
 local function gone(obj)
@@ -187,10 +223,13 @@ function A.tick()
             drop = drop or {}
             drop[#drop + 1] = obj
         else
-            -- 擁有者改了速度（錨點標記隨 transmitModData 到）：每秒對一次，不在補播中就換覆寫
-            if sweep and isFast(s.anchor) ~= s.fast then
-                s.fast = not s.fast
-                if not s.start then setSm(obj, s, restName(obj, s)) end
+            if sweep then
+                align(obj)   -- 鏈上晚載入的片（例如在第三個 chunk 的尾端）每秒對齊一次
+                -- 擁有者改了速度（錨點標記隨 transmitModData 到）：每秒對一次，不在補播中就換覆寫
+                if isFast(s.anchor) ~= s.fast then
+                    s.fast = not s.fast
+                    if not s.start then setSm(obj, s, restName(obj, s)) end
+                end
             end
             local open = obj:IsOpen()
             if open ~= s.open then toggled(obj, s, open, now) end
