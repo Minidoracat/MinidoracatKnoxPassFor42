@@ -55,8 +55,8 @@ function KP.barrierIndex(obj)
     return n and tonumber(n) or nil
 end
 
--- 每扇門可選的開關速度：錨點要有加速版 spriteModel（虛擬 tileset：單臂閘門 build_barrier_tiles.py FAST_TILESET、
--- 模型門 build_model_gates.py fast_tileset）。一層樓車庫捲門與原版的門是 2D 門片或原版模型，沒有加速版
+-- 每扇門可選的開關速度：要有加速版 spriteModel，登錄在掛模型的格位（虛擬 tileset：單臂閘門車道 2 的關／開，
+-- build_barrier_tiles.py FAST_TILESET；模型門 HOST 兩格，build_model_gates.py fast_tileset）。模型掛中間片（KP.hostLane），錨點只綁帳本與標記。一層樓車庫捲門與原版的門是 2D 門片或原版模型，沒有加速版
 function KP.speedSupported(anchor)
     return KP.barrierIndex(anchor) ~= nil or KP.modelGate(anchor) ~= nil
 end
@@ -80,13 +80,22 @@ end
 
 -- 模型門（scripts/build_model_gates.py 產生）：雙桿閘門、兩層樓捲門（16 色）、兩層樓大門（五種外觀＋鐵網上色款）。MOD 的 tiledef
 -- 每個 tileset 最多 512 格（IsoWorld.java:639-640），所以每個款式一個 tileset。編號＝區塊×64＋格位，區塊＝寬度序×方向數＋方向序。
--- 格位：0／1／2＝車道（關，GarageDoor 1、中間片、最後一片；第 1 片是錨點、掛 3D 模型），8-10＝開（關＋8，
+-- 格位：0／1／2＝車道（關，GarageDoor 1、中間片、最後一片；第 1 片是錨點：帳本、讀頭、標記都綁它），8-10＝開（關＋8，
 -- IsoDoor.java:793-805），3／4＝兩端 A／B（A 在車道 1 那頭；機箱或門柱，實心 IsoThumpable），16 起＝建造替代 tile
--- （車道 k＝16＋k−1，沒有 GarageDoor），32-40／48-56＝抬起／放下姿勢（只在 spriteModels，SP 動畫步進用）。
+-- （車道 k＝16＋k−1，沒有 GarageDoor），32-40／48-56＝抬起／放下姿勢（只在 spriteModels，SP 動畫步進用），
+-- 5／13＝中間片（KP.hostLane）靜止時的關／開模型（只在 spriteModels，client 的 BarrierAnim 指名給那一片）。
+-- 3D 模型掛中間片、不掛錨點：半透明層只畫格子在畫面上的物件（FBORenderCell.java:3558），掛錨點時錨點那格出畫面整座不見。
 -- 擺放：N／S 一列西→東 [A] 車道 1..L [B]；W／E 一行北→南 [B] 車道 L..1 [A]。門只能在 N／W 邊，S／E 的車道門片
 -- 建在下一列／下一行（同轉 180° 的單臂閘門）。耐久照大小（2026-10-08 使用者決定）：一車 1000、兩車 1500、三車 2000，兩層樓 +500。
 -- upper＝兩層樓：二樓門線另放看不見的牆（server/Barrier.lua 的二樓隱形牆）
-KP.GATE_SLOT = { END_A = 3, END_B = 4, OPEN = 8, PLACEHOLDER = 16, POSE_OPEN = 32, POSE_CLOSE = 48 }
+KP.GATE_SLOT = { END_A = 3, END_B = 4, HOST = 5, OPEN = 8, PLACEHOLDER = 16, POSE_OPEN = 32, POSE_CLOSE = 48 }
+
+-- 掛 3D 模型的那一片（第幾片，1 起）：正中間，偶數寬取過中線那片（3→2、4→3、6→4、9→5；單臂閘門 3 格是車道 2）。
+-- build_model_gates.py host_lane 同一條規則；伺服器開關門也從這一片同步（Gates.lua setGarageOpen）
+function KP.hostLane(width)
+    return math.floor(width / 2) + 1
+end
+
 local BARRIER2 = { kind = "Barrier", builtin = true, ends = true, widths = { 6, 9 }, faces = { "N", "W" },
     health = { [6] = 1500, [9] = 2000 } }
 local ROLL2F = { kind = "Garage", ends = false, upper = true, widths = { 3, 4, 6, 9 }, faces = { "N", "W" },

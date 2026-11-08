@@ -567,7 +567,11 @@ function Square:transmitRemoveItemFromSquare(o, safelyRemove)
     end
 end
 function Square:RecalcAllWithNeighbours() end
-function Square:setSquareChanged() IsoRegions.squareChanged(self) end   -- IsoGridSquare.java:4734-4739（這裡只模擬室內判定那段）
+function Square:setSquareChanged()   -- IsoGridSquare.java:4734-4739（這裡只模擬室內判定那段；尋路通知記在 W.pathChanged）
+    W.pathChanged = W.pathChanged or {}
+    W.pathChanged[self] = true
+    IsoRegions.squareChanged(self)
+end
 function Square:playSound(name) W.sounds[#W.sounds + 1] = { name = name, sq = self } end   -- IsoGridSquare.java:9738-9741（本機播）
 function playServerSound(name, sq) W.sounds[#W.sounds + 1] = { name = name, sq = sq, server = true } end   -- LuaManager.java:3892-3894
 function Square:AddTileObject(o)   -- IsoGridSquare.java:5851-5880（門柱讀頭模型用）
@@ -668,6 +672,10 @@ local function echoChain(o, open, byKey)
 end
 function Door:syncIsoObject(bRemote)
     if bRemote then return end
+    W.syncLog = W.syncLog or {}
+    W.syncLog[#W.syncLog + 1] = self   -- 哪一片送出（client 只有被同步的那片播 clip，D:1798-1808）
+    W.syncIds = W.syncIds or {}
+    W.syncIds[#W.syncIds + 1] = self._lastPlayerId or -1   -- 封包帶的開關者 ID（D:1776-1806 在他身上播門聲、setNoCollision）
     syncView(self)
     if self._garage then
         echoChain(self, self._open, self._lockedByKey)
@@ -705,6 +713,10 @@ end
 function Door:ToggleDoorSilent()
     self._open = not self._open
     if self._closedName then self._spriteObj = namedSprite(self._open and self._openName or self._closedName) end
+end
+function Door:setOpen(b) self._open = b end   -- D:144-146：只設欄位，不 sync
+function Door:changeSprite(d)                  -- D:3340-3342：照開關換 sprite，不 sync
+    if d._closedName then d._spriteObj = namedSprite(d._open and d._openName or d._closedName) end
 end
 function Door:getSoundPrefix() return "WoodDoor" end   -- D:3593-3600：tile 沒有 DoorSound 屬性時
 
@@ -1483,6 +1495,7 @@ local function step(fn)
             later[#later + 1] = e
         else
             local chain = garageChain(e[1])
+            e[1]._lastPlayerId = 7   -- 伺服器把回送者記成那片的 lastPlayerOnlineId（D:1758），之後同步那片都帶著
             if chain[1]._open and not e[3] then W.echoClosed = W.echoClosed + 1 end
             for _, p in ipairs(chain) do
                 p._locked, p._lockedByKey, p._open = e[2], e[2], e[3]
@@ -3321,14 +3334,16 @@ local function scenarioBarrierAnim()
     local from = #logLines + 1
     local me = newPlayer("me", 201, 103)
     W.locals = { me }
-    local a = buildBarrier(200, 100, "N", me)[0]
+    local built = buildBarrier(200, 100, "N", me)
+    local a = built[1]   -- 桿子掛車道 2（build_barrier_tiles.py；錨點車道 1 掛路面）
     step()
     check(KP.Ledger.get("201,100,0N").owner == "me", "SP：建造者就是擁有者")
-    local function smTime(o) return W.spriteModels[o._smName]._time end   -- 錨點目前通道的 animationTime
+    local function smTime(o) return W.spriteModels[o._smName]._time end   -- 掛桿子那片目前通道的 animationTime
     a:ToggleDoor(me)   -- 車庫門本機 toggle 不播動畫（D:1582-1596）；假引擎同樣不設 animating
     step()
-    check(a:isAnimating() and a._smName == "MinidoracatKnoxPass_barrier_16" and smTime(a) < 0.02,
-        "SP 開門：設 animating，用抬起組（綠燈）第一個通道 16，從關的姿勢起步")
+    check(a:isAnimating() and a._smName == "MinidoracatKnoxPass_barrier_16" and smTime(a) < 0.02
+        and built[0]._smName == nil and not built[0]:isAnimating(),
+        "SP 開門：車道 2 設 animating，用抬起組（綠燈）第一個通道 16，從關的姿勢起步；錨點（車道 1）不動")
     local times, sets = { smTime(a) }, W.smSets
     for _ = 1, 7 do
         step()
@@ -3346,10 +3361,10 @@ local function scenarioBarrierAnim()
         "2 秒時改成放下：換放下組（紅燈）通道 48，從目前姿勢（0.5）接著往回走，不跳回端點")
     local inv = W.invalidated
     runMs(2000)
-    check(a._smName == nil and not a:isAnimating() and W.invalidated > inv, "走完：清掉姿勢、停止 animating、重畫 chunk")
-    local sa = buildBarrier(300, 100, "S", me)[80]
-    local ea = buildBarrier(220, 110, "E", me)[83]   -- 離本機玩家 120 格內才追（BarrierAnim FAR）
-    local na = buildBarrier(240, 120, "N", me)[0]
+    check(a._smName == nil and not a:isAnimating() and W.invalidated > inv, "走完：清掉姿勢（車道 2 的 tile 自己帶桿子）、停止 animating、重畫 chunk")
+    local sa = buildBarrier(300, 100, "S", me)[81]
+    local ea = buildBarrier(220, 110, "E", me)[84]   -- 離本機玩家 120 格內才追（BarrierAnim FAR）
+    local na = buildBarrier(240, 120, "N", me)[1]
     step()
     sa:ToggleDoor(me)
     ea:ToggleDoor(me)
@@ -3357,7 +3372,7 @@ local function scenarioBarrierAnim()
     na:ToggleDoor(me)
     step()
     check(sa._smName == "MinidoracatKnoxPass_barrier_96" and ea._smName == "MinidoracatKnoxPass_barrier_112",
-        "S／E 向（轉 180°）錨點：通道從 96／112 起（N／W 的＋80）")
+        "S／E 向（轉 180°）的車道 2：通道從 96／112 起（N／W 的＋80）")
     local chans = { [a._smName or ""] = true, [na._smName or ""] = true }
     check(chans["MinidoracatKnoxPass_barrier_16"] and chans["MinidoracatKnoxPass_barrier_17"],
         "兩座同款同方向的閘門同時抬起：各用一個通道（16、17），不會互相蓋掉時間")
@@ -3374,25 +3389,27 @@ local function scenarioBarrierAnim()
     check(math.abs(q - math.floor(q + 0.5)) < 1e-9 and W.smSets - sets <= 1,
         "時間量化成 1/96（引擎的骨架矩陣快取每個模型最多 97 筆），同一格的幾幀不重複設定")
 
-    -- 每扇門的開關速度（加速）：靜止時錨點換成加速版 spriteModel，補播照 2.5 秒走（正常 4 秒）
-    local fa = buildBarrier(260, 100, "N", me)[0]
+    -- 每扇門的開關速度（加速）：靜止時車道 2 換成加速版 spriteModel，補播照 2.5 秒走（正常 4 秒）；標記在錨點
+    local fb = buildBarrier(260, 100, "N", me)
+    local fa = fb[1]
     step()
     me._x, me._y = 261.5, 102.5
     cmd(me, "settings", { key = "261,100,0N", speed = "fast" })   -- SP 的回覆直接呼叫 client（不經 sendServerCommand），驗帳本
-    check(KP.Ledger.get("261,100,0N").speed == "fast" and fa._modData[KP.MARKER_SPEED] == "fast",
+    check(KP.Ledger.get("261,100,0N").speed == "fast" and fb[0]._modData[KP.MARKER_SPEED] == "fast",
         "擁有者設加速：帳本記 fast、錨點標記")
     runMs(1000)   -- BarrierAnim 每秒對一次標記
-    check(fa._smName == "MinidoracatKnoxPassFast_barrier_0", "靜止的加速門：錨點換成加速版 spriteModel（關的那張）")
+    check(fa._smName == "MinidoracatKnoxPassFast_barrier_1" and fb[0]._smName == nil,
+        "靜止的加速門：車道 2 換成加速版 spriteModel（關的那張），錨點不覆寫")
     fa:ToggleDoor(me)
     step()
     check(fa._smName == "MinidoracatKnoxPass_barrier_16" and fa:isAnimating(), "補播期間用共用的通道（比例時間，兩種速度同一組姿勢）")
     runMs(2250)
     local mid = fa:isAnimating()
     runMs(250)
-    check(mid and not fa:isAnimating() and fa._smName == "MinidoracatKnoxPassFast_barrier_8",
+    check(mid and not fa:isAnimating() and fa._smName == "MinidoracatKnoxPassFast_barrier_9",
         "2.25 秒還在動、2.5 秒走完（正常要 4 秒）：換回加速版（開的那張）")
     cmd(me, "settings", { key = "261,100,0N", speed = "default" })
-    check(KP.Ledger.get("261,100,0N").speed == nil and fa._modData[KP.MARKER_SPEED] == nil, "改回正常：帳本不存值、拿掉標記")
+    check(KP.Ledger.get("261,100,0N").speed == nil and fb[0]._modData[KP.MARKER_SPEED] == nil, "改回正常：帳本不存值、拿掉標記")
     runMs(1000)
     check(fa._smName == nil, "正常的門不覆寫 spriteModel")
     clean(from, "閘門動畫（SP）")
@@ -3401,70 +3418,67 @@ local function scenarioBarrierAnim()
     from = #logLines + 1
     local p = newPlayer("viewer", 201, 103)
     W.locals = { p }
-    local lanes = {}
-    for i = 0, 2 do
-        local d = IsoDoor.new(nil, nil, barrierSprite(i), true)
-        d._locked, d._lockedByKey = false, false
-        square(201 + i, 100, 0):AddSpecialObject(d)
-        lanes[i] = d
+    local function mpLanes(x)
+        local out = {}
+        for i = 0, 2 do
+            local d = IsoDoor.new(nil, nil, barrierSprite(i), true)
+            d._locked, d._lockedByKey = false, false
+            square(x + i, 100, 0):AddSpecialObject(d)
+            out[i] = d
+        end
+        return out
     end
+    local lanes = mpLanes(201)
     local cb = onLoad("MinidoracatKnoxPass_barrier_0")
-    local anchorsOk = cb ~= nil
-    for _, i in ipairs({ 8, 3, 11, 80, 88, 83, 91 }) do
-        anchorsOk = anchorsOk and onLoad("MinidoracatKnoxPass_barrier_" .. i) == cb
+    local spritesOk = cb ~= nil
+    for _, i in ipairs({ 8, 3, 11, 80, 88, 83, 91, 1, 9, 4, 12, 81, 89, 84, 92 }) do
+        spritesOk = spritesOk and onLoad("MinidoracatKnoxPass_barrier_" .. i) == cb
     end
-    check(anchorsOk and onLoad("MinidoracatKnoxPass_barrier_1") == nil and onLoad("MinidoracatKnoxPass_barrier_81") == nil,
-        "區塊載入只收錨點（N／W／S／E × 關／開八種 sprite）")
+    check(spritesOk and onLoad("MinidoracatKnoxPass_barrier_2") == nil and onLoad("MinidoracatKnoxPass_barrier_82") == nil,
+        "區塊載入收錨點與車道 2（N／W／S／E × 關／開），車道 3 不收")
+    lanes[0]._smName = "MinidoracatKnoxPass_barrier_20"   -- 舊版 SP 存檔：錨點帶著補播到一半的通道（IsoObject.java:1551-1553）
     cb(lanes[0])
-    cb(lanes[1])   -- 不是錨點：不追
+    check(lanes[0]._smName == nil and lanes[1]._smName == nil, "載入錨點：清掉舊版留在錨點的覆寫；車道 2 正常速度不覆寫")
     lanes[0]:ToggleDoor(p)
-    lanes[0]:setAnimating(true)   -- 錨點被同步：引擎自己 PlayAnimation（D:1657-1664、1795-1805）
+    lanes[1]:setAnimating(true)   -- 伺服器從車道 2 同步：引擎在它身上 PlayAnimation（D:1657-1664、1798-1808）
     step()
-    check(lanes[0]._smName == nil, "引擎已在播（錨點被同步）：不插手")
-    lanes[0]:setAnimating(false)
-    lanes[2]:ToggleDoor(p)       -- 有人點車道 3：錨點只在片段迴圈裡換 sprite、不播（D:1812-1834）
+    check(lanes[1]._smName == nil, "引擎已在播（車道 2 被同步）：不插手")
+    lanes[1]:setAnimating(false)
+    lanes[2]:ToggleDoor(p)       -- 有人點車道 3：車道 2 只在片段迴圈裡換 sprite、不播（D:1811-1834）
     step()
-    check(lanes[0]:isAnimating() and lanes[0]._smName == "MinidoracatKnoxPass_barrier_48"
-        and W.spriteModels[lanes[0]._smName]._time > 0.95 and lanes[1]._smName == nil,
-        "非錨點被同步、錨點沒播：補播（放下組紅燈通道 48，從開的姿勢往下放），非錨點不動")
-    square(201, 100, 0):transmitRemoveItemFromSquare(lanes[0])
+    check(lanes[1]:isAnimating() and lanes[1]._smName == "MinidoracatKnoxPass_barrier_48"
+        and W.spriteModels[lanes[1]._smName]._time > 0.95 and lanes[0]._smName == nil and lanes[2]._smName == nil,
+        "別片被同步、車道 2 沒播：補播（放下組紅燈通道 48，從開的姿勢往下放），其他片不動")
+    square(202, 100, 0):transmitRemoveItemFromSquare(lanes[1])
     runMs(1000)
-    check(lanes[0]._smName == nil and not lanes[0]:isAnimating(), "錨點被移走：1 秒內（每秒掃一次）停止追蹤並還原")
+    check(lanes[1]._smName == nil and not lanes[1]:isAnimating(), "車道 2 被移走：1 秒內（每秒掃一次）停止追蹤並還原")
     local ch = W.spriteModels["MinidoracatKnoxPass_barrier_48"]
-    local d2 = IsoDoor.new(nil, nil, barrierSprite(0), true)
-    d2._locked, d2._lockedByKey = false, false
-    square(301, 100, 0):AddSpecialObject(d2)
-    cb(d2)
-    d2:ToggleDoor(p)
+    local l2 = mpLanes(301)
+    cb(l2[1])   -- 車道 2 先到、錨點也在：從車道 2 往回找到錨點
+    l2[0]:ToggleDoor(p)
     step()
     runMs(4250)
-    d2:ToggleDoor(p)
+    l2[0]:ToggleDoor(p)
     step()
-    check(d2._smName == "MinidoracatKnoxPass_barrier_48" and ch._time > 0.95, "移走時放掉的通道可以給下一座用（放下組 48）")
+    check(l2[1]._smName == "MinidoracatKnoxPass_barrier_48" and ch._time > 0.95, "移走時放掉的通道可以給下一座用（放下組 48）")
     runMs(5000)
     local idle = W.smSets
     runMs(2000)
-    check(d2._smName == nil and W.smSets == idle, "動畫走完：閒置時不再設定時間")
+    check(l2[1]._smName == nil and W.smSets == idle, "動畫走完：閒置時不再設定時間")
 
-    -- 加速的門（錨點標記由伺服器 transmitModData 送到）：同步開門時引擎照錨點當下的覆寫播加速版 clip，之後換成開的那張
-    local fl = {}
-    for i = 0, 2 do
-        local d = IsoDoor.new(nil, nil, barrierSprite(i), true)
-        d._locked, d._lockedByKey = false, false
-        square(261 + i, 100, 0):AddSpecialObject(d)
-        fl[i] = d
-    end
+    -- 加速的門（錨點標記由伺服器 transmitModData 送到）：同步開門時引擎照車道 2 當下的覆寫播加速版 clip，之後換成開的那張
+    local fl = mpLanes(261)
     fl[0]._modData[KP.MARKER_SPEED] = "fast"
     cb(fl[0])
-    check(fl[0]._smName == "MinidoracatKnoxPassFast_barrier_0", "載入加速的門：錨點先換成加速版（關），之後的同步就播加速 clip")
+    check(fl[1]._smName == "MinidoracatKnoxPassFast_barrier_1", "載入加速的門：車道 2 先換成加速版（關），之後的同步就播加速 clip")
     fl[0]:ToggleDoor(p)
-    fl[0]:setAnimating(true)   -- 引擎照覆寫播（IsoDoor.PlayAnimation → getSpriteModel，IsoObject.java:6280-6287）
+    fl[1]:setAnimating(true)   -- 引擎照覆寫播（IsoDoor.PlayAnimation → getSpriteModel，IsoObject.java:6280-6287）
     step()
-    check(fl[0]._smName == "MinidoracatKnoxPassFast_barrier_8" and fl[0]:isAnimating(),
+    check(fl[1]._smName == "MinidoracatKnoxPassFast_barrier_9" and fl[1]:isAnimating(),
         "原生 clip 播放中不插手補播，只把覆寫換成開的那張加速版（播完的靜態姿勢）")
-    fl[0]:setAnimating(false)
+    fl[1]:setAnimating(false)
     runMs(1000)
-    check(fl[0]._smName == "MinidoracatKnoxPassFast_barrier_8", "播完：維持開的加速版")
+    check(fl[1]._smName == "MinidoracatKnoxPassFast_barrier_9", "播完：維持開的加速版")
     clean(from, "閘門動畫（MP client）")
 end
 
@@ -4185,7 +4199,11 @@ local function scenarioRollDoor()
     check(W.regionJobs == 0, "巡檢：引擎記著的位元和門的狀態一致時不重算（不存檔、不廣播區域資料）")
     W.prevFlags = 16   -- 上一個呼叫者（別格放家具、位元沒變）留下的值，剛好等於門開著的位元
     driver(v)
+    local synced0 = #(W.syncLog or {})
     step()
+    local _, wAnchor = KP.Gates.resolve(w[2])
+    check((W.syncLog or {})[synced0 + 1] == wAnchor and #(W.syncLog or {}) == synced0 + 1,
+        "捲門（沒有模型）開門照原版同步錨點一片，不換成中間片（Gates.lua syncPiece）")
     check(w[1]:IsOpen() and w[4]:IsOpen() and w[4]:getSprite():getName() == "walls_garage_01_56",
         "登記的車接近：四片一起開（原版開啟 sprite＋8）")
     check(regions() == "16,16,16,16" and W.regionJobs == 4,
@@ -5013,13 +5031,35 @@ local function scenarioModelGates()
     local v = makeVehicle(404.0, 104.5, { tag = 0.5 })
     check(cmd(owner, "register", { key = key, vehicleIds = { v:getId() } }).ok == true, "登記車輛")
     driver(v)
+    local synced = #(W.syncLog or {})
     step()
+    local sentBy = {}
+    for i = synced + 1, #(W.syncLog or {}) do sentBy[W.syncLog[i]] = true end
     check(all(gc, function(p) return p:IsOpen() end) and gc.lanes[1]:getSprite():getName() == "MinidoracatKnoxPass_gate_c_136",
         "登記的車接近：六片一起開，錨點換成開啟 sprite（＋8）")
+    check(sentBy[gc.lanes[4]] and not sentBy[gc.lanes[1]],
+        "開門由掛模型的第 4 片（6 格的中間片）同步，不是錨點：MP 只有被同步的那片播 clip（D:1798-1808）")
     moveCar(v, v._x, v._y + 40)
     runMs(3000)
     check(not gc.lanes[1]:IsOpen() and not gc.lanes[6]:IsOpen(), "車開走後關上")
     check(W.regionJobs == 0, "模型門開關：門片沒有牆屬性、位元不變，不重算室內判定（不存檔、不廣播區域資料）")
+    -- 門鎖切換：逐片同步時掛模型那片排第一（Gates.lua syncOrder），客戶端回送的是其他片，伺服器記的回送者 ID
+    -- （D:1758）不會落在掛模型那片；之後自動開門同步那片時帶 -1，不會在某位玩家身上播門聲、setNoCollision（D:1777-1806）
+    check(cmd(owner, "lock", { key = key, on = true }).ok == true, "大門開 Knox 門鎖")
+    runMs(1000)   -- 客戶端回送到伺服器
+    check(cmd(owner, "lock", { key = key, on = false }).ok == true, "大門關 Knox 門鎖")
+    runMs(1000)
+    local ids0 = #(W.syncIds or {})
+    moveCar(v, 404.0, 104.5)
+    step()
+    local hostIds = {}
+    for i = ids0 + 1, #W.syncIds do
+        if W.syncLog[i] == gc.lanes[4] then hostIds[#hostIds + 1] = W.syncIds[i] end
+    end
+    check(gc.lanes[4]:IsOpen() and #hostIds == 1 and hostIds[1] == -1,
+        "鎖切換後自動開門：同步掛模型的第 4 片，封包的開關者 ID 是 -1（" .. table.concat(hostIds, ",") .. "）")
+    moveCar(v, v._x, v._y + 40)
+    runMs(3000)
 
     -- 鐵網上色款（KP.GATE_SKIN）：用 A 的模型與門柱，柱面讀頭也照 A（外觀 0）
     local gk = buildModelGate("MinidoracatKnoxPass_gate_ablack", 0, 6, "N", true, 600, 100, builder)
@@ -5049,22 +5089,27 @@ local function scenarioModelGates()
         "大門的門片被打壞：下一個 tick 兩端門柱一起移除、不退料")
     clean(from, "模型門")
 
-    -- 動畫補播（SP）：錨點姿勢是區塊起點＋32（打開）、＋48（關上）
+    -- 動畫補播（SP）：模型掛中間片（KP.hostLane：4 格是第 3 片），靜止時覆寫成區塊起點＋5（關）／＋13（開），
+    -- 姿勢是區塊起點＋32（打開）、＋48（關上）
     freshWorld("sp")
     from = #logLines + 1
     local me = newPlayer("me", 301, 103)
     W.locals = { me }
-    local a = buildModelGate("MinidoracatKnoxPass_roll2f_white", 2, 4, "N", false, 300, 100, me).lanes[1]
+    local rl = buildModelGate("MinidoracatKnoxPass_roll2f_white", 2, 4, "N", false, 300, 100, me).lanes
+    local a = rl[3]
     step()
+    check(a._smName == "MinidoracatKnoxPass_roll2f_white_133" and rl[1]._smName == nil and rl[2]._smName == nil
+        and rl[4]._smName == nil, "SP 建好：只有第 3 片（4 格的中間片）指名靜止模型 128＋5，錨點與其他片不掛")
     check(onLoad("MinidoracatKnoxPass_gate_e_448") ~= nil and onLoad("MinidoracatKnoxPass_gate_e_456") ~= nil
-        and onLoad("MinidoracatKnoxPass_gate_e_449") == nil, "區塊載入收模型門的錨點（關、開），中間片不收")
+        and onLoad("MinidoracatKnoxPass_gate_e_449") ~= nil and onLoad("MinidoracatKnoxPass_gate_e_457") ~= nil
+        and onLoad("MinidoracatKnoxPass_gate_e_450") == nil, "區塊載入收模型門的錨點與中間片（關、開），最後一片不收")
     check(onLoad("MinidoracatKnoxPass_gate_e_448", 6) ~= nil and onLoad("MinidoracatKnoxPass_gate_e_449", 6) ~= nil,
-        "SP 兩邊都在：二樓隱形牆的載入對齊（priority 6）不會取代錨點的動畫追蹤（priority 5）")
+        "SP 兩邊都在：二樓隱形牆的載入對齊（priority 6）不會取代模型掛載與動畫追蹤（priority 5）")
     a:ToggleDoor(me)
     step()
     local function smTime(o) return W.spriteModels[o._smName]._time end
-    check(a:isAnimating() and a._smName == "MinidoracatKnoxPass_roll2f_white_160" and smTime(a) < 0.1,
-        "SP 開兩層樓捲門：錨點換成區塊起點＋32 的通道，從關的姿勢起步")
+    check(a:isAnimating() and a._smName == "MinidoracatKnoxPass_roll2f_white_160" and smTime(a) < 0.1 and rl[1]._smName == nil,
+        "SP 開兩層樓捲門：中間片換成區塊起點＋32 的通道，從關的姿勢起步")
     runMs(1750)
     check(a._smName == "MinidoracatKnoxPass_roll2f_white_160" and math.abs(smTime(a) - 0.4375) < 0.011,
         "1.75 秒：同一個通道、時間 0.4375（1.75／4）")
@@ -5073,20 +5118,101 @@ local function scenarioModelGates()
     check(a._smName == "MinidoracatKnoxPass_roll2f_white_176" and math.abs(smTime(a) - 0.5) < 0.011,
         "2 秒時改成關：放下那組（＋48）的通道，從目前姿勢（0.5）接著往回走")
     runMs(2250)
-    check(a._smName == nil and not a:isAnimating(), "走完：清掉姿勢、停止 animating")
-    -- 加速（Server.lua mark 的標記）：靜止時錨點換成同索引的加速版（MinidoracatKnoxPassFast_roll2f_white），補播 2.5 秒
-    a._modData[KP.MARKER_SPEED] = "fast"
+    check(a._smName == "MinidoracatKnoxPass_roll2f_white_133" and not a:isAnimating(), "走完：換回關的靜止模型、停止 animating")
+    a:ToggleDoor(me)
+    runMs(4250)
+    check(a._smName == "MinidoracatKnoxPass_roll2f_white_141", "開著走完：開的靜止模型（＋13）")
+    a:ToggleDoor(me)
+    runMs(4250)
+    -- 加速（Server.lua mark 在錨點的標記）：靜止時換成同索引的加速版（MinidoracatKnoxPassFast_roll2f_white），補播 2.5 秒
+    rl[1]._modData[KP.MARKER_SPEED] = "fast"
     runMs(1000)   -- BarrierAnim 每秒對一次標記
-    check(a._smName == "MinidoracatKnoxPassFast_roll2f_white_128", "加速的兩層樓捲門：靜止時換成加速版（關的那張）")
+    check(a._smName == "MinidoracatKnoxPassFast_roll2f_white_133", "加速的兩層樓捲門：靜止時換成加速版（關的那張）")
     a:ToggleDoor(me)
     step()
     runMs(1250)
     check(a._smName == "MinidoracatKnoxPass_roll2f_white_160" and math.abs(smTime(a) - 0.5) < 0.011,
         "加速補播 1.25 秒：同一組通道、時間 0.5（1.25／2.5）")
     runMs(1350)
-    check(a._smName == "MinidoracatKnoxPassFast_roll2f_white_136" and not a:isAnimating(),
+    check(a._smName == "MinidoracatKnoxPassFast_roll2f_white_141" and not a:isAnimating(),
         "2.5 秒走完（正常要 4 秒）：換成加速版（開的那張）")
     clean(from, "模型門動畫（SP）")
+
+    -- MP client：寬門跨 chunk、片的載入順序不定；舊版存檔的門（錨點帶覆寫、中間片沒有）
+    freshWorld("client")
+    from = #logLines + 1
+    local viewer = newPlayer("viewer", 205, 103)
+    W.locals = { viewer }
+    local ts, base = "MinidoracatKnoxPass_barrier2", 2 * 64   -- 雙桿閘門 9 格 N（區塊 2）
+    local function piece(k, x)
+        local d = IsoDoor.new(nil, nil, getSprite(ts .. "_" .. (base + (k == 1 and 0 or k == 9 and 2 or 1))), true)
+        d._locked, d._lockedByKey = false, false
+        square(x + k - 1, 100, 0):AddSpecialObject(d)
+        return d
+    end
+    local cb = onLoad(ts .. "_" .. base)
+    local g = {}
+    for k = 1, 4 do g[k] = piece(k, 201) end   -- 第 5 片起在下一個 chunk，還沒載入
+    g[1]._smName = "MinidoracatKnoxPassFast_barrier2_128"   -- 0.10.0 的 SP 存檔：加速版覆寫留在錨點
+    cb(g[1])
+    check(g[1]._smName == nil, "錨點先載入：清掉舊版留在錨點的覆寫（現在錨點沒有模型）")
+    for k = 5, 9 do g[k] = piece(k, 201) end
+    check(g[5]._smName == nil, "中間片的格子剛載入、還沒收到回呼：還沒指名")
+    runMs(1000)
+    check(g[5]._smName == ts .. "_" .. (base + 5) and g[4]._smName == nil and g[6]._smName == nil,
+        "每秒重找：第 5 片（9 格的中間片）指名靜止模型 128＋5，其他中間片不掛")
+    -- 中間片那個 chunk 卸載後重新載入（新的物件、沒有覆寫；客戶端收到的區塊資料不帶本機覆寫）
+    square(205, 100, 0):transmitRemoveItemFromSquare(g[5])
+    runMs(1000)
+    local g5 = piece(5, 201)
+    loadSprite(g5)
+    check(g5._smName == ts .. "_" .. (base + 5), "中間片重新載入：載入回呼直接找回錨點、重新指名")
+    -- 反過來：中間片先載入、錨點後到
+    local h = {}
+    for k = 2, 9 do h[k] = piece(k, 301) end
+    loadSprite(h[5])
+    check(h[5]._smName == nil, "中間片先載入、錨點那格還沒到：找不到錨點就先不掛")
+    h[1] = piece(1, 301)
+    loadSprite(h[1])
+    check(h[5]._smName == ts .. "_" .. (base + 5), "錨點載入：沿鏈找到第 5 片並指名")
+    h[1]:ToggleDoor(viewer)
+    h[5]:setAnimating(true)   -- 伺服器從第 5 片同步：引擎照它當下的覆寫播原生 clip
+    step()
+    check(h[5]._smName == ts .. "_" .. (base + 13) and h[5]:isAnimating(),
+        "原生 clip 播放中不插手補播，只把覆寫換成開的靜止模型（＋13，綠燈貼圖）")
+    -- 跨 chunk 漏掉的同步：中間片（封包對象）已開，錨點側的片停在舊的關；鏈上一片載入時對齊，只改本機、不送封包
+    -- 中間片還沒指名覆寫時收到同步：PlayAnimation 取不到模型只 setAnimating(true)（D:1657-1664），第一次追蹤時清掉
+    viewer._x, viewer._y = 405, 103   -- 站到這座門邊（FAR 範圍內），前兩座就出了範圍
+    local k = {}
+    for i = 2, 9 do k[i] = piece(i, 401) end
+    for i = 5, 9 do k[i]._open = true end
+    k[5]:setAnimating(true)
+    k[1] = piece(1, 401)
+    local syncs = #(W.syncLog or {})
+    W.pathChanged = {}
+    loadSprite(k[1])
+    local aligned = true
+    for i = 1, 9 do aligned = aligned and k[i]:IsOpen() end
+    check(aligned and #(W.syncLog or {}) == syncs, "錨點側停在舊的關、中間片已開：載入時整條對齊成開，沒有送任何同步")
+    local notified = true
+    for i = 1, 4 do notified = notified and W.pathChanged[k[i]._square] == true end
+    check(notified and not W.pathChanged[k[5]._square],
+        "對齊改到的片（第 1–4 片）都呼叫 setSquareChanged 通知尋路（PolygonalMap2.squareChanged），沒改的中間片不呼叫")
+    check(not k[5]:isAnimating() and k[5]._smName == ts .. "_" .. (base + 13),
+        "中間片沒模型時收到同步留下的 animating 旗標：第一次追蹤時清掉，掛開的靜止模型")
+    k[9]._open = false   -- 尾端那片在第三個 chunk，晚到又漏了同步
+    runMs(1000)
+    check(k[9]:IsOpen() and #(W.syncLog or {}) == syncs, "每秒對齊：晚載入的尾端片也對齊成開，沒有送同步")
+    -- 分割畫面：第一位玩家在 120 格外、第二位在門邊，照樣追蹤（手關時中間片換成補播通道，不停在開的靜止模型）
+    local far = newPlayer("far", 401 + 200, 103)
+    W.locals = { far, viewer }
+    runMs(1000)
+    k[1]:ToggleDoor(viewer)
+    step()
+    check(not k[5]:IsOpen() and k[5]._smName ~= ts .. "_" .. (base + 13) and k[5]._smName ~= ts .. "_" .. (base + 5),
+        "分割畫面第二位玩家在門邊：追蹤不被清掉，手關時中間片走補播通道（" .. tostring(k[5]._smName) .. "）")
+    W.locals = { viewer }
+    clean(from, "模型門掛載（MP client）")
 end
 
 -- 右鍵 Knox Pass「拆除整座閘門／大門」（Server.lua H.dismantle、Barrier.lua B.dismantle、Core.lua KP.dismantleTool；2026-11-09 計畫）：
@@ -6216,8 +6342,10 @@ local function scenarioRoadText()
         end
     end
     check(ok and textTiles > 0, "取消勾選套用：有字的 " .. textTiles .. " 格換成同寬同速的沒字版本、模型腳本裡都有，其他格不動")
-    check(got["MinidoracatKnoxPass_barrier2_33"] == "Base.MinidoracatKnoxPass_Barrier2Boom6Plain",
-        "BarrierAnim 的姿勢通道（雙桿 6N 抬起組）也換：補播時同樣沒字")
+    check(got["MinidoracatKnoxPass_barrier2_33"] == "Base.MinidoracatKnoxPass_Barrier2Boom6Plain"
+        and got["MinidoracatKnoxPass_barrier2_5"] == "Base.MinidoracatKnoxPass_Barrier2Boom6Plain"
+        and got["MinidoracatKnoxPassFast_barrier2_5"] == "Base.MinidoracatKnoxPass_Barrier2Boom6PlainFast",
+        "BarrierAnim 的姿勢通道與中間片指名的靜止模型（雙桿 6N 的 32＋1、HOST 5，含加速版）也換：補播與靜止時同樣沒字")
     page:apply()
     local again, same = changed(), true
     for name, m in pairs(got) do if again[name] ~= m then same = false end end
@@ -6229,8 +6357,8 @@ local function scenarioRoadText()
 
     opt.value = false
     fire("OnGameStart")
-    check(changed()["MinidoracatKnoxPass_barrier_1"] == "Base.MinidoracatKnoxPass_BarrierLinesPlain",
-        "進遊戲時已經關著：單臂閘門的路面直接是沒字的版本")
+    check(changed()["MinidoracatKnoxPass_barrier_0"] == "Base.MinidoracatKnoxPass_BarrierLinesPlain",
+        "進遊戲時已經關著：單臂閘門車道 1 的路面直接是沒字的版本")
 
     -- Lua 重載：SpriteModel 是 Java 物件、換過的名稱還在，新的 Lua 狀態不知道換過哪些
     handlers.OnGameStart = nil

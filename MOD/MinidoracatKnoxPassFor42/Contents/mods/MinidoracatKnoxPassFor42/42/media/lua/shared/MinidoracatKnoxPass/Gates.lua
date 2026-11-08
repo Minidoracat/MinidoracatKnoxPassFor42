@@ -87,8 +87,31 @@ local KNOX_LOCKED = "KnoxPassLocked"
 
 local function syncDoor(p) p:syncIsoObject(false, 0, nil, nil) end
 
+-- 開關時同步的那一片（客戶端只有被同步的那片播 clip，IsoDoor.java:1798-1835）：掛 3D 模型的門（單臂閘門、模型門）是
+-- 掛模型那片（KP.hostLane），原版車庫門與捲門照原版同步錨點。寬度用門的固定寬度，不用鏈的長度：伺服器那邊鏈可能因
+-- chunk 沒載入被截短，兩邊會算出不同片；那片沒載入就退回錨點（沒有原生動畫，客戶端 BarrierAnim 補播）
+local function syncPiece(pieces)
+    local a = pieces[1]
+    local mg = KP.modelGate(a)
+    local width = mg and mg.width or (KP.barrierIndex(a) and 3)
+    return width and pieces[KP.hostLane(width)] or a
+end
+
+-- 逐片同步鎖時，開關要同步的那一片排第一：客戶端收到第一包時照片段清單改其他片的鎖，值變了就把那片回送伺服器
+-- （IsoDoor.java:2013-2023、IsoObject.java:885-887），伺服器把回送者記成那片的 lastPlayerOnlineId（:1758），之後
+-- 開關同步那片都帶著這個 ID，所有客戶端對他 setNoCollision、在他身上播門聲（:1777-1806）。第一包的那片自己不會被回送
+local function syncOrder(pieces)
+    local first = syncPiece(pieces)
+    local out = { first }
+    for i = 1, #pieces do
+        if pieces[i] ~= first then out[#out + 1] = pieces[i] end
+    end
+    return out
+end
+
 -- 車庫門鏈的開關：逐片做原版 toggleGarageDoorObject 除了清鎖以外的事（IsoDoor.java:3344-3366），鎖不動，
--- 再由錨點同步一次（同 :3384-3386；客戶端照片段清單更新整條鏈、錨點播 clip，:1798-1835）。
+-- 再由一片同步一次（同 :3384-3386；客戶端照片段清單更新整條鏈、只有被同步的那片播 clip，:1798-1835）。
+-- 同步哪一片見 syncPiece：模型掛在中間片的門同步那片，否則同步錨點。
 -- 原版 toggle 逐片清鑰匙鎖（:3352），上鎖的門開一次、關好鎖回一次，鏈上的鎖就各翻一次；客戶端改到鏈上其他片的鎖時，
 -- 會把那片當下的開關回送伺服器（:1811-1822、:2013-2023），伺服器照單全收、轉給其他附近客戶端（:1845-1856）。
 -- 客戶端一卡，晚到的回送就把門翻回去，附近兩人以上時互相觸發（正式服 2026-10-11，0.3.0：九格閘門附近 4–5 條連線
@@ -98,11 +121,13 @@ local function syncDoor(p) p:syncIsoObject(false, 0, nil, nil) end
 -- 位元變了才重算這格。不先記的話，比的是上一個呼叫者留下的靜態值（IsoRegions.java:301-320），剛好相同就漏掉；
 -- 位元沒變（模型門、閘門的車道片沒有牆屬性）也不會每片都重算、存檔並廣播給所有客戶端（IsoRegionWorker.java:242-262）。
 -- 開關聲在錨點那格播（playServerSound 送給約 10 格內的人，LuaManager.java:3892-3894、GameServer.java:2136-2154）：
--- 原版靠封包裡的開關者 ID 在他身上播（IsoDoor.java:1776-1806），這個 ID 只有 ToggleDoorActual 寫得到（:1502-1505）。
+-- 原版靠封包裡的開關者 ID 在他身上播（IsoDoor.java:1776-1806）；這個 ID 由 ToggleDoorActual（:1502-1505）或客戶端回送
+-- 那片時（:1758）寫入，所以逐片同步鎖要照 syncOrder 的順序，開關同步的那片才不會帶著某位玩家的 ID。
 -- 不查擋車：呼叫端關門前先看 isBlocked（同 toggleGarageDoor，AGENTS.md 踩坑錄）
 -- indoor＝這扇門勾了「算室內」（rec.indoor）：翻完才記位元，引擎看到位元沒變就不重算，紀錄留著勾選時寫的牆（G.syncRegions）
 local function setGarageOpen(anchor, open, indoor)
-    for _, p in ipairs(garagePieces(anchor)) do
+    local pieces = garagePieces(anchor)
+    for _, p in ipairs(pieces) do
         if p:IsOpen() ~= open then
             local sq = p:getSquare()
             if not indoor then IsoRegions.setPreviousFlags(sq) end
@@ -115,7 +140,7 @@ local function setGarageOpen(anchor, open, indoor)
     end
     local sound = anchor:getSoundPrefix() .. (open and "Open" or "Close")
     if isServer() then
-        syncDoor(anchor)
+        syncDoor(syncPiece(pieces))
         playServerSound(sound, anchor:getSquare())
     else
         anchor:getSquare():playSound(sound)
@@ -245,7 +270,7 @@ local doorAdapter = {
             each(pieces, function(p) p:checkKeyId() end)
             ensureKeyId(pieces, function(p, id) p:setKeyId(id) end)
         end
-        each(pieces, function(p)
+        each(syncOrder(pieces), function(p)
             local md, changed, tx = p:getModData(), false, false
             if keyed == 2 and not p:isLockedByKey() then
                 p:setLockedByKey(true)
@@ -268,7 +293,7 @@ local doorAdapter = {
     end,
     -- 只拿掉 Knox Pass 門鎖（擁有者關閉門鎖、拆讀頭）：Knox Pass 補的鑰匙鎖照 KNOX_LOCKED 還原，原本的鑰匙鎖不動
     unlockKnox = function(anchor, pieces)
-        each(pieces, function(p)
+        each(syncOrder(pieces), function(p)
             local md = p:getModData()
             local own = md[KNOX_LOCKED]
             if own ~= nil then

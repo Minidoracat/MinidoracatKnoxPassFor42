@@ -431,7 +431,7 @@ local function managersSummary(s)
 end
 
 -- 設定各列跟著 state 走（被拒時也用來回到伺服器的值）：設了值就選生效值（上下限縮小後是夾過的值），沒設選預設。
--- 開關速度只有錨點有加速版模型的門能選（state.speedSupported），其他門停用並寫明；分享對象右邊寫分享出去的是什麼
+-- 開關速度只有有加速版模型的門能選（state.speedSupported；模型掛中間片 KP.hostLane，錨點只綁帳本與標記），其他門停用並寫明；分享對象右邊寫分享出去的是什麼
 function Win:applySettings(s)
     -- 不會被破壞（生效值；只有管理員的視窗有開關）：沙盒對所有大門開著時打勾並停用，標籤寫原因
     if self.indestructible then

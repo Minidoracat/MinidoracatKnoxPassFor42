@@ -2,10 +2,11 @@
 -- 字樣讓人一眼看出這是會擋車的 Knox Pass 大門，不是原版可以穿過的柵欄；關掉只改自己的畫面，白色停止線照舊。
 -- 關掉時把有字的模型換成沒字的版本 <名稱>Plain（只少了字，停止線、骨架、clip 都一樣；
 -- scripts/blender/barrier/build_barrier.py lines(text=False)、barrier2/build_barrier2.py paint(text=False)）：
--- 單臂閘門車道 2 的路面（BarrierLines），雙桿閘門的路面畫在臂的動畫模型裡，連加速版與姿勢通道一起換。
+-- 單臂閘門車道 1 的路面（BarrierLines），雙桿閘門的路面畫在臂的動畫模型裡（掛中間片的 HOST 兩格），連加速版與姿勢通道一起換。
 -- 每格有兩份 SpriteModel，要一起換（setModelScriptName：SpriteModel.java:86）：tile 那份是 IsoSprite.spriteModel，
 -- 門靜止時畫它（IsoObject.java:6288-6294）；腳本那份照名稱「tileset_索引」登錄，載入時從 tile 那份複製
--- （SpriteModels.java:85-88），加速版與 BarrierAnim 的姿勢通道用 setSpriteModelName 指名它（IsoObject.java:6281-6287）。
+-- （SpriteModels.java:85-88），加速版、BarrierAnim 的姿勢通道與模型門中間片的覆寫用 setSpriteModelName 指名它（IsoObject.java:6281-6287）。
+-- 不看是哪一片：每個 tileset 的 512 格整批照模型名稱換，模型改掛哪一格都換得到。
 -- 引擎每次畫都照名稱取模型（IsoObjectModelDrawer.java:101），這兩種門每幀畫（車道 doorTrans、雙桿 tileGeometry
 -- Translucent），所以已經蓋好的門下一幀就換。兩份都是每個客戶端各一份，不經網路、不進存檔。
 require "MinidoracatKnoxPass/Core"

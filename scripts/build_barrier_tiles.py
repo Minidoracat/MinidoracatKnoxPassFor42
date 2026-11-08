@@ -37,9 +37,11 @@ row south (N-edge doors of row y+1) / one column east (W-edge doors of column x+
     S entity row  x0..x0+3: 240 241 242 86 (lane1 lane2 lane3 cabinet); real S lane k door at (x0+k-1, y+1)
     E entity rows y0..y0+3: 87 245 244 243 (cabinet lane3 lane2 lane1); real E lane k door at (x+1, y0+4-k)
 
-lane1 carries the arm model (arm, STOP sign, pivot lamp, tip post); lane2 carries the road-paint model (stop lines +
-KNOX PASS on both sides of the gate line); lane3 carries an empty model. Every model's origin is the cabinet tile
-centre (spriteModels translate = offset from the lane to the cabinet). 2D cells of N/W lanes and of the placeholders
+lane2 carries the arm model (arm, STOP sign, pivot lamp, tip post); lane1 carries the road-paint model (stop lines +
+KNOX PASS on both sides of the gate line); lane3 carries an empty model. The arm sits on the middle lane because the
+translucent pass draws an object only while its square is on screen (build_model_gates.py HOST); lane1 stays the chain
+anchor. Every model's origin is the cabinet tile centre (spriteModels translate = offset from the lane to the cabinet).
+2D cells of N/W lanes and of the placeholders
 (arm segments in the entity row/column) only show in the build-cursor ghost (ISBuildIsoEntity.lua:823-837 draws 2D
 only) and in the non-FBO fallback (IsoObject.java:6301-6302); the real S/E lanes sit one row/column away from the
 visible barrier, so their 2D cells are empty.
@@ -114,7 +116,7 @@ FILE_NUMBER = 7430                           # 100..8189, unique across enabled 
                                              # ZomboidFileSystem.java:1000-1002); not used by any of the 418
                                              # local Workshop items; family Economy uses 7429
 TILESET = "MinidoracatKnoxPass_barrier"
-# 每扇門可選的「加速」（Lua KP.fastTwin）：車道 1 關／開的 spriteModel 換成 *_fast 臂（clip 3.75 s→遊戲裡 2.5 s），
+# 每扇門可選的「加速」（Lua KP.fastTwin）：車道 2 關／開的 spriteModel 換成 *_fast 臂（clip 3.75 s→遊戲裡 2.5 s），
 # 登錄在沒有 tiledef 的虛擬 tileset：spriteModel 名稱就是 tileset_索引（SpriteModels.java:81-96），
 # initSprites 只套到已存在的 sprite（SpriteModelsFile.java:271-279），不會多出 tile
 FAST_TILESET = "MinidoracatKnoxPassFast_barrier"
@@ -227,17 +229,18 @@ def rolldoor_layout() -> dict[int, tuple[str, dict]]:
 # lane k hosts a model whose origin is the cabinet tile centre: translate = (dx, 0, dy) from the lane to the cabinet.
 # S / E (rotate +180 deg): rotate (0,0,0) maps model +X -> PZ west, +Y -> south; (0,90,0) +X -> south, +Y -> east.
 # Their real lanes sit one row south / column east of the cabinet row / column (module docstring), hence the -1.
+# lane1 hosts the road paint, lane2 the arm (module docstring).
 XFORM = {
-    "N": {"rotate": (0.0, 180.0, 0.0), "cabinet": (0.0, 0.0, 0.0), "arm": (-1.0, 0.0, 0.0), "lines": (-2.0, 0.0, 0.0)},
-    "W": {"rotate": (0.0, -90.0, 0.0), "cabinet": (0.0, 0.0, 0.0), "arm": (0.0, 0.0, 1.0), "lines": (0.0, 0.0, 2.0)},
-    "S": {"rotate": (0.0, 0.0, 0.0), "cabinet": (0.0, 0.0, 0.0), "arm": (3.0, 0.0, -1.0), "lines": (2.0, 0.0, -1.0)},
-    "E": {"rotate": (0.0, 90.0, 0.0), "cabinet": (0.0, 0.0, 0.0), "arm": (-1.0, 0.0, -3.0), "lines": (-1.0, 0.0, -2.0)},
+    "N": {"rotate": (0.0, 180.0, 0.0), "cabinet": (0.0, 0.0, 0.0), "lane1": (-1.0, 0.0, 0.0), "lane2": (-2.0, 0.0, 0.0)},
+    "W": {"rotate": (0.0, -90.0, 0.0), "cabinet": (0.0, 0.0, 0.0), "lane1": (0.0, 0.0, 1.0), "lane2": (0.0, 0.0, 2.0)},
+    "S": {"rotate": (0.0, 0.0, 0.0), "cabinet": (0.0, 0.0, 0.0), "lane1": (3.0, 0.0, -1.0), "lane2": (2.0, 0.0, -1.0)},
+    "E": {"rotate": (0.0, 90.0, 0.0), "cabinet": (0.0, 0.0, 0.0), "lane1": (-1.0, 0.0, -3.0), "lane2": (-1.0, 0.0, -2.0)},
 }
 FRAMES = 8                                   # SP stepper poses per direction (Open clip, t = k/FRAMES)
 FRAME_BASE = 16
 CLOSE_OFFSET = 32                            # closing (red) poses = opening pose index + 32
 GREEN = "IsoObject/MinidoracatKnoxPass_barrier_green"   # media/textures/<GREEN>.png (IsoObjectModelDrawer.java:138)
-# edge -> (closed lane1 index, cabinet index, first opening pose index)
+# edge -> (closed lane1 index, cabinet index, first opening pose index); the arm is on lane1 index + 1
 EDGES = {"N": (0, 6, FRAME_BASE), "W": (3, 7, FRAME_BASE + 16),
          "S": (MIRROR, MIRROR + 6, MIRROR + FRAME_BASE), "E": (MIRROR + 3, MIRROR + 7, MIRROR + FRAME_BASE + 16)}
 
@@ -263,11 +266,11 @@ def sprite_models() -> str:
     body = ""
     for edge, (base, cab, _) in EDGES.items():
         x = XFORM[edge]
-        # closed lane1 shows frame 0 of Open (arm down, red lamp); open lane1 shows frame 0 of Close (arm up, green)
-        body += sm_tile(base, "MinidoracatKnoxPass_BarrierArm", x["arm"], x["rotate"], "Open")
-        body += sm_tile(base + 8, "MinidoracatKnoxPass_BarrierArm", x["arm"], x["rotate"], "Close", texture=GREEN)
-        for idx in (base + 1, base + 9):
-            body += sm_tile(idx, "MinidoracatKnoxPass_BarrierLines", x["lines"], x["rotate"], None)
+        for idx in (base, base + 8):
+            body += sm_tile(idx, "MinidoracatKnoxPass_BarrierLines", x["lane1"], x["rotate"], None)
+        # closed lane2 shows frame 0 of Open (arm down, red lamp); open lane2 shows frame 0 of Close (arm up, green)
+        body += sm_tile(base + 1, "MinidoracatKnoxPass_BarrierArm", x["lane2"], x["rotate"], "Open")
+        body += sm_tile(base + 9, "MinidoracatKnoxPass_BarrierArm", x["lane2"], x["rotate"], "Close", texture=GREEN)
         for idx in (base + 2, base + 10):
             body += sm_tile(idx, "MinidoracatKnoxPass_BarrierEmpty", (0, 0, 0), (0, 0, 0), None)
         body += sm_tile(cab, "MinidoracatKnoxPass_BarrierCabinet", x["cabinet"], x["rotate"], None)
@@ -275,13 +278,13 @@ def sprite_models() -> str:
         x = XFORM[edge]
         for off, tex in ((0, GREEN), (CLOSE_OFFSET, None)):
             for f in range(FRAMES + 1):
-                body += sm_tile(pose + off + f, "MinidoracatKnoxPass_BarrierArm", x["arm"], x["rotate"],
+                body += sm_tile(pose + off + f, "MinidoracatKnoxPass_BarrierArm", x["lane2"], x["rotate"],
                                 "Open", f / FRAMES, tex)
     tiles = "".join(sm_tile(i, READER_MODEL, READER_T, READER_XFORM[v], None, texture=reader_tex(c))
                     for i, (c, v) in READER_TILES.items())
-    fast = "".join(sm_tile(base, "MinidoracatKnoxPass_BarrierArmFast", XFORM[e]["arm"], XFORM[e]["rotate"], "Open")
-                   + sm_tile(base + 8, "MinidoracatKnoxPass_BarrierArmFast", XFORM[e]["arm"], XFORM[e]["rotate"], "Close",
-                             texture=GREEN)
+    fast = "".join(sm_tile(base + 1, "MinidoracatKnoxPass_BarrierArmFast", XFORM[e]["lane2"], XFORM[e]["rotate"], "Open")
+                   + sm_tile(base + 9, "MinidoracatKnoxPass_BarrierArmFast", XFORM[e]["lane2"], XFORM[e]["rotate"],
+                             "Close", texture=GREEN)
                    for e, (base, _, _) in EDGES.items())
     return ("spriteModel\n{\n    VERSION = 1,\n\n    tileset\n    {\n"
             f"        name = {TILESET},\n\n" + body + "    }\n\n    tileset\n    {\n"
@@ -785,26 +788,26 @@ def check() -> None:
              "scale": "1.0000"} | ({"texture": GREEN} if tex else {})
         return d | ({"animation": anim, "animationTime": f"{at:.4f}"} if anim else {})
     want_sm = {}
-    # lane1 index, cabinet, first opening pose, rotate, arm translate, lines translate (lane -> cabinet tile)
-    for base, cab, pose, rot, arm, lines in ((0, 6, 16, (0, 180, 0), (-1, 0, 0), (-2, 0, 0)),
-                                             (3, 7, 32, (0, -90, 0), (0, 0, 1), (0, 0, 2)),
-                                             (80, 86, 96, (0, 0, 0), (3, 0, -1), (2, 0, -1)),
-                                             (83, 87, 112, (0, 90, 0), (-1, 0, -3), (-1, 0, -2))):
-        want_sm[base], want_sm[base + 8] = smw("BarrierArm", arm, rot, "Open"), smw("BarrierArm", arm, rot, "Close", 0, 1)
-        want_sm[base + 1] = want_sm[base + 9] = smw("BarrierLines", lines, rot)
+    # lane1 index, cabinet, first opening pose, rotate, lane1 / lane2 translate (lane -> cabinet tile); arm on lane2
+    for base, cab, pose, rot, lane1, lane2 in ((0, 6, 16, (0, 180, 0), (-1, 0, 0), (-2, 0, 0)),
+                                               (3, 7, 32, (0, -90, 0), (0, 0, 1), (0, 0, 2)),
+                                               (80, 86, 96, (0, 0, 0), (3, 0, -1), (2, 0, -1)),
+                                               (83, 87, 112, (0, 90, 0), (-1, 0, -3), (-1, 0, -2))):
+        want_sm[base] = want_sm[base + 8] = smw("BarrierLines", lane1, rot)
+        want_sm[base + 1], want_sm[base + 9] = smw("BarrierArm", lane2, rot, "Open"), smw("BarrierArm", lane2, rot, "Close", 0, 1)
         want_sm[base + 2] = want_sm[base + 10] = smw("BarrierEmpty", (0, 0, 0), (0, 0, 0))
         want_sm[cab] = smw("BarrierCabinet", (0, 0, 0), rot)
         for f in range(9):   # opening poses green, closing (+32) red
-            want_sm[pose + f] = smw("BarrierArm", arm, rot, "Open", f / 8, 1)
-            want_sm[pose + 32 + f] = smw("BarrierArm", arm, rot, "Open", f / 8)
+            want_sm[pose + f] = smw("BarrierArm", lane2, rot, "Open", f / 8, 1)
+            want_sm[pose + 32 + f] = smw("BarrierArm", lane2, rot, "Open", f / 8)
     assert sm_blocks(sm) == want_sm, "barrier spriteModels differ from the contract"
     models = set(re.findall(r"model (\w+)", MODEL_SCRIPT))
     assert {b["modelScript"].split(".")[1] for b in want_sm.values()} <= models
     assert MODELS_SCRIPT.read_text(encoding="ascii") == MODEL_SCRIPT, "model script is stale"
     assert (MEDIA / "textures" / f"{GREEN}.png").exists()
-    # 加速：只有車道 1 的關／開，其餘欄位跟正常版一樣，只換成 *_fast 臂
-    anchors = (0, 8, 3, 11, 80, 88, 83, 91)
-    assert sm_blocks(sm_fast) == {i: want_sm[i] | {"modelScript": "Base.MinidoracatKnoxPass_BarrierArmFast"} for i in anchors}
+    # 加速：只有車道 2（掛桿子那片）的關／開，其餘欄位跟正常版一樣，只換成 *_fast 臂
+    hosts = (1, 9, 4, 12, 81, 89, 84, 92)
+    assert sm_blocks(sm_fast) == {i: want_sm[i] | {"modelScript": "Base.MinidoracatKnoxPass_BarrierArmFast"} for i in hosts}
     assert re.search(r"model MinidoracatKnoxPass_BarrierArmFast\s*\{[^}]*mesh = IsoObject/MinidoracatKnoxPass_barrier_arm_fast,"
                      r"[^}]*animationsMesh = MinidoracatKnoxPass_BarrierArmFast,", MODEL_SCRIPT)
     # reader: one static model per tile on the post (host NW corner), rotated per variant, colour texture, no animation

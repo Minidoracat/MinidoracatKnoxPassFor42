@@ -1,7 +1,8 @@
 -- 抬升閘門：entity 建造（scripts/entities/entity_knoxpass_barrier.txt）的 OnCreate 把三格車道換成 IsoDoor 車庫門鏈，
 -- 建好後自動登記內建讀頭（建造者是擁有者）；右鍵 Knox Pass 拆除（Server.lua H.dismantle）、機箱被打壞、大錘敲任一格、車道被打壞時整座移除。
 -- 形態：機箱格是 entity 建出的 IsoThumpable（sprite 帶 solid，永遠擋車）；車道 1-3 是 GarageDoor 1-3 的 IsoDoor，
--- 第 1 片是錨點，臂的 3D 模型掛在它身上（common/media/spriteModels.txt，原點平移到機箱格）。
+-- 第 1 片是錨點，只綁帳本與標記；臂的 3D 模型掛在中間那片（車道 2，KP.hostLane；common/media/spriteModels.txt，原點平移到機箱格），
+-- 車道 1 掛路面停止線與字。
 -- 四個方向：N／W 向機箱緊鄰第 1 片；S／E 向是 N／W 轉 180°（編號＋80），機箱在第 3 片那端，車道門片建在下一列／下一行。
 -- 車庫捲門（KP.RollDoor）走同一段換門程式：原版捲門 sprite 換成 IsoDoor，不內建讀頭。
 -- 建造放的是沒有 GarageDoor 屬性的替代 tile（Core.lua）：改寫 ISBuildIsoEntity:setInfo、看到這個屬性就自己建門的
@@ -206,12 +207,10 @@ function B.onCreate(params)
     end
     local dest = getCell():getGridSquare(x, y, z) or getCell():createNewGridSquare(x, y, z, true)
     local door = toGarageDoor(thump, dest, getSprite(KP.BARRIER_TILESET .. "_" .. real), north, KP.BARRIER_HEALTH)
-    if base == 0 or base == 3 then
-        pending[#pending + 1] = { anchor = door, who = params.character }
-        -- SP 建造不觸發 OnObjectAdded（只有 MP client 收 AddItemToMapPacket 時，AddItemToMapPacket.java:94），
-        -- 本機的動畫補播要直接收；專用伺服器沒有載 client 檔，KP.BarrierAnim 是 nil
-        if KP.BarrierAnim then KP.BarrierAnim.track(door) end
-    end
+    if base == 0 or base == 3 then pending[#pending + 1] = { anchor = door, who = params.character } end
+    -- SP 建造不觸發 OnObjectAdded（只有 MP client 收 AddItemToMapPacket 時，AddItemToMapPacket.java:94），
+    -- 本機的模型掛載與動畫補播要直接收（每片都給：錨點與中間片哪片後放好都找得到）；專用伺服器沒有載 client 檔，KP.BarrierAnim 是 nil
+    if KP.BarrierAnim then KP.BarrierAnim.track(door) end
     return { replaceObject = true, object = door }
 end
 
@@ -288,7 +287,7 @@ function B.fullHealth(o, width, hp)
     return nil
 end
 
--- 二樓隱形牆：兩層樓捲門與兩層樓大門（KP.MODEL_GATES 的 upper）只有一樓有物件，上半截只是錨點的 3D 模型，二樓不擋人、
+-- 二樓隱形牆：兩層樓捲門與兩層樓大門（KP.MODEL_GATES 的 upper）只有一樓有物件，上半截只是中間片（KP.hostLane）的 3D 模型，二樓不擋人、
 -- 二樓的房間也圍不起來（2026-10-22 Workshop 玩家回報）。每片車道與每一端的門線格（擺放格＋KP.GATE_DOOR）上一層，
 -- N／S 向放 N 邊、W／E 向放 W 邊一道看不見的牆（KP.UPPER_WALL_TILESET：擋人，IsoRegions 認它的 cut 旗標，二樓的房間
 -- 才封閉；看得穿的外觀用視線穿過的那張；tile 帶 CarSlowFactor，物理不在那格放牆，比一層樓高的車照樣開得過開著的門，
@@ -339,8 +338,8 @@ local function placeUpper(x, y, z, north, trans)
     return true
 end
 
--- 模型門的 SpriteConfig OnCreate：替代 tile（格位 16＋k−1）換成車道 k 的門片（第 1 片 GarageDoor 1 是錨點、掛 3D 模型，
--- 中間 GarageDoor 2，最後 GarageDoor 3），耐久照 KP.MODEL_GATES；兩端（格位 3／4）回 nil，照原版送 IsoThumpable。
+-- 模型門的 SpriteConfig OnCreate：替代 tile（格位 16＋k−1）換成車道 k 的門片（第 1 片 GarageDoor 1 是錨點，
+-- 中間 GarageDoor 2，最後 GarageDoor 3；3D 模型由 client 的 BarrierAnim 掛在中間那片），耐久照 KP.MODEL_GATES；兩端（格位 3／4）回 nil，照原版送 IsoThumpable。
 -- 內建讀頭的（雙桿閘門）下一個 tick 登記，擁有者是建造者（B.settle）
 local MG = {}
 KP.ModelGate = MG
@@ -361,10 +360,8 @@ function MG.onCreate(params)
     local door = toGarageDoor(thump, dest, getSprite(mg.tileset .. "_" .. real), mg.face == "N" or mg.face == "S",
         mg.def.health[mg.width])
     placeUpper(upperSpot(door))
-    if k == 1 then
-        if mg.def.builtin then pending[#pending + 1] = { anchor = door, who = params.character } end
-        if KP.BarrierAnim then KP.BarrierAnim.track(door) end   -- SP 建造不觸發 OnObjectAdded（見 B.onCreate）
-    end
+    if k == 1 and mg.def.builtin then pending[#pending + 1] = { anchor = door, who = params.character } end
+    if KP.BarrierAnim then KP.BarrierAnim.track(door) end   -- SP 建造不觸發 OnObjectAdded（見 B.onCreate）
     return { replaceObject = true, object = door }
 end
 
@@ -494,7 +491,7 @@ if not isClient() then
 
     -- 載入時對齊（chunk 載入逐物件回呼，Lua/MapObjects.java:184-218，伺服器與 SP；ReaderPost.lua 同法）：兩層樓的門片
     -- 與兩端→補放（更新前蓋的門），隱形牆→檢查（孤兒）。同一張 sprite 同 priority 的回呼會被後來的取代（:141-153），
-    -- 錨點那兩張 client/BarrierAnim.lua 已經用 5，這裡用 6
+    -- 錨點與門片 1／9 client/BarrierAnim.lua 已經用 5，這裡用 6
     local pieces, walls = {}, {}
     for ts, def in pairs(KP.MODEL_GATES) do
         if def.upper then
