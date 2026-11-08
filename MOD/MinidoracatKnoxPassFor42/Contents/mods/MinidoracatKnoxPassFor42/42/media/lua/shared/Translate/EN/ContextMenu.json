@@ -6,6 +6,8 @@
     "ContextMenu_KnoxPass_Open": "Open with Knox Pass",
     "ContextMenu_KnoxPass_Close": "Close with Knox Pass",
     "ContextMenu_KnoxPass_Remove": "Remove reader",
+    "ContextMenu_KnoxPass_DismantleBarrier": "Dismantle the whole barrier",
+    "ContextMenu_KnoxPass_DismantleGate": "Dismantle the whole gate",
     "ContextMenu_KnoxPass_OtherOwner": "Reader belongs to another player",
     "ContextMenu_KnoxPass_Recolor": "Repaint"
 }

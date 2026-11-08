@@ -6,6 +6,8 @@
     "ContextMenu_KnoxPass_Open": "Открыть через Knox Pass",
     "ContextMenu_KnoxPass_Close": "Закрыть через Knox Pass",
     "ContextMenu_KnoxPass_Remove": "Снять считыватель",
+    "ContextMenu_KnoxPass_DismantleBarrier": "Разобрать шлагбаум целиком",
+    "ContextMenu_KnoxPass_DismantleGate": "Разобрать ворота целиком",
     "ContextMenu_KnoxPass_OtherOwner": "Считыватель принадлежит другому игроку",
     "ContextMenu_KnoxPass_Recolor": "Перекрасить"
 }

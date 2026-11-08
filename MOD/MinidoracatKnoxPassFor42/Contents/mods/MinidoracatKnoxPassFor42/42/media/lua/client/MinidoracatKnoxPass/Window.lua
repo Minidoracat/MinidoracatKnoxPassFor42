@@ -591,7 +591,7 @@ function Win:refreshButtons()
     end
     self.btnAct:setStyle(near and "primary" or "danger")
     self.btnAct:setEnabled(has and n > 0)
-    -- 閘門的讀頭是內建的（伺服器 H.uninstall 回 BuiltIn）：拆整座閘門走拆除機箱。共同管理者不能拆（OwnerOnly），停用並說明
+    -- 閘門的讀頭是內建的（伺服器 H.uninstall 回 BuiltIn）：要拆整座閘門（右鍵 Knox Pass）。共同管理者不能拆（OwnerOnly），停用並說明
     local coOnly = has and s.ownerOrAdmin ~= true
     self.btnRemoveReader:setEnabled(has and not coOnly and s.kind ~= "Barrier")
     self.btnRemoveReader:setTooltip(coOnly and self.ownerOnly or nil)

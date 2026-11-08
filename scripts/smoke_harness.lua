@@ -31,8 +31,8 @@
 - 抬升閘門：entity 建造逐格 IsoThumpable → buildUtil.setInfo 每格都拷一份 need: 材料 → SpriteConfig OnCreate
   （ISBuildIsoEntity.lua:595-764、ISBuildingObject.lua:353-367）；IsoDoor sprite 建構子可能隨機上鎖（D:820-840）；
   車庫門開關換 sprite 為 index+8（D:793-805），整條鏈一起翻、不重建（D:3344-3394）；
-  關車庫門時車身同時壓到門線兩側才算擋（D:3396-3457，只有關門時查）；拆除照 buildMaterials 退料後移走目標
-  （ISDismantleAction.lua:47-95），大錘只移走被敲的那一個（ISDestroyStuffAction.lua:111-…）；殭屍／武器打壞車庫門走
+  關車庫門時車身同時壓到門線兩側才算擋（D:3396-3457，只有關門時查）；右鍵 Knox Pass 拆除（Server.lua H.dismantle）照
+  buildMaterials 退料 ZombRand(v)+1（原版 ISDismantleAction.lua:69-72），大錘只移走被敲的那一個（ISDestroyStuffAction.lua:111-…）；殭屍／武器打壞車庫門走
   destroyGarageDoor，逐片 destroy（D:3460-3499），不掉材料（D:1385-1388）；每次移走物件前觸發 OnObjectAboutToBeRemoved
   （IsoGridSquare.java:5745、RemoveItemFromSquarePacket.java:151）
 - IsoObject.setSpriteModelName／setAnimating／isAnimating（IsoObject.java:6274-6298、6399-6405）只記錄呼叫；
@@ -313,11 +313,12 @@ function sendAddItemToContainer() if isServer() then W.addSent = W.addSent + 1 e
 local TAG, READER = "MinidoracatKnoxPass.VehicleTag", "MinidoracatKnoxPass.GateReader"
 local COLOR_IDS = { "Black", "Graphite", "Olive", "Navy", "Orange", "Red" }   -- 索引 1-6（米白 0 不帶後綴）
 local PAINTS = { "Base.PaintWhite", "Base.PaintBlack", "Base.PaintGrey", "Base.PaintGreen", "Base.PaintBlue", "Base.PaintOrange", "Base.PaintRed" }
-local USE_DELTA = { [TAG] = 0.001, ["Base.CarBattery1"] = 0.00001 }
+local USE_DELTA = { [TAG] = 0.001, ["Base.CarBattery1"] = 0.00001, ["Base.BlowTorch"] = 0.1 }   -- 焊槍 drainable.txt:1571
 for _, id in ipairs(COLOR_IDS) do USE_DELTA[TAG .. "_" .. id] = 0.001 end
 for _, p in ipairs(PAINTS) do USE_DELTA[p] = 0.1 end   -- 原版油漆 UseDelta 0.1（generated/items/drainable.txt:1803-1817）
-local TAGS = { ["Base.Paintbrush"] = "base:paintbrush", ["Base.Screwdriver"] = "base:screwdriver" }
-ItemTag = { PAINTBRUSH = "base:paintbrush", SCREWDRIVER = "base:screwdriver" }
+local TAGS = { ["Base.Paintbrush"] = "base:paintbrush", ["Base.Screwdriver"] = "base:screwdriver", ["Base.Hammer"] = "base:hammer",
+    ["Base.WeldingMask"] = "base:weldingmask" }
+ItemTag = { PAINTBRUSH = "base:paintbrush", SCREWDRIVER = "base:screwdriver", HAMMER = "base:hammer", WELDING_MASK = "base:weldingmask" }
 
 local Item = {}
 Item.__index = Item
@@ -572,6 +573,12 @@ function playServerSound(name, sq) W.sounds[#W.sounds + 1] = { name = name, sq =
 function Square:AddTileObject(o)   -- IsoGridSquare.java:5851-5880（門柱讀頭模型用）
     self._objects[#self._objects + 1] = o
     o._square = self
+end
+-- 原版拆解退料落地（IsoGridSquare.java:6028-6057，伺服器自己送給客戶端）：W.dropped[物品] 累計、W.dropSq 記最後一次的格子
+function Square:AddWorldInventoryItem(t)
+    W.dropped[t] = (W.dropped[t] or 0) + 1
+    W.dropSq = self
+    return newItem(t)
 end
 
 -- tile 的 sprite（只要 getName）；getSprite(name) 對任何名稱都回一張（MOD 只拿它當建構子參數）
@@ -1379,15 +1386,6 @@ local FAKE_MODULES = {
             Events.OnSGlobalObjectSystemInit.Add(function() luaClass.instance = luaClass:new() end)
         end
     end,
-    ["TimedActions/ISDismantleAction"] = function()
-        ISDismantleAction = {}
-        function ISDismantleAction:complete()   -- ISDismantleAction.lua:47-95：照 buildMaterials 退料（v=1 → 1 個）、移走目標
-            local t = self.thumpable
-            for fullType, v in pairs(t:getBuildMaterials()) do W.dropped[fullType] = (W.dropped[fullType] or 0) + v end
-            t:getSquare():transmitRemoveItemFromSquare(t)
-            return true
-        end
-    end,
     ["TimedActions/ISDestroyStuffAction"] = function()
         ISDestroyStuffAction = {}
         function ISDestroyStuffAction:complete()   -- ISDestroyStuffAction.lua:111-…：只移走被敲的那一個
@@ -1445,7 +1443,7 @@ local function bootMod()
     for k in pairs(handlers) do handlers[k] = nil end
     for k in pairs(systems) do systems[k] = nil end
     MinidoracatKnoxPass, KnoxPassAPI, SGlobalObjectSystem, ISBaseObject = nil, nil, nil, nil
-    ISDismantleAction, ISDestroyStuffAction, ISDestroyCursor, ISMoveableSpriteProps = nil, nil, nil, nil
+    ISDestroyStuffAction, ISDestroyCursor, ISMoveableSpriteProps = nil, nil, nil
     for _, name in ipairs(MOD_FILES) do require(name) end
     if MODE ~= "server" then
         for _, name in ipairs(CLIENT_FILES) do assert(loadfile(MEDIA .. "/client/" .. name .. ".lua"))() end
@@ -3189,6 +3187,14 @@ local function buildBarrier(x, y, face, builder)
     return made
 end
 local function present(o) return o._square ~= nil end
+-- 右鍵 Knox Pass「拆除整座」（Server.lua H.dismantle）：玩家站到 obj 那格（at＝false 時站在原地）送指令，送完站回原位
+local function dismantle(player, obj, at)
+    local x, y, sq = player._x, player._y, obj._square
+    if at ~= false then player._x, player._y = sq._x + 0.5, sq._y + 0.5 end
+    local res = cmd(player, "dismantle", { x = sq._x, y = sq._y, z = sq._z, index = obj:getObjectIndex() })
+    player._x, player._y = x, y
+    return res
+end
 
 local function scenarioBarrier()
     out("情境：抬升閘門（建造、內建讀頭、開關、擋車、拆除）")
@@ -3249,9 +3255,10 @@ local function scenarioBarrier()
     check(res.ok == false and res.why == "BuiltIn" and KP.Ledger.get(g.key) ~= nil and countType(builder._inv, READER) == 0,
         "內建讀頭不能單獨拆：BuiltIn、帳本還在、沒有多出讀頭")
 
-    ISDismantleAction.complete({ thumpable = n[6] })
-    check(not present(n[6]) and not present(n[0]) and not present(n[1]) and not present(n[2]), "拆除機箱：整座閘門一起移除")
-    check(W.dropped[KIT] == 1, "只退一個組件")
+    res = dismantle(builder, n[6])
+    check(res.ok == true and not present(n[6]) and not present(n[0]) and not present(n[1]) and not present(n[2]),
+        "右鍵拆除整座閘門（擁有者、螺絲起子）：機箱與三片車道一起移除")
+    check(W.dropped[KIT] == 1 and W.dropSq == square(200, 100, 0), "只退一個組件，落在機箱那格")
     check(KP.Ledger.get(g.key) == nil, "帳本記錄一起刪")
     step()
 
@@ -3290,11 +3297,13 @@ local function scenarioBarrier()
     local plain = makeDoor("IsoThumpable", 500, 100)
     plain._buildMaterials = { ["Base.Plank"] = 2 }
     local gg = makeGarage(510, 100)
+    local gone0 = W.removedObjs
+    check(dismantle(builder, plain).why == "NoGate" and dismantle(builder, gg.pieces[1]).why == "NoGate"
+        and present(plain) and W.removedObjs == gone0, "反面：一般門、原版車庫門不給 Knox Pass 拆除（NoGate），什麼都不移")
     local before = W.removedObjs
-    ISDismantleAction.complete({ thumpable = plain })
     ISDestroyStuffAction.complete({ item = gg.pieces[2] })
-    check(not present(plain) and present(gg.pieces[1]) and present(gg.pieces[3]) and W.removedObjs == before + 2
-        and W.dropped["Base.Plank"] == 2, "一般門照原版拆、原版車庫門大錘只少一片")
+    check(present(gg.pieces[1]) and present(gg.pieces[3]) and W.removedObjs == before + 1 and W.dropped["Base.Plank"] == nil,
+        "原版車庫門大錘只少一片")
     check(KP.Gates.kind(KP.Gates.byId("vanilla.IsoDoor"), gg.pieces[1]) == "Garage", "原版車庫門類型仍是 Garage")
 
     local couch = newPlayer("couch", 601, 103, { num = 1 })
@@ -3654,9 +3663,10 @@ local function scenarioReaderPost()
     check(KP.Ledger.get(gar.key) == nil and postsAt(130, 100) == "" and forgot[1] == gar.key and logHas("gate removed", from),
         "車庫門被打壞：下一個 tick 帳本、Sensor 狀態、門柱模型一起刪")
     local thumpGate = KP.Ledger.get("110,100,0N")
-    ISDismantleAction.complete({ thumpable = square(110, 100, 0)._objects[1] })
+    local thumpObj = square(110, 100, 0)._objects[1]
+    thumpObj._square:transmitRemoveItemFromSquare(thumpObj)   -- 原版拆解、搬走都是移走這個物件
     step()
-    check(thumpGate and KP.Ledger.get("110,100,0N") == nil and postsAt(110, 100) == "", "玩家建造的門被拆：帳本與模型一起刪")
+    check(thumpGate and KP.Ledger.get("110,100,0N") == nil and postsAt(110, 100) == "", "玩家建造的門被移走：帳本與模型一起刪")
     check(KP.Ledger.get(kWd) ~= nil and postsAt(160, 104) == "3", "反面：其他門的記錄與模型不受影響")
     local w1b = makePiece("IsoDoor", 150, 100, false)   -- 同一 tick 換成新物件（同格同向、標記帶過去）
     w1b._modData = w1._modData
@@ -4033,9 +4043,8 @@ local function scenarioBarrierMirror()
     step()
     check(s[80]:IsOpen() and s[82]:IsOpen() and KP.barrierIndex(s[80]) == 88 and KP.barrierIndex(s[82]) == 90,
         "S 向：登記的車接近，三片一起開（開啟 sprite 88-90）")
-    ISDismantleAction.complete({ thumpable = s[86] })
-    check(not present(s[86]) and not present(s[80]) and not present(s[81]) and not present(s[82])
-        and KP.Ledger.get(r.key) == nil and W.dropped[KIT] == 1, "S 向：拆除機箱整座移除、退一個組件、刪帳本")
+    check(dismantle(builder, s[86]).ok == true and not present(s[86]) and not present(s[80]) and not present(s[81])
+        and not present(s[82]) and KP.Ledger.get(r.key) == nil and W.dropped[KIT] == 1, "S 向：右鍵拆除整座移除、退一個組件、刪帳本")
     step()
 
     local e = buildBarrier(1100, 100, "E", builder)
@@ -4871,9 +4880,12 @@ local function scenarioModelGates()
 
     -- 拆除與打壞：整座一起移除、帳本刪除、柱面讀頭拿掉；拆除只退被拆那一端的材料
     local pipes = W.dropped["Base.MetalPipe"] or 0
-    ISDismantleAction.complete({ thumpable = gc.A })
-    check(gone(gc) and KP.Ledger.get(key) == nil and readersAt(400, 100) == "" and W.dropped["Base.MetalPipe"] == pipes + 4,
-        "拆除大門 A 端門柱：整座移除、帳本刪除、柱面讀頭拿掉，只退一端的材料")
+    owner._inv:AddItem("Base.BlowTorch")
+    owner._inv:AddItem("Base.WeldingMask")
+    res = dismantle(owner, gc.A)
+    local got = (W.dropped["Base.MetalPipe"] or 0) - pipes
+    check(res.ok == true and gone(gc) and KP.Ledger.get(key) == nil and readersAt(400, 100) == "" and got >= 1 and got <= 4,
+        "右鍵拆除大門 A 端門柱：整座移除、帳本刪除、柱面讀頭拿掉，只退一端的材料（每項 1..v）")
     ISDestroyStuffAction.complete({ item = b9.lanes[5] })
     check(gone(b9) and KP.Ledger.get("200,109,0W") == nil, "大錘敲雙桿閘門第 5 片：整座移除、內建讀頭的帳本刪除")
     fire("OnDestroyIsoThumpable", b6.B, nil)
@@ -4881,7 +4893,7 @@ local function scenarioModelGates()
     for k = 1, 9 do ge.lanes[k]._square:transmitRemoveItemFromSquare(ge.lanes[k]) end
     check(present(ge.A) and present(ge.B), "（引擎）門片被打壞只拆門片鏈")
     step()
-    check(not present(ge.A) and not present(ge.B) and W.dropped["Base.MetalPipe"] == pipes + 4,
+    check(not present(ge.A) and not present(ge.B) and W.dropped["Base.MetalPipe"] == pipes + got,
         "大門的門片被打壞：下一個 tick 兩端門柱一起移除、不退料")
     clean(from, "模型門")
 
@@ -4923,6 +4935,103 @@ local function scenarioModelGates()
     check(a._smName == "MinidoracatKnoxPassFast_roll2f_white_136" and not a:isAnimating(),
         "2.5 秒走完（正常要 4 秒）：換成加速版（開的那張）")
     clean(from, "模型門動畫（SP）")
+end
+
+-- 右鍵 Knox Pass「拆除整座閘門／大門」（Server.lua H.dismantle、Barrier.lua B.dismantle、Core.lua KP.dismantleTool；2026-11-09 計畫）：
+-- 裝了讀頭只限擁有者與管理員、沒裝的不在別人的安全屋即可；工具照種類（閘門螺絲起子、木門鎚子、其他焊槍＋面罩，焊槍扣一格）；
+-- 站在那一端 2 格內、不在車上；整座連讀頭模型、帳本一起清；有兩端的退那一端的 buildMaterials、兩層樓捲門照 KP.ROLL2F_REFUND，每項 1..v
+local function scenarioDismantle()
+    out("情境：右鍵拆除整座閘門與大門")
+    freshWorld()
+    local from = #logLines + 1
+    local owner = newPlayer("owner", 201, 103, { sid = 77 })
+    local function between(t, lo, hi) local k = W.dropped[t] or 0; return k >= lo and k <= hi end
+    local function noDrops() return next(W.dropped) == nil end
+    local function readersIn(x1, y1, x2, y2)
+        local k = 0
+        for x = x1, x2 do for y = y1, y2 do
+            for _, o in ipairs(square(x, y, 0)._objects) do if KP.readerCode(o) then k = k + 1 end end
+        end end
+        return k
+    end
+    check(KP.ROLL2F_REFUND[3]["Base.SheetMetal"] == 8 and KP.ROLL2F_REFUND[4]["Base.Hinge"] == 10
+        and KP.ROLL2F_REFUND[9]["Base.MetalPipe"] == 24, "兩層樓捲門退料表＝同寬一層樓捲門配方 ×2（產生器寫）")
+
+    -- 1. 單臂閘門（內建讀頭）：只有擁有者與管理員；被拒的什麼都不動、不退料
+    local n = buildBarrier(200, 100, "N", owner)
+    step()
+    local key = "201,100,0N"
+    KP.Ledger.get(key).co = { comgr = true }
+    local comgr, stranger = newPlayer("comgr", 201, 103), newPlayer("stranger", 201, 103)
+    check(dismantle(comgr, n[6]).why == "OwnerOnly" and dismantle(stranger, n[6]).why == "OwnerOnly",
+        "裝了讀頭：共同管理者、陌生人都回 OwnerOnly")
+    local sd = owner._inv:getFirstTypeRecurse("Base.Screwdriver")
+    owner._inv:DoRemoveItem(sd)
+    check(dismantle(owner, n[6]).why == "NeedScrewdriver", "擁有者沒帶螺絲起子：NeedScrewdriver")
+    owner._inv:AddItem(sd)
+    check(dismantle(owner, n[6], false).why == "DismantleTooFar", "站在 3 格外：DismantleTooFar")
+    seat(owner, makeVehicle(50.5, 50.5))
+    check(dismantle(owner, n[6]).why == "InVehicle", "坐在車上：InVehicle")
+    unseat(owner)
+    check(dismantle(owner, n[1]).why == "NoGate", "點車道送來的不是一端：NoGate（客戶端一律送那一端）")
+    check(cmd(owner, "dismantle", { x = "200", y = 100, z = 0 }).why == "BadArgs", "座標不是整數：BadArgs")
+    check(present(n[6]) and present(n[0]) and present(n[2]) and KP.Ledger.get(key) ~= nil and noDrops(),
+        "上面被拒的：閘門、帳本都在，沒有退料")
+    local admin = newPlayer("admin", 201, 103, { caps = { CanSetupSafehouses = true } })
+    check(dismantle(admin, n[6]).ok == true and not present(n[6]) and not present(n[0]) and not present(n[2])
+        and KP.Ledger.get(key) == nil and W.dropped[KIT] == 1 and logHas("gate dismantled key=" .. key, from),
+        "管理員可以拆：整座移除、帳本刪除、退一個組件")
+
+    -- 2. 雙桿閘門（內建讀頭，螺絲起子）：拆 B 端，退 B 端的 buildMaterials（每項 1..v）
+    W.dropped = {}
+    local b6 = buildModelGate("MinidoracatKnoxPass_barrier2", 0, 6, "N", true, 100, 200, owner)
+    step()
+    check(dismantle(owner, b6.B).ok == true and not present(b6.A) and not present(b6.lanes[1]) and not present(b6.lanes[6])
+        and KP.Ledger.get("101,200,0N") == nil and between("Base.MetalPipe", 1, 4) and W.dropSq == square(107, 200, 0),
+        "雙桿閘門拆 B 端：整座移除、內建讀頭帳本刪除，鐵管退 1..4 落在 B 端那格")
+
+    -- 3. 兩層樓大門（鐵欄杆，沒裝讀頭）：不在別人的安全屋就能拆；焊槍要有一格、要有面罩，拆完扣一格
+    W.dropped = {}
+    local gc = buildModelGate("MinidoracatKnoxPass_gate_c", 2, 6, "S", true, 400, 100, owner)
+    step()
+    local torch = stranger._inv:AddItem("Base.BlowTorch")
+    check(dismantle(stranger, gc.A).why == "NeedTorch", "金屬大門只有焊槍沒有面罩：NeedTorch")
+    stranger._inv:AddItem("Base.WeldingMask")
+    torch:setCurrentUsesFloat(0)
+    check(dismantle(stranger, gc.A).why == "NeedTorch", "焊槍沒燃料：NeedTorch")
+    torch:setCurrentUsesFloat(1)
+    W.safehouse[square(400, 100, 0)] = { someoneElse = true }
+    check(dismantle(stranger, gc.A).why == "Safehouse" and present(gc.A) and noDrops(), "沒裝讀頭但在別人的安全屋裡：Safehouse")
+    W.safehouse[square(400, 100, 0)] = nil
+    check(dismantle(stranger, gc.A).ok == true and not present(gc.A) and not present(gc.B) and not present(gc.lanes[3])
+        and torch:getCurrentUses() == 9 and between("Base.MetalPipe", 1, 4),
+        "沒裝讀頭：誰都能拆（焊槍＋面罩），整座移除、焊槍扣一格、退 1..4")
+
+    -- 4. 牧場木門要鎚子
+    local gd = buildModelGate("MinidoracatKnoxPass_gate_d", 0, 6, "N", true, 500, 100, owner)
+    step()
+    check(dismantle(stranger, gd.B).why == "NeedHammer", "木門帶著焊槍也不行：NeedHammer")
+    stranger._inv:AddItem("Base.Hammer")
+    check(dismantle(stranger, gd.B).ok == true and not present(gd.A) and torch:getCurrentUses() == 9, "帶鎚子拆木門：不扣焊槍")
+
+    -- 5. 兩層樓捲門（裝了讀頭）：點任一片整條鏈移除、門柱讀頭與帳本一起清，照 KP.ROLL2F_REFUND[4] 每項 1..10
+    W.dropped = {}
+    local rf = buildModelGate("MinidoracatKnoxPass_roll2f_green", 2, 4, "N", false, 300, 100, owner)
+    step()
+    owner._x, owner._y = 302.5, 101.5
+    local res = cmd(owner, "install", { x = 302, y = 100, z = 0, index = rf.lanes[3]:getObjectIndex(),
+        itemId = owner._inv:AddItem(READER):getID() })
+    local rkey = res.key
+    check(res.ok == true and readersIn(298, 98, 306, 102) == 1, "兩層樓捲門裝讀頭：門柱上有讀頭模型")
+    check(dismantle(stranger, rf.lanes[3]).why == "OwnerOnly" and present(rf.lanes[1]), "裝了讀頭的捲門：陌生人 OwnerOnly")
+    owner._inv:AddItem("Base.BlowTorch")
+    owner._inv:AddItem("Base.WeldingMask")
+    check(dismantle(owner, rf.lanes[3]).ok == true and not present(rf.lanes[1]) and not present(rf.lanes[2])
+        and not present(rf.lanes[4]) and KP.Ledger.get(rkey) == nil and readersIn(298, 98, 306, 102) == 0
+        and W.dropSq == square(302, 100, 0), "擁有者拆兩層樓捲門第 3 片：整條鏈移除、讀頭模型與帳本一起清、退料落在那一片")
+    check(between("Base.SheetMetal", 1, 10) and between("Base.MetalPipe", 1, 10) and between("Base.Hinge", 1, 10)
+        and W.dropped[KIT] == nil, "兩層樓捲門照表退料：金屬片、鐵管、門鉸鏈各 1..10")
+    clean(from, "右鍵拆除")
 end
 
 -- 二樓隱形牆（Barrier.lua upperSpot／placeUpper）：兩層樓捲門與兩層樓大門每片車道與每一端的門線格（擺放格＋GATE_DOOR）
@@ -4996,7 +5105,9 @@ local function scenarioUpperWall()
     square(700, 103, 1):AddTileObject(mine)
 
     -- 2. 拆除與打壞：下一個 tick 跟著收
-    ISDismantleAction.complete({ thumpable = gc.A })
+    builder._inv:AddItem("Base.BlowTorch")
+    builder._inv:AddItem("Base.WeldingMask")
+    check(dismantle(builder, gc.A).ok == true, "右鍵拆除兩層樓大門（沒裝讀頭）")
     step()
     step()
     check(walls(398, 98, 409, 103) == "", "拆兩層樓大門的一端：整座移除，二樓那排一起收")
@@ -6000,6 +6111,7 @@ local tests = {
     scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioUpperWall, scenarioLaggyEcho, scenarioShare,
     scenarioCoManagers, scenarioOutsideSafehouse, scenarioWatchWalk, scenarioWatchMissing, scenarioNeatCrafting, scenarioWatchDrive, scenarioIndestructible,
     scenarioRoadText, scenarioBasement,
+    scenarioDismantle,
 }
 for _, t in ipairs(tests) do t() end
 

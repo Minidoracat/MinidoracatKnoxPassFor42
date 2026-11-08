@@ -1,5 +1,5 @@
 -- 抬升閘門：entity 建造（scripts/entities/entity_knoxpass_barrier.txt）的 OnCreate 把三格車道換成 IsoDoor 車庫門鏈，
--- 建好後自動登記內建讀頭（建造者是擁有者）；拆除機箱、機箱被打壞、大錘敲任一格、車道被打壞時整座移除。
+-- 建好後自動登記內建讀頭（建造者是擁有者）；右鍵 Knox Pass 拆除（Server.lua H.dismantle）、機箱被打壞、大錘敲任一格、車道被打壞時整座移除。
 -- 形態：機箱格是 entity 建出的 IsoThumpable（sprite 帶 solid，永遠擋車）；車道 1-3 是 GarageDoor 1-3 的 IsoDoor，
 -- 第 1 片是錨點，臂的 3D 模型掛在它身上（common/media/spriteModels.txt，原點平移到機箱格）。
 -- 四個方向：N／W 向機箱緊鄰第 1 片；S／E 向是 N／W 轉 180°（編號＋80），機箱在第 3 片那端，車道門片建在下一列／下一行。
@@ -124,8 +124,23 @@ function B.parts(obj)
     return modelParts(obj)
 end
 
+-- 右鍵 Knox Pass「拆除整座」（Server.lua H.dismantle）：整座的物件、帳本 key、退料表 { [物品] = 數量 }。
+-- 有兩端的門 obj 是一端：退那一端的 buildMaterials（建造時每片都記著整座的材料，ISBuildingObject.lua:353-367，所以只退被拆的那一端）；
+-- 兩層樓捲門沒有兩端，obj 是任一片門片，門片沒有 buildMaterials，照 KP.ROLL2F_REFUND（產生器照配方寫）。其他物件回 nil
+function B.dismantle(obj)
+    if KP.isGateEnd(obj) then
+        local list, key = B.parts(obj)
+        return list, key, obj:getBuildMaterials()
+    end
+    local mg = instanceof(obj, "IsoDoor") and KP.modelGate(obj)
+    if not (mg and not mg.def.ends) then return nil end
+    local adapter, anchor = G.resolve(obj)
+    if not adapter then return nil end
+    return G.pieces(adapter, anchor), G.key(anchor), KP.ROLL2F_REFUND[mg.width]
+end
+
 -- 移除整座閘門與帳本記錄。已經被移走的物件（getObjectIndex 為 -1）略過：
--- 原版拆除／大錘自己會移走目標（ISDismantleAction.lua:84-94；IsoThumpable.java:1201-1203 也是先查 index）。
+-- 大錘自己會移走被敲的那一格（ISDestroyStuffAction；IsoThumpable.java:1201-1203 也是先查 index）。
 -- safelyRemove 要給 false：預設的 true 會把 entity 建的機箱當多格物件找齊整組，車道已換成 IsoDoor 找不齊，
 -- 引擎回 -1、什麼都不移（IsoGridSquare.java:5942-5968、IsoObjectUtils.java:20-48；barrier-mp 1005f 實踩：原版拆除也因此留下機箱）
 function B.remove(list, key)
@@ -353,7 +368,6 @@ end
 
 if not isClient() then
     require "MinidoracatKnoxPass/Server"
-    require "TimedActions/ISDismantleAction"
     require "TimedActions/ISDestroyStuffAction"
 
     Events.OnTick.Add(B.settle)
@@ -362,16 +376,6 @@ if not isClient() then
     Events.OnDestroyIsoThumpable.Add(function(thump)
         if KP.isGateEnd(thump) then B.remove(B.parts(thump)) end
     end)
-
-    -- 拆除機箱或門柱（只有兩端是可拆的 IsoThumpable；原版照 buildMaterials 退料：每片都記著整座的材料，ISBuildingObject
-    -- updateModData，所以只退被拆的那一端，其餘跟著移除、不退料；單臂閘門只有機箱帶組件，退一個）
-    local dismantle = ISDismantleAction.complete
-    function ISDismantleAction:complete()
-        local list, key = B.parts(self.thumpable)
-        local done = dismantle(self)
-        if list then B.remove(list, key) end
-        return done
-    end
 
     -- 大錘敲任一格：原版只移走那一格，閘門其餘部分跟著移除，不留殘缺的鏈
     local destroy = ISDestroyStuffAction.complete

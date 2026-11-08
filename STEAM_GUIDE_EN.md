@@ -131,8 +131,8 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [/list]
 [h3]Removing and damage[/h3]
 [list]
-[*] [b]Dismantling[/b]: dismantling the cabinet removes the whole barrier and gives the kit back.
-[*] [b]Damage[/b]: if the cabinet or the lane gets broken, the whole barrier is destroyed with no refund.
+[*] [b]Dismantling[/b]: the owner or a server admin with a screwdriver right-clicks the barrier → Knox Pass → "Dismantle the whole barrier"; they walk to the cabinet, remove the whole barrier and get the kit back. Co-managers can't.
+[*] [b]Damage[/b]: if the cabinet or the lane gets broken, or the cabinet is hit with a sledgehammer, the whole barrier is destroyed with no refund.
 [*] [b]Durability[/b]: new barriers have 1000 on the cabinet and lane; barriers built before this update keep their old durability.
 [/list]
 === 🧰 Build your own gates
@@ -185,7 +185,9 @@ Chain-link also comes in 15 paint colors: Black, Dark Gray, Dark Green, White, R
 [/table]
 [list]
 [*] [b]Two-story ones[/b]: 500 more.
-[*] [b]Dismantling[/b]: dismantling either end (cabinet or post) of a double boom barrier or two-story gate removes the whole thing and refunds only that end's materials.
+[*] [b]Dismantling[/b]: right-click a double boom barrier, two-story roll-up door or two-story gate → Knox Pass → "Dismantle the whole barrier" or "Dismantle the whole gate". You walk to the nearer end (cabinet or post; on a two-story roll-up door, the piece you clicked) and remove the whole thing; each building material comes back as 1 up to its original amount, on the ground. One-story roll-up doors use the vanilla "Disassemble".
+[*] [b]Tools for dismantling[/b]: a screwdriver for barriers; a claw hammer for Ranch Wood and Medieval Oak; a welding torch with fuel plus a welder mask for Chain-link, Steel Plate, Iron Bars and two-story roll-up doors (it uses one unit of fuel).
+[*] [b]Who can dismantle[/b]: on a gate with a reader, only the owner and server admins, not co-managers; a gate without a reader, anyone who isn't in someone else's safehouse. A sledgehammer on a cabinet or post still removes the whole thing the vanilla way, with no refund.
 [*] [b]Damage[/b]: if any door piece gets broken, the whole thing is destroyed with no refund.
 [*] [b]Animation[/b]: arms, roll-up curtains and gate leaves ease in and out as they move, taking about 4 seconds each way (about 2.5 with "Fast" in the window).
 [*] [b]Several at once[/b]: several gates moving at once each run on their own.

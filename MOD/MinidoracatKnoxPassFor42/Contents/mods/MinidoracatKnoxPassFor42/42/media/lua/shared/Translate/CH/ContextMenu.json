@@ -6,6 +6,8 @@
     "ContextMenu_KnoxPass_Open": "用 Knox Pass 開門",
     "ContextMenu_KnoxPass_Close": "用 Knox Pass 關門",
     "ContextMenu_KnoxPass_Remove": "拆下讀頭",
+    "ContextMenu_KnoxPass_DismantleBarrier": "拆除整座閘門",
+    "ContextMenu_KnoxPass_DismantleGate": "拆除整座大門",
     "ContextMenu_KnoxPass_OtherOwner": "這個讀頭屬於其他玩家",
     "ContextMenu_KnoxPass_Recolor": "重新上色"
 }
