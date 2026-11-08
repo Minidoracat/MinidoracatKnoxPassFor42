@@ -285,6 +285,32 @@ def display_key(kind: Kind, variant, width: int) -> str:
             "gate": f"IGUI_KnoxPass_Gate_{variant}{width}"}[kind.key]
 
 
+# Two-story roll door dismantle refund (Lua Core.lua KP.ROLL2F_REFUND, Barrier.lua B.dismantle): its lanes are IsoDoors with
+# no buildMaterials, so the refund is what a build records from the recipe (ISBuildingObject.lua:353-367
+# getAllRecordedConsumedItems: no mode:keep tool, no DontRecordInput), the same for every style of a width.
+REFUND_BEGIN, REFUND_END = "-- BEGIN build_model_gates.py ROLL2F_REFUND\n", "-- END build_model_gates.py ROLL2F_REFUND\n"
+
+
+def recorded(inputs: list[str]) -> dict[str, int]:
+    return {full: int(n) for line in inputs if "mode:keep" not in line and "DontRecordInput" not in line
+            for n, full in [re.match(r"item (\d+) \[([\w.]+)\]$", line).groups()]}
+
+
+def roll2f_refund() -> str:
+    kind = next(k for k in kinds() if k.key == "roll2f")
+    per = {}
+    for variant, width, _ in kind.entities.values():
+        mats = recorded(recipe(kind, variant, width)[1])
+        assert per.setdefault(width, mats) == mats, (width, variant)
+    rows = "".join(f"    [{w}] = {{ " + ", ".join(f'["{t}"] = {n}' for t, n in per[w].items()) + " },\n" for w in kind.widths)
+    return REFUND_BEGIN + "KP.ROLL2F_REFUND = {\n" + rows + "}\n" + REFUND_END
+
+
+def core_lua_with_refund(lua: str) -> str:
+    i, j = lua.index(REFUND_BEGIN), lua.index(REFUND_END) + len(REFUND_END)
+    return lua[:i] + roll2f_refund() + lua[j:]
+
+
 # ---- tiles ------------------------------------------------------------------------------------------------------
 def edge_of(face: str) -> str:
     return "N" if face in ("N", "S") else "W"
@@ -501,6 +527,7 @@ def write() -> None:
     TILE_GEOMETRY.write_text(tile_geometry(), encoding="ascii", newline="\n")
     for kind in kinds():
         entity_path(kind).write_text(entity_script(kind), encoding="ascii", newline="\n")
+    CORE_LUA.write_text(core_lua_with_refund(CORE_LUA.read_text(encoding="utf-8")), encoding="utf-8", newline="\n")
 
 
 # ---- check ------------------------------------------------------------------------------------------------------
@@ -588,6 +615,7 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
                 assert im.size == (64, 64) and im.getbbox(), name
     # Lua Core.lua: same tilesets, widths, faces, health, ends
     lua = CORE_LUA.read_text(encoding="utf-8")
+    assert core_lua_with_refund(lua) == lua, "Core.lua KP.ROLL2F_REFUND is stale: rerun the builder"
     lua_sets = dict(re.findall(r"^    (MinidoracatKnoxPass_\w+) = (\w+),", lua, re.M))
     assert set(lua_sets) == {n for n, _, _ in specs} - {PILLAR_TILESET, UPPER_TILESET}, sorted(lua_sets)
     assert f'KP.UPPER_WALL_TILESET = "{UPPER_TILESET}"' in lua

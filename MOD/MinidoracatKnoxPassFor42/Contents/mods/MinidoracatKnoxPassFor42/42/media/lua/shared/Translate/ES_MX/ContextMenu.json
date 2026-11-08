@@ -6,6 +6,8 @@
     "ContextMenu_KnoxPass_Open": "Abrir con Knox Pass",
     "ContextMenu_KnoxPass_Close": "Cerrar con Knox Pass",
     "ContextMenu_KnoxPass_Remove": "Quitar lector",
+    "ContextMenu_KnoxPass_DismantleBarrier": "Desarmar toda la barrera",
+    "ContextMenu_KnoxPass_DismantleGate": "Desarmar todo el portón",
     "ContextMenu_KnoxPass_OtherOwner": "El lector pertenece a otro jugador",
     "ContextMenu_KnoxPass_Recolor": "Repintar"
 }

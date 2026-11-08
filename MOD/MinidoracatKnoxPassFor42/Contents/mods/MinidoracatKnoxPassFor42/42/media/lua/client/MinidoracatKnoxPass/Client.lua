@@ -30,7 +30,7 @@ do
     end
 end
 
-local INSTALL_TICKS, UNINSTALL_TICKS = 150, 100
+local INSTALL_TICKS, UNINSTALL_TICKS, DISMANTLE_TICKS = 150, 100, 200   -- 拆除照原版拆解的基本時間（ISDismantleAction.lua:102）
 local HALO_TICKS = 250 -- 預設 128（IsoGameCharacter.java:592）
 
 -- ── 送指令與提示 ────────────────────────────────────────────────────────
@@ -76,6 +76,7 @@ local function onResult(args)
     if args.ok then
         if args.cmd == "install" then C.say(player, getText("IGUI_KnoxPass_Installed"), false)
         elseif args.cmd == "uninstall" then C.say(player, getText("IGUI_KnoxPass_Uninstalled"), false)
+        elseif args.cmd == "dismantle" then C.say(player, getText("IGUI_KnoxPass_Dismantled"), false)
         elseif args.cmd == "recolor" or args.cmd == "recolorReader" then C.say(player, getText("IGUI_KnoxPass_Recolored"), false) end
         return
     end
@@ -114,7 +115,7 @@ Events.OnServerCommand.Add(function(module, command, args)
     KP.clientReceive(command, args)
 end)
 
--- ── 計時動作：裝／拆讀頭 ────────────────────────────────────────────────
+-- ── 計時動作：裝／拆讀頭、拆除整座 ──────────────────────────────────────
 -- 只繼承 ISBaseTimedAction、不定義 complete：LuaTimedActionNew 看 metatable 上沒有 complete 就不走
 -- NetTimedAction（LuaTimedActionNew.java:78），動作只在本機跑，perform 送指令由伺服器重驗（AutoDrive
 -- ISAutoDriveDeviceAction 同做法）。derive 只設父類的 __index（ISBaseObject），明確設自己的查找入口
@@ -125,6 +126,7 @@ C.Action = Action
 function Action:isValid()
     local door = self.door
     if not door or not door:getSquare() or door:getObjectIndex() == -1 then return false end
+    if self.command == "dismantle" then return KP.dismantleTool(self.character, door) ~= nil end
     local inv = self.character:getInventory()
     if not KP.screwdriverOf(self.character) then return false end -- ISWorldObjectContextMenu.lua:1244
     -- getItemWithIDRecursiv：ItemContainer.java:3094（SP／MP client 都用 ID 找，不比物件參照）
@@ -146,9 +148,9 @@ function Action:start()
 end
 
 function Action:perform()
-    if self.command == "install" then
+    if self.command == "install" or self.command == "dismantle" then
         local sq = self.door:getSquare()
-        C.send(self.character, "install", { x = sq:getX(), y = sq:getY(), z = sq:getZ(),
+        C.send(self.character, self.command, { x = sq:getX(), y = sq:getY(), z = sq:getZ(),
             index = self.door:getObjectIndex(), itemId = self.itemId })
     else
         C.send(self.character, "uninstall", { key = self.key })
@@ -186,6 +188,22 @@ function C.queueUninstall(player, anchor, key)
     local action = Action:new(player, anchor, "uninstall", UNINSTALL_TICKS)
     action.key = key
     queue(player, anchor, action)
+end
+
+-- 拆除整座（伺服器 H.dismantle 重驗權限、工具與距離）：走到那一端（機箱、門柱是實心的，走到旁邊的空格；兩層樓捲門的門片照門的走法）
+-- → 拿工具（焊槍另外戴上面罩，同原版金屬拆解 ISMoveableSpriteProps.lua:3102-3118）→ 動作
+function C.queueDismantle(player, target)
+    local tool, mask = KP.dismantleTool(player, target)
+    if not tool then return end
+    local sq = target:getSquare()
+    if instanceof(target, "IsoDoor") then
+        if not luautils.walkAdjWindowOrDoor(player, sq, target) then return end
+    elseif not luautils.walkAdj(player, sq) then
+        return
+    end
+    ISWorldObjectContextMenu.equip(player, player:getPrimaryHandItem(), tool, true, false)
+    if mask and not player:isEquippedClothing(mask) then ISInventoryPaneContextMenu.wearItem(mask, player:getPlayerNum()) end
+    ISTimedActionQueue.add(Action:new(player, target, "dismantle", DISMANTLE_TICKS))
 end
 
 -- ── 計時動作：重新上色 ──────────────────────────────────────────────────
@@ -385,6 +403,40 @@ local function findGate(playerIndex, worldobjects)
     return nil
 end
 
+-- 拆除要走去的那一片（伺服器 H.dismantle 以它的格子量距離、在那裡退料）：點到整座的一端就用它，點到車道或門身用離玩家近的
+-- 那一端；兩層樓捲門沒有兩端，用點到的門片。不是本 MOD 蓋的閘門、大門（原版門、一層樓捲門）回 nil
+local function dismantleTarget(player, door, worldobjects)
+    local ends = {}
+    for _, o in ipairs(KP.Barrier.parts(door) or {}) do
+        if KP.isGateEnd(o) then ends[#ends + 1] = o end
+    end
+    if #ends == 0 then return KP.Barrier.dismantle(door) and door or nil end
+    local best, bestD = nil, nil
+    for _, e in ipairs(ends) do
+        for _, o in ipairs(worldobjects) do
+            if o == e then return e end
+        end
+        local dx, dy = e:getX() - player:getX(), e:getY() - player:getY()
+        if not bestD or dx * dx + dy * dy < bestD then best, bestD = e, dx * dx + dy * dy end
+    end
+    return best
+end
+
+-- 「拆除整座閘門／大門」：裝了讀頭的只有擁有者與管理員能拆（allowed，伺服器 H.dismantle 回 OwnerOnly）；缺工具灰掉並寫缺什麼
+local function addDismantle(sub, player, target, allowed)
+    if not target then return end
+    local label = KP.isBarrier(target) and "ContextMenu_KnoxPass_DismantleBarrier" or "ContextMenu_KnoxPass_DismantleGate"
+    local opt = sub:addOption(getText(label), player, C.queueDismantle, target)
+    local tool, why = KP.dismantleTool(player, target) -- 成功回 (工具, 面罩)，失敗回 (nil, 原因)
+    if not allowed then
+        disable(opt, "IGUI_KnoxPass_Why_OwnerOnly")
+    elseif not tool then
+        disable(opt, "IGUI_KnoxPass_Why_" .. why)
+    else
+        tip(opt, "IGUI_KnoxPass_DismantleTip")
+    end
+end
+
 -- 事件簽名 (playerIndex, context, worldobjects, test)：ISWorldObjectContextMenu.lua:213；
 -- 別人的保險屋內本來就不觸發（同檔 :211）
 local function onFillMenu(playerIndex, context, worldobjects, test)
@@ -397,19 +449,24 @@ local function onFillMenu(playerIndex, context, worldobjects, test)
     local md = anchor:getModData()
     local owner = md[KP.MARKER_OWNER]
     local hasScrewdriver = KP.screwdriverOf(player) ~= nil
-    if not owner and not player:getInventory():containsEvalRecurse(KP.isReader) then return end   -- ItemContainer.java:1146
+    local target = dismantleTarget(player, door, worldobjects)   -- 本 MOD 蓋的閘門、大門一律出選單（沒裝讀頭也拆得到）
+    local carriesReader = player:getInventory():containsEvalRecurse(KP.isReader)   -- ItemContainer.java:1146
+    if not owner and not target and not carriesReader then return end
 
     local root = context:addOption(getText("ContextMenu_KnoxPass"), nil, nil)
     local sub = ISContextMenu:getNew(context)
     context:addSubMenu(root, sub)
 
     if not owner then
-        local opt = sub:addOption(getText("ContextMenu_KnoxPass_Install"), player, C.queueInstall, door)
-        if not hasScrewdriver then
-            disable(opt, "IGUI_KnoxPass_NeedScrewdriver")
-        elseif not KP.installAllowedAt(anchor:getSquare(), player:getUsername()) then
-            disable(opt, "IGUI_KnoxPass_Why_InstallSafehouseOnly")   -- 沙盒「安全屋外的讀頭」＝不能安裝
+        if carriesReader then
+            local opt = sub:addOption(getText("ContextMenu_KnoxPass_Install"), player, C.queueInstall, door)
+            if not hasScrewdriver then
+                disable(opt, "IGUI_KnoxPass_NeedScrewdriver")
+            elseif not KP.installAllowedAt(anchor:getSquare(), player:getUsername()) then
+                disable(opt, "IGUI_KnoxPass_Why_InstallSafehouseOnly")   -- 沙盒「安全屋外的讀頭」＝不能安裝
+            end
         end
+        addDismantle(sub, player, target, true)   -- 沒裝讀頭照原版拆解：別人的安全屋裡本來就開不出選單（ISWorldObjectContextMenu.lua:211）
         return
     end
 
@@ -418,6 +475,7 @@ local function onFillMenu(playerIndex, context, worldobjects, test)
     if not manager then
         disable(sub:addOption(getText("ContextMenu_KnoxPass_OtherOwner"), nil, nil), "IGUI_KnoxPass_OtherOwnerTip")
         tip(addOpenClose(sub, player, adapter, anchor, key), "IGUI_KnoxPass_OpenTip")
+        addDismantle(sub, player, target, false)
         return
     end
 
@@ -435,15 +493,17 @@ local function onFillMenu(playerIndex, context, worldobjects, test)
 
     addOpenClose(sub, player, adapter, anchor, key)
 
-    -- 閘門的讀頭是內建的：不給拆（伺服器 H.uninstall 回 BuiltIn）、不分顏色，拆整座閘門走拆除機箱
-    if KP.isBarrier(anchor) then return end
-    local remove = sub:addOption(getText("ContextMenu_KnoxPass_Remove"), player, C.queueUninstall, anchor, key)
-    if not ownerOrAdmin then
-        disable(remove, "IGUI_KnoxPass_Why_OwnerOnly")   -- 共同管理者不能拆讀頭（伺服器 H.uninstall 回 OwnerOnly）
-    elseif not hasScrewdriver then
-        disable(remove, "IGUI_KnoxPass_NeedScrewdriver")
+    -- 閘門的讀頭是內建的：不給拆（伺服器 H.uninstall 回 BuiltIn）、不分顏色，要拆整座閘門
+    if not KP.isBarrier(anchor) then
+        local remove = sub:addOption(getText("ContextMenu_KnoxPass_Remove"), player, C.queueUninstall, anchor, key)
+        if not ownerOrAdmin then
+            disable(remove, "IGUI_KnoxPass_Why_OwnerOnly")   -- 共同管理者不能拆讀頭（伺服器 H.uninstall 回 OwnerOnly）
+        elseif not hasScrewdriver then
+            disable(remove, "IGUI_KnoxPass_NeedScrewdriver")
+        end
+        recolorMenu(sub, player, md[KP.MARKER_COLOR] or 0, ISWorldObjectContextMenu.addToolTip, { door = anchor, key = key })
     end
-    recolorMenu(sub, player, md[KP.MARKER_COLOR] or 0, ISWorldObjectContextMenu.addToolTip, { door = anchor, key = key })
+    addDismantle(sub, player, target, ownerOrAdmin)
 end
 
 Events.OnFillWorldObjectContextMenu.Add(onFillMenu)

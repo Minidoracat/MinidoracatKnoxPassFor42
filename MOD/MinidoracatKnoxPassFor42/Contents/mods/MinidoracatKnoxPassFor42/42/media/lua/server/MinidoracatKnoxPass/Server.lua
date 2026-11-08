@@ -1,5 +1,5 @@
 -- 伺服器指令：client 只送意圖（sendClientCommand），這裡重查一切再改世界。
--- 指令：install、uninstall、register、unregister、lock、settings、managers、findPlayers、open、close、query、recolor、
+-- 指令：install、uninstall、dismantle、register、unregister、lock、settings、managers、findPlayers、open、close、query、recolor、
 -- recolorReader。回覆：state（只給能管理這扇門的人）、players（共同管理者候選）、result。
 -- SP 的 sendServerCommand 是 no-op（LuaManager.java:8952-8970），回覆直接交給 client 的接收函式（家族 VM 同做法）。
 if isClient() then return end
@@ -459,6 +459,59 @@ function H.uninstall(player, args)
     if item and isServer() then sendAddItemToContainer(inv, item) end
     KP.log("reader removed key=" .. args.key .. " by=" .. tostring(player:getUsername()))
     result(player, cmd, true, nil, args.key)
+end
+
+-- 拆除要站在被拆那一端（兩層樓捲門是那一片）幾格內
+local DISMANTLE_RANGE = 2
+
+-- 點到的那一片：先用 client 給的物件索引，對不上就找格上第一個拆得了的（KP.Barrier.dismantle）
+local function dismantleAt(sq, index)
+    local objects = sq:getObjects()
+    if KP.isInt(index) and index >= 0 and index < objects:size() and KP.Barrier.dismantle(objects:get(index)) then
+        return objects:get(index)
+    end
+    for i = 0, objects:size() - 1 do
+        if KP.Barrier.dismantle(objects:get(i)) then return objects:get(i) end
+    end
+    return nil
+end
+
+-- 右鍵 Knox Pass「拆除整座閘門／大門」（使用者 2026-11-09 核准的計畫）：本 MOD 蓋的閘門、模型門整座移除並退料。
+-- 權限：裝了讀頭（帳本有記錄，含閘門內建的）只限擁有者與管理員，同拆讀頭（共同管理者、其他人都回 OwnerOnly）；
+-- 沒裝讀頭的照原版拆解，不在別人的安全屋裡就能拆（SafeHouse.java:245-260）。工具 KP.dismantleTool，焊槍扣一格；
+-- 站在那一端 2 格內、不在車上。KP.Barrier.remove 連帳本、門柱讀頭模型、Sensor 狀態一起清（L.remove → ReaderPost R.detach）。
+-- 退料在那一端的格子：每項 ZombRand(v)+1（原版 ISDismantleAction.lua:69-72）；AddWorldInventoryItem(String…) 在伺服器
+-- 自己送給客戶端（IsoGridSquare.java:6047-6049）
+function H.dismantle(player, args)
+    local cmd = "dismantle"
+    if not (KP.isInt(args.x) and KP.isInt(args.y) and KP.isInt(args.z)) then return result(player, cmd, false, "BadArgs") end
+    if player:getVehicle() then return result(player, cmd, false, "InVehicle") end
+    if not KP.near(player, args.x, args.y, args.z, DISMANTLE_RANGE) then return result(player, cmd, false, "DismantleTooFar") end
+    local sq = getCell():getGridSquare(args.x, args.y, args.z)
+    local target = sq and dismantleAt(sq, args.index)
+    if not target then return result(player, cmd, false, "NoGate") end
+    local list, key, materials = KP.Barrier.dismantle(target)
+    local rec = key and L.get(key)
+    if rec then
+        if not ownerOrAdmin(player, rec) then return result(player, cmd, false, "OwnerOnly", key) end
+    elseif not SafeHouse.isSafehouseAllowInteract(sq, player) then
+        return result(player, cmd, false, "Safehouse")
+    end
+    local tool, why = KP.dismantleTool(player, target)
+    if not tool then return result(player, cmd, false, why, key) end
+    if tool:getFullType() == "Base.BlowTorch" then tool:UseAndSync() end
+    local drops = {}
+    for fullType, v in pairs(materials or {}) do
+        local n = math.floor(tonumber(v) or 0)
+        if n >= 1 then drops[fullType] = ZombRand(n) + 1 end
+    end
+    KP.Barrier.remove(list, key)
+    for fullType, n in pairs(drops) do
+        for _ = 1, n do sq:AddWorldInventoryItem(fullType, 0, 0, 0) end
+    end
+    KP.log("gate dismantled key=" .. tostring(key) .. " at=" .. args.x .. "," .. args.y .. "," .. args.z
+        .. " by=" .. tostring(player:getUsername()))
+    result(player, cmd, true, nil, key)
 end
 
 -- 管理視窗勾選的一批 ID：先整批驗型別，有一個不合格就整批不收（BadArgs）

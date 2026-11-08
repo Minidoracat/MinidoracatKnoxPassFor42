@@ -862,6 +862,8 @@ def check() -> None:
     info = (OUT / "42" / "mod.info").read_text(encoding="utf-8").splitlines()
     assert f"pack={PACK}" in info and f"tiledef={TILEDEF} {FILE_NUMBER}" in info, "mod.info lacks pack=/tiledef="
     r4 = MG.check({t["name"]: t for t in tsets}, sm_all, set(names))
+    # the two-story roll door recipe (and so its dismantle refund, Core.lua KP.ROLL2F_REFUND) is the one-story one x2
+    assert MG.ROLL_ONE_STORY == {w: (t, *rest) for w, (t, _xp, *rest) in ROLLDOOR_RECIPE.items()}, "ROLL_ONE_STORY != ROLLDOOR_RECIPE"
     # painted styles: the paint cans their recipes take exist in vanilla (a wrong ID = a recipe nobody can craft)
     cans = {f"Paint{p}" for k in MG.kinds() for p in k.paint.values()}
     vanilla = set(re.findall(r"^\s*item (Paint\w+)$", (GAME / "scripts/generated/items/drainable.txt").read_text(

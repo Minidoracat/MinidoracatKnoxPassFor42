@@ -139,6 +139,18 @@ end
 -- 看得穿的外觀（車道 tile 帶 doorTrans，build_model_gates.py see_through）：二樓隱形牆也讓視線穿過；上色款查 KP.GATE_SKIN
 KP.SEE_THROUGH = { MinidoracatKnoxPass_gate_a = true, MinidoracatKnoxPass_gate_c = true }
 
+-- 兩層樓捲門拆除的退料（server/Barrier.lua B.dismantle）：沒有兩端，門片是 IsoDoor、沒有 buildMaterials，改照配方裡建造會記下的
+-- 材料（ISBuildingObject.lua:353-367 getAllRecordedConsumedItems：不含 mode:keep 的工具與 DontRecordInput）。寬度 → { [物品] = 數量 }，
+-- 拆除時每項退 1..數量。BEGIN／END 之間由 scripts/build_model_gates.py 照兩層樓捲門的配方產生（build_barrier_tiles.py --check 核對），不要手改
+-- BEGIN build_model_gates.py ROLL2F_REFUND
+KP.ROLL2F_REFUND = {
+    [3] = { ["Base.SheetMetal"] = 8, ["Base.MetalPipe"] = 8, ["Base.Hinge"] = 8 },
+    [4] = { ["Base.SheetMetal"] = 10, ["Base.MetalPipe"] = 10, ["Base.Hinge"] = 10 },
+    [6] = { ["Base.SheetMetal"] = 16, ["Base.MetalPipe"] = 16, ["Base.Hinge"] = 16 },
+    [9] = { ["Base.SheetMetal"] = 24, ["Base.MetalPipe"] = 24, ["Base.Hinge"] = 24 },
+}
+-- END build_model_gates.py ROLL2F_REFUND
+
 -- 二樓隱形牆（build_model_gates.py UPPER_TILESET）：索引＝2×看得穿＋北邊（0 W 邊、1 N 邊、2／3 視線穿過）；不是回 nil
 KP.UPPER_WALL_TILESET = "MinidoracatKnoxPass_upperwall"
 function KP.upperWall(obj)
@@ -536,6 +548,29 @@ end
 local function notBroken(item) return not item:isBroken() end
 function KP.screwdriverOf(player)
     return player:getInventory():getFirstTagEvalRecurse(ItemTag.SCREWDRIVER, notBroken)
+end
+
+-- 拆除整座本 MOD 蓋的門要的工具（Server.lua H.dismantle 重驗，Client.lua 選單與計時動作共用；使用者 2026-11-09 核准的計畫）：
+-- 閘門（單臂、雙桿）螺絲起子；牧場木門 D、中世紀厚木門 E 沒壞的鐵鎚（tag base:hammer）；其他（金屬大門、兩層樓捲門）焊槍
+-- （至少一格，ISMoveableSpriteProps.lua:4-6 同款）＋焊接面罩（tag base:weldingmask），同原版金屬拆解（ISMoveableDefinitions.lua:446
+-- MetalPlates），拆完扣焊槍一格（ISMoveableSpriteProps.lua:3787-3789）。obj＝那一端或門片。回傳工具（焊槍時第二個是面罩），缺工具回 nil, 原因代碼
+local WOOD_LOOKS = { MinidoracatKnoxPass_gate_d = true, MinidoracatKnoxPass_gate_e = true }
+function KP.dismantleTool(player, obj)
+    local inv = player:getInventory()
+    if KP.isBarrier(obj) then
+        local t = KP.screwdriverOf(player)
+        if t then return t end
+        return nil, "NeedScrewdriver"
+    end
+    local mg = KP.modelGate(obj)
+    if mg and WOOD_LOOKS[mg.tileset] then
+        local t = inv:getFirstTagEvalRecurse(ItemTag.HAMMER, notBroken)
+        if t then return t end
+        return nil, "NeedHammer"
+    end
+    local torch, mask = inv:getFirstTypeEvalRecurse("Base.BlowTorch", hasUse), inv:getFirstTagRecurse(ItemTag.WELDING_MASK)
+    if torch and mask then return torch, mask end
+    return nil, "NeedTorch"
 end
 
 -- ── 幾何 ────────────────────────────────────────────────────────────────

@@ -6,6 +6,8 @@
     "ContextMenu_KnoxPass_Open": "Otwórz przez Knox Pass",
     "ContextMenu_KnoxPass_Close": "Zamknij przez Knox Pass",
     "ContextMenu_KnoxPass_Remove": "Zdemontuj czytnik",
+    "ContextMenu_KnoxPass_DismantleBarrier": "Rozbierz cały szlaban",
+    "ContextMenu_KnoxPass_DismantleGate": "Rozbierz całą bramę",
     "ContextMenu_KnoxPass_OtherOwner": "Czytnik należy do innego gracza",
     "ContextMenu_KnoxPass_Recolor": "Przemaluj"
 }
