@@ -1168,8 +1168,8 @@ function Win.onResult(r)
         w.picked = {}                                -- 做完一批就清空勾選（新的 state 隨後就到）
         w.list:setItems(w.list:getItems())
         w:refreshButtons()
-    elseif r.ok and r.cmd == "uninstall" then
-        w.win:close()
+    elseif r.ok and (r.cmd == "uninstall" or r.cmd == "dismantle") then
+        w.win:close()   -- 讀頭或整座門沒了（shown 已比對 key，只關同一扇門的視窗）
     elseif not r.ok and r.cmd == "lock" and w.state then
         w.lock:setChecked(w.state.lock == true, true) -- 被拒時開關回到伺服器狀態
     elseif not r.ok and r.cmd == "settings" and w.state then
