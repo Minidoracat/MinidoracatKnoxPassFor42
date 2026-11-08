@@ -427,10 +427,10 @@ local function addDismantle(sub, player, target, allowed)
     if not target then return end
     local label = KP.isBarrier(target) and "ContextMenu_KnoxPass_DismantleBarrier" or "ContextMenu_KnoxPass_DismantleGate"
     local opt = sub:addOption(getText(label), player, C.queueDismantle, target)
-    local _, why = KP.dismantleTool(player, target)
+    local tool, why = KP.dismantleTool(player, target) -- 成功回 (工具, 面罩)，失敗回 (nil, 原因)
     if not allowed then
         disable(opt, "IGUI_KnoxPass_Why_OwnerOnly")
-    elseif why then
+    elseif not tool then
         disable(opt, "IGUI_KnoxPass_Why_" .. why)
     else
         tip(opt, "IGUI_KnoxPass_DismantleTip")
