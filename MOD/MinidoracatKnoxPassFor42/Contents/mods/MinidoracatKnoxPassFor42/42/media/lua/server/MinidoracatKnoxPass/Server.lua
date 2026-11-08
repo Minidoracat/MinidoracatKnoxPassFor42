@@ -476,12 +476,21 @@ local function dismantleAt(sq, index)
     return nil
 end
 
+-- 整座的每一格都不在別人的安全屋裡（isSafehouseAllowInteract 只看傳入的那一格，SafeHouse.java:245-260；門可能跨進別人的安全屋）
+local function interactAll(list, player)
+    for _, o in ipairs(list) do
+        local s = o:getSquare()
+        if s and not SafeHouse.isSafehouseAllowInteract(s, player) then return false end
+    end
+    return true
+end
+
 -- 右鍵 Knox Pass「拆除整座閘門／大門」（使用者 2026-11-09 核准的計畫）：本 MOD 蓋的閘門、模型門整座移除並退料。
 -- 權限：裝了讀頭（帳本有記錄，含閘門內建的）只限擁有者與管理員，同拆讀頭（共同管理者、其他人都回 OwnerOnly）；
--- 沒裝讀頭的照原版拆解，不在別人的安全屋裡就能拆（SafeHouse.java:245-260）。工具 KP.dismantleTool，焊槍扣一格；
+-- 沒裝讀頭的照原版拆解，整座每一格都不在別人的安全屋裡就能拆。工具 KP.dismantleTool，焊槍扣一格；
 -- 站在那一端 2 格內、不在車上。KP.Barrier.remove 連帳本、門柱讀頭模型、Sensor 狀態一起清（L.remove → ReaderPost R.detach）。
--- 退料在那一端的格子：每項 ZombRand(v)+1（原版 ISDismantleAction.lua:69-72）；AddWorldInventoryItem(String…) 在伺服器
--- 自己送給客戶端（IsoGridSquare.java:6047-6049）
+-- 退料在那一端的格子：每項 ZombRand(v)+1（原版 ISDismantleAction.lua:69-72）；另外裝上去的讀頭退回同色一個（同 H.uninstall，
+-- 閘門內建的不退：組件已在材料裡）。AddWorldInventoryItem(String…) 在伺服器自己送給客戶端（IsoGridSquare.java:6047-6049）
 function H.dismantle(player, args)
     local cmd = "dismantle"
     if not (KP.isInt(args.x) and KP.isInt(args.y) and KP.isInt(args.z)) then return result(player, cmd, false, "BadArgs") end
@@ -494,7 +503,7 @@ function H.dismantle(player, args)
     local rec = key and L.get(key)
     if rec then
         if not ownerOrAdmin(player, rec) then return result(player, cmd, false, "OwnerOnly", key) end
-    elseif not SafeHouse.isSafehouseAllowInteract(sq, player) then
+    elseif not (SafeHouse.isSafehouseAllowInteract(sq, player) and interactAll(list, player)) then
         return result(player, cmd, false, "Safehouse")
     end
     local tool, why = KP.dismantleTool(player, target)
@@ -505,6 +514,7 @@ function H.dismantle(player, args)
         local n = math.floor(tonumber(v) or 0)
         if n >= 1 then drops[fullType] = ZombRand(n) + 1 end
     end
+    if rec and not rec.builtin then drops[KP.colorType(KP.READER_TYPE, rec.color or 0)] = 1 end
     KP.Barrier.remove(list, key)
     for fullType, n in pairs(drops) do
         for _ = 1, n do sq:AddWorldInventoryItem(fullType, 0, 0, 0) end

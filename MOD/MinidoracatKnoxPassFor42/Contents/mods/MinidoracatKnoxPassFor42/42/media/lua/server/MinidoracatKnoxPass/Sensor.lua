@@ -251,8 +251,7 @@ function S.noteHeadlights(p)
     local id, now = v:getId(), getTimestampMs()
     local last = toggles[id]
     if last and now - last <= S.FLASH_PAIR_MS then
-        flashed[id], toggles[id] = now, nil
-        lastScan = 0   -- 下一個 tick 就掃，不等節流
+        flashed[id], toggles[id] = now, nil   -- 照常等下一輪掃描（SCAN_MS）：切大燈不能讓全服掃描加速
     else
         toggles[id] = now
     end

@@ -4513,11 +4513,19 @@ local function scenarioFlash()
     check(KnoxPassAPI.willOpenFor(ve, e.door) == true, "willOpenFor：改回靠近就開 → true")
     KP.passes = nil
     local realGetText = getText
+    -- 假按鍵設定：車輛頭燈固定 F（33）；光源鍵依 light 換。isKey 同原版：主鍵或替代鍵相同就算（Core.java:2803-2806）
+    local light = 33
     Keyboard = { getKeyName = function(k) return k == 33 and "F" or "?" end }
-    KeybindId = { TOGGLE_VEHICLE_HEADLIGHTS = "ToggleVehicleHeadlights" }
-    getCore = function() return { getKey = function(_, id) return id == "ToggleVehicleHeadlights" and 33 or 0 end } end
+    KeybindId = { TOGGLE_VEHICLE_HEADLIGHTS = "ToggleVehicleHeadlights", LIGHT_SOURCE = "Equip/Turn On/Off Light Source" }
+    local keys = function(id) return id == "ToggleVehicleHeadlights" and 33 or id == KeybindId.LIGHT_SOURCE and light or 0 end
+    getCore = function()
+        return { getKey = function(_, id) return keys(id) end, isKey = function(_, id, k) return keys(id) == k end }
+    end
     getText = function(key, arg) return arg and (key .. "|" .. arg) or key end
     check(KnoxPassAPI.whyText("NeedFlash") == "IGUI_KnoxPass_Why_NeedFlash|F", "whyText：NeedFlash 帶按鍵設定裡切大燈的鍵")
+    light = 38
+    check(KnoxPassAPI.whyText("NeedFlash") == "IGUI_KnoxPass_Why_NeedFlash|IGUI_KnoxPass_HeadlightButton",
+        "光源鍵和車輛頭燈鍵不同（鍵盤切不了大燈）：改提示儀表板的大燈鈕")
     getText, Keyboard, KeybindId, getCore = realGetText, nil, nil, nil
     clean(from, "閃一下大燈才開")
 end
@@ -5147,6 +5155,10 @@ local function scenarioDismantle()
     W.safehouse[square(400, 100, 0)] = { someoneElse = true }
     check(dismantle(stranger, gc.A).why == "Safehouse" and present(gc.A) and noDrops(), "沒裝讀頭但在別人的安全屋裡：Safehouse")
     W.safehouse[square(400, 100, 0)] = nil
+    W.safehouse[gc.lanes[3]:getSquare()] = { someoneElse = true }
+    check(dismantle(stranger, gc.A).why == "Safehouse" and present(gc.A) and present(gc.lanes[3]) and noDrops()
+        and torch:getCurrentUses() == 10, "沒裝讀頭、點的那一端能互動，但門跨進別人的安全屋：Safehouse，焊槍不扣")
+    W.safehouse[gc.lanes[3]:getSquare()] = nil
     check(dismantle(stranger, gc.A).ok == true and not present(gc.A) and not present(gc.B) and not present(gc.lanes[3])
         and torch:getCurrentUses() == 9 and between("Base.MetalPipe", 1, 4),
         "沒裝讀頭：誰都能拆（焊槍＋面罩），整座移除、焊槍扣一格、退 1..4")
@@ -5174,7 +5186,8 @@ local function scenarioDismantle()
         and not present(rf.lanes[4]) and KP.Ledger.get(rkey) == nil and readersIn(298, 98, 306, 102) == 0
         and W.dropSq == square(302, 100, 0), "擁有者拆兩層樓捲門第 3 片：整條鏈移除、讀頭模型與帳本一起清、退料落在那一片")
     check(between("Base.SheetMetal", 1, 10) and between("Base.MetalPipe", 1, 10) and between("Base.Hinge", 1, 10)
-        and W.dropped[KIT] == nil, "兩層樓捲門照表退料：金屬片、鐵管、門鉸鏈各 1..10")
+        and W.dropped[KIT] == nil and W.dropped[READER] == 1,
+        "兩層樓捲門照表退料：金屬片、鐵管、門鉸鏈各 1..10，另外裝上去的讀頭退回 1 個")
     clean(from, "右鍵拆除")
 end
 

@@ -61,10 +61,15 @@ function KP.speedSupported(anchor)
     return KP.barrierIndex(anchor) ~= nil or KP.modelGate(anchor) ~= nil
 end
 
--- 按鍵設定裡切大燈的鍵名（原版預設 F，keyBinding.lua:115-116；玩家可能改過）：管理視窗「開門方式」與 NeedFlash 提示用，
--- 只在客戶端呼叫。寫法同原版 ISEntityBuildMenu.lua:208
+-- 閃燈提示裡「按兩下 %1」的 %1：管理視窗「開門方式」與 NeedFlash 提示用，只在客戶端呼叫。原版用鍵盤切大燈，
+-- 要同一個鍵也是「光源」鍵：放開光源鍵才轉給 toggleLight，那裡再比車輛頭燈鍵（ISLightSourceRadialMenu.lua:279-282、
+-- :349-350 → ItemBindingHandler.lua:21-28；兩個原版預設都是 F，keyBinding.lua:115、:281）。玩家只改了其中一個時
+-- 鍵盤切不了大燈，改寫儀表板的大燈鈕（ISVehicleDashboard.lua:516）。鍵名寫法同原版 ISEntityBuildMenu.lua:208
 function KP.headlightKeyName()
-    return Keyboard.getKeyName(getCore():getKey(KeybindId.TOGGLE_VEHICLE_HEADLIGHTS))
+    local core = getCore()
+    local k = core:getKey(KeybindId.TOGGLE_VEHICLE_HEADLIGHTS)
+    if k ~= 0 and core:isKey(KeybindId.LIGHT_SOURCE, k) then return Keyboard.getKeyName(k) end
+    return getText("IGUI_KnoxPass_HeadlightButton")
 end
 
 -- 加速版 spriteModel 的名稱：同一個索引，tileset 前綴換成 MinidoracatKnoxPassFast_
