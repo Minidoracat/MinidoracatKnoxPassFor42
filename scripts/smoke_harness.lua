@@ -1456,6 +1456,8 @@ local function bootMod()
     for k in pairs(systems) do systems[k] = nil end
     MinidoracatKnoxPass, KnoxPassAPI, SGlobalObjectSystem, ISBaseObject = nil, nil, nil, nil
     ISDestroyStuffAction, ISDestroyCursor, ISMoveableSpriteProps = nil, nil, nil
+    -- 原版撬開判定（ISForceOpen.lua:48-77）這裡只記呼叫次數、回標記，看 Server.lua 的包裝放行（呼叫原函式）還是擋下（不呼叫）
+    ISForceOpen = { calls = 0, attempt = function() ISForceOpen.calls = ISForceOpen.calls + 1; return "orig" end }
     for _, name in ipairs(MOD_FILES) do require(name) end
     if MODE ~= "server" then
         for _, name in ipairs(CLIENT_FILES) do assert(loadfile(MEDIA .. "/client/" .. name .. ".lua"))() end
@@ -6399,6 +6401,36 @@ local function scenarioBasement()
         "地下室的車庫門：裝得上讀頭，「算室內」寫不支援、勾不了（引擎不記地下室的室內判定）")
 end
 
+-- 42.22 撬棍強開：裝了讀頭的門 ISForceOpen.attempt 一律回 "fail"、不呼叫原函式（＝不扣血、不開鎖）；沒讀頭的門、
+-- 不是門的物件、拆掉讀頭後照呼叫原函式一次（Server.lua）
+local function scenarioForceOpen()
+    out("情境：撬棍強開")
+    freshWorld()
+    local from = #logLines + 1
+    local thief = newPlayer("thief", 101, 101)
+    local function force(o)   -- 回 attempt 的結果、原函式被呼叫了幾次
+        local before = ISForceOpen.calls
+        local r = ISForceOpen.attempt({ object = o, character = thief })
+        return r, ISForceOpen.calls - before
+    end
+    local function denied(o) local r, n = force(o); return r == "fail" and n == 0 end
+    local function passed(o) local r, n = force(o); return r == "orig" and n == 1 end
+    local a = gate(100, { double = true })
+    cmd(a.owner, "lock", { key = a.key, on = true })
+    check(denied(a.group.pieces[3]) and allPieces(a, function(p) return p._modData.CustomLock == true end),
+        "Knox 上鎖的雙開門：撬哪一片都回 fail、不呼叫原函式，鎖不動")
+    local b = gate(200, { cls = "IsoThumpable" })
+    cmd(b.owner, "lock", { key = b.key, on = true })
+    local c = gate(300, { garage = true, click = 2 })
+    check(denied(b.door) and b.door:isLockedByKey() and denied(c.group.pieces[3]), "玩家建造的門、車庫門鏈同樣撬不開")
+    check(denied(gate(400).door), "裝了讀頭、沒開門鎖：也不給撬")
+    check(passed(makeDoor("IsoDoor", 500, 100, { lockedByKey = true })) and passed({}), "沒裝讀頭的門、不是門的物件交給原函式")
+    check(cmd(b.owner, "uninstall", { key = b.key }).ok == true and passed(b.door), "拆掉讀頭後照原版")
+    restart()
+    check(denied(a.group.pieces[2]), "重開伺服器後照樣擋")
+    clean(from, "撬棍強開")
+end
+
 local tests = {
     scenarioParts, scenarioDock, scenarioDetection, scenarioAutoClose, scenarioLocks, scenarioCommands,
     scenarioSinglePlayer, scenarioLedger, scenarioCharging, scenarioReopen, scenarioUninstallOpen, scenarioGarage,
@@ -6407,7 +6439,7 @@ local tests = {
     scenarioReaderPost, scenarioColors, scenarioLoot, scenarioBarrierMirror, scenarioRollDoor, scenarioSettings,
     scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioUpperWall, scenarioLaggyEcho, scenarioShare,
     scenarioCoManagers, scenarioOutsideSafehouse, scenarioWatchWalk, scenarioWatchMissing, scenarioNeatCrafting, scenarioWatchDrive, scenarioIndestructible,
-    scenarioRoadText, scenarioBasement,
+    scenarioRoadText, scenarioBasement, scenarioForceOpen,
     scenarioFlash,
     scenarioDismantle,
 }

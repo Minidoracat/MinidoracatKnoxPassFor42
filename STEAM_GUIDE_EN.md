@@ -230,6 +230,7 @@ Chain-link also comes in 15 paint colors: Black, Dark Gray, Dark Green, White, R
 [list]
 [*] [b]Turning it on[/b]: the owner, a co-manager or an admin can turn on "Lock (only Knox Pass opens it)" in the right-click menu or the window. When the server doesn't allow locking outside safehouses, the option is grayed out for gates outside one and says why; a gate that is already locked can still have its lock turned off.
 [*] [b]Once locked[/b]: it can't be opened bare-handed, and zombies that open doors can't open it either.
+[*] [b]Crowbars[/b]: a gate with a reader has no "Force" option and can't be forced open, locked or not, by anyone, owners and admins included. To force your own door, remove the reader first; boom barriers have a built-in reader that can't come off, so always open them with Knox Pass.
 [*] [b]Opening and closing[/b]: boom barriers, garage roll-up doors, two-story gates and garage doors stay locked while open, so without the key use "Close with Knox Pass" to shut them; other gates are unlocked to open and locked again once closed.
 [*] [b]Original keys[/b]: a house door's original key keeps working, so whoever holds that key can still open it.
 [*] [b]Your old locks stay intact[/b]: a map door that was locked goes back to exactly the same kind of lock after closing, so its original key still works.

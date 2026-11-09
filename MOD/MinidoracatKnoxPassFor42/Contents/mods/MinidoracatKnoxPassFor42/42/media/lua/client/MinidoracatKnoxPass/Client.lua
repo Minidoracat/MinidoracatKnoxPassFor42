@@ -437,10 +437,31 @@ local function addDismantle(sub, player, target, allowed)
     end
 end
 
+-- 42.22 撬棍「撬開」：裝了讀頭的門伺服器一律不讓撬（Server.lua 包 ISForceOpen.attempt），選單也不列。選項由 Java
+-- ISContextMenuWrapper.addGetUpOption 建，參數排成 param1＝onForceOpen、param2＝worldobjects、param3＝門（ISContextMenuWrapper.java:150-164、
+-- ISWorldObjectContextMenuLogic.java:2312-2319）；onSelect 是那份選單 rawget 到的 onGetUpAndThen，不拿來比。它在「門」子選單裡，
+-- 子選單由 Java getNew 建、登記在根選單的 instanceMap（ISContextMenuWrapper.java:289-321）
+local function hideForce(context)
+    local force = ISWorldObjectContextMenu.onForceOpen
+    if not force then return end   -- 42.21 沒有撬開
+    local menus = { context }
+    for _, m in pairs(context.instanceMap or {}) do menus[#menus + 1] = m end
+    for _, m in ipairs(menus) do
+        for i = #m.options, 1, -1 do
+            local o = m.options[i]
+            if o.param1 == force then
+                local _, anchor = G.resolve(o.param3)
+                if anchor and anchor:hasModData() and anchor:getModData()[KP.MARKER_OWNER] then m:removeOptionByName(o.name) end
+            end
+        end
+    end
+end
+
 -- 事件簽名 (playerIndex, context, worldobjects, test)：ISWorldObjectContextMenu.lua:213；
 -- 別人的保險屋內本來就不觸發（同檔 :211）
 local function onFillMenu(playerIndex, context, worldobjects, test)
     if test then return end
+    hideForce(context)
     local player = getSpecificPlayer(playerIndex)
     if not player then return end
     local door, adapter, anchor = findGate(playerIndex, worldobjects)

@@ -960,3 +960,20 @@ local function onClientCommand(module, command, player, args)
 end
 
 Events.OnClientCommand.Add(onClientCommand)
+
+-- 42.22 撬棍強開（ISForceOpen；MP 是 NetTimedAction）：伺服器 animEvent 每次 ForceOpenAttempt 呼叫 attempt，掙扎與失敗扣門血也在
+-- 裡面，回 "success" 才 forceOpen（清 locked／lockedByKey）＋sync（ISForceOpen.lua:48-103、IsoDoor.java:3506-3512）。
+-- 裝了讀頭的門一律回 "fail"、不呼叫原函式：不開鎖、不扣血；能通行的人用 Knox Pass 開門，不想受管就先拆讀頭。
+-- 只做拒絕，其他物件照原函式，和別的 MOD 同樣的包裝串接、與載入順序無關。42.21 沒有 ISForceOpen，不包
+if ISForceOpen and ISForceOpen.attempt then
+    local attempt = ISForceOpen.attempt
+    function ISForceOpen:attempt()
+        local adapter, anchor = G.resolve(self.object)
+        local key = adapter and G.key(anchor)
+        if key and L.get(key) then
+            KP.log("force-open denied key=" .. key .. " by=" .. tostring(self.character and self.character:getUsername()))
+            return "fail"
+        end
+        return attempt(self)
+    end
+end
