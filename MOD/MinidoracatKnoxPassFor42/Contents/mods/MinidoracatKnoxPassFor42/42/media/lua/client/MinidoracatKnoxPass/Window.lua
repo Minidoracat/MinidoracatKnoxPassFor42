@@ -226,7 +226,7 @@ function Win.new(admin)
         info = math.max(info, tm:MeasureStringX(FS, t))
     end
     -- 門鎖、算室內、手錶步行感應與不會被破壞（只有管理員的視窗有）四個開關的標籤（含不支援、不准上鎖、伺服器沒開放）：
-    -- 開關 36 px＋間距 8 px（UI 框架 Controls.lua:615-616 TOGGLE_WIDTH、LABEL_GAP）。沒裝地圖手錶就不建步行感應那一列
+    -- 開關 36 px＋間距 8 px（UI 框架 Controls.lua:626-627 TOGGLE_WIDTH、LABEL_GAP）。沒裝地圖手錶就不建步行感應那一列
     local hasWalk = KP.watchRegistered()
     local toggle = 0
     local toggleKeys = { "IGUI_KnoxPass_Lock", "IGUI_KnoxPass_LockUnsupported", "IGUI_KnoxPass_LockSafehouseOnly",

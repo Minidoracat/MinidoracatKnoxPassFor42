@@ -351,7 +351,7 @@ function MinidoracatKnoxPass_recipeShown()
 end
 
 -- Neat Crafting（Workshop 3502080466）自己畫清單、不問 OnAddToMenu，每條清單路徑都經 NC_FilterBar:shouldIncludeRecipe
--- （1.7.4 的 NC_FilterBar.lua:351、562、608、630）：本 MOD 的配方（OnAddToMenu 是 MinidoracatKnoxPass_ 開頭的全域函式，
+-- （1.7.7 的 NC_FilterBar.lua:351、562、608、630）：本 MOD 的配方（OnAddToMenu 是 MinidoracatKnoxPass_ 開頭的全域函式，
 -- 感應模組的在 Watch.lua）由這裡代問。它是 client 檔、比本檔晚載入，所以遊戲開始才包（同 PackThrow Recipes.lua）
 function KP.wrapNeatCrafting()
     local F = NC_FilterBar
