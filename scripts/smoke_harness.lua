@@ -14,32 +14,32 @@
 - Kahlua 專屬行為（table.sort 遞迴深度、Java instance field 不暴露、rawget 呼叫形式、
   每個 table 都是 LinkedHashMap 的記憶體成本）只能靠反編譯查證與實機測試
 
-假引擎的語意出處（42.21.0 反編譯，D=IsoDoor.java、T=IsoThumpable.java）：
-- IsoDoor.ToggleDoor(nil) 什麼都不做（D:1501）；IsoThumpable.ToggleDoor(nil) 翻轉後 NPE、不 sync（T:1297,1310）
-- 關著且 lockedByKey 或 modData.CustomLock==true、身上沒有對應 keyId 的鑰匙 → 拒開（D:1552-1560）；
-  locked 但沒鑰匙也拒開（D:1577）；成功開關清 locked/lockedByKey（D:1600-1603、T:1307-1308）；
-  可跨越的柵欄門強制解 locked/lockedByKey、不碰 CustomLock（D:1517-1520）
-- 被擋（isObstructed／isDoubleDoorObstructed）就不翻（D:1597,1632、T:1288,1300）
-- 雙開門第 2、3 片每次開關都刪掉重建：IsoDoor 新物件沒 modData、只帶 keyId；IsoThumpable 共用同一份 modData（D:2858-2926）
-- setLockedByKey 在 server 不自動 sync（D:2009-2024、T:2429-2444）——用 client 視角 _view 證明 MOD 有手動同步
-- IsoThumpable.setKeyId(id, doNetwork=false) 根本不改值（T:2411-2421）
+假引擎的語意出處（42.22.2 反編譯，D=IsoDoor.java、T=IsoThumpable.java）：
+- IsoDoor.ToggleDoor(nil) 什麼都不做（D:1315）；IsoThumpable.ToggleDoor(nil) 翻轉後 NPE、不 sync（T:1312,1325）
+- 關著且 lockedByKey 或 modData.CustomLock==true、身上沒有對應 keyId 的鑰匙 → 拒開（D:1366-1374）；
+  locked 但沒鑰匙也拒開（D:1392）；成功開關清 locked/lockedByKey（D:1414-1417、T:1322-1323）；
+  可跨越的柵欄門強制解 locked/lockedByKey、不碰 CustomLock（D:1331-1334）
+- 被擋（isObstructed／isDoubleDoorObstructed）就不翻（D:1411,1446、T:1303,1315）
+- 雙開門第 2、3 片每次開關都刪掉重建：IsoDoor 新物件沒 modData、只帶 keyId；IsoThumpable 共用同一份 modData（D:2681-2749）
+- setLockedByKey 在 server 不自動 sync（D:1832-1847、T:2445-2460）——用 client 視角 _view 證明 MOD 有手動同步
+- IsoThumpable.setKeyId(id, doNetwork=false) 根本不改值（T:2427-2437）
 - DrainableComboItem.setCurrentUsesFloat 量化到 UseDelta 一格（DrainableComboItem.java:83-87）
-- SP：getOnlinePlayers 回空清單（LuaManager.java:4453-4463）、sendServerCommand 是 no-op（:8952-8970）
+- SP：getOnlinePlayers 回空清單（LuaManager.java:4470-4480）、sendServerCommand 是 no-op（:8888-8906）
 - SGlobalObjectSystem：derive／new／initSystem／RegisterSystemClass 照原版 server/Map/SGlobalObjectSystem.lua；
   存檔只留 setModDataKeys 白名單鍵（SGlobalObjectSystem.java:210-220）
 - instanceof 走假類別登錄表（以物件為鍵查表，不經過 __index）
 - 抬升閘門：entity 建造逐格 IsoThumpable → buildUtil.setInfo 每格都拷一份 need: 材料 → SpriteConfig OnCreate
-  （ISBuildIsoEntity.lua:595-764、ISBuildingObject.lua:353-367）；IsoDoor sprite 建構子可能隨機上鎖（D:820-840）；
-  車庫門開關換 sprite 為 index+8（D:793-805），整條鏈一起翻、不重建（D:3344-3394）；
-  關車庫門時車身同時壓到門線兩側才算擋（D:3396-3457，只有關門時查）；右鍵 Knox Pass 拆除（Server.lua H.dismantle）照
+  （ISBuildIsoEntity.lua:604-773、ISBuildingObject.lua:357-371）；IsoDoor sprite 建構子可能隨機上鎖（D:641-661）；
+  車庫門開關換 sprite 為 index+8（D:614-626），整條鏈一起翻、不重建（D:3167-3217）；
+  關車庫門時車身同時壓到門線兩側才算擋（D:3219-3280，只有關門時查）；右鍵 Knox Pass 拆除（Server.lua H.dismantle）照
   buildMaterials 退料 ZombRand(v)+1（原版 ISDismantleAction.lua:69-72），大錘只移走被敲的那一個（ISDestroyStuffAction.lua:111-…）；殭屍／武器打壞車庫門走
-  destroyGarageDoor，逐片 destroy（D:3460-3499），不掉材料（D:1385-1388）；每次移走物件前觸發 OnObjectAboutToBeRemoved
-  （IsoGridSquare.java:5745、RemoveItemFromSquarePacket.java:151）
-- IsoObject.setSpriteModelName／setAnimating／isAnimating（IsoObject.java:6274-6298、6399-6405）只記錄呼叫；
+  destroyGarageDoor，逐片 destroy（D:3283-3322），不掉材料（D:1199-1202）；每次移走物件前觸發 OnObjectAboutToBeRemoved
+  （IsoGridSquare.java:5732、RemoveItemFromSquarePacket.java:151）
+- IsoObject.setSpriteModelName／setAnimating／isAnimating（IsoObject.java:6252-6276、6377-6383）只記錄呼叫；
   client 檔只載 BarrierAnim（不碰 UI），MODE 不是 server 時才載
 - 零件模型：template 讀真正的 vehicle_knoxpass_parts.txt；VehicleScript.Load 只覆寫出現的欄位、沒有的 model id 新增一個
-  file 是 nil 的 model（VehicleScript.java:693-722）；setModelVisible 冪等、變了才標記同步（BaseVehicle.java:1707-1754），
-  顯示 file 是 nil 的 model 記成客戶端 NPE（BaseVehicle.java:11844-11853）
+  file 是 nil 的 model（VehicleScript.java:693-722）；setModelVisible 冪等、變了才標記同步（BaseVehicle.java:1719-1766），
+  顯示 file 是 nil 的 model 記成客戶端 NPE（BaseVehicle.java:11951-11960）
 
 寫情境的原則：
 - 情境要「執行到會炸的路徑」——刪除後的收尾、跨 tick 的第二輪、聚合輸出，都是重災區
@@ -143,7 +143,7 @@ local function newWorld()
         echoQueued = 0, echoLagMs = 250, sounds = {},
         regions = {}, prevFlags = 0, regionJobs = 0,   -- 引擎記著的室內判定位元（格子 key → 位元）、IsoRegions 的 previousFlags、排了幾次重算
         engineErrors = 0,   -- Lua 呼叫的 Java 方法丟了幾次例外（引擎記錯誤、回 nil，Lua 照樣往下跑：MethodCaller.java:34-49）
-        thumpSyncs = 0,   -- IsoThumpable 在伺服器上改耐久時送出的同步（T:281-288）
+        thumpSyncs = 0,   -- IsoThumpable 在伺服器上改耐久時送出的同步（T:286-293）
     }
 end
 -- MapObjects.OnLoadWithSprite（Lua/MapObjects.java:134-176）：每張 sprite 依 priority 各記一個回呼，同 priority 後來的
@@ -182,7 +182,7 @@ function Square:getX() return self._x end
 function Square:getY() return self._y end
 function Square:getZ() return self._z end
 function Square:getObjects() return javaList(self._objects) end
-function Square:getSpecialObjects()   -- 門屬於 special objects（IsoGridSquare.java:9284；雙開門重建時也加進這裡 IsoDoor.java:2915-2918）
+function Square:getSpecialObjects()   -- 門屬於 special objects（IsoGridSquare.java:9251；雙開門重建時也加進這裡 IsoDoor.java:2738-2741）
     local list = {}
     for _, o in ipairs(self._objects) do
         if instanceof(o, "IsoDoor") or instanceof(o, "IsoThumpable") then list[#list + 1] = o end
@@ -205,7 +205,7 @@ local function vehicleCovers(v, x, y, z)
     if v._cover then return v._cover[x .. "," .. y .. "," .. z] == true end
     return math.floor(v._x) == x and math.floor(v._y) == y and math.floor(v._z) == z
 end
-function Square:getVehicleContainer()   -- 回第一台與這格相交的車（IsoGridSquare.java:9872-9893）
+function Square:getVehicleContainer()   -- 回第一台與這格相交的車（IsoGridSquare.java:9830-9851）
     W.vehicleQueries = W.vehicleQueries + 1
     for _, v in ipairs(W.vehicles) do if vehicleCovers(v, self._x, self._y, self._z) then return v end end
     return nil
@@ -218,7 +218,7 @@ local cell = {
     end,
     createNewGridSquare = function(_, x, y, z) return square(x, y, z) end,   -- IsoCell.java（ISBuildIsoEntity.lua 同用法）
 }
--- 載入 (x, y) 所在的 chunk：LoadChunk(chunk)（IsoChunk.java:3969）。Lua 拿得到的只有 chunk 內座標的 getGridSquare 與樓層範圍
+-- 載入 (x, y) 所在的 chunk：LoadChunk(chunk)（IsoChunk.java:3968）。Lua 拿得到的只有 chunk 內座標的 getGridSquare 與樓層範圍
 local function loadChunk(x, y)
     local ox, oy = math.floor(x / 8) * 8, math.floor(y / 8) * 8
     fire("LoadChunk", {
@@ -300,7 +300,7 @@ Faction = {
     end,
 }
 
--- 網路：只有 server 真的送（LuaManager.java:8952-8970、12366-12426；GameServer.java:3162）
+-- 網路：只有 server 真的送（LuaManager.java:8888-8906、12352-12412；GameServer.java:3172）
 function sendServerCommand(player, module, command, args)
     W.sendServerCalls = W.sendServerCalls + 1
     if isServer() then W.sent[#W.sent + 1] = { via = "mp", player = player, module = module, cmd = command, args = args } end
@@ -313,9 +313,9 @@ function sendAddItemToContainer() if isServer() then W.addSent = W.addSent + 1 e
 local TAG, READER = "MinidoracatKnoxPass.VehicleTag", "MinidoracatKnoxPass.GateReader"
 local COLOR_IDS = { "Black", "Graphite", "Olive", "Navy", "Orange", "Red" }   -- 索引 1-6（米白 0 不帶後綴）
 local PAINTS = { "Base.PaintWhite", "Base.PaintBlack", "Base.PaintGrey", "Base.PaintGreen", "Base.PaintBlue", "Base.PaintOrange", "Base.PaintRed" }
-local USE_DELTA = { [TAG] = 0.001, ["Base.CarBattery1"] = 0.00001, ["Base.BlowTorch"] = 0.1 }   -- 焊槍 drainable.txt:1571
+local USE_DELTA = { [TAG] = 0.001, ["Base.CarBattery1"] = 0.00001, ["Base.BlowTorch"] = 0.1 }   -- 焊槍 drainable.txt:1584
 for _, id in ipairs(COLOR_IDS) do USE_DELTA[TAG .. "_" .. id] = 0.001 end
-for _, p in ipairs(PAINTS) do USE_DELTA[p] = 0.1 end   -- 原版油漆 UseDelta 0.1（generated/items/drainable.txt:1803-1817）
+for _, p in ipairs(PAINTS) do USE_DELTA[p] = 0.1 end   -- 原版油漆 UseDelta 0.1（generated/items/drainable.txt:1816-1830）
 local TAGS = { ["Base.Paintbrush"] = "base:paintbrush", ["Base.Screwdriver"] = "base:screwdriver", ["Base.Hammer"] = "base:hammer",
     ["Base.WeldingMask"] = "base:weldingmask" }
 ItemTag = { PAINTBRUSH = "base:paintbrush", SCREWDRIVER = "base:screwdriver", HAMMER = "base:hammer", WELDING_MASK = "base:weldingmask" }
@@ -394,7 +394,7 @@ function Container:getItemWithIDRecursiv(id)
     for _, it in ipairs(self._items) do if it._id == id then return it end end
     return nil
 end
-function Container:haveThisKeyId(id)   -- ItemContainer.java:3242-3255
+function Container:haveThisKeyId(id)   -- ItemContainer.java:3290-3303
     for _, it in ipairs(self._items) do if it._keyId == id then return it end end
     return nil
 end
@@ -404,13 +404,13 @@ local function evalAll(inv, fn)
     return list
 end
 function Container:getAllTypeRecurse(t) return javaList(evalAll(self, function(it) return it._type == t end)) end
-function Container:getAllEvalRecurse(fn) return javaList(evalAll(self, fn)) end   -- ItemContainer.java:1936
-function Container:getFirstEvalRecurse(fn) return evalAll(self, fn)[1] end          -- :1491
-function Container:containsEvalRecurse(fn) return evalAll(self, fn)[1] ~= nil end    -- :1146
+function Container:getAllEvalRecurse(fn) return javaList(evalAll(self, fn)) end   -- ItemContainer.java:1984
+function Container:getFirstEvalRecurse(fn) return evalAll(self, fn)[1] end          -- :1539
+function Container:containsEvalRecurse(fn) return evalAll(self, fn)[1] ~= nil end    -- :1194
 function Container:getFirstTypeRecurse(t) return evalAll(self, function(it) return it._type == t end)[1] end
-function Container:getFirstTypeEvalRecurse(t, fn) return evalAll(self, function(it) return it._type == t and fn(it) end)[1] end   -- :1569
+function Container:getFirstTypeEvalRecurse(t, fn) return evalAll(self, function(it) return it._type == t and fn(it) end)[1] end   -- :1617
 function Container:getFirstTagRecurse(tag) return evalAll(self, function(it) return it._tag == tag end)[1] end
-function Container:getFirstTagEvalRecurse(tag, fn) return evalAll(self, function(it) return it._tag == tag and fn(it) end)[1] end   -- :1526
+function Container:getFirstTagEvalRecurse(tag, fn) return evalAll(self, function(it) return it._tag == tag and fn(it) end)[1] end   -- :1574
 local function countType(inv, t) return inv:getAllTypeRecurse(t):size() end
 
 -- ===== 角色 =====
@@ -449,15 +449,15 @@ local function newZombie(x, y)
     local zb = new("IsoZombie", {
         __index = {
             getX = function(s) return s._x end, getY = function(s) return s._y end, getZ = function() return 0 end,
-            getInventory = function(s) return s._inv end,   -- 殭屍沒有鑰匙（ToggleDoorActual 照樣查，IsoDoor.java:1568）
+            getInventory = function(s) return s._inv end,   -- 殭屍沒有鑰匙（ToggleDoorActual 照樣查，IsoDoor.java:1382）
         },
     }, { _x = x + 0.5, _y = y + 0.5, _inv = newContainer() })
     W.zombies[#W.zombies + 1] = zb
     return zb
 end
--- 會開門的殭屍（認知 1）歸擁有牠的客戶端模擬，拍門（IsoDoor.Thump，D:1179-1183）與 ToggleDoorActual 都在 client 跑，
--- 看的是 client 那份 locked：locked 時沒鑰匙一律開不了（D:1577-1580），殭屍在室內也一樣。client 開了門再送
--- SyncIsoObject，伺服器照單全收（GameServer.java:2969-2987）：伺服器這邊鎖被清掉、門開了
+-- 會開門的殭屍（認知 1）歸擁有牠的客戶端模擬，拍門（IsoDoor.Thump，D:1000-1004）與 ToggleDoorActual 都在 client 跑，
+-- 看的是 client 那份 locked：locked 時沒鑰匙一律開不了（D:1391-1394），殭屍在室內也一樣。client 開了門再送
+-- SyncIsoObject，伺服器照單全收（GameServer.java:2991-3010）：伺服器這邊鎖被清掉、門開了
 local function zombieThump(door, zb)
     if door._open or door._view.locked then return end
     door._locked, door._lockedByKey = false, false
@@ -465,7 +465,7 @@ local function zombieThump(door, zb)
 end
 
 -- ===== 門 =====
-local function syncView(o)   -- client 看到的狀態只在明確 sync 時更新；SyncIsoObject 也帶著 health（D:1693、1775；T:1823、1852）
+local function syncView(o)   -- client 看到的狀態只在明確 sync 時更新；SyncIsoObject 也帶著 health（D:1507、1589；T:1839、1868）
     local v = o._view
     v.open, v.locked, v.lockedByKey, v.keyId, v.health = o._open, o._locked, o._lockedByKey, o._keyId, o._health
 end
@@ -479,11 +479,11 @@ function Base:isLocked() return self._locked end
 function Base:isLockedByKey() return self._lockedByKey end
 function Base:getKeyId() return self._keyId end
 function Base:getModData() return self._modData end
-function Base:hasModData()   -- table 存在且非空（IsoObject.java:1037-1039、IsoThumpable.java:170-172）
+function Base:hasModData()   -- table 存在且非空（IsoObject.java:1054-1056、IsoThumpable.java:175-177）
     for _ in pairs(self._modData) do return true end
     return false
 end
-function Base:transmitModData()   -- IsoObject.java:4857-4866：整表送給附近 client
+function Base:transmitModData()   -- IsoObject.java:4846-4855：整表送給附近 client
     local copy = {}
     for k, v in pairs(self._modData) do copy[k] = v end
     self._view.modData = copy
@@ -499,8 +499,8 @@ function Base:getObjectIndex()
     for i, o in ipairs(sq._objects) do if o == self then return i - 1 end end
     return -1
 end
-function Base:sync() if self.syncIsoObject then self:syncIsoObject(false) else syncView(self) end end   -- IsoObject.java:885-887
-function Base:setLockedByKey(b)   -- server 上不 sync（D:2009-2024、T:2429-2444）
+function Base:sync() if self.syncIsoObject then self:syncIsoObject(false) else syncView(self) end end   -- IsoObject.java:887-889
+function Base:setLockedByKey(b)   -- server 上不 sync（D:1832-1847、T:2445-2460）
     local changed = b ~= self._lockedByKey
     self._lockedByKey, self._locked = b, b
     if changed and not isServer() then syncView(self) end
@@ -542,7 +542,7 @@ function Square:AddSpecialObject(o)
     self._objects[#self._objects + 1] = o
     o._square = self
 end
--- 單參數＝safelyRemove（chunk 已載入時，IsoGridSquare.java:5713-5716）：sprite 有 GarageDoor 的走車庫門鏈（這裡的用法只有自己）；
+-- 單參數＝safelyRemove（chunk 已載入時，IsoGridSquare.java:5700-5703）：sprite 有 GarageDoor 的走車庫門鏈（這裡的用法只有自己）；
 -- entity 多格物件（_entity＝同一次建造放下的各格，size＝整組格數）要整組都在才整組移除，少一格就回 -1、什麼都不移
 -- （IsoObjectUtils.java:32-41、83-113）。第二參數 false 只移自己
 function Square:RemoveTileObject(o, safely)
@@ -558,7 +558,7 @@ function Square:RemoveTileObject(o, safely)
     return 0
 end
 -- safelyRemove 預設 true：entity 建出的多格物件要先找齊整組（IsoObjectUtils.safelyRemoveTileObjectFromSquare，
--- IsoGridSquare.java:5942-5968），閘門的車道已換成 IsoDoor、找不齊，引擎回 -1、什麼都不移（barrier-mp 1005f 實踩）
+-- IsoGridSquare.java:5933-5959），閘門的車道已換成 IsoDoor、找不齊，引擎回 -1、什麼都不移（barrier-mp 1005f 實踩）
 function Square:transmitRemoveItemFromSquare(o, safelyRemove)
     if o._entityMulti and safelyRemove ~= false then return -1 end
     if o._square == self then
@@ -567,18 +567,18 @@ function Square:transmitRemoveItemFromSquare(o, safelyRemove)
     end
 end
 function Square:RecalcAllWithNeighbours() end
-function Square:setSquareChanged()   -- IsoGridSquare.java:4734-4739（這裡只模擬室內判定那段；尋路通知記在 W.pathChanged）
+function Square:setSquareChanged()   -- IsoGridSquare.java:4719-4724（這裡只模擬室內判定那段；尋路通知記在 W.pathChanged）
     W.pathChanged = W.pathChanged or {}
     W.pathChanged[self] = true
     IsoRegions.squareChanged(self)
 end
-function Square:playSound(name) W.sounds[#W.sounds + 1] = { name = name, sq = self } end   -- IsoGridSquare.java:9738-9741（本機播）
-function playServerSound(name, sq) W.sounds[#W.sounds + 1] = { name = name, sq = sq, server = true } end   -- LuaManager.java:3892-3894
-function Square:AddTileObject(o)   -- IsoGridSquare.java:5851-5880（門柱讀頭模型用）
+function Square:playSound(name) W.sounds[#W.sounds + 1] = { name = name, sq = self } end   -- IsoGridSquare.java:9696-9699（本機播）
+function playServerSound(name, sq) W.sounds[#W.sounds + 1] = { name = name, sq = sq, server = true } end   -- LuaManager.java:3909-3911
+function Square:AddTileObject(o)   -- IsoGridSquare.java:5842-5871（門柱讀頭模型用）
     self._objects[#self._objects + 1] = o
     o._square = self
 end
--- 原版拆解退料落地（IsoGridSquare.java:6028-6057，伺服器自己送給客戶端）：W.dropped[物品] 累計、W.dropSq 記最後一次的格子
+-- 原版拆解退料落地（IsoGridSquare.java:6019-6048，伺服器自己送給客戶端）：W.dropped[物品] 累計、W.dropSq 記最後一次的格子
 function Square:AddWorldInventoryItem(t)
     W.dropped[t] = (W.dropped[t] or 0) + 1
     W.dropSq = self
@@ -593,8 +593,8 @@ local function namedSprite(name) return setmetatable({ _name = name }, Sprite) e
 local function barrierSprite(i) return namedSprite("MinidoracatKnoxPass_barrier_" .. i) end
 function getSprite(name) return namedSprite(name) end
 
--- 門柱讀頭模型：IsoObject(cell, square, spriteName)（IsoObject.java:331-336）是普通物件、沒有 modData；
--- transmitCompleteItemToClients 只在伺服器送 AddItemToMap（:4604-4611）
+-- 門柱讀頭模型：IsoObject(cell, square, spriteName)（IsoObject.java:333-338）是普通物件、沒有 modData；
+-- transmitCompleteItemToClients 只在伺服器送 AddItemToMap（:4593-4600）
 local Prop = setmetatable({}, { __index = Base })
 Prop.__index = Prop
 function Prop:hasModData() return false end
@@ -625,7 +625,7 @@ local function toggleDouble(o)
             end
         end
     end
-    -- sync 第 1（或 4）片；client 端 toggleDoubleDoor 翻整組並清鎖（D:1795-1815）
+    -- sync 第 1（或 4）片；client 端 toggleDoubleDoor 翻整組並清鎖（D:1602-1611）
     for i = 1, 4 do
         local p = g.pieces[i]
         if p then
@@ -637,7 +637,7 @@ end
 function Door:setLocked(b) self._locked = b end
 function Door:setIsLocked(b) self._locked = b end
 function Door:setKeyId(id) self._keyId = id end
-function Door:checkKeyId()   -- D:2372-2398
+function Door:checkKeyId()   -- D:2195-2221
     if self._keyId ~= -1 then return self._keyId end
     if self._buildingKeyId then
         self._keyId = self._buildingKeyId
@@ -645,8 +645,8 @@ function Door:checkKeyId()   -- D:2372-2398
     end
     return self._keyId
 end
--- 車庫門：整條鏈一起翻，物件不重建；server 只 sync 被點的那片，client 依片段清單更新整組（D:3344-3393、1795-1815）。
--- 鏈照引擎的 First／Next 走（D:3282-3342）；開關時換成 index±8 的 sprite（D:793-805）
+-- 車庫門：整條鏈一起翻，物件不重建；server 只 sync 被點的那片，client 依片段清單更新整組（D:3167-3216、1625-1648）。
+-- 鏈照引擎的 First／Next 走（D:3105-3165）；開關時換成 index±8 的 sprite（D:614-626）
 local function garageChain(o)
     local out = {}
     local p = IsoDoor.getGarageDoorFirst(o) or o
@@ -656,10 +656,10 @@ local function garageChain(o)
     end
     return out
 end
--- client 收到 SyncIsoObject（D:1772-1774）：車庫門另外逐片 setOpen＋setLockedByKey(bLockedByKey)（D:1811-1822），
--- setLockedByKey 會連帶設 locked（D:2013-2016）。所以車庫門只有鑰匙鎖送得到 client，只有 locked 的會被蓋成 false。
+-- client 收到 SyncIsoObject（D:1586-1588）：車庫門另外逐片 setOpen＋setLockedByKey(bLockedByKey)（D:1625-1636），
+-- setLockedByKey 會連帶設 locked（D:1836-1839）。所以車庫門只有鑰匙鎖送得到 client，只有 locked 的會被蓋成 false。
 -- 鏈上其他片在 client 的鑰匙鎖因此改變時，client 的 setLockedByKey 會 sync，把那片當下的狀態（含開關）送回伺服器
--- （D:2017-2022、1681-1694）；回送 W.echoLagMs 之後才到（step 套用；預設下一個 tick，卡住的客戶端更晚）
+-- （D:1840-1845、1495-1508）；回送 W.echoLagMs 之後才到（step 套用；預設下一個 tick，卡住的客戶端更晚）
 local function echoChain(o, open, byKey)
     if not isServer() then return end
     for _, p in ipairs(garageChain(o)) do
@@ -673,9 +673,9 @@ end
 function Door:syncIsoObject(bRemote)
     if bRemote then return end
     W.syncLog = W.syncLog or {}
-    W.syncLog[#W.syncLog + 1] = self   -- 哪一片送出（client 只有被同步的那片播 clip，D:1798-1808）
+    W.syncLog[#W.syncLog + 1] = self   -- 哪一片送出（client 只有被同步的那片播 clip，D:1612-1622）
     W.syncIds = W.syncIds or {}
-    W.syncIds[#W.syncIds + 1] = self._lastPlayerId or -1   -- 封包帶的開關者 ID（D:1776-1806 在他身上播門聲、setNoCollision）
+    W.syncIds[#W.syncIds + 1] = self._lastPlayerId or -1   -- 封包帶的開關者 ID（D:1590-1620 在他身上播門聲、setNoCollision）
     syncView(self)
     if self._garage then
         echoChain(self, self._open, self._lockedByKey)
@@ -684,7 +684,7 @@ function Door:syncIsoObject(bRemote)
         end
     end
 end
-local function garageStraddled(o)   -- D:3396-3457：任一片的格子與門線另一側那格被同一台車壓到
+local function garageStraddled(o)   -- D:3219-3280：任一片的格子與門線另一側那格被同一台車壓到
     for _, p in ipairs(garageChain(o)) do
         local sq = p._square
         for _, v in ipairs(W.vehicles) do
@@ -696,7 +696,7 @@ local function garageStraddled(o)   -- D:3396-3457：任一片的格子與門線
     end
     return false
 end
--- 引擎逐片翻開關並清鎖（D:3344-3366），再 sync 被點的那片（D:3384-3386）：client 照上面的語意更新整條鏈並回送
+-- 引擎逐片翻開關並清鎖（D:3167-3189），再 sync 被點的那片（D:3207-3209）：client 照上面的語意更新整條鏈並回送
 local function toggleGarage(o)
     local chain = garageChain(o)
     for _, p in ipairs(chain) do
@@ -709,35 +709,35 @@ local function toggleGarage(o)
         p._view.open, p._view.locked, p._view.lockedByKey = p._open, false, false
     end
 end
--- D:1880-1895：只翻這一片的開關與 sprite，不動鎖、不 sync
+-- D:1694-1709：只翻這一片的開關與 sprite，不動鎖、不 sync
 function Door:ToggleDoorSilent()
     self._open = not self._open
     if self._closedName then self._spriteObj = namedSprite(self._open and self._openName or self._closedName) end
 end
-function Door:setOpen(b) self._open = b end   -- D:144-146：只設欄位，不 sync
-function Door:changeSprite(d)                  -- D:3340-3342：照開關換 sprite，不 sync
+function Door:setOpen(b) self._open = b end   -- D:165-167：只設欄位，不 sync
+function Door:changeSprite(d)                  -- D:3163-3165：照開關換 sprite，不 sync
     if d._closedName then d._spriteObj = namedSprite(d._open and d._openName or d._closedName) end
 end
-function Door:getSoundPrefix() return "WoodDoor" end   -- D:3593-3600：tile 沒有 DoorSound 屬性時
+function Door:getSoundPrefix() return "WoodDoor" end   -- D:3416-3423：tile 沒有 DoorSound 屬性時
 
 function Door:ToggleDoor(chr)
     if chr == nil then
         W.nilToggles = W.nilToggles + 1
-        return                                                   -- D:1501
+        return                                                   -- D:1315
     end
     local isPlayer = instanceof(chr, "IsoPlayer")
     if isServer() and isPlayer and chr:getRole():hasCapability(Capability.CanOpenLockedDoors) then
         self._locked = false
-        self:setLockedByKey(false)                               -- D:1507-1510
+        self:setLockedByKey(false)                               -- D:1321-1324
     end
     if self._hoppable and not self._open then
         self._locked = false
-        self:setLockedByKey(false)                               -- D:1517-1520
+        self:setLockedByKey(false)                               -- D:1331-1334
     end
     self:checkKeyId()
     if self._locked and not self._lockedByKey and self._keyId ~= -1 then self._lockedByKey = true end
     if isPlayer and (self._lockedByKey or self._modData.CustomLock == true) and not self._open then
-        if not hasKey(chr, self) then                            -- D:1552-1560
+        if not hasKey(chr, self) then                            -- D:1366-1374
             W.refused = W.refused + 1
             self:sync()
             return
@@ -746,36 +746,36 @@ function Door:ToggleDoor(chr)
         self:setLockedByKey(false)
     end
     local bUnlock = hasKey(chr, self)
-    if isPlayer and self._garage then   -- 車庫門改用站的位置決定（D:1569-1575，沒有 InteriorSide 屬性）
+    if isPlayer and self._garage then   -- 車庫門改用站的位置決定（D:1383-1389，沒有 InteriorSide 屬性）
         if self._north then bUnlock = chr:getY() < self._square._y else bUnlock = chr:getX() < self._square._x end
     end
-    if self._locked and not bUnlock and not self._open then   -- D:1577
+    if self._locked and not bUnlock and not self._open then   -- D:1392
         W.refused = W.refused + 1
         return
     end
     if self._garage then
-        if self._open and garageStraddled(self) then              -- 只在關門時檢查擋車（D:1583、3396-3408）
+        if self._open and garageStraddled(self) then              -- 只在關門時檢查擋車（D:1397、3219-3231）
             W.garageBlocked = W.garageBlocked + 1
             return
         end
         toggleGarage(self)
     elseif self._group then
-        if self._group.obstructed then return end                -- D:1632
+        if self._group.obstructed then return end                -- D:1446
         toggleDouble(self)
     elseif self:isObstructed() then
-        return                                                   -- D:1597
+        return                                                   -- D:1411
     else
         self._locked = false
         self:setLockedByKey(false)
         self._open = not self._open
-        self:sync()                                              -- D:1600-1622
+        self:sync()                                              -- D:1414-1436
     end
 end
 
 function Thump:isDoor() return self._isDoor ~= false end
 function Thump:getBuildMaterials() return self._buildMaterials or {} end
 function Thump:setIsLocked(b) self._locked = b end
-function Thump:setKeyId(id, doNetwork)   -- T:2411-2421：doNetwork=false 時不改值
+function Thump:setKeyId(id, doNetwork)   -- T:2427-2437：doNetwork=false 時不改值
     if doNetwork == nil then doNetwork = true end
     if doNetwork and self._keyId ~= id then
         self._keyId = id
@@ -787,7 +787,7 @@ function Thump:ToggleDoor(chr)
     if chr == nil then W.nilToggles = W.nilToggles + 1 end
     local isPlayer = chr ~= nil and instanceof(chr, "IsoPlayer")
     local outside = isPlayer and chr:getCurrentSquare()._exterior
-    if self._lockedByKey and isPlayer and outside and not hasKey(chr, self) then   -- T:1258-1262
+    if self._lockedByKey and isPlayer and outside and not hasKey(chr, self) then   -- T:1273-1277
         W.refused = W.refused + 1
         self:sync()
         return
@@ -796,7 +796,7 @@ function Thump:ToggleDoor(chr)
         self:setIsLocked(false)
         self:setLockedByKey(false)
     end
-    if self._locked and isPlayer and outside and not self._open then             -- T:1274
+    if self._locked and isPlayer and outside and not self._open then             -- T:1289
         W.refused = W.refused + 1
         return
     end
@@ -814,8 +814,8 @@ function Thump:ToggleDoor(chr)
     end
 end
 
--- 引擎門片的耐久（health、maxHealth 都是 int）：IsoDoor 預設 500（D:88、808-809），setHealth 只改 health（maxHealth 沒有
--- setter，D:2401；getThumpCondition 夾住，D:1261-1263）；IsoThumpable 在伺服器上 setHealth 值變了就同步（T:281-288）
+-- 引擎門片的耐久（health、maxHealth 都是 int）：IsoDoor 預設 500（D:99、629-630），setHealth 只改 health（maxHealth 沒有
+-- setter，D:2224；getThumpCondition 夾住，D:1057-1059）；IsoThumpable 在伺服器上 setHealth 值變了就同步（T:286-293）
 function Base:getHealth() return self._health or 500 end
 function Base:getMaxHealth() return self._maxHealth or 500 end
 function Base:setHealth(h) self._health = h end
@@ -825,7 +825,7 @@ function Thump:setHealth(h)
     if isServer() and self:getObjectIndex() ~= -1 then W.thumpSyncs = W.thumpSyncs + 1; syncView(self) end
 end
 
--- sprite 的 GarageDoor 屬性（第幾片）與是不是開著的那張（.tiles 的事實，D:793-805 開關差 8）：
+-- sprite 的 GarageDoor 屬性（第幾片）與是不是開著的那張（.tiles 的事實，D:614-626 開關差 8）：
 -- 閘門照 build_barrier_tiles.py（車道 0-5、80-85 關，＋8 開；機箱、姿勢、替代 tile 160 起都沒有）；
 -- 模型門照 build_model_gates.py（每 64 格一個區塊：格位 0-2 關、8-10 開）；
 -- 原版捲門每款北向、西向的第 1 片起連續三張（同 Barrier.lua ROLL_STYLES）
@@ -871,7 +871,7 @@ IsoDoor = {
         return o._group.pieces[i]
     end,
     isDoubleDoorObstructed = function(o) return o._group.obstructed == true end,
-    -- 車庫門 index：關著 1–3、開著的 sprite 4–6 換算回 1–3（D:3212-3238）；Prev 往 x-1／y+1、Next 往 x+1／y-1（D:3241-3321）
+    -- 車庫門 index：關著 1–3、開著的 sprite 4–6 換算回 1–3（D:3035-3061）；Prev 往 x-1／y+1、Next 往 x+1／y-1（D:3064-3144）
     getGarageDoorIndex = function(o)
         if o and o._garage and o._square then return o._garage end
         return -1
@@ -898,7 +898,7 @@ IsoDoor = {
         end
         return nil
     end,
-    getGarageDoorFirst = function(o)   -- D:3323-3338
+    getGarageDoorFirst = function(o)   -- D:3146-3161
         local idx = IsoDoor.getGarageDoorIndex(o)
         if idx == -1 then return nil end
         if idx == 1 then return o end
@@ -909,8 +909,8 @@ IsoDoor = {
         end
         return o
     end,
-    -- IsoDoor(cell, sq, IsoSprite, north)（D:789-805）：不加進格子（呼叫端 AddSpecialObject）；GarageDoor 的開關 sprite 差 8。
-    -- 建構子照沙盒 lockedHouses 可能上鎖（D:820-840），這裡一律鎖上，證明 MOD 有解；health 預設 500（D:808-809）
+    -- IsoDoor(cell, sq, IsoSprite, north)（D:610-626）：不加進格子（呼叫端 AddSpecialObject）；GarageDoor 的開關 sprite 差 8。
+    -- 建構子照沙盒 lockedHouses 可能上鎖（D:641-661），這裡一律鎖上，證明 MOD 有解；health 預設 500（D:629-630）
     new = function(_, _sq, sprite, north)
         local prefix, i = string.match(sprite:getName(), "^(.-)_(%d+)$")
         i = tonumber(i)
@@ -926,11 +926,11 @@ IsoDoor = {
     end,
 }
 
--- 室內判定（IsoRegions）用到的 tile 屬性：地板一律有；原版車庫門片關著有 WallN／W，載入時補上 cutN／W（IsoWorld.java:901-906）；
--- walls_garage_01 開著只有 doorN／W，industry_trucks_01 開著是 DoorWallN／W（連帶設 cut，IsoWorld.java:928-945）
+-- 室內判定（IsoRegions）用到的 tile 屬性：地板一律有；原版車庫門片關著有 WallN／W，載入時補上 cutN／W（IsoWorld.java:913-918）；
+-- walls_garage_01 開著只有 doorN／W，industry_trucks_01 開著是 DoorWallN／W（連帶設 cut，IsoWorld.java:940-957）
 IsoFlagType = setmetatable({}, { __index = function(_, k) return k end })
 IsoObjectType = setmetatable({}, { __index = function(_, k) return "type." .. k end })
--- 單一物件的 tile 屬性：Square:has 逐件看，IsoObject:getProperties（sprite 的屬性，IsoObject.java:3263-3265）看自己
+-- 單一物件的 tile 屬性：Square:has 逐件看，IsoObject:getProperties（sprite 的屬性，IsoObject.java:3284-3286）看自己
 local function objHas(o, flag)
     local sp = o.getSprite and o:getSprite()
     local prefix, i = string.match(sp and sp:getName() or "", "^(.-)_(%d+)$")
@@ -940,7 +940,7 @@ local function objHas(o, flag)
         if flag == "cut" .. side and (industry or not open) then return true end
         if flag == "DoorWall" .. side and industry and open then return true end
     end
-    -- 二樓隱形牆（WallN／W 載入時連帶設 cut，IsoWorld.java:882-906；索引單數是 N 邊）；_flags＝測試放的牆或門框
+    -- 二樓隱形牆（WallN／W 載入時連帶設 cut，IsoWorld.java:894-918；索引單數是 N 邊）；_flags＝測試放的牆或門框
     if prefix == "MinidoracatKnoxPass_upperwall" and flag == (tonumber(i) % 2 == 1 and "cutN" or "cutW") then return true end
     return o._flags ~= nil and o._flags[flag] == true
 end
@@ -952,7 +952,7 @@ function Square:has(flag)
     end
     return false
 end
--- 格子合併後的屬性（IsoGridSquare.getProperties，IsoGridSquare.java:9249-9251）：has 照 Square:has；set／unset 只動這格自己的那份
+-- 格子合併後的屬性（IsoGridSquare.getProperties，IsoGridSquare.java:9216-9218）：has 照 Square:has；set／unset 只動這格自己的那份
 -- （「算室內」核對時暫時補的牆旗標，Gates.lua syncSquareAsWall）。原版照物件重建格子屬性（RecalcProperties）這裡不模擬
 function Square:getProperties()
     local sq = self
@@ -1038,10 +1038,10 @@ function Part:getInventoryItem() return self._item end
 function Part:setCondition(c) self._condition = c end
 function Part:getId() return self._id end
 function Part:getIndex() return self._index or 30 end
--- VehiclePart.setModelVisible → BaseVehicle.setModelVisible（VehiclePart.java:467-470、BaseVehicle.java:1707-1754）：
+-- VehiclePart.setModelVisible → BaseVehicle.setModelVisible（VehiclePart.java:467-470、BaseVehicle.java:1719-1766）：
 -- 零件腳本沒有這個 model id 就不動；已顯示再開、沒顯示再關直接返回、不標記同步；真的變了才標記 updateFlags 64（W.modelFlags）。
 -- 顯示一個 file 是 nil 的 model＝客戶端畫車時 NPE 踢回主選單：零件沒有 parent 時 ModelInfo.getAnimationPlayer
--- 用 scriptModel.file（BaseVehicle.java:11844-11853）→ getModelScript(null)（ScriptBucketCollection.java:73），記進 W.npe
+-- 用 scriptModel.file（BaseVehicle.java:11951-11960）→ getModelScript(null)（ScriptBucketCollection.java:73），記進 W.npe
 function Part:setModelVisible(id, visible)
     local m = self._scriptPart and self._scriptPart.models and self._scriptPart.models[id]
     if not m then return end
@@ -1063,11 +1063,11 @@ function Vehicle:getPartById(id) return self._parts[id] end
 function Vehicle:getScriptName() return self._script end
 function Vehicle:getScript() return self._vscript end
 function Vehicle:getBatteryCharge() return self._battery end
-function Vehicle:transmitPartUsedDelta() if isServer() then W.partDeltas = W.partDeltas + 1 end end   -- BaseVehicle.java:8235-8244
+function Vehicle:transmitPartUsedDelta() if isServer() then W.partDeltas = W.partDeltas + 1 end end   -- BaseVehicle.java:8284-8293
 function Vehicle:isIntersectingSquare(x, y, z) return vehicleCovers(self, x, y, z) end
--- 拖著的車（BaseVehicle.java vehicleTowing；原版掛拖車在伺服器上 addPointConstraint 建立，server/Vehicles/VehicleCommands.lua:410）
+-- 拖著的車（BaseVehicle.java vehicleTowing；原版掛拖車在伺服器上 addPointConstraint 建立，server/Vehicles/VehicleCommands.lua:341）
 function Vehicle:getVehicleTowing() return self._towing end
--- 車頭朝向：getForwardVector(out) 寫入出參數，Vector3f 的 x、z 是世界 x、y（BaseVehicle.java:4286；
+-- 車頭朝向：getForwardVector(out) 寫入出參數，Vector3f 的 x、z 是世界 x、y（BaseVehicle.java:4320；
 -- 家族 MDAD_Driver.lua 同寫法）。假車預設朝北（y 減少），大門都在車的北邊
 function Vehicle:getForwardVector(out)
     out._x, out._y, out._z = self._fx, 0, self._fy
@@ -1079,7 +1079,7 @@ function Vector3f:x() return self._x end
 function Vector3f:y() return self._y end
 function Vector3f:z() return self._z end
 local vecOut = 0
-BaseVehicle = {   -- 物件池（BaseVehicle.java:510、522）；計數證明有借有還
+BaseVehicle = {   -- 物件池（BaseVehicle.java:517、529）；計數證明有借有還
     allocVector3f = function()
         vecOut = vecOut + 1
         return setmetatable({ _x = 0, _y = 0, _z = 0 }, Vector3f)
@@ -1284,7 +1284,7 @@ function getScriptManager()
             return { getMeshName = function() if m ~= true then return m end end }
         end,
         -- spriteModels.txt 的每個 tile 都登錄成名稱「tileset_索引」的 SpriteModel 腳本物件（SpriteModels.java:81-96）；
-        -- 同名回同一個物件。setAnimationTime 改的就是畫面用的那個（IsoObject.getSpriteModel 照名稱取，IsoObject.java:6280-6286）；
+        -- 同名回同一個物件。setAnimationTime 改的就是畫面用的那個（IsoObject.getSpriteModel 照名稱取，IsoObject.java:6258-6264）；
         -- 模型名稱照檔案（SpriteModel.java:39），setModelScriptName 改了之後畫面照新名稱取模型（IsoObjectModelDrawer.java:101）
         getSpriteModel = function(_, name)
             if not string.match(name, "^MinidoracatKnoxPass_") and not FAST_SM[name] then return nil end
@@ -1299,8 +1299,8 @@ function getScriptManager()
     }
 end
 -- 同一格的 tile 那份（SpriteModelsFile.Tile.spriteModel，IsoSprite.spriteModel 指的就是它，門靜止時畫它：
--- IsoObject.java:6288-6294）：載入時腳本那份從它複製（SpriteModels.java:85-88），之後兩份互不相干，
--- 只有 SpriteModelManager 拿得到（LuaManager.java:2395）。模組 ID 照引擎：原版 "game" 加各 MOD
+-- IsoObject.java:6266-6272）：載入時腳本那份從它複製（SpriteModels.java:85-88），之後兩份互不相干，
+-- 只有 SpriteModelManager 拿得到（LuaManager.java:2404）。模組 ID 照引擎：原版 "game" 加各 MOD
 local SM_MOD_ID, SM_TILESETS = "MinidoracatKnoxPassFor42", {}
 for name in pairs(SM_MODEL) do SM_TILESETS[string.match(name, "^(.+)_%d+$")] = true end
 SpriteModelManager = { getInstance = function()
@@ -1485,8 +1485,8 @@ end
 
 local function step(fn)
     nowMs = nowMs + 250
-    -- 車庫門 client 回送的狀態到伺服器：伺服器照單全收，整條鏈照回送的開關與鑰匙鎖改（GameServer.java:2969-2987、
-    -- D:1772-1774、1798-1822）。回送把開著的門關上的次數記在 W.echoClosed；還沒到時間的留著
+    -- 車庫門 client 回送的狀態到伺服器：伺服器照單全收，整條鏈照回送的開關與鑰匙鎖改（GameServer.java:2991-3010、
+    -- D:1586-1588、1612-1636）。回送把開著的門關上的次數記在 W.echoClosed；還沒到時間的留著
     local echo, later = W.echo, nil
     W.echo = nil
     for _, e in ipairs(echo or {}) do
@@ -1495,7 +1495,7 @@ local function step(fn)
             later[#later + 1] = e
         else
             local chain = garageChain(e[1])
-            e[1]._lastPlayerId = 7   -- 伺服器把回送者記成那片的 lastPlayerOnlineId（D:1758），之後同步那片都帶著
+            e[1]._lastPlayerId = 7   -- 伺服器把回送者記成那片的 lastPlayerOnlineId（D:1572），之後同步那片都帶著
             if chain[1]._open and not e[3] then W.echoClosed = W.echoClosed + 1 end
             for _, p in ipairs(chain) do
                 p._locked, p._lockedByKey, p._open = e[2], e[2], e[3]
@@ -1772,7 +1772,7 @@ local function scenarioDock()
     init(cream, cream._parts.KnoxPassTag)
     check(shown(cream._parts.KnoxPassTag) == "Dock", "米白：model id 就是 Dock（KP.DOCK_MODEL_ID）")
 
-    -- 零件模型封包索引是有號 byte（VehiclePartModels.java:31、:52）：索引 >127 全關；推算不出位置的車型也全關
+    -- 零件模型封包索引是有號 byte（VehiclePartModels.java:31、:59）：索引 >127 全關；推算不出位置的車型也全關
     local i127 = makeVehicle(30, 0, { vscript = sedan, tag = 0.4, tagType = TAG .. "_Black", index = 127 })
     local i128 = makeVehicle(40, 0, { vscript = sedan, tag = 0.4, tagType = TAG .. "_Black", index = 128 })
     init(i127, i127._parts.KnoxPassTag)
@@ -2552,7 +2552,7 @@ local function scenarioGarage()
         return p:IsOpen() and p._view.open and p:isLockedByKey() and p._view.lockedByKey == true and p._modData.CustomLock == true
     end) and W.echoQueued == echoes, "三片一起開，開著時整組仍是 Knox 門鎖：開關不改鎖，client 沒有回送")
     -- 另一台車跨在門線上（中間片的格子＋北側那格）：Knox Pass 關門前自己查到擋車、不呼叫 ToggleDoor。
-    -- 交給引擎的話，引擎拒關時會對開關者播 Blocked 音＋顯示 HaloNote（D:1583-1586），每次重試洗一次畫面
+    -- 交給引擎的話，引擎拒關時會對開關者播 Blocked 音＋顯示 HaloNote（D:1397-1400），每次重試洗一次畫面
     local blocker = makeVehicle(101.5, 100.0)
     blocker._cover = { ["101,100,0"] = true, ["101,99,0"] = true }
     check(KP.Gates.isBlocked(adapter, a.door) == true, "isBlocked：車身同時壓到門格與門線另一側 → 擋住（同引擎 D:3396-3457）")
@@ -2806,7 +2806,7 @@ local function scenarioAutoDrive()
     clean(from, "AutoDrive")
 end
 
--- 伺服器剛載入有讀頭大門的 chunk（LoadChunk，IsoChunk.java:3969）：節流歸零，下一個 tick 就掃描
+-- 伺服器剛載入有讀頭大門的 chunk（LoadChunk，IsoChunk.java:3968）：節流歸零，下一個 tick 就掃描
 local function scenarioLoadChunk()
     out("情境：載入有讀頭大門的 chunk 立刻掃描")
     freshWorld()
@@ -3011,7 +3011,7 @@ local function passesSince(p, mark)
     end
     return list
 end
-local function keySet(args)   -- 照 Client.lua:72-76 把推送轉成 KP.passes 的形狀
+local function keySet(args)   -- 照 Client.lua:101-106 把推送轉成 KP.passes 的形狀
     local keys, n = {}, 0
     for _, key in pairs(args.keys) do
         keys[key] = true
@@ -3293,7 +3293,7 @@ local function scenarioBarrier()
     check(not present(nb[6]) and not present(nb[0]) and not present(nb[2]) and KP.Ledger.get("701,100,0N") == nil
         and not present(wb[3]) and not present(wb[5]) and KP.Ledger.get("800,102,0W") == nil,
         "N 向大錘敲車道 2 連機箱一起移除；W 向機箱被打壞連車道一起移除")
-    -- 殭屍／武器打壞車道：IsoDoor.destroyGarageDoor 逐片 destroy → transmitRemoveItemFromSquare（D:3460-3499、1385-1388），
+    -- 殭屍／武器打壞車道：IsoDoor.destroyGarageDoor 逐片 destroy → transmitRemoveItemFromSquare（D:3283-3322、1199-1202），
     -- 原版只拆車道鏈；機箱、帳本、Sensor 狀態靠 OnObjectAboutToBeRemoved 記下、下一個 tick 收掉
     local z = buildBarrier(900, 100, "N", builder)
     step()
@@ -3339,7 +3339,7 @@ local function scenarioBarrierAnim()
     step()
     check(KP.Ledger.get("201,100,0N").owner == "me", "SP：建造者就是擁有者")
     local function smTime(o) return W.spriteModels[o._smName]._time end   -- 掛桿子那片目前通道的 animationTime
-    a:ToggleDoor(me)   -- 車庫門本機 toggle 不播動畫（D:1582-1596）；假引擎同樣不設 animating
+    a:ToggleDoor(me)   -- 車庫門本機 toggle 不播動畫（D:1396-1410）；假引擎同樣不設 animating
     step()
     check(a:isAnimating() and a._smName == "MinidoracatKnoxPass_barrier_16" and smTime(a) < 0.02
         and built[0]._smName == nil and not built[0]:isAnimating(),
@@ -3436,15 +3436,15 @@ local function scenarioBarrierAnim()
     end
     check(spritesOk and onLoad("MinidoracatKnoxPass_barrier_2") == nil and onLoad("MinidoracatKnoxPass_barrier_82") == nil,
         "區塊載入收錨點與車道 2（N／W／S／E × 關／開），車道 3 不收")
-    lanes[0]._smName = "MinidoracatKnoxPass_barrier_20"   -- 舊版 SP 存檔：錨點帶著補播到一半的通道（IsoObject.java:1551-1553）
+    lanes[0]._smName = "MinidoracatKnoxPass_barrier_20"   -- 舊版 SP 存檔：錨點帶著補播到一半的通道（IsoObject.java:1568-1570）
     cb(lanes[0])
     check(lanes[0]._smName == nil and lanes[1]._smName == nil, "載入錨點：清掉舊版留在錨點的覆寫；車道 2 正常速度不覆寫")
     lanes[0]:ToggleDoor(p)
-    lanes[1]:setAnimating(true)   -- 伺服器從車道 2 同步：引擎在它身上 PlayAnimation（D:1657-1664、1798-1808）
+    lanes[1]:setAnimating(true)   -- 伺服器從車道 2 同步：引擎在它身上 PlayAnimation（D:1471-1478、1612-1622）
     step()
     check(lanes[1]._smName == nil, "引擎已在播（車道 2 被同步）：不插手")
     lanes[1]:setAnimating(false)
-    lanes[2]:ToggleDoor(p)       -- 有人點車道 3：車道 2 只在片段迴圈裡換 sprite、不播（D:1811-1834）
+    lanes[2]:ToggleDoor(p)       -- 有人點車道 3：車道 2 只在片段迴圈裡換 sprite、不播（D:1625-1648）
     step()
     check(lanes[1]:isAnimating() and lanes[1]._smName == "MinidoracatKnoxPass_barrier_48"
         and W.spriteModels[lanes[1]._smName]._time > 0.95 and lanes[0]._smName == nil and lanes[2]._smName == nil,
@@ -3472,7 +3472,7 @@ local function scenarioBarrierAnim()
     cb(fl[0])
     check(fl[1]._smName == "MinidoracatKnoxPassFast_barrier_1", "載入加速的門：車道 2 先換成加速版（關），之後的同步就播加速 clip")
     fl[0]:ToggleDoor(p)
-    fl[1]:setAnimating(true)   -- 引擎照覆寫播（IsoDoor.PlayAnimation → getSpriteModel，IsoObject.java:6280-6287）
+    fl[1]:setAnimating(true)   -- 引擎照覆寫播（IsoDoor.PlayAnimation → getSpriteModel，IsoObject.java:6258-6265）
     step()
     check(fl[1]._smName == "MinidoracatKnoxPassFast_barrier_9" and fl[1]:isAnimating(),
         "原生 clip 播放中不插手補播，只把覆寫換成開的那張加速版（播完的靜態姿勢）")
@@ -3631,7 +3631,7 @@ local function scenarioReaderPost()
     local w1 = makePiece("IsoDoor", 150, 100, false)
     local kW1 = install(w1, "w1")
     check(postsAt(150, 100) == "2", "W 單門：鉸鏈（北端）門柱、變體 2")
-    local wd = { pieces = {}, cls = "IsoDoor" }   -- W 雙開門第 1 片在最大 y（IsoDoor.java:128）
+    local wd = { pieces = {}, cls = "IsoDoor" }   -- W 雙開門第 1 片在最大 y（IsoDoor.java:147）
     for i = 1, 4 do
         local p = makePiece("IsoDoor", 160, 103 - (i - 1), false)
         p._group, p._index = wd, i
@@ -3641,7 +3641,7 @@ local function scenarioReaderPost()
     check(postsAt(160, 104) == "3" and postsAt(160, 103) == "" and postsAt(160, 100) == "",
         "W 雙開門：錨點第 1 片（最大 y）南端，宿主＝南邊那格、變體 3")
     local wg = {}
-    for i = 1, 3 do   -- W 車庫門第 1 片在最大 y（getGarageDoorPrev 往 y+1，IsoDoor.java:3252-3253）
+    for i = 1, 3 do   -- W 車庫門第 1 片在最大 y（getGarageDoorPrev 往 y+1，IsoDoor.java:3075-3076）
         local p = makePiece("IsoDoor", 170, 102 - (i - 1), false)
         p._garage = i
         wg[i] = p
@@ -4403,7 +4403,7 @@ local function scenarioSettings()
 end
 
 -- 開門方式「閃一下大燈才開」（Server.lua H.settings 的 trigger、Sensor.lua S.noteHeadlights／scanKeys、Gates.lua willOpenFor）：
--- 原版切大燈送 module vehicle、command setHeadlightsOn（VehicleCommands.lua:105-111），伺服器看到的駕駛 1.5 秒內切兩次＝閃燈，
+-- 原版切大燈送 module vehicle、command setHeadlightsOn（VehicleCommands.lua:73-79），伺服器看到的駕駛 1.5 秒內切兩次＝閃燈，
 -- 閃燈後 5 秒內在感應距離內才開；開了以後撐門、關門照舊；AutoDrive 自駕照開
 local function scenarioFlash()
     out("情境：閃一下大燈才開")
@@ -4531,7 +4531,7 @@ local function scenarioFlash()
     check(KnoxPassAPI.willOpenFor(ve, e.door) == true, "willOpenFor：改回靠近就開 → true")
     KP.passes = nil
     local realGetText = getText
-    -- 假按鍵設定：車輛頭燈固定 F（33）；光源鍵依 light 換。isKey 同原版：主鍵或替代鍵相同就算（Core.java:2803-2806）
+    -- 假按鍵設定：車輛頭燈固定 F（33）；光源鍵依 light 換。isKey 同原版：主鍵或替代鍵相同就算（Core.java:2405-2408）
     local light = 33
     Keyboard = { getKeyName = function(k) return k == 33 and "F" or "?" end }
     KeybindId = { TOGGLE_VEHICLE_HEADLIGHTS = "ToggleVehicleHeadlights", LIGHT_SOURCE = "Equip/Turn On/Off Light Source" }
@@ -5044,7 +5044,7 @@ local function scenarioModelGates()
     check(not gc.lanes[1]:IsOpen() and not gc.lanes[6]:IsOpen(), "車開走後關上")
     check(W.regionJobs == 0, "模型門開關：門片沒有牆屬性、位元不變，不重算室內判定（不存檔、不廣播區域資料）")
     -- 門鎖切換：逐片同步時掛模型那片排第一（Gates.lua syncOrder），客戶端回送的是其他片，伺服器記的回送者 ID
-    -- （D:1758）不會落在掛模型那片；之後自動開門同步那片時帶 -1，不會在某位玩家身上播門聲、setNoCollision（D:1777-1806）
+    -- （D:1572）不會落在掛模型那片；之後自動開門同步那片時帶 -1，不會在某位玩家身上播門聲、setNoCollision（D:1591-1620）
     check(cmd(owner, "lock", { key = key, on = true }).ok == true, "大門開 Knox 門鎖")
     runMs(1000)   -- 客戶端回送到伺服器
     check(cmd(owner, "lock", { key = key, on = false }).ok == true, "大門關 Knox 門鎖")
@@ -5181,7 +5181,7 @@ local function scenarioModelGates()
     check(h[5]._smName == ts .. "_" .. (base + 13) and h[5]:isAnimating(),
         "原生 clip 播放中不插手補播，只把覆寫換成開的靜止模型（＋13，綠燈貼圖）")
     -- 跨 chunk 漏掉的同步：中間片（封包對象）已開，錨點側的片停在舊的關；鏈上一片載入時對齊，只改本機、不送封包
-    -- 中間片還沒指名覆寫時收到同步：PlayAnimation 取不到模型只 setAnimating(true)（D:1657-1664），第一次追蹤時清掉
+    -- 中間片還沒指名覆寫時收到同步：PlayAnimation 取不到模型只 setAnimating(true)（D:1471-1478），第一次追蹤時清掉
     viewer._x, viewer._y = 405, 103   -- 站到這座門邊（FAR 範圍內），前兩座就出了範圍
     local k = {}
     for i = 2, 9 do k[i] = piece(i, 401) end
@@ -6088,9 +6088,9 @@ local function scenarioWatchDrive()
 end
 
 -- ===== 不會被破壞（Sensor.lua「不會被破壞」段、Server.lua H.settings 的 indestructible）=====
--- 殭屍拍門與武器打門扣耐久（D:1197-1209、1305-1308；T:1027-1042、1161-1162），伺服器每扣一下都同步給 client（D:1900-1903、
--- T:1566-1569），扣到 0 就拆：雙開門外側那片連旁邊那片、中間片只拆自己（destroyDoubleDoor，D:3187-3205），
--- 車庫門整條鏈（destroyGarageDoor，D:1236），其他只拆自己
+-- 殭屍拍門與武器打門扣耐久（D:1018-1026、1101-1104；T:1042-1057、1176-1177），伺服器每扣一下都同步給 client（D:1719-1722、
+-- T:1581-1584），扣到 0 就拆：雙開門外側那片連旁邊那片、中間片只拆自己（destroyDoubleDoor，D:3010-3028），
+-- 車庫門整條鏈（destroyGarageDoor，D:1190），其他只拆自己
 local function batter(o, dmg)
     if not present(o) then return end
     o._health = o:getHealth() - dmg
@@ -6106,7 +6106,7 @@ local function batter(o, dmg)
         if p._square then p._square:transmitRemoveItemFromSquare(p) end
     end
 end
--- client 開關門、改鎖時把自己那份狀態（含 health）送回來，伺服器照收（D:1693、1757、1775；T:1823、1852）
+-- client 開關門、改鎖時把自己那份狀態（含 health）送回來，伺服器照收（D:1507、1571、1589；T:1839、1868）
 local function clientSync(o) o._health = o._view.health end
 
 -- 沙盒開著或管理員替這扇門開：每一片（閘門連兩端）的耐久墊到 SHIELD_HP，原本的耐久記在 modData，關掉或拆讀頭時還原成原本的值；
@@ -6140,7 +6140,7 @@ local function scenarioIndestructible()
         "墊高時耐久照墊之前的 321（不是 10 億），視窗另外寫不會被破壞")
     clientSync(b.door)
     check(shielded(b.door), "墊高時同步給客戶端：客戶端開關門送回的也是 10 億（IsoDoor 在伺服器上 setHealth 不會自己同步）")
-    for _ = 1, 1000 do batter(b.door, 105) end   -- 50 隻超人殭屍圍著拍一下（5＋2×50，D:1201-1203）× 1000
+    for _ = 1, 1000 do batter(b.door, 105) end   -- 50 隻超人殭屍圍著拍一下（5＋2×50，D:1022-1024）× 1000
     check(present(b.door) and b.door:getHealth() > BIG / 2, "沙盒開：超人殭屍群拍 1000 下也不壞")
     runMs(5000)
     check(b.door:getHealth() == BIG - 105000, "被打掉的不到一半：巡檢不重墊")
@@ -6166,7 +6166,7 @@ local function scenarioIndestructible()
     check(allPieces(d, present), "關著的雙開門中間片被打也不壞")
     -- 雙開門不會整扇一起被移除：火燒移走錨點和同側那片（伺服器 RemoveItemFromSquarePacket.java:158-159、SP RemoveTileObject，
     -- 都經 IsoObjectUtils.java:83-96）。帳本下一個 tick 刪掉，留下的另一半在下一個 tick 還原（客戶端那份也是），之後沙盒開著也不再墊；
-    -- 被移走的兩片不送同步：移除封包先送出，客戶端先移掉的話，同步照索引套到同格的別的物件（GameServer.java:2995-2996、GameClient.java:1630-1631）
+    -- 被移走的兩片不送同步：移除封包先送出，客戶端先移掉的話，同步照索引套到同格的別的物件（GameServer.java:3017-3018、GameClient.java:1511-1512）
     local h = gate(500, { double = true })
     local h1, h2, h3, h4 = h.group.pieces[1], h.group.pieces[2], h.group.pieces[3], h.group.pieces[4]
     for _, p in ipairs({ h1, h2 }) do p._square:transmitRemoveItemFromSquare(p) end
@@ -6175,7 +6175,7 @@ local function scenarioIndestructible()
     check(rec(h) == nil and h3:getHealth() == 500 and h4:getHealth() == 500 and h4._view.health == 500
         and h3._modData.KnoxPassHp == nil, "錨點那一半被燒掉：帳本刪掉，留下的一半還原、之後巡檢不再墊")
     check(h1._view.health == BIG and h2._view.health == BIG, "被移走的兩片沒有送同步（客戶端的索引可能已經對到別的物件）")
-    -- 玩家建造的雙開門（IsoThumpable 重建帶著 modData、health 回預設，D:2899-2913）：中間兩片原本 200，Knox Pass 開著時拆讀頭，
+    -- 玩家建造的雙開門（IsoThumpable 重建帶著 modData、health 回預設，D:2722-2736）：中間兩片原本 200，Knox Pass 開著時拆讀頭，
     -- 關門重建的中間片也照記錄還原成 200（跟墊回去之後才拆一樣），記錄清掉
     sb.Indestructible = nil
     local m = gate(1100, { double = true, cls = "IsoThumpable" })
@@ -6246,7 +6246,7 @@ local function scenarioIndestructible()
     restart()
     runMs(5000)
     check(rec(e).indestructible == true and shielded(e.door), "重啟：帳本記著這扇門開著，照樣墊高")
-    batter(e.door, 1)   -- 殭屍拍一下：伺服器每一下都同步（D:1900-1903），客戶端那份是 10 億
+    batter(e.door, 1)   -- 殭屍拍一下：伺服器每一下都同步（D:1719-1722），客戶端那份是 10 億
     res = cmd(e.owner, "uninstall", { key = e.key })
     check(res.ok == true and e.door:getHealth() == 500 and e.door._modData.KnoxPassHp == nil, "拆讀頭：還原耐久")
     clientSync(e.door)

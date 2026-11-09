@@ -31,7 +31,7 @@ do
 end
 
 local INSTALL_TICKS, UNINSTALL_TICKS, DISMANTLE_TICKS = 150, 100, 200   -- 拆除照原版拆解的基本時間（ISDismantleAction.lua:102）
-local HALO_TICKS = 250 -- 預設 128（IsoGameCharacter.java:592）
+local HALO_TICKS = 250 -- 預設 128（IsoGameCharacter.java:604）
 
 -- ── 送指令與提示 ────────────────────────────────────────────────────────
 
@@ -41,7 +41,7 @@ function C.send(player, command, args)
     sendClientCommand(player, KP.MODULE, command, args)
 end
 
--- Toast（CAPABILITIES.toast）優先；沒有就 setHaloNote(str, r, g, b, dispTime)（IsoGameCharacter.java:6965）。
+-- Toast（CAPABILITIES.toast）優先；沒有就 setHaloNote(str, r, g, b, dispTime)（IsoGameCharacter.java:7001）。
 -- halo＝true 時 Toast 之外頭上也提示（駕駛預警、手錶感應：開車、走路時視線在角色上）。英文的長原因約 4 行，Toast 給 5 行
 function C.say(player, text, bad, halo)
     local UI = MinidoracatUI and MinidoracatUI.v1
@@ -109,7 +109,7 @@ function KP.clientReceive(command, args)
     end
 end
 
--- 簽名 (module, command, args)：ServerCommands.lua:201-212
+-- 簽名 (module, command, args)：ServerCommands.lua:207-217
 Events.OnServerCommand.Add(function(module, command, args)
     if module ~= KP.MODULE then return end
     KP.clientReceive(command, args)
@@ -128,8 +128,8 @@ function Action:isValid()
     if not door or not door:getSquare() or door:getObjectIndex() == -1 then return false end
     if self.command == "dismantle" then return KP.dismantleTool(self.character, door) ~= nil end
     local inv = self.character:getInventory()
-    if not KP.screwdriverOf(self.character) then return false end -- ISWorldObjectContextMenu.lua:1244
-    -- getItemWithIDRecursiv：ItemContainer.java:3094（SP／MP client 都用 ID 找，不比物件參照）
+    if not KP.screwdriverOf(self.character) then return false end -- ISWorldObjectContextMenu.lua:1243
+    -- getItemWithIDRecursiv：ItemContainer.java:3125（SP／MP client 都用 ID 找，不比物件參照）
     return self.command ~= "install" or inv:getItemWithIDRecursiv(self.itemId) ~= nil
 end
 
@@ -166,7 +166,7 @@ function Action:new(character, door, command, ticks)
     return o
 end
 
--- 走到門邊（原版開關門／鎖門同款：ISWorldObjectContextMenu.lua:1516）→ 拿起子（:1370）→ 動作
+-- 走到門邊（原版開關門／鎖門同款：ISWorldObjectContextMenu.lua:1510）→ 拿起子（:1371）→ 動作
 local function queue(player, door, action)
     local screwdriver = KP.screwdriverOf(player)
     if not screwdriver then return end
@@ -176,7 +176,7 @@ local function queue(player, door, action)
 end
 
 function C.queueInstall(player, door)
-    local reader = player:getInventory():getFirstEvalRecurse(KP.isReader)   -- 任何顏色（ItemContainer.java:1491）
+    local reader = player:getInventory():getFirstEvalRecurse(KP.isReader)   -- 任何顏色（ItemContainer.java:1539）
     if not reader then return end
     local action = Action:new(player, door, "install", INSTALL_TICKS)
     action.itemId = reader:getID()
@@ -292,7 +292,7 @@ local function access(player, md)
 end
 
 local function tip(option, textKey)
-    local t = ISWorldObjectContextMenu.addToolTip() -- 池化 tooltip，ISWorldObjectContextMenu.lua:2595
+    local t = ISWorldObjectContextMenu.addToolTip() -- 池化 tooltip，ISWorldObjectContextMenu.lua:2631
     t.description = getText(textKey)
     option.toolTip = t
 end
@@ -305,7 +305,7 @@ end
 local function onManage(player, anchor, key) KP.Window.open(player, anchor, key) end
 local function onLock(player, key, on) C.send(player, "lock", { key = key, on = on }) end
 -- 門開著時給「用 Knox Pass 關門」：門被會開門的殭屍或有鑰匙的人打開時，Knox Pass 門鎖讓原版的「關門」灰掉（couldBeOpen 看
--- CustomLock，ISWorldObjectContextMenuLogic.java:2296-2301），這是關回去的路。伺服器 H.open／H.close 重驗權限
+-- CustomLock，ISWorldObjectContextMenuLogic.java:2375-2380），這是關回去的路。伺服器 H.open／H.close 重驗權限
 local function onOpen(player, key) C.send(player, "open", { key = key }) end
 local function onClose(player, key) C.send(player, "close", { key = key }) end
 local function addOpenClose(sub, player, adapter, anchor, key)
@@ -314,7 +314,7 @@ local function addOpenClose(sub, player, adapter, anchor, key)
 end
 
 -- 「重新上色」子選單：列出 current 以外的顏色；缺刷子或該色油漆的灰掉並提示（原版 notAvailable＋池化 tooltip，
--- addTip＝該選單的 tooltip 池：ISWorldObjectContextMenu.lua:2595／ISInventoryPaneContextMenu.lua:3417）
+-- addTip＝該選單的 tooltip 池：ISWorldObjectContextMenu.lua:2631／ISInventoryPaneContextMenu.lua:3390）
 local function recolorMenu(menu, player, current, addTip, target)
     local sub = ISContextMenu:getNew(menu)
     menu:addSubMenu(menu:addOption(getText("ContextMenu_KnoxPass_Recolor"), nil, nil), sub)
@@ -326,18 +326,18 @@ local function recolorMenu(menu, player, current, addTip, target)
                 opt.notAvailable = true
                 local t = addTip()
                 t.description = why == "NoBrush" and getText("IGUI_KnoxPass_Why_NoBrush")
-                    or getText("IGUI_KnoxPass_NeedPaint", getItemNameFromFullType(c.paint))   -- LuaManager.java:8603-8607
+                    or getText("IGUI_KnoxPass_NeedPaint", getItemNameFromFullType(c.paint))   -- LuaManager.java:8539-8543
                 opt.toolTip = t
             end
         end
     end
 end
 
--- 右鍵點到的門。原版右鍵只把滑鼠下那一個物件交給選單：引擎照 2D 遮罩選（FBORenderObjectPicker.java:79），
--- 放開時 doRClick 只交出它（ISObjectClickHandler.lua:23-63）；原版的「門」另外掃它所在的格（ISWorldObjectContextMenuLogic.java:576-579）。
+-- 右鍵點到的門。原版右鍵只把滑鼠下那一個物件交給選單：引擎照 2D 遮罩選（FBORenderObjectPicker.java:78），
+-- 放開時 doRClick 只交出它（ISObjectClickHandler.lua:23-63）；原版的「門」另外掃它所在的格（ISWorldObjectContextMenuLogic.java:592-595）。
 -- 閘門與模型門畫的是 3D 模型（2026-10-08 正式服回報雙桿閘門右鍵只有原版「門」；menupick-sp 1008d 實點）：
 -- 1. 點門下的路面選到地板 → 照原版掃同格
--- 2. 點機箱或門柱選到那一端 → 沿整座找車道（KP.Barrier 在 server/Barrier.lua，客戶端也會載入 server 目錄，GameLoadingState.java:148）
+-- 2. 點機箱或門柱選到那一端 → 沿整座找車道（KP.Barrier 在 server/Barrier.lua，客戶端也會載入 server 目錄，GameLoadingState.java:149）
 -- 3. 模型門的車道片沒有 2D 圖，點在桿子或門扇上選到的是門線後面的地板（北邊 2 格）→ 從點到的格往鏡頭方向（+x +y）找車道門片，
 --    滑鼠落在門線往上 BODY_FLOORS 層的範圍內就算。高度取關著時的外形加一點餘量；抬起的桿子上半段點不到，點機箱即可
 local BODY_FLOORS = { Barrier = 0.6, Gate = 2.0, Garage = 2.2 }
@@ -450,7 +450,7 @@ local function onFillMenu(playerIndex, context, worldobjects, test)
     local owner = md[KP.MARKER_OWNER]
     local hasScrewdriver = KP.screwdriverOf(player) ~= nil
     local target = dismantleTarget(player, door, worldobjects)   -- 本 MOD 蓋的閘門、大門一律出選單（沒裝讀頭也拆得到）
-    local carriesReader = player:getInventory():containsEvalRecurse(KP.isReader)   -- ItemContainer.java:1146
+    local carriesReader = player:getInventory():containsEvalRecurse(KP.isReader)   -- ItemContainer.java:1194
     if not owner and not target and not carriesReader then return end
 
     local root = context:addOption(getText("ContextMenu_KnoxPass"), nil, nil)
@@ -509,8 +509,8 @@ end
 Events.OnFillWorldObjectContextMenu.Add(onFillMenu)
 
 -- 物品欄右鍵：身上（含背包）的感應盒或讀頭可以重新上色。事件簽名 (playerIndex, context, items)：
--- ISInventoryPaneContextMenu.lua:935；items 混著物品與分組表，用 ISInventoryPane.getActualItems 攤平（ISInventoryPane.lua:912-933）。
--- 地上、別的容器、裝在車上的不給（伺服器 H.recolor 也只找玩家身上，isInPlayerInventory InventoryItem.java:2278-2281）
+-- ISInventoryPaneContextMenu.lua:935；items 混著物品與分組表，用 ISInventoryPane.getActualItems 攤平（ISInventoryPane.lua:915-936）。
+-- 地上、別的容器、裝在車上的不給（伺服器 H.recolor 也只找玩家身上，isInPlayerInventory InventoryItem.java:2293-2296）
 local function onFillInventoryMenu(playerIndex, context, items)
     local player = getSpecificPlayer(playerIndex)
     if not player then return end

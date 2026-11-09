@@ -1,24 +1,24 @@
 -- 閘門臂與模型門（雙桿閘門、兩層樓捲門、兩層樓大門）的模型掛載與動畫補播（SP 與 MP client）。
 -- 3D 模型掛在中間那片（KP.hostLane：單臂閘門車道 2、模型門正中間），不掛錨點：半透明層只畫格子在畫面上的物件
--- （FBORenderCell.java:3558、IsoGridSquare.java:7839-7869），掛錨點時錨點那格一出畫面整座都不畫（offscreen-sp）。
+-- （FBORenderCell.java:3541、IsoGridSquare.java:7839-7867），掛錨點時錨點那格一出畫面整座都不畫（offscreen-sp）。
 -- 單臂閘門的車道 2 有自己的 sprite，模型寫在 tile 上；模型門的中間片全部共用一張 sprite（格位 1／9），只能逐物件指名：
 -- 這裡沿車庫門鏈從錨點找到那一片，把它的 spriteModel 覆寫成 spriteModels 的 HOST 兩格（關／開，build_model_gates.py hosted），
 -- 舊存檔的門不必重蓋。錨點仍是帳本、讀頭與標記綁的那片。
--- 模型的 Open／Close clip 只在 IsoDoor 收到同步封包時播，而且只播被同步的那一片（IsoDoor.java:1798-1835），所以伺服器從
--- 中間片同步（Gates.lua setGarageOpen）；車庫門在本機 toggle 的分支完全不播（:1582-1596），引擎播放的入口（PlayAnimation、
+-- 模型的 Open／Close clip 只在 IsoDoor 收到同步封包時播，而且只播被同步的那一片（IsoDoor.java:1612-1649），所以伺服器從
+-- 中間片同步（Gates.lua setGarageOpen）；車庫門在本機 toggle 的分支完全不播（:1396-1410），引擎播放的入口（PlayAnimation、
 -- IsoObjectAnimations）又沒有曝露給 Lua。所以 SP、或 MP 有人手點別片時，中間片會直接跳到開／關。這裡偵測「開關變了但引擎沒在播」
--- （PlayAnimation 會先 setAnimating(true)，:1657-1664），把中間片換成 spriteModels 裡的一個姿勢 tile（「通道」），
--- 4 秒內每幀把通道的 animationTime 設成目前進度：SpriteModel 有曝露給 Lua（LuaManager.java:2201），
--- 姿勢腳本以名稱「tileset_索引」登錄（SpriteModels.java:81-96），IsoObject 照名稱取同一個物件來畫（IsoObject.java:6280-6286）。
+-- （PlayAnimation 會先 setAnimating(true)，:1471-1478），把中間片換成 spriteModels 裡的一個姿勢 tile（「通道」），
+-- 4 秒內每幀把通道的 animationTime 設成目前進度：SpriteModel 有曝露給 Lua（LuaManager.java:2210），
+-- 姿勢腳本以名稱「tileset_索引」登錄（SpriteModels.java:81-96），IsoObject 照名稱取同一個物件來畫（IsoObject.java:6258-6264）。
 -- 靜態姿勢的骨架矩陣照（模型, clip, 時間）快取、不淘汰（IsoObjectAnimations.java:155-173），時間量化成 1/STEPS，
 -- 每個模型最多 STEPS＋1 筆。通道：單臂閘門抬起用 MinidoracatKnoxPass_barrier_16-24／32-40（綠燈貼圖），放下用 48-56／64-72
 -- （紅燈；S／E 向各＋80）；模型門是區塊起點＋32-40／48-56（Core.lua KP.GATE_SLOT）。燈色跟著 spriteModel 的 texture 走
 -- （IsoObjectModelDrawer.java:134-139）。每組 9 個通道，同款同方向同時在動的門各用一個，不會互相蓋掉。
--- 只改本機顯示，不經網路；SP 存檔會連覆寫名稱一起存（IsoObject.java:1551-1553），載入時一律重設。
+-- 只改本機顯示，不經網路；SP 存檔會連覆寫名稱一起存（IsoObject.java:1568-1570），載入時一律重設。
 -- 閒置時每幀只問一次 IsOpen；移除、距離與還沒找到的中間片每秒掃一次
 -- 每扇門的開關速度（Server.lua mark 在錨點的 KP.MARKER_SPEED）：加速的門靜止時覆寫成加速版 spriteModel（KP.fastTwin，
 -- *_fast 模型、clip 3.75 s）。多人收到開關同步時引擎照中間片當下的 getSpriteModel() 播（IsoDoor.PlayAnimation，
--- 逐物件覆寫優先，IsoObject.java:6280-6287），所以播的是加速版；通道姿勢是 clip 的比例時間，兩種速度共用，只換補播時長
+-- 逐物件覆寫優先，IsoObject.java:6258-6265），所以播的是加速版；通道姿勢是 clip 的比例時間，兩種速度共用，只換補播時長
 require "MinidoracatKnoxPass/Core"
 local KP = MinidoracatKnoxPass
 
@@ -79,12 +79,12 @@ local function gateOf(obj)
 end
 
 -- MP 客戶端：鏈上其他片的開關對齊掛模型那片。伺服器開關時同步的是掛模型那片（Gates.lua syncPiece）；那格沒載入時整包丟掉
--- （GameClient.java:1626-1629），載入了但片段清單裡有一片沒載入時，接收端改到那片就 return（IsoDoor.java:1811-1816），
+-- （GameClient.java:1507-1510），載入了但片段清單裡有一片沒載入時，接收端改到那片就 return（IsoDoor.java:1625-1630），
 -- 之後的片停在舊狀態（含碰撞）。以掛模型那片為準：它是封包對象，通常最新。例外是它的區塊快照在開關前取、同步又在它載入前
 -- 到而被丟（PlayerDownloadServer.java:221-250），這時整條對成舊狀態；錨點沒載入時也對不了。兩種都等下一次開關封包（gates.md
--- 已知坑「伺服器序列化區塊快照與開關同步的競態」）。只改本機、不送封包、不動鎖：照接收端的做法（:1820-1832）setOpen、
--- changeSprite（都只設欄位，:144-146、:3340-3342）、RecalcAllWithNeighbours、setSquareChanged（內含接收端的
--- PolygonalMap2.squareChanged，IsoGridSquare.java:4734-4740；順帶的 IsoRegions.squareChanged 在客戶端一開頭就 return，
+-- 已知坑「伺服器序列化區塊快照與開關同步的競態」）。只改本機、不送封包、不動鎖：照接收端的做法（:1634-1646）setOpen、
+-- changeSprite（都只設欄位，:165-167、:3163-3165）、RecalcAllWithNeighbours、setSquareChanged（內含接收端的
+-- PolygonalMap2.squareChanged，IsoGridSquare.java:4719-4725；順帶的 IsoRegions.squareChanged 在客戶端一開頭就 return，
 -- IsoRegions.java:309-311）、invalidateRenderChunkLevel。
 local function align(host)
     if not isClient() then return end
@@ -118,7 +118,7 @@ local function resolve(anchor)
         s.anchor = anchor
         return true
     end
-    -- 模型門的中間片在指名覆寫之前沒有模型，那時收到同步，PlayAnimation 取不到模型只 setAnimating(true)（IsoDoor.java:1657-1664），
+    -- 模型門的中間片在指名覆寫之前沒有模型，那時收到同步，PlayAnimation 取不到模型只 setAnimating(true)（IsoDoor.java:1471-1478），
     -- 沒有 clip 會把它清掉，之後 toggled 會當成引擎在播。這時清掉是安全的：沒有模型就沒有加進 IsoObjectAnimations，
     -- 引擎沒有東西在播。單臂閘門的車道 2 自己帶模型，可能真的在播，不清
     if g.rest then host:setAnimating(false) end
@@ -174,7 +174,7 @@ local function finish(obj, s)
     s.start, s.q, s.chan = nil, nil, nil
     setSm(obj, s, restName(obj, s))
     obj:setAnimating(false)
-    obj:invalidateRenderChunkLevel(256)   -- 同引擎播完時的收尾（IsoObjectAnimations.java:76-78）；帶 doorTrans 的門本來就每幀畫（FBORenderCell.java:1835-1837）
+    obj:invalidateRenderChunkLevel(256)   -- 同引擎播完時的收尾（IsoObjectAnimations.java:76-78）；帶 doorTrans 的門本來就每幀畫（FBORenderCell.java:1831-1833）
 end
 
 -- 任一本機玩家（分割畫面）在範圍內就算近
@@ -213,7 +213,7 @@ local function toggled(obj, s, open, now)
         return
     end
     setSm(obj, s, s.chan)
-    obj:setAnimating(true)   -- 標成「在播」：同引擎 PlayAnimation（IsoDoor.java:1657-1664），反向中途接手時據此判斷；也讓它每幀畫
+    obj:setAnimating(true)   -- 標成「在播」：同引擎 PlayAnimation（IsoDoor.java:1471-1478），反向中途接手時據此判斷；也讓它每幀畫
 end
 
 function A.tick()
@@ -266,7 +266,7 @@ function A.tick()
     end
 end
 
--- 載入區塊時（IsoChunk.java:3829 → Lua/MapObjects.java:184-215）與收到新建物件時（AddItemToMapPacket.java:94）收集：
+-- 載入區塊時（IsoChunk.java:3828 → Lua/MapObjects.java:184-215）與收到新建物件時（AddItemToMapPacket.java:94）收集：
 -- 錨點（單臂閘門車道 1、模型門格位 0／8）與可能掛模型的片（單臂閘門車道 2、模型門中間片 1／9），兩格哪個先載入都找得到
 local sprites = {}
 for idx in pairs(POSE_BASE) do

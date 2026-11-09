@@ -16,11 +16,11 @@ local G = KP.Gates
 local B = {}
 KP.Barrier = B
 
--- 建好的車道 1（錨點）等下一個 tick 再登記讀頭：OnCreate 逐格呼叫（ISBuildIsoEntity.lua:736-744），
--- 同一次 create 會把四格放完（:501-593），下一個 tick 整條鏈才齊
+-- 建好的車道 1（錨點）等下一個 tick 再登記讀頭：OnCreate 逐格呼叫（ISBuildIsoEntity.lua:749-757），
+-- 同一次 create 會把四格放完（:510-602），下一個 tick 整條鏈才齊
 local pending = {}
 
--- 車道 1（含開啟 sprite）→ 機箱的相對位置與機箱編號：鏈的第 1 片在 N 向最小 x、W 向最大 y（IsoDoor.java:3241-3342）。
+-- 車道 1（含開啟 sprite）→ 機箱的相對位置與機箱編號：鏈的第 1 片在 N 向最小 x、W 向最大 y（IsoDoor.java:3064-3165）。
 -- N／W 向機箱再往外一格；S 向機箱在第 3 片東邊、上一列（門片在下一列），E 向在第 3 片北邊、左一行
 local M = KP.BARRIER_MIRROR
 local CABINET_OF = {
@@ -126,7 +126,7 @@ function B.parts(obj)
 end
 
 -- 右鍵 Knox Pass「拆除整座」（Server.lua H.dismantle）：整座的物件、帳本 key、退料表 { [物品] = 數量 }。
--- 有兩端的門 obj 是一端：退那一端的 buildMaterials（建造時每片都記著整座的材料，ISBuildingObject.lua:353-367，所以只退被拆的那一端）；
+-- 有兩端的門 obj 是一端：退那一端的 buildMaterials（建造時每片都記著整座的材料，ISBuildingObject.lua:357-371，所以只退被拆的那一端）；
 -- 兩層樓捲門沒有兩端，obj 是任一片門片，門片沒有 buildMaterials，照 KP.ROLL2F_REFUND（產生器照配方寫）。其他物件回 nil
 function B.dismantle(obj)
     if KP.isGateEnd(obj) then
@@ -141,9 +141,9 @@ function B.dismantle(obj)
 end
 
 -- 移除整座閘門與帳本記錄。已經被移走的物件（getObjectIndex 為 -1）略過：
--- 大錘自己會移走被敲的那一格（ISDestroyStuffAction；IsoThumpable.java:1201-1203 也是先查 index）。
+-- 大錘自己會移走被敲的那一格（ISDestroyStuffAction；IsoThumpable.java:1216-1218 也是先查 index）。
 -- safelyRemove 要給 false：預設的 true 會把 entity 建的機箱當多格物件找齊整組，車道已換成 IsoDoor 找不齊，
--- 引擎回 -1、什麼都不移（IsoGridSquare.java:5942-5968、IsoObjectUtils.java:20-48；barrier-mp 1005f 實踩：原版拆除也因此留下機箱）
+-- 引擎回 -1、什麼都不移（IsoGridSquare.java:5933-5959、IsoObjectUtils.java:20-48；barrier-mp 1005f 實踩：原版拆除也因此留下機箱）
 function B.remove(list, key)
     if not list then return end
     for _, o in ipairs(list) do
@@ -159,14 +159,14 @@ function B.remove(list, key)
 end
 
 -- 建造放下的 IsoThumpable（替代 tile）換成 IsoDoor 車庫門片：sprite 是真的門片，dest 是門片的格子（S／E 向閘門在
--- 相鄰一列／一行）。照原版 windowGlass.OnCreate 換成 IsoWindow 的做法（buildRecipeCode.lua:536-546）。
+-- 相鄰一列／一行）。照原版 windowGlass.OnCreate 換成 IsoWindow 的做法（buildRecipeCode.lua:542-552）。
 -- 朝向由呼叫端從 tile 決定，不看 thump:getNorth()：entity 游標的 render 不呼叫 getSprite，self.north 停在建構時的
--- false（ISBuildingObject.lua:448、:482-510；ISBuildIsoEntity.lua:70-109），create 收到的 north 也就一律 false
+-- false（ISBuildingObject.lua:452、:486-514；ISBuildIsoEntity.lua:70-118），create 收到的 north 也就一律 false
 -- （barrier-mp 2026-10-05 實踩：N 向閘門的門片變成 W 向）。
--- sprite 建構子會照沙盒 lockedHouses 隨機上鎖（IsoDoor.java:820-840）；車庫門的 locked 對玩家是看站位（:1568-1580），
+-- sprite 建構子會照沙盒 lockedHouses 隨機上鎖（IsoDoor.java:641-661）；車庫門的 locked 對玩家是看站位（:1382-1394），
 -- 一律不鎖，門鎖只用 Knox Pass 的 CustomLock。耐久用 setHealth：maxHealth 留 500，getThumpCondition 夾在 1 以內
--- （IsoDoor.java:1261-1263），殭屍照 health 打（IsoDoor.java:88-95 預設 500）；滿格記在 modData（B.fullHealth，管理視窗的耐久）。
--- 移走替代 tile 一定要 RemoveTileObject(thump, false)：單參數版在 chunk 已載入時走 safelyRemove（IsoGridSquare.java:5713-5716），
+-- （IsoDoor.java:1057-1059），殭屍照 health 打（IsoDoor.java:99-106 預設 500）；滿格記在 modData（B.fullHealth，管理視窗的耐久）。
+-- 移走替代 tile 一定要 RemoveTileObject(thump, false)：單參數版在 chunk 已載入時走 safelyRemove（IsoGridSquare.java:5700-5703），
 -- entity 多格物件要整組找齊（IsoObjectUtils.java:32-41、83-113）——還沒放完時回 -1、什麼都不移（替代 tile 留在伺服器），
 -- 放完最後一格時反而整組連機箱一起移掉（r3-mp 1007a 實踩：E 向閘門建好就被整座拆掉）。0.1.x 用真車道 sprite 當建造 tile，
 -- 它有 GarageDoor，走車庫門那條只移自己，所以沒出事
@@ -179,7 +179,7 @@ local function toGarageDoor(thump, dest, sprite, north, health)
     dest:AddSpecialObject(door)
     local sq = thump:getSquare()
     sq:RemoveTileObject(thump, false)
-    if dest ~= sq then dest:RecalcAllWithNeighbours(true) end   -- 原格由 setInfo 重算（ISBuildIsoEntity.lua:746）
+    if dest ~= sq then dest:RecalcAllWithNeighbours(true) end   -- 原格由 setInfo 重算（ISBuildIsoEntity.lua:755）
     return door
 end
 
@@ -191,7 +191,7 @@ local function laneOf(idx)
 end
 
 -- SpriteConfig OnCreate（伺服器；SP 在本機）：params = { thumpable, craftRecipeData, character, facing }。
--- 車道格換成 IsoDoor；回傳 replaceObject 讓 setInfo 改送新物件（ISBuildIsoEntity.lua:748-756）。機箱格回 nil，照原版送 IsoThumpable
+-- 車道格換成 IsoDoor；回傳 replaceObject 讓 setInfo 改送新物件（ISBuildIsoEntity.lua:761-769）。機箱格回 nil，照原版送 IsoThumpable
 function B.onCreate(params)
     local thump = params and params.thumpable
     local idx = KP.barrierIndex(thump)
@@ -217,7 +217,7 @@ end
 -- ── 車庫捲門 ────────────────────────────────────────────────────────────
 -- 替代 tile（KP.ROLLDOOR_TILESET）編號＝款式×64＋格位（build_barrier_tiles.py ROLLDOOR_SLOTS）：每種寬度一段格位，
 -- 前半北向、後半西向，依門片順序（錨點第 1 片在前）。中間片重複：引擎沿鏈找門片號 ≥ 自己的下一片，鏈多長都行
--- （IsoDoor.java:3282-3321）。每個建造項目要自己的替代 tile：原版不允許同一張 sprite 出現在兩個 entity
+-- （IsoDoor.java:3105-3144）。每個建造項目要自己的替代 tile：原版不允許同一張 sprite 出現在兩個 entity
 -- （SpriteConfigManager）。原版門片 k 的 sprite＝第 1 片＋k−1
 local R = {}
 KP.RollDoor = R
@@ -326,7 +326,7 @@ function B.allowDismantle(list, player)
 end
 
 -- 放上一道隱形牆，回傳有沒有放。門線那格（下一層）不在就不放：S／E 向的一端跨 chunk 時那格還沒載入，之後這一端再載入時補。
--- IsoObject(cell, square, spriteName) → AddTileObject（重算碰撞、尋路與室內判定，IsoGridSquare.java:5855-5891）→ 送給客戶端
+-- IsoObject(cell, square, spriteName) → AddTileObject（重算碰撞、尋路與室內判定，IsoGridSquare.java:5846-5882）→ 送給客戶端
 local function placeUpper(x, y, z, north, trans)
     local cell = getCell()
     if not (x and cell:getGridSquare(x, y, z - 1)) then return false end
@@ -384,7 +384,7 @@ if not isClient() then
 
     Events.OnTick.Add(B.settle)
 
-    -- 機箱或門柱被打壞（IsoThumpable.java:1191，觸發在移走之前）
+    -- 機箱或門柱被打壞（IsoThumpable.java:1206，觸發在移走之前）
     Events.OnDestroyIsoThumpable.Add(function(thump)
         if KP.isGateEnd(thump) then B.remove(B.parts(thump)) end
     end)
@@ -399,9 +399,9 @@ if not isClient() then
     end
 
     -- 任何途徑移走一片車道或一端：整座跟著移除，不退料。殭屍或武器打壞車道走 IsoDoor.destroyGarageDoor，只拆整條車道鏈、
-    -- 不碰兩端，也不經任何 Lua 動作（IsoDoor.java:1236,1371,3460-3499；車庫門的 destroy 不掉材料，:1385-1388）。
-    -- 移除前伺服器（RemoveItemFromSquarePacket.java:151）與 SP（IsoGridSquare.java:5745）都觸發 OnObjectAboutToBeRemoved
-    -- （原版 SGlobalObjectSystem.lua:275 同樣在伺服器掛）；handler 不能移走該物件本身（IsoGridSquare.java:5746-5748），
+    -- 不碰兩端，也不經任何 Lua 動作（IsoDoor.java:1036,1157,1190,3283-3322；車庫門的 destroy 不掉材料，:1199-1202）。
+    -- 移除前伺服器（RemoveItemFromSquarePacket.java:151）與 SP（IsoGridSquare.java:5732）都觸發 OnObjectAboutToBeRemoved
+    -- （原版 SGlobalObjectSystem.lua:275 同樣在伺服器掛）；handler 不能移走該物件本身（IsoGridSquare.java:5733-5735），
     -- 所以先記下整座（這時鏈還完整），下一個 tick 再收，B.remove 略過已移走的部分。
     -- 只看 IsoDoor 車道與兩端：建造時 OnCreate 移走的是車道格的 IsoThumpable（上方 onCreate），不能當成拆除。
     -- 沒有兩端的兩層樓捲門 B.parts 回 nil：照一般車庫門，帳本由 ReaderPost 收

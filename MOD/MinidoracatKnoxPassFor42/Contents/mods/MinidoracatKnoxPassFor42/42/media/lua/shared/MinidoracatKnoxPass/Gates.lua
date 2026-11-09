@@ -15,7 +15,7 @@ local function each(pieces, fn)
     for i = 1, #pieces do fn(pieces[i]) end
 end
 
--- 雙開門第 2、3 片每次開關都會被刪掉、在別格重建（IsoDoor.java:2855-2922），整組資料一律綁第 1 片（沒有就第 4 片）
+-- 雙開門第 2、3 片每次開關都會被刪掉、在別格重建（IsoDoor.java:2678-2745），整組資料一律綁第 1 片（沒有就第 4 片）
 local function doubleAnchor(obj)
     return IsoDoor.getDoubleDoorObject(obj, 1) or IsoDoor.getDoubleDoorObject(obj, 4) or obj
 end
@@ -29,7 +29,7 @@ local function doublePieces(anchor)
     return out
 end
 
--- 車庫門：第 1 片 → 中間片（index 2，可能多片）→ 最後一片（index 3），開關時不重建（IsoDoor.java:3212-3338）
+-- 車庫門：第 1 片 → 中間片（index 2，可能多片）→ 最後一片（index 3），開關時不重建（IsoDoor.java:3035-3161）
 local function garagePieces(anchor)
     local out = {}
     local p = IsoDoor.getGarageDoorFirst(anchor) or anchor
@@ -40,10 +40,10 @@ local function garagePieces(anchor)
     return out
 end
 
--- 車庫門關門前的擋車檢查：引擎的 isGarageDoorObstructed 是私有的（IsoDoor.java:3396-3457），照它的判斷重寫：
+-- 車庫門關門前的擋車檢查：引擎的 isGarageDoorObstructed 是私有的（IsoDoor.java:3219-3280），照它的判斷重寫：
 -- 任一片的格子上有車、而且同一台車也壓到門線另一側那格（N 向 y-1、W 向 x-1）才算擋住。
--- 不先查的話 ToggleDoor 會拒關，並對開關者播 Blocked 音、顯示 HaloNote（:1583-1586），Sensor 每次重試都洗一次畫面。
--- getVehicleContainer 只回該格第一台相交的車（IsoGridSquare.java:9872-9893），同格兩台車的情況不管
+-- 不先查的話 ToggleDoor 會拒關，並對開關者播 Blocked 音、顯示 HaloNote（:1397-1400），Sensor 每次重試都洗一次畫面。
+-- getVehicleContainer 只回該格第一台相交的車（IsoGridSquare.java:9830-9851），同格兩台車的情況不管
 local function garageBlocked(anchor)
     local north = anchor:getNorth()
     for _, p in ipairs(garagePieces(anchor)) do
@@ -59,7 +59,7 @@ end
 local function isGarage(obj) return IsoDoor.getGarageDoorIndex(obj) ~= -1 end
 local function isDouble(obj) return IsoDoor.getDoubleDoorIndex(obj) ~= -1 end
 
--- 空白鑰匙的 keyId 是 -1，會配到 keyId 為 -1 的上鎖門（ItemContainer.haveThisKeyId，ItemContainer.java:3242-3255；
+-- 空白鑰匙的 keyId 是 -1，會配到 keyId 為 -1 的上鎖門（ItemContainer.haveThisKeyId，ItemContainer.java:3290-3303；
 -- Key.java:23）。上 Knox Pass 門鎖前替整組配一把沒人有的 keyId；已有 keyId 的門不動，玩家原本的鑰匙照用
 local function ensureKeyId(pieces, setter)
     for i = 1, #pieces do
@@ -70,24 +70,24 @@ local function ensureKeyId(pieces, setter)
 end
 
 -- ── IsoDoor ─────────────────────────────────────────────────────────────
--- 伺服器上 setLockedByKey 不會自動同步（IsoDoor.java:2009-2024），照 ISLockDoor.lua:50-72 手動 syncIsoObject。
--- Knox Pass 門鎖＝原版預留的 modData.CustomLock（IsoDoor.java:1491,1553：關著時沒有鑰匙的玩家打不開）＋鑰匙鎖。
+-- 伺服器上 setLockedByKey 不會自動同步（IsoDoor.java:1832-1847），照 ISLockDoor.lua:50-72 手動 syncIsoObject。
+-- Knox Pass 門鎖＝原版預留的 modData.CustomLock（IsoDoor.java:1305,1367：關著時沒有鑰匙的玩家打不開）＋鑰匙鎖。
 -- CustomLock 只擋玩家。會開門的殭屍（認知 1）歸擁有牠的客戶端模擬，拍門與開門都在客戶端跑、只看客戶端那份 locked
--- （IsoDoor.java:1179-1183、1577-1580），開了再送 SyncIsoObject，伺服器照單全收。只設 CustomLock 的門被殭屍打開後，
--- 玩家又因 CustomLock 用手關不了（couldBeOpen，ISWorldObjectContextMenuLogic.java:2296-2301；2026-10-08 玩家回報：
+-- （IsoDoor.java:1000-1004、1391-1394），開了再送 SyncIsoObject，伺服器照單全收。只設 CustomLock 的門被殭屍打開後，
+-- 玩家又因 CustomLock 用手關不了（couldBeOpen，ISWorldObjectContextMenuLogic.java:2375-2380；2026-10-08 玩家回報：
 -- 閘門被殭屍升起後放不下來）。鎖要用 lockedByKey：車庫門的 SyncIsoObject 在客戶端逐片 setLockedByKey(bLockedByKey)，
--- 連帶把 locked 蓋成同一個值（IsoDoor.java:1811-1822、2013-2016），只設 locked 的話客戶端看到的是沒鎖
+-- 連帶把 locked 蓋成同一個值（IsoDoor.java:1625-1636、1836-1839），只設 locked 的話客戶端看到的是沒鎖
 -- （zombielock-mp 1008a 實踩）。
 -- KNOX_LOCKED 記 Knox Pass 補鎖前這片原本的鎖：true＝沒鎖、1＝只有 locked；原本就是鑰匙鎖的片不補、不記。
--- 解鎖與拿掉門鎖時照它還原，引擎在有人試開時把 locked 補成的鑰匙鎖（IsoDoor.java:1529-1532）也就不會被當成原本的鎖。
+-- 解鎖與拿掉門鎖時照它還原，引擎在有人試開時把 locked 補成的鑰匙鎖（IsoDoor.java:1343-1346）也就不會被當成原本的鎖。
 -- 車庫門在 MP 回不到「只有 locked」：客戶端收到後鏈上其他片的鑰匙鎖由 true 變 false，setLockedByKey 會把 locked=false
--- 回送伺服器（IsoDoor.java:2017-2022），原版地圖車庫門解鑰匙鎖也一樣（zombielock-mp Z6）；一般門與 SP 照常還原
--- 引擎會在別的路徑清掉鎖（柵欄門有人試開、有鑰匙的人開關，IsoDoor.java:1517-1520、1562-1565），Sensor 每 5 秒補回（S.relock）
+-- 回送伺服器（IsoDoor.java:1840-1845），原版地圖車庫門解鑰匙鎖也一樣（zombielock-mp Z6）；一般門與 SP 照常還原
+-- 引擎會在別的路徑清掉鎖（柵欄門有人試開、有鑰匙的人開關，IsoDoor.java:1331-1334、1376-1379），Sensor 每 5 秒補回（S.relock）
 local KNOX_LOCKED = "KnoxPassLocked"
 
 local function syncDoor(p) p:syncIsoObject(false, 0, nil, nil) end
 
--- 開關時同步的那一片（客戶端只有被同步的那片播 clip，IsoDoor.java:1798-1835）：掛 3D 模型的門（單臂閘門、模型門）是
+-- 開關時同步的那一片（客戶端只有被同步的那片播 clip，IsoDoor.java:1612-1649）：掛 3D 模型的門（單臂閘門、模型門）是
 -- 掛模型那片（KP.hostLane），原版車庫門與捲門照原版同步錨點。寬度用門的固定寬度，不用鏈的長度：伺服器那邊鏈可能因
 -- chunk 沒載入被截短，兩邊會算出不同片；那片沒載入就退回錨點（沒有原生動畫，客戶端 BarrierAnim 補播）
 local function syncPiece(pieces)
@@ -98,8 +98,8 @@ local function syncPiece(pieces)
 end
 
 -- 逐片同步鎖時，開關要同步的那一片排第一：客戶端收到第一包時照片段清單改其他片的鎖，值變了就把那片回送伺服器
--- （IsoDoor.java:2013-2023、IsoObject.java:885-887），伺服器把回送者記成那片的 lastPlayerOnlineId（:1758），之後
--- 開關同步那片都帶著這個 ID，所有客戶端對他 setNoCollision、在他身上播門聲（:1777-1806）。第一包的那片自己不會被回送
+-- （IsoDoor.java:1836-1846、IsoObject.java:887-889），伺服器把回送者記成那片的 lastPlayerOnlineId（:1572），之後
+-- 開關同步那片都帶著這個 ID，所有客戶端對他 setNoCollision、在他身上播門聲（:1591-1620）。第一包的那片自己不會被回送
 local function syncOrder(pieces)
     local first = syncPiece(pieces)
     local out = { first }
@@ -109,20 +109,20 @@ local function syncOrder(pieces)
     return out
 end
 
--- 車庫門鏈的開關：逐片做原版 toggleGarageDoorObject 除了清鎖以外的事（IsoDoor.java:3344-3366），鎖不動，
--- 再由一片同步一次（同 :3384-3386；客戶端照片段清單更新整條鏈、只有被同步的那片播 clip，:1798-1835）。
+-- 車庫門鏈的開關：逐片做原版 toggleGarageDoorObject 除了清鎖以外的事（IsoDoor.java:3167-3189），鎖不動，
+-- 再由一片同步一次（同 :3207-3209；客戶端照片段清單更新整條鏈、只有被同步的那片播 clip，:1612-1649）。
 -- 同步哪一片見 syncPiece：模型掛在中間片的門同步那片，否則同步錨點。
--- 原版 toggle 逐片清鑰匙鎖（:3352），上鎖的門開一次、關好鎖回一次，鏈上的鎖就各翻一次；客戶端改到鏈上其他片的鎖時，
--- 會把那片當下的開關回送伺服器（:1811-1822、:2013-2023），伺服器照單全收、轉給其他附近客戶端（:1845-1856）。
+-- 原版 toggle 逐片清鑰匙鎖（:3175），上鎖的門開一次、關好鎖回一次，鏈上的鎖就各翻一次；客戶端改到鏈上其他片的鎖時，
+-- 會把那片當下的開關回送伺服器（:1625-1636、:1836-1846），伺服器照單全收、轉給其他附近客戶端（:1659-1670）。
 -- 客戶端一卡，晚到的回送就把門翻回去，附近兩人以上時互相觸發（正式服 2026-10-11，0.3.0：九格閘門附近 4–5 條連線
 -- 各 200–1914 包/秒，多數人斷線）。鎖不變，客戶端沒有片要改，就不回送。
--- 尋路用 setSquareChanged（IsoGridSquare.java:4734-4739，內含 toggle 呼叫的 PolygonalMap2.squareChanged，後者沒曝露給 Lua），
--- 它也通知室內判定（IsoRegions.squareChanged）：照原版放、拆東西（IsoGridSquare.java:5810、5846）先記下翻之前的位元，
+-- 尋路用 setSquareChanged（IsoGridSquare.java:4719-4724，內含 toggle 呼叫的 PolygonalMap2.squareChanged，後者沒曝露給 Lua），
+-- 它也通知室內判定（IsoRegions.squareChanged）：照原版放、拆東西（IsoGridSquare.java:5801、5837）先記下翻之前的位元，
 -- 位元變了才重算這格。不先記的話，比的是上一個呼叫者留下的靜態值（IsoRegions.java:301-320），剛好相同就漏掉；
 -- 位元沒變（模型門、閘門的車道片沒有牆屬性）也不會每片都重算、存檔並廣播給所有客戶端（IsoRegionWorker.java:242-262）。
--- 開關聲在錨點那格播（playServerSound 送給約 10 格內的人，LuaManager.java:3892-3894、GameServer.java:2136-2154）：
--- 原版靠封包裡的開關者 ID 在他身上播（IsoDoor.java:1776-1806）；這個 ID 由 ToggleDoorActual（:1502-1505）或客戶端回送
--- 那片時（:1758）寫入，所以逐片同步鎖要照 syncOrder 的順序，開關同步的那片才不會帶著某位玩家的 ID。
+-- 開關聲在錨點那格播（playServerSound 送給約 10 格內的人，LuaManager.java:3909-3911、GameServer.java:2158-2176）：
+-- 原版靠封包裡的開關者 ID 在他身上播（IsoDoor.java:1590-1620）；這個 ID 由 ToggleDoorActual（:1316-1319）或客戶端回送
+-- 那片時（:1572）寫入，所以逐片同步鎖要照 syncOrder 的順序，開關同步的那片才不會帶著某位玩家的 ID。
 -- 不查擋車：呼叫端關門前先看 isBlocked（同 toggleGarageDoor，AGENTS.md 踩坑錄）
 -- indoor＝這扇門勾了「算室內」（rec.indoor）：翻完才記位元，引擎看到位元沒變就不重算，紀錄留著勾選時寫的牆（G.syncRegions）
 local function setGarageOpen(anchor, open, indoor)
@@ -150,7 +150,7 @@ end
 -- ── 室內判定（IsoRegions）────────────────────────────────────────────────
 -- 自建屋算不算室內看引擎的 IsoRegions（封閉且每格有屋頂才是 isPlayerRoom，IsoWorldRegion.java:146-158；MP 體溫在伺服器算）。
 -- 每格的牆位元只在有人呼叫 IsoRegions.squareChanged 時重算，原版開關門都不呼叫：右鍵選單（ISOpenCloseDoor:complete →
--- ToggleDoor → toggleGarageDoor，IsoDoor.java:1582-1590、3344-3366）、客戶端送來的 SyncIsoObject（會開門的殭屍，:1832-1834）。
+-- ToggleDoor → toggleGarageDoor，IsoDoor.java:1396-1404、3167-3189）、客戶端送來的 SyncIsoObject（會開門的殭屍，:1646-1648）。
 -- 原版車庫門片（walls_garage_01）關著有牆屬性、開著沒有，這些路徑開關後判定就停在舊狀態，重開服也不會更正
 -- （區塊只在第一次載入時讀，IsoRegionWorker.readSurroundingChunks）。
 -- 位元照 IsoRegions.calculateSquareFlags（IsoRegions.java:322-349；它是 protected，Lua 叫不到）
@@ -224,7 +224,7 @@ local doorAdapter = {
         return "Door"
     end,
     isOpen = function(anchor) return anchor:IsOpen() end,
-    -- ToggleDoor 必須傳真的 IsoPlayer：IsoDoor 傳 nil 什麼都不做（IsoDoor.java:1501）。車庫門鏈不經 ToggleDoor（setGarageOpen）
+    -- ToggleDoor 必須傳真的 IsoPlayer：IsoDoor 傳 nil 什麼都不做（IsoDoor.java:1315）。車庫門鏈不經 ToggleDoor（setGarageOpen）
     setOpen = function(anchor, open, player, indoor)
         if anchor:IsOpen() ~= open then
             if isGarage(anchor) then setGarageOpen(anchor, open, indoor) else anchor:ToggleDoor(player) end
@@ -238,7 +238,7 @@ local doorAdapter = {
     end,
     -- 開門前解除整組的鑰匙鎖與 Knox Pass 門鎖，回傳原本的鎖別（關好後照原樣鎖回）：
     -- 2＝鑰匙鎖；1＝只有 locked。locked 也要清：ToggleDoorActual 會把「locked 且有 keyId」補成 lockedByKey
-    -- （IsoDoor.java:1529-1532）。Knox Pass 補過鎖的片，原本的鎖看 KNOX_LOCKED。
+    -- （IsoDoor.java:1343-1346）。Knox Pass 補過鎖的片，原本的鎖看 KNOX_LOCKED。
     -- 車庫門鏈不解：開關不經 ToggleDoor（setGarageOpen），鎖整段保持原樣，客戶端才不回送
     unlock = function(anchor, pieces)
         if isGarage(anchor) then return nil end
@@ -266,7 +266,7 @@ local doorAdapter = {
     -- 只在狀態真的變了才傳送與同步：Sensor 每 5 秒對關著的上鎖門呼叫一次（S.relock）
     lock = function(anchor, pieces, knoxLock, keyed)
         if knoxLock then
-            -- 先沿用建築的 keyId（IsoDoor.java:2372-2398），房屋門上原本的鑰匙才不會失效
+            -- 先沿用建築的 keyId（IsoDoor.java:2195-2221），房屋門上原本的鑰匙才不會失效
             each(pieces, function(p) p:checkKeyId() end)
             ensureKeyId(pieces, function(p, id) p:setKeyId(id) end)
         end
@@ -297,7 +297,7 @@ local doorAdapter = {
             local md = p:getModData()
             local own = md[KNOX_LOCKED]
             if own ~= nil then
-                p:setLockedByKey(false)   -- 連帶清 locked（IsoDoor.java:2013-2016）
+                p:setLockedByKey(false)   -- 連帶清 locked（IsoDoor.java:1836-1839）
                 if own == 1 then p:setLocked(true) end
                 syncDoor(p)
             end
@@ -310,8 +310,8 @@ local doorAdapter = {
 }
 
 -- ── IsoThumpable（玩家建造的門）─────────────────────────────────────────
--- 鎖只在開門者站在室外格、身上沒有鑰匙時生效（IsoThumpable.java:1258-1274），Knox Pass 門鎖就用 lockedByKey；
--- 擁有對應鑰匙的人照樣能用手開。引擎不支援 IsoThumpable 車庫門（IsoDoor.java:3369-3380），不接手
+-- 鎖只在開門者站在室外格、身上沒有鑰匙時生效（IsoThumpable.java:1273-1289），Knox Pass 門鎖就用 lockedByKey；
+-- 擁有對應鑰匙的人照樣能用手開。引擎不支援 IsoThumpable 車庫門（IsoDoor.java:3192-3203），不接手
 
 local thumpAdapter = {
     id = "vanilla.IsoThumpable",
@@ -331,7 +331,7 @@ local thumpAdapter = {
         return "Door"
     end,
     isOpen = function(anchor) return anchor:IsOpen() end,
-    -- chr 為 nil 會在狀態翻轉後、同步前 NPE（IsoThumpable.java:1297,1310,1313）
+    -- chr 為 nil 會在狀態翻轉後、同步前 NPE（IsoThumpable.java:1312,1325,1328）
     setOpen = function(anchor, open, player)
         if anchor:IsOpen() ~= open then anchor:ToggleDoor(player) end
         return anchor:IsOpen() == open
@@ -554,7 +554,7 @@ end
 -- 公開給其他 MOD（家族 AutoDrive 用）：obj 是一扇 Knox Pass 大門的任一片、而且 Knox Pass 會替這台車開它時回 true。
 -- 條件：車上裝著有電的感應盒、這顆感應盒登記在這扇門（伺服器推送的清單，Sensor.lua pushPasses），或駕駛是本機玩家、
 -- 戴著有作用的地圖手錶模組、這顆模組登記在這扇門（任何一台車都算，Sensor.lua scanDriver 同一份規則）；
--- 門需要供電時有電（KP.squarePowered 在客戶端可用：發電機看區塊資料、電網看沙盒，IsoGridSquare.java:9696,11799）。
+-- 門需要供電時有電（KP.squarePowered 在客戶端可用：發電機看區塊資料、電網看沙盒，IsoGridSquare.java:9654,11756）。
 -- 是預告不是保證：伺服器仍可能開不了（門片擺動範圍被擋、剛斷電、延遲），呼叫端要能在門前停住。
 -- 裝了讀頭的門不會開時，第二個回傳值是原因代碼（whyText 轉成玩家語言）：NoTag、NotRegistered、TagEmpty、NoPower，
 -- 模組登記了這扇門但手錶沒作用（沒戴、沒電、槽位失效）時是 WatchOff，開門方式是「閃一下大燈才開」、而且不是 AutoDrive

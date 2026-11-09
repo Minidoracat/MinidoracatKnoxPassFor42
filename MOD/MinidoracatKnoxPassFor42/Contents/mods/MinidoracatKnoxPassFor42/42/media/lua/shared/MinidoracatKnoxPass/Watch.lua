@@ -24,9 +24,9 @@ local function register()
         desc = "IGUI_KnoxPass_WatchModule_Desc", class = "standard", drain = 10, item = KP.WATCH_ITEM }) == true
     if not registered then KP.log("Map Watch module was not registered") end
 end
--- Lua 照 Mods= 順序載入（LuaManager.java:1151-1188；只有 require= 會排前面，ZomboidFileSystem.java:819-866）：
--- 地圖手錶先載入就馬上登記；Knox Pass 先載入時等所有 MOD 的 Lua 載完（OnGameBoot：伺服器 GameServer.java:1496，
--- 客戶端重載 Lua 後 Core.java:3962）。loadModAfter 只有客戶端的 MOD 排序畫面讀，伺服器不看
+-- Lua 照 Mods= 順序載入（LuaManager.java:1152-1189；只有 require= 會排前面，ZomboidFileSystem.java:819-866）：
+-- 地圖手錶先載入就馬上登記；Knox Pass 先載入時等所有 MOD 的 Lua 載完（OnGameBoot：伺服器 GameServer.java:1536，
+-- 客戶端重載 Lua 後 Core.java:3553）。loadModAfter 只有客戶端的 MOD 排序畫面讀，伺服器不看
 register()
 Events.OnGameBoot.Add(register)
 
@@ -70,11 +70,11 @@ function KP.wornPass(player, rec)
     return s ~= nil and type(rec.mods) == "table" and rec.mods[s] ~= nil
 end
 
--- 物品腳本 OnCreate（items_knoxpass.txt WatchModule）。每次建立物品都會呼叫（Item.java:1916-1919 →
--- InventoryItem.java:4264-4271），也包含讀檔、客戶端收到物品、地圖手錶拆下模組；這些情況原本的 modData 隨後蓋回來，
+-- 物品腳本 OnCreate（items_knoxpass.txt WatchModule）。每次建立物品都會呼叫（Item.java:1921-1924 →
+-- InventoryItem.java:4296-4303），也包含讀檔、客戶端收到物品、地圖手錶拆下模組；這些情況原本的 modData 隨後蓋回來，
 -- 所以序號不變。這時物品還沒有 ID（InventoryItemFactory.java:116 先建立、:139 才給 ID），所以自己抽一個隨機數
 function KP.onModuleCreate(item)
-    item:getModData()[KP.SERIAL_KEY] = ZombRandBetween(1, 2147483647)   -- LuaManager.java:7076，long 範圍
+    item:getModData()[KP.SERIAL_KEY] = ZombRandBetween(1, 2147483647)   -- LuaManager.java:7012，long 範圍
 end
 
 -- 配方 OnTest（recipes_knoxpass.txt CraftKnoxPassWatchModule）：伺服器完成製作時再查一次，右鍵快速製作也看它

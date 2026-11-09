@@ -1,7 +1,7 @@
 -- 伺服器指令：client 只送意圖（sendClientCommand），這裡重查一切再改世界。
 -- 指令：install、uninstall、dismantle、register、unregister、lock、settings、managers、findPlayers、open、close、query、recolor、
 -- recolorReader。回覆：state（只給能管理這扇門的人）、players（共同管理者候選）、result。
--- SP 的 sendServerCommand 是 no-op（LuaManager.java:8952-8970），回覆直接交給 client 的接收函式（家族 VM 同做法）。
+-- SP 的 sendServerCommand 是 no-op（LuaManager.java:8888-8906），回覆直接交給 client 的接收函式（家族 VM 同做法）。
 if isClient() then return end
 require "MinidoracatKnoxPass/Core"
 require "MinidoracatKnoxPass/Gates"
@@ -482,7 +482,7 @@ end
 -- （KP.Barrier.allowDismantle；裝讀頭只查點到的那一格，擁有者也照查，不然先在屋外那頭裝讀頭就能拆）。工具 KP.dismantleTool，焊槍扣一格；
 -- 站在那一端 2 格內、不在車上。KP.Barrier.remove 連帳本、門柱讀頭模型、Sensor 狀態一起清（L.remove → ReaderPost R.detach）。
 -- 退料在那一端的格子：每項 ZombRand(v)+1（原版 ISDismantleAction.lua:69-72）；另外裝上去的讀頭退回同色一個（同 H.uninstall，
--- 閘門內建的不退：組件已在材料裡）。AddWorldInventoryItem(String…) 在伺服器自己送給客戶端（IsoGridSquare.java:6047-6049）
+-- 閘門內建的不退：組件已在材料裡）。AddWorldInventoryItem(String…) 在伺服器自己送給客戶端（IsoGridSquare.java:6038-6040）
 function H.dismantle(player, args)
     local cmd = "dismantle"
     if not (KP.isInt(args.x) and KP.isInt(args.y) and KP.isInt(args.z)) then return result(player, cmd, false, "BadArgs") end
@@ -722,7 +722,7 @@ end
 
 -- 身上帶著已登記、有電的感應盒
 local function carriedTag(player, rec)
-    local list = player:getInventory():getAllEvalRecurse(KP.isTag)   -- 7 色都算（ItemContainer.java:1936）
+    local list = player:getInventory():getAllEvalRecurse(KP.isTag)   -- 7 色都算（ItemContainer.java:1984）
     for i = 0, list:size() - 1 do
         local item = list:get(i)
         if rec.tags[item:getID()] and KP.charge(item) > 0 then return item end
@@ -756,7 +756,7 @@ function H.recolor(player, args)
         sendAddItemToContainer(container, fresh)
     end
     local gates = isTag and L.renameTag(item:getID(), fresh:getID()) or 0
-    paint:UseAndSync()   -- 用掉一格並同步（InventoryItem.java:1275-1277→DrainableComboItem.java:322-383；用完換成空桶）
+    paint:UseAndSync()   -- 用掉一格並同步（InventoryItem.java:1279-1281→DrainableComboItem.java:322-383；用完換成空桶）
     KP.log("recolor " .. tostring(item:getFullType()) .. " -> " .. tostring(fresh:getFullType()) .. " gates=" .. gates
         .. " by=" .. tostring(player:getUsername()))
     result(player, cmd, true)
@@ -944,7 +944,7 @@ function H.managers(player, args)
     KP.sendState(player, args.key)
 end
 
--- 原版切大燈（ISVehicleMenu.onToggleHeadlights → module vehicle、command setHeadlightsOn，VehicleCommands.lua:105-111）
+-- 原版切大燈（ISVehicleMenu.onToggleHeadlights → module vehicle、command setHeadlightsOn，VehicleCommands.lua:73-79）
 -- 也經過這裡：交給 Sensor 記下閃燈（S.noteHeadlights）。原版自己的處理照跑（各自註冊的 OnClientCommand）
 local function onClientCommand(module, command, player, args)
     if module == "vehicle" and command == "setHeadlightsOn" then return S.noteHeadlights(player) end

@@ -25,7 +25,7 @@ KP.CHARGE_MIN_BATTERY = 0.1
 KP.DRAIN_PER_OPEN = 0.01                          -- 每次開門耗電（再乘沙盒耗電倍率）
 
 -- 抬升閘門（scripts/build_barrier_tiles.py 產生 tile 與 spriteModels；索引表見該檔 docstring）：
--- 0-2／3-5＝N／W 向車道 1-3（關，GarageDoor 1-3），8-13＝開（關＋8，IsoDoor.java:793-805），6／7＝N／W 向機箱；
+-- 0-2／3-5＝N／W 向車道 1-3（關，GarageDoor 1-3），8-13＝開（關＋8，IsoDoor.java:614-626），6／7＝N／W 向機箱；
 -- 16-24／32-40＝N／W 向臂的靜態姿勢（只在 spriteModels，SP 動畫步進用）。
 -- S／E 向＝N／W 向轉 180°（機箱在另一端），編號一律＋80：車道 80-85、開 88-93、機箱 86／87、姿勢 96-152。
 -- 轉過來門線落在這一列的南邊／這一行的東邊，門只能在 N／W 邊，所以 S／E 的車道門片建在下一列／下一行（Barrier.lua）。
@@ -79,12 +79,12 @@ function KP.fastTwin(spriteName)
 end
 
 -- 模型門（scripts/build_model_gates.py 產生）：雙桿閘門、兩層樓捲門（16 色）、兩層樓大門（五種外觀＋鐵網上色款）。MOD 的 tiledef
--- 每個 tileset 最多 512 格（IsoWorld.java:639-640），所以每個款式一個 tileset。編號＝區塊×64＋格位，區塊＝寬度序×方向數＋方向序。
+-- 每個 tileset 最多 512 格（IsoWorld.java:651-652），所以每個款式一個 tileset。編號＝區塊×64＋格位，區塊＝寬度序×方向數＋方向序。
 -- 格位：0／1／2＝車道（關，GarageDoor 1、中間片、最後一片；第 1 片是錨點：帳本、讀頭、標記都綁它），8-10＝開（關＋8，
--- IsoDoor.java:793-805），3／4＝兩端 A／B（A 在車道 1 那頭；機箱或門柱，實心 IsoThumpable），16 起＝建造替代 tile
+-- IsoDoor.java:614-626），3／4＝兩端 A／B（A 在車道 1 那頭；機箱或門柱，實心 IsoThumpable），16 起＝建造替代 tile
 -- （車道 k＝16＋k−1，沒有 GarageDoor），32-40／48-56＝抬起／放下姿勢（只在 spriteModels，SP 動畫步進用），
 -- 5／13＝中間片（KP.hostLane）靜止時的關／開模型（只在 spriteModels，client 的 BarrierAnim 指名給那一片）。
--- 3D 模型掛中間片、不掛錨點：半透明層只畫格子在畫面上的物件（FBORenderCell.java:3558），掛錨點時錨點那格出畫面整座不見。
+-- 3D 模型掛中間片、不掛錨點：半透明層只畫格子在畫面上的物件（FBORenderCell.java:3541），掛錨點時錨點那格出畫面整座不見。
 -- 擺放：N／S 一列西→東 [A] 車道 1..L [B]；W／E 一行北→南 [B] 車道 L..1 [A]。門只能在 N／W 邊，S／E 的車道門片
 -- 建在下一列／下一行（同轉 180° 的單臂閘門）。耐久照大小（2026-10-08 使用者決定）：一車 1000、兩車 1500、三車 2000，兩層樓 +500。
 -- upper＝兩層樓：二樓門線另放看不見的牆（server/Barrier.lua 的二樓隱形牆）
@@ -154,7 +154,7 @@ end
 KP.SEE_THROUGH = { MinidoracatKnoxPass_gate_a = true, MinidoracatKnoxPass_gate_c = true }
 
 -- 兩層樓捲門拆除的退料（server/Barrier.lua B.dismantle）：沒有兩端，門片是 IsoDoor、沒有 buildMaterials，改照配方裡建造會記下的
--- 材料（ISBuildingObject.lua:353-367 getAllRecordedConsumedItems：不含 mode:keep 的工具與 DontRecordInput）。寬度 → { [物品] = 數量 }，
+-- 材料（ISBuildingObject.lua:357-371 getAllRecordedConsumedItems：不含 mode:keep 的工具與 DontRecordInput）。寬度 → { [物品] = 數量 }，
 -- 拆除時每項退 1..數量。BEGIN／END 之間由 scripts/build_model_gates.py 照兩層樓捲門的配方產生（build_barrier_tiles.py --check 核對），不要手改
 -- BEGIN build_model_gates.py ROLL2F_REFUND
 KP.ROLL2F_REFUND = {
@@ -208,9 +208,9 @@ function KP.gateAnchor(mg, x, y)
     return x + a[1] + d[1], y + a[2] + d[2]
 end
 
--- 車道 tile 的 DoorWallN／W（關著時車輛的 WallN／WallW 物理形狀 IsoChunk.java:2071-2091、AutoDrive 的 closedDoor）
--- 不寫在 .tiles：從 .tiles 載入會連帶設 sprite.cutN／cutW（IsoWorld.java:928-941），車道變成 cutaway 的外牆，
--- 玩家在閘線附近時車庫門只畫 2D sprite、不畫 3D 臂（IsoGridSquare.java:1318-1319、2301-2309、2392-2394），
+-- 車道 tile 的 DoorWallN／W（關著時車輛的 WallN／WallW 物理形狀 IsoChunk.java:2070-2090、AutoDrive 的 closedDoor）
+-- 不寫在 .tiles：從 .tiles 載入會連帶設 sprite.cutN／cutW（IsoWorld.java:940-953），車道變成 cutaway 的外牆，
+-- 玩家在閘線附近時車庫門只畫 2D sprite、不畫 3D 臂（IsoGridSquare.java:1304-1305、2286-2294、2377-2379），
 -- 開著與動畫中的臂整支看不到（barrier-mp 2026-10-05 實踩）。這裡只補旗標與鍵，不設 cutN／cutW
 local function doorWall(name, edge)
     local spr = getSprite(name)
@@ -344,7 +344,7 @@ end
 
 -- 同一批配方的 OnAddToMenu：服主關掉製作時不列出。只靠 OnTest 的話，合成視窗連材料都不放進輸入，
 -- 每格顯示 0、只寫「缺少必需物品」，玩家以為缺材料（2026-10-19 玩家回報；家族 pitfalls.md「CraftRecipe」）。
--- 引擎經 callLuaBool 只用全域名稱查（LuaManager.java:5745-5746），所以是全域函式；
+-- 引擎經 callLuaBool 只用全域名稱查（LuaManager.java:5772-5773），所以是全域函式；
 -- 原版清單與圖示兩種排法都問它（ISRecipeScrollingListBox.lua:344-348、ISTiledIconPanel.lua:193-197）
 function MinidoracatKnoxPass_recipeShown()
     return KP.canCraft()
@@ -410,7 +410,7 @@ end
 
 -- 換成顏色 c 要用的原版油漆（身上含背包、至少一格）與油漆刷（tag base:paintbrush）：原版刷油漆同款查法
 -- （ISPaintCursor.lua:227 getFirstTagRecurse(ItemTag.PAINTBRUSH)、getFirstTypeRecurse(paintType)），多跳過 0 格的罐子
--- （getFirstTypeEvalRecurse，ItemContainer.java:1569）。回傳油漆；缺什麼回 nil, 原因代碼（NoBrush／NoPaint）。
+-- （getFirstTypeEvalRecurse，ItemContainer.java:1617）。回傳油漆；缺什麼回 nil, 原因代碼（NoBrush／NoPaint）。
 -- 伺服器重驗與 client 選單共用
 local function hasUse(item) return item:getCurrentUses() >= 1 end
 function KP.paintFor(player, c)
@@ -461,7 +461,7 @@ end
 
 -- ── 供電 ────────────────────────────────────────────────────────────────
 
--- 發電機（haveElectricity，IsoGridSquare.java:9696）或電網（hasGridPower，:11799）都算。
+-- 發電機（haveElectricity，IsoGridSquare.java:9654）或電網（hasGridPower，:11756）都算。
 -- 刻意不照原版室外電器要求 getRoom()（ISWorldObjectContextMenu.lua:460-461）：大門在室外，照原版就永遠吃不到電網
 function KP.squarePowered(sq)
     return sq ~= nil and (sq:haveElectricity() or sq:hasGridPower())
@@ -469,7 +469,7 @@ end
 
 -- ── 玩家 ────────────────────────────────────────────────────────────────
 
--- server 走在線清單；SP 的 getOnlinePlayers 回空清單（LuaManager.java:4453-4463），改走本機玩家
+-- server 走在線清單；SP 的 getOnlinePlayers 回空清單（LuaManager.java:4470-4480），改走本機玩家
 function KP.eachPlayer(fn)
     if isServer() then
         local list = getOnlinePlayers()
@@ -505,7 +505,7 @@ end
 
 -- 能管理別人讀頭的角色：能管理安全屋（CanSetupSafehouses；42.21 預設 moderator、admin，Roles.java:446-475），
 -- 同原版安全屋加人介面的判斷（ISSafehouseAddPlayerUI.lua:150）。伺服器 canManage 與客戶端右鍵選單共用；
--- SP 沒有擁有權，由呼叫端處理（Capability 已曝露，LuaManager.java:2460；IsoPlayer.getRole 可能為 nil）
+-- SP 沒有擁有權，由呼叫端處理（Capability 已曝露，LuaManager.java:2468；IsoPlayer.getRole 可能為 nil）
 function KP.hasAdminRole(player)
     if not player or not Capability then return false end
     local ok, yes = pcall(function()
@@ -558,7 +558,7 @@ function KP.installAllowedAt(sq, name)
     return outsideRule() < 3 or KP.inOwnSafehouse(sq, name)
 end
 
--- 身上（含背包）沒壞的螺絲起子（ISWorldObjectContextMenu.lua:1369 同款）：裝拆讀頭的伺服器重驗與客戶端選單共用
+-- 身上（含背包）沒壞的螺絲起子（ISWorldObjectContextMenu.lua:1368 同款）：裝拆讀頭的伺服器重驗與客戶端選單共用
 local function notBroken(item) return not item:isBroken() end
 function KP.screwdriverOf(player)
     return player:getInventory():getFirstTagEvalRecurse(ItemTag.SCREWDRIVER, notBroken)

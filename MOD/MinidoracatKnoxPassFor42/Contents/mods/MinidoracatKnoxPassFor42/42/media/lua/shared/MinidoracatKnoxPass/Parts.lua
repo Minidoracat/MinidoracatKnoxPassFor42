@@ -1,13 +1,13 @@
 -- 感應盒零件槽：OnGameBoot 從 template 追加到每個有電瓶的車型（原版與 MOD 車），拆裝走原版維修面板。
--- OnGameBoot 在腳本載入後、建車之前（server GameServer.java:1447→:1496；client GameWindow.java:203→:670），
--- 回主選單／ResetLua 會再發（Core.java:3962、IngameState.java:1077），注入必須冪等。
+-- OnGameBoot 在腳本載入後、建車之前（server GameServer.java:1487→:1536；client GameWindow.java:203→:659），
+-- 回主選單／ResetLua 會再發（Core.java:3553、IngameState.java:1076），注入必須冪等。
 -- client 與 server 都要注入，兩邊零件順序才一致（網路用 part index）。做法沿用家族 AutoDrive MDAD_DeviceParts.lua。
 require "MinidoracatKnoxPass/Core"
 require "MinidoracatKnoxPass/DockSpots"
 local KP = MinidoracatKnoxPass
 
 -- 42.21 的零件同步封包以 `& 255` 讀索引、255 當結束標記（VehiclePartItem.java:21、VehiclePartUsedDelta.java:29），
--- 加上這一槽後零件總數最多 255。零件模型封包的索引是有號 byte（VehiclePartModels.java:31、:52），
+-- 加上這一槽後零件總數最多 255。零件模型封包的索引是有號 byte（VehiclePartModels.java:31、:59），
 -- 索引超過 127 的車型照樣有槽、但 KP.syncDock 不顯示模型（42.21 實測最多 67 個零件，見 KP.dockPlacement）
 local MAX_PARTS = 255
 local MAX_MODEL_INDEX = 127
@@ -30,9 +30,9 @@ KP.DOCK_MODEL_ID = "Dock"
 function KP.dockModelId(c) return KP.DOCK_MODEL_ID .. KP.COLORS[c + 1].suffix end
 
 -- 回傳零件模型的 offset（x,y,z，車輛模型的未縮放單位）、scale 與 rotate.x（度）；推算不出來回 nil（不顯示模型）。
--- 渲染：車身矩陣＝底盤旋轉×T(模型 offset)×S(車輛 scale)，零件模型再乘 T(offset)×R×S(scale)（BaseVehicle.java:4387-4471），
+-- 渲染：車身矩陣＝底盤旋轉×T(模型 offset)×S(車輛 scale)，零件模型再乘 T(offset)×R×S(scale)（BaseVehicle.java:4421-4505），
 -- 所以 offset＝(目標點－模型 offset)/車輛 scale，scale＝1/車輛 scale 才是 1:1 公尺。
--- R＝rotationXYZ(rotate.x, -rotate.y, -rotate.z)（:4418-4423）；網格 +Y 上、+Z 車頭，rotate.x 為負時上緣往車尾倒（玻璃後傾）
+-- R＝rotationXYZ(rotate.x, -rotate.y, -rotate.z)（:4452-4457）；網格 +Y 上、+Z 車頭，rotate.x 為負時上緣往車尾倒（玻璃後傾）
 function KP.dockPlacement(script)
     local vs = script:getModelScale()
     local mo = script:getModelOffset()
@@ -132,13 +132,13 @@ function KP.injectParts()
 end
 
 -- 7 個 Dock 只顯示裝著的那一色（setAllModelsVisible = false，引擎不會自己切換）；沒裝、車型不掛模型或索引超過 127 就全關。
--- 呼叫點：零件 lua.init（每次 addToWorld：新車、存檔載入、MP 客戶端收到整車封包，BaseVehicle.java:7964→:868-869，
+-- 呼叫點：零件 lua.init（每次 addToWorld：新車、存檔載入、MP 客戶端收到整車封包，BaseVehicle.java:8013→:877-878，
 -- VehicleParts.java:265-272；管理員修車換了物品也會呼叫，VehiclePart.java:956-971）、安裝／拆下的 complete（Server.lua）、
--- 零件 update（其他 MOD 直接換物品時補正）。create 緊接著就是 init（BaseVehicle.java:868-869），不另外接。
--- setModelVisible：已顯示再開、沒顯示再關都直接返回，不標記同步（BaseVehicle.java:1707-1754），所以 update 每次呼叫也便宜；
+-- 零件 update（其他 MOD 直接換物品時補正）。create 緊接著就是 init（BaseVehicle.java:877-878），不另外接。
+-- setModelVisible：已顯示再開、沒顯示再關都直接返回，不標記同步（BaseVehicle.java:1719-1766），所以 update 每次呼叫也便宜；
 -- 真的變了才標記 updateFlags 64，伺服器下一輪車輛更新封包送給客戶端（VehiclePartModels.java）。
 -- MP 客戶端也要在 init 自己算：整車封包只有 save／load，不含已顯示的零件模型（VehicleFullUpdatePacket.java:122-127、
--- VehicleManager.java:167-169 不帶 64），之後才進範圍的客戶端只能靠這裡。
+-- VehicleManager.java:171-173 不帶 64），之後才進範圍的客戶端只能靠這裡。
 function KP.syncDock(vehicle, part)
     if not (vehicle and part) then return end
     local item = part:getInventoryItem()
@@ -154,7 +154,7 @@ function KP.onPartCreate(_, part)
 end
 
 -- 充電。引擎只在 server／SP、而且車有人駕駛、引擎運轉或維修面板開著時呼叫零件 update
--- （VehicleParts.java:370-409、BaseVehicle.java:3507-3511），停著沒人的車不充電。
+-- （VehicleParts.java:370-409、BaseVehicle.java:3540-3544），停著沒人的車不充電。
 -- stream-in 後第一次呼叫會帶整段離線時間，單次最多算 5 分鐘
 function KP.onPartUpdate(vehicle, part, elapsedMinutes)
     if isClient() then return end

@@ -4,8 +4,8 @@
 -- 感應距離與關門延遲每扇門可以不同（擁有者設定、夾在沙盒上下限內：KP.gateRange／KP.gateDelay）；開門方式設成
 -- 「閃一下大燈才開」的門，車要先閃燈（S.noteHeadlights）。
 -- 「不會被破壞」的門也在這裡墊高耐久（下方「不會被破壞」段）。
--- 專用伺服器也會觸發 OnTick（GameServer.java:840,1020 → IngameState.java:1520,1563）；
--- OnPlayerUpdate 在伺服器不觸發（IsoPlayer.java:2234-2286），所以走 OnTick＋玩家清單。
+-- 專用伺服器也會觸發 OnTick（GameServer.java:851,1060 → IngameState.java:1519,1562）；
+-- OnPlayerUpdate 在伺服器不觸發（IsoPlayer.java:2239-2291），所以走 OnTick＋玩家清單。
 if isClient() then return end
 require "MinidoracatKnoxPass/Core"
 require "MinidoracatKnoxPass/Gates"
@@ -52,9 +52,9 @@ function S.forget(key)
     runtime[key] = nil
 end
 
--- 有玩家站在門口格或門另一側那格就不關（引擎只檢查車與固體物件，IsoDoor.java:2734-2767）。殭屍不擋：關門不會
+-- 有玩家站在門口格或門另一側那格就不關（引擎只檢查車與固體物件，IsoDoor.java:2557-2590）。殭屍不擋：關門不會
 -- 推動殭屍，它留在原本那一側；擋的話，跟著車進門的殭屍會讓門一直開著（2026-10-07 使用者決定）。
--- 雙開門打開時第 2、3 片會移到別格重建（IsoDoor.java:2855-2922），門口要用「關著時」各片的格子：
+-- 雙開門打開時第 2、3 片會移到別格重建（IsoDoor.java:2678-2745），門口要用「關著時」各片的格子：
 -- 開門前記進帳本（rec.doorway），重啟後照樣有
 local function doorwayOf(pieces)
     local out = {}
@@ -89,7 +89,7 @@ local function doorwayOccupied(rec, pieces)
     return false
 end
 
--- 開關門要傳真的 IsoPlayer（IsoDoor.java:1501,1593；IsoThumpable.java:1297,1310,1313）。
+-- 開關門要傳真的 IsoPlayer（IsoDoor.java:1315,1407；IsoThumpable.java:1312,1325,1328）。
 -- 優先用觸發的人（還在線上），否則離門最近的在線玩家
 local function actor(r, rec)
     local best, bestD = nil, nil
@@ -226,7 +226,7 @@ local function tryClose(key, rec, now, delayMs)
 end
 
 -- 右鍵「用 Knox Pass 關門」：門被別人打開（會開門的殭屍、有鑰匙的人）時，Knox Pass 門鎖讓玩家用手關不了
--- （couldBeOpen 看 CustomLock，ISWorldObjectContextMenuLogic.java:2296-2301），這是出路。關好照門鎖設定鎖回
+-- （couldBeOpen 看 CustomLock，ISWorldObjectContextMenuLogic.java:2375-2380），這是出路。關好照門鎖設定鎖回
 function S.close(key, rec, who, now)
     local r = rt(key)
     r.presence, r.holdUntil = 0, nil   -- 不再替剛才的車或步行開門撐著；登記車還在範圍內的話下一輪會再開
@@ -244,7 +244,7 @@ end
 
 -- 原版切大燈的指令（Server.lua onClientCommand 轉來；SP 的 sendClientCommand 同樣經 SinglePlayerServer 觸發
 -- OnClientCommand，SinglePlayerServer.java:172-198）。只認伺服器看到的駕駛：乘客切大燈、別台車閃燈都不算。
--- 只數指令不看開關值：MP 連按兩下時客戶端還沒收到第一下的同步，兩次都送 on=true（ISVehicleMenu.lua:1114-1118）
+-- 只數指令不看開關值：MP 連按兩下時客戶端還沒收到第一下的同步，兩次都送 on=true（ISVehicleMenu.lua:1116-1120）
 function S.noteHeadlights(p)
     local v = p and p:getVehicle()
     if not v or v:getDriver() ~= p then return end
@@ -323,7 +323,7 @@ local function sideOf(rec, x, y)
     return nil
 end
 
--- 車身壓到門口格（各片關著時的格子與門線另一側那格，rec.doorway）：引擎用車身多邊形判斷（BaseVehicle.java:5748-5760）
+-- 車身壓到門口格（各片關著時的格子與門線另一側那格，rec.doorway）：引擎用車身多邊形判斷（BaseVehicle.java:5785-5797）
 local function onDoorway(rec, c)
     for _, s in ipairs(rec.doorway or {}) do
         if c:isIntersectingSquare(s.x, s.y, s.z)
@@ -334,7 +334,7 @@ local function onDoorway(rec, c)
     return false
 end
 
--- 整台通過：車和它拖的車（getVehicleTowing；原版掛拖車在伺服器上建立這個連結，server/Vehicles/VehicleCommands.lua:410）
+-- 整台通過：車和它拖的車（getVehicleTowing；原版掛拖車在伺服器上建立這個連結，server/Vehicles/VehicleCommands.lua:341）
 -- 的中心都離開原本那一側，而且都沒壓到門口格
 local function cleared(rec, v, from)
     for _, c in ipairs({ v, v:getVehicleTowing() }) do   -- 沒拖車時只看車
@@ -439,8 +439,8 @@ local function scanDriver(p, gates, now, lead, ahead)
     car.ax, car.ay = x + vx * lead, y + vy * lead
     -- 拖著的拖車也量（同樣的範圍與預判）：倒車時拖車在前，長掛車（W900 貨櫃掛車，車頭中心到拖車尾 12.4 格）只看車頭時
     -- 拖車尾先頂到關著的門，停住後速度 0、車頭還在範圍外，門就永遠不開（E2E semirev-mp）。拖車跟著車走，用車的速度推
-    -- （holds 同理）。原版掛車選單可能把掛車設成拖的一方（ISVehicleMenu.lua:434-444），有人坐進被拖的車、拖的那台沒人駕駛時，
-    -- 伺服器把連結反過來（CarController.java:360-366），所以駕駛那台就是拖著拖車的那台
+    -- （holds 同理）。原版掛車選單可能把掛車設成拖的一方（ISVehicleMenu.lua:436-446），有人坐進被拖的車、拖的那台沒人駕駛時，
+    -- 伺服器把連結反過來（CarController.java:359-365），所以駕駛那台就是拖著拖車的那台
     local tr = v:getVehicleTowing()
     car.tx, car.ty = tr and tr:getX(), tr and tr:getY()
     car.fx, car.fy = nil, nil
@@ -509,7 +509,7 @@ local function scanWalker(p, gates, now, range)
 end
 
 -- 關著的 Knox Pass 上鎖門補回鎖：引擎會在別的路徑清掉 locked（可跨越的柵欄門有人試開、有鑰匙的人或管理員用手開關，
--- IsoDoor.java:1507-1520、1562-1565），會開門的殭屍就又開得了（Gates.lua IsoDoor 段）。舊存檔只有 CustomLock 的門也在這裡補上。
+-- IsoDoor.java:1321-1334、1376-1379），會開門的殭屍就又開得了（Gates.lua IsoDoor 段）。舊存檔只有 CustomLock 的門也在這裡補上。
 -- G.lock 已是該狀態就不傳送；門開著（有人在用、或 Knox Pass 開著）不動。只看已載入的格，門數是全伺服器登記的大門數
 function S.relock(gates)
     for _, rec in pairs(gates) do
@@ -533,34 +533,34 @@ function S.syncRegions(gates)
 end
 
 -- ── 不會被破壞（沙盒 Indestructible、管理員替個別大門開的 rec.indestructible：KP.gateIndestructible）─────────
--- 原版沒有讓門不受傷的開關：IsoDoor.Damage 直接扣 health（IsoDoor.java:1897-1905），殭屍拍門（:1197-1209）與武器（:1305-1308）
--- 扣到 0 就拆掉整組（:1218-1240、:1359-1375）；IsoThumpable 同樣（IsoThumpable.java:1027-1088、:1161-1162、:1563-1566）。
+-- 原版沒有讓門不受傷的開關：IsoDoor.Damage 直接扣 health（IsoDoor.java:1711-1727），殭屍拍門（:1018-1026）與武器（:1101-1104）
+-- 扣到 0 就拆掉整組（:1035-1037、:1155-1158、:1172-1197）；IsoThumpable 同樣（IsoThumpable.java:1042-1103、:1176-1177、:1578-1581）。
 -- Lua 攔不到，所以把整扇門每一片（閘門與模型門連兩端：兩端被打壞整座移除，Barrier.lua）的 health 墊到 SHIELD_HP：
--- 殭屍一下扣 1-5 點（超人另加圍著拍的數量×2，IsoDoor.java:1197-1204），武器一下幾百點，打不完。殭屍照樣會拍、拍門聲照樣
--- 引來別的殭屍，只是拍不壞。health 在存檔與同步都是 int（IsoDoor.java:936-937、958-959、1693），getThumpCondition
--- 夾在 maxHealth 以內（:1261-1263），拍門聲照滿格的門播。墊之前的 health 記在那一片的 modData（HP_KEY），不再打不壞時照它還原。
+-- 殭屍一下扣 1-5 點（超人另加圍著拍的數量×2，IsoDoor.java:1018-1025），武器一下幾百點，打不完。殭屍照樣會拍、拍門聲照樣
+-- 引來別的殭屍，只是拍不壞。health 在存檔與同步都是 int（IsoDoor.java:757-758、779-780、1507），getThumpCondition
+-- 夾在 maxHealth 以內（:1057-1059），拍門聲照滿格的門播。墊之前的 health 記在那一片的 modData（HP_KEY），不再打不壞時照它還原。
 -- 大錘照原版伺服器設定（SledgehammerOnlyInSafehouse，ISDestroyStuffAction.lua:120-127），火燒直接移除門
--- （IsoGridSquare.java:6353-6356），都不看 health，擋不住。
--- 雙開門第 2、3 片每次開關都刪掉重建、health 回到預設（IsoDoor.java:2892-2922），移除前觸發 OnObjectAboutToBeRemoved
--- （IsoGridSquare.java:5745）：看到墊過的片被移除，下一個 tick 就重墊雙開門。其餘（剛開啟、剛載入、別的 MOD 改了 health、
+-- （IsoGridSquare.java:6346-6349），都不看 health，擋不住。
+-- 雙開門第 2、3 片每次開關都刪掉重建、health 回到預設（IsoDoor.java:2715-2745），移除前觸發 OnObjectAboutToBeRemoved
+-- （IsoGridSquare.java:5732）：看到墊過的片被移除，下一個 tick 就重墊雙開門。其餘（剛開啟、剛載入、別的 MOD 改了 health、
 -- 客戶端送回舊的 health）由每 5 秒的巡檢補上。
 -- 錨點被移除（火燒、大錘、搬走）時帳本下一個 tick 就刪（ReaderPost.lua），但雙開門不會整扇一起走：火燒移那片連同側那片
 -- （伺服器 RemoveItemFromSquarePacket.java:158-159、SP RemoveTileObject，都經 IsoObjectUtils.java:83-96），打壞外側那片連旁邊
--- 那片、中間片只拆自己（IsoDoor.java:3187-3205）。移除事件裡記下整扇，下一個 tick 移除做完了才還原還在世界上的片，不然沒有
--- 讀頭也一直打不壞。不在事件裡同步：移除封包先送出（GameServer.java:2995-2996），客戶端先移掉的話，同步照索引套到同格遞補
--- 上來的物件（GameClient.java:1630-1631）
+-- 那片、中間片只拆自己（IsoDoor.java:3010-3028）。移除事件裡記下整扇，下一個 tick 移除做完了才還原還在世界上的片，不然沒有
+-- 讀頭也一直打不壞。不在事件裡同步：移除封包先送出（GameServer.java:3017-3018），客戶端先移掉的話，同步照索引套到同格遞補
+-- 上來的物件（GameClient.java:1511-1512）
 -- HP_KEY 在 modData，改過的客戶端改得到（ObjectModDataPacket.java:50-72），但它們本來就能直接送任意 health
--- （IsoDoor.java:1757、1775；IsoThumpable.java:1852），防護等級＝原版
+-- （IsoDoor.java:1571、1589；IsoThumpable.java:1868），防護等級＝原版
 S.SHIELD_HP = 1000000000   -- 10 億：比任何門的耐久大好幾個數量級，又在 int 範圍內
 local HALF = S.SHIELD_HP / 2
 local HP_KEY = "KnoxPassHp"
 
 local function hasHealth(o) return instanceof(o, "IsoDoor") or instanceof(o, "IsoThumpable") end
 
--- IsoDoor 在伺服器上 setHealth 只改欄位（IsoDoor.java:2401-2403），照 Gates.lua syncDoor 手動同步。客戶端開關門、改鎖時
--- 會把自己那份 health 送回伺服器、伺服器照收（:1693、1757、1775）：客戶端留著舊值的話，墊高的門被玩家一開關就沒墊；
--- 還原過的門一開關又打不壞（拍門時伺服器每一下都同步，:1900-1903，附近客戶端拿到的是 10 億）。
--- IsoThumpable 在伺服器上自己同步（IsoThumpable.java:281-288）
+-- IsoDoor 在伺服器上 setHealth 只改欄位（IsoDoor.java:2224-2226），照 Gates.lua syncDoor 手動同步。客戶端開關門、改鎖時
+-- 會把自己那份 health 送回伺服器、伺服器照收（:1507、1571、1589）：客戶端留著舊值的話，墊高的門被玩家一開關就沒墊；
+-- 還原過的門一開關又打不壞（拍門時伺服器每一下都同步，:1719-1722，附近客戶端拿到的是 10 億）。
+-- IsoThumpable 在伺服器上自己同步（IsoThumpable.java:286-293）
 local function setHealth(o, hp)
     o:setHealth(hp)
     if instanceof(o, "IsoDoor") then o:syncIsoObject(false, 0, nil, nil) end
@@ -577,7 +577,7 @@ local function shieldOne(o, on)
         end
         return
     end
-    -- 有記錄就照它還原，沒墊高也一樣：開著時重建的 IsoThumpable 帶著記錄、health 回預設（IsoDoor.java:2899-2913），
+    -- 有記錄就照它還原，沒墊高也一樣：開著時重建的 IsoThumpable 帶著記錄、health 回預設（IsoDoor.java:2722-2736），
     -- 跟墊回去之後才關掉的結果相同
     local md = o:hasModData() and o:getModData()
     local to = md and tonumber(md[HP_KEY]) or hp >= HALF and o:getMaxHealth() or hp
