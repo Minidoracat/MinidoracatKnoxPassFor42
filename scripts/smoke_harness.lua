@@ -782,7 +782,10 @@ function Thump:setKeyId(id, doNetwork)   -- T:2427-2437：doNetwork=false 時不
         self:syncIsoThumpable()
     end
 end
-function Thump:syncIsoThumpable() syncView(self) end
+-- SyncThumpable 封包只帶 lockedByCode、lockedByPadlock、keyId（SyncThumpablePacket.java:22-62），不帶 locked／lockedByKey；
+-- 鎖與開關要 SyncIsoObject 才到 client（T:1832-1848、1851-1871；原版 ISLockDoor.lua:50-63 對兩種門都用 syncIsoObject）
+function Thump:syncIsoThumpable() self._view.keyId = self._keyId end
+function Thump:syncIsoObject(bRemote) if not bRemote then syncView(self) end end
 function Thump:ToggleDoor(chr)
     if chr == nil then W.nilToggles = W.nilToggles + 1 end
     local isPlayer = chr ~= nil and instanceof(chr, "IsoPlayer")
@@ -2162,11 +2165,21 @@ local function scenarioLocks()
     -- IsoThumpable 雙開門
     local g = gate(700, { cls = "IsoThumpable", double = true })
     cmd(g.owner, "lock", { key = g.key, on = true })
+    check(allPieces(g, function(p) return p._view.lockedByKey == true end), "IsoThumpable 雙開門：上鎖同步到客戶端的四片")
+    -- 開門前要先把每一片的解鎖同步出去：客戶端收到開門那包時翻整組、逐片 setLockedByKey(false)，自己那份還鎖著的片
+    -- 值一變就回送伺服器（IsoDoor.java:2650-2666、IsoThumpable.java:2449-2458）
+    local toggle, unlockedView = g.door.ToggleDoor, nil
+    g.door.ToggleDoor = function(self, chr)
+        unlockedView = allPieces(g, function(p) return p._view.lockedByKey == false end)
+        return toggle(self, chr)
+    end
     local vg = car(g, 3, { tag = 0.5 })
     register(g, vg)
     driver(vg)
     step()
+    g.door.ToggleDoor = nil
     check(g.door:IsOpen(), "Knox Pass 開 IsoThumpable 雙開門")
+    check(unlockedView == true, "開門的那一刻，四片的解鎖都已經同步到客戶端（客戶端翻門時不回送）")
     moveCar(vg, vg._x, vg._y + 40)
     runMs(5500)
     check(not g.door:IsOpen() and allPieces(g, function(p) return p:isLockedByKey() and p._view.lockedByKey end),
@@ -2525,6 +2538,21 @@ local function scenarioUninstallOpen()
     check(uninstall(d) and not d.door:IsOpen(), "拆讀頭並關門")
     check(d.door:isLockedByKey() and d.door._view.lockedByKey == true and d.door:getKeyId() == 990,
         "IsoThumpable：拿掉門鎖後仍鎖回 lockedByKey 並同步")
+
+    -- 雙開門：關門時第 2、3 片重建，鎖要還原在關好後的那四片上（不是關門前取的舊門片）
+    for i, cls in ipairs({ "IsoDoor", "IsoThumpable" }) do
+        local e = gate(400 + i * 100, { double = true, cls = cls })
+        for _, p in ipairs(e.group.pieces) do
+            p._keyId, p._lockedByKey, p._locked = 991, true, true
+            syncView(p)
+        end
+        cmd(e.owner, "lock", { key = e.key, on = true })
+        openBy(e)
+        check(e.door:IsOpen() and rec(e).keyed == 2, cls .. " 雙開門：Knox Pass 開著（原本是鑰匙鎖）")
+        check(uninstall(e) and not e.door:IsOpen(), cls .. " 雙開門：拆讀頭並關門")
+        check(allPieces(e, function(p) return p:isLockedByKey() and p._view.lockedByKey == true and p._modData.CustomLock == nil end),
+            cls .. " 雙開門：關好後四片（含重建片）都鎖回原本的鑰匙鎖並同步，沒有 CustomLock")
+    end
     clean(from, "門開著時拆讀頭")
 end
 

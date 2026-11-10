@@ -340,13 +340,16 @@ local thumpAdapter = {
         if isDouble(anchor) then return IsoDoor.isDoubleDoorObstructed(anchor) end
         return anchor:isObstructed()
     end,
+    -- 鎖要用 SyncIsoObject 送：syncIsoThumpable 的封包只帶 lockedByCode、掛鎖與 keyId（SyncThumpablePacket.java:22-62），客戶端
+    -- 收不到 locked／lockedByKey（IsoThumpable.java:1832-1848、:1851-1871），照自己那份沒鎖的狀態用手就開得了、再同步給伺服器。
+    -- 原版鎖門對兩種門都用 syncIsoObject（ISLockDoor.lua:50-63）
     unlock = function(anchor, pieces)
         local was = nil
         each(pieces, function(p)
             if p:isLockedByKey() then was = 2 elseif p:isLocked() and was == nil then was = 1 end
             p:setIsLocked(false)
             p:setLockedByKey(false)
-            p:syncIsoThumpable()
+            p:syncIsoObject(false, 0, nil, nil)
         end)
         return was
     end,
@@ -365,14 +368,14 @@ local thumpAdapter = {
             else
                 return
             end
-            p:syncIsoThumpable()
+            p:syncIsoObject(false, 0, nil, nil)
         end)
     end,
     -- 玩家建造的門只有一種鎖，Knox Pass 門鎖就是鑰匙鎖：關閉門鎖等於解鎖
     unlockKnox = function(anchor, pieces)
         each(pieces, function(p)
             p:setLockedByKey(false)
-            p:syncIsoThumpable()
+            p:syncIsoObject(false, 0, nil, nil)
         end)
     end,
 }
