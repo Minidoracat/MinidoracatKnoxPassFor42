@@ -316,5 +316,5 @@
     "IGUI_KnoxPass_MapNamesWorld": "ワールドマップにゲートの種類を表示",
     "IGUI_KnoxPass_RoadText": "遮断機の路面の KNOX PASS 表示",
     "IGUI_KnoxPass_RoadText_tooltip": "遮断機とダブル遮断機の路面には KNOX PASS と描かれていて、\n車を止めるゲートだと分かります。\nチェックを外すと、自分の画面でだけ文字が消えます。\n白い停止線はそのまま残ります。",
-    "IGUI_KnoxPass_WhatsNew": "遮断機の路面の KNOX PASS 表示を消せるようになりました。オプションの「MOD」タブでチェックを外すと、自分の画面だけ消えます。"
+    "IGUI_KnoxPass_WhatsNew": "新機能：ゲートを「パッシングで開く」に設定できます。右クリックでまるごと解体して資材を回収。リーダー付きの扉はバールでこじ開けられません。"
 }

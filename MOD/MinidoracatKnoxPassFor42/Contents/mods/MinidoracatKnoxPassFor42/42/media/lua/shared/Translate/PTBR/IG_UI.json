@@ -316,5 +316,5 @@
     "IGUI_KnoxPass_MapNamesWorld": "Mostrar tipos de portão no mapa do mundo",
     "IGUI_KnoxPass_RoadText": "Texto KNOX PASS no asfalto",
     "IGUI_KnoxPass_RoadText_tooltip": "As cancelas e as cancelas duplas têm KNOX PASS pintado no asfalto, para mostrar que o portão bloqueia veículos. Desmarque para esconder o texto só na sua tela. A linha de parada branca continua.",
-    "IGUI_KnoxPass_WhatsNew": "O texto KNOX PASS das cancelas agora pode ser escondido em Opções, aba MODS."
+    "IGUI_KnoxPass_WhatsNew": "Novo: abrir piscando os faróis, desmontar no clique direito. Portas com leitor não são forçadas."
 }

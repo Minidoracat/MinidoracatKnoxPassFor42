@@ -316,5 +316,5 @@
     "IGUI_KnoxPass_MapNamesWorld": "Show gate types on the world map",
     "IGUI_KnoxPass_RoadText": "KNOX PASS text on barrier roads",
     "IGUI_KnoxPass_RoadText_tooltip": "The boom barrier and the double boom barrier have KNOX PASS painted on the road, so players can tell the gate stops vehicles. Untick to hide the text on your own screen only. The white stop line stays.",
-    "IGUI_KnoxPass_WhatsNew": "KNOX PASS road text at barriers can now be hidden: untick it in the Options MODS tab."
+    "IGUI_KnoxPass_WhatsNew": "New: open gates by headlight flash; right-click dismantles a whole gate. Crowbars can't force reader doors."
 }

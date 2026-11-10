@@ -316,5 +316,5 @@
     "IGUI_KnoxPass_MapNamesWorld": "Pokaż typy bram na mapie świata",
     "IGUI_KnoxPass_RoadText": "Napis KNOX PASS na jezdni",
     "IGUI_KnoxPass_RoadText_tooltip": "Przy szlabanach i podwójnych szlabanach na jezdni jest namalowany napis KNOX PASS, żeby było widać, że brama zatrzymuje pojazdy. Odznacz, aby ukryć napis tylko na twoim ekranie. Biała linia zatrzymania zostaje.",
-    "IGUI_KnoxPass_WhatsNew": "Napis KNOX PASS przy szlabanach można teraz ukryć: odznacz go w Opcjach, karta MODY. Zmienia się tylko twój ekran."
+    "IGUI_KnoxPass_WhatsNew": "Nowość: otwieranie mrugnięciem świateł, rozbiórka całej bramy (PPM). Drzwi z czytnikiem nie da się wyważyć."
 }
