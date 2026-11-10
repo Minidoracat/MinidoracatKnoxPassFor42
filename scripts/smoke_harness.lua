@@ -782,7 +782,10 @@ function Thump:setKeyId(id, doNetwork)   -- T:2427-2437：doNetwork=false 時不
         self:syncIsoThumpable()
     end
 end
-function Thump:syncIsoThumpable() syncView(self) end
+-- SyncThumpable 封包只帶 lockedByCode、lockedByPadlock、keyId（SyncThumpablePacket.java:22-62），不帶 locked／lockedByKey；
+-- 鎖與開關要 SyncIsoObject 才到 client（T:1832-1848、1851-1871；原版 ISLockDoor.lua:50-63 對兩種門都用 syncIsoObject）
+function Thump:syncIsoThumpable() self._view.keyId = self._keyId end
+function Thump:syncIsoObject(bRemote) if not bRemote then syncView(self) end end
 function Thump:ToggleDoor(chr)
     if chr == nil then W.nilToggles = W.nilToggles + 1 end
     local isPlayer = chr ~= nil and instanceof(chr, "IsoPlayer")
@@ -2160,11 +2163,21 @@ local function scenarioLocks()
     -- IsoThumpable 雙開門
     local g = gate(700, { cls = "IsoThumpable", double = true })
     cmd(g.owner, "lock", { key = g.key, on = true })
+    check(allPieces(g, function(p) return p._view.lockedByKey == true end), "IsoThumpable 雙開門：上鎖同步到客戶端的四片")
+    -- 開門前要先把每一片的解鎖同步出去：客戶端收到開門那包時翻整組、逐片 setLockedByKey(false)，自己那份還鎖著的片
+    -- 值一變就回送伺服器（IsoDoor.java:2650-2666、IsoThumpable.java:2449-2458）
+    local toggle, unlockedView = g.door.ToggleDoor, nil
+    g.door.ToggleDoor = function(self, chr)
+        unlockedView = allPieces(g, function(p) return p._view.lockedByKey == false end)
+        return toggle(self, chr)
+    end
     local vg = car(g, 3, { tag = 0.5 })
     register(g, vg)
     driver(vg)
     step()
+    g.door.ToggleDoor = nil
     check(g.door:IsOpen(), "Knox Pass 開 IsoThumpable 雙開門")
+    check(unlockedView == true, "開門的那一刻，四片的解鎖都已經同步到客戶端（客戶端翻門時不回送）")
     moveCar(vg, vg._x, vg._y + 40)
     runMs(5500)
     check(not g.door:IsOpen() and allPieces(g, function(p) return p:isLockedByKey() and p._view.lockedByKey end),
