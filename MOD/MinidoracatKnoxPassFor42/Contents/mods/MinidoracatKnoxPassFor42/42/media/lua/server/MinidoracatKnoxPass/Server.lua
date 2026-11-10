@@ -439,11 +439,12 @@ function H.uninstall(player, args)
     if not KP.screwdriverOf(player) then return result(player, cmd, false, "NeedScrewdriver", args.key) end
     local adapter, anchor = G.findAt(rec)
     if adapter then
-        local pieces = G.pieces(adapter, anchor)
         -- Knox Pass 開著的門：盡量關上（擋住就留著開，交給玩家），關好才鎖回原本的鑰匙鎖
         if rec.open and G.isOpen(adapter, anchor) and not G.isBlocked(adapter, anchor) then
             G.setOpen(adapter, anchor, false, player)
         end
+        -- 關門後才取門片：雙開門第 2、3 片每次開關都刪掉重建（IsoDoor.java:2681-2749），關門前取的那兩片已經不在格子上
+        local pieces = G.pieces(adapter, anchor)
         if G.supportsLock(adapter) then
             if rec.lock then G.unlockKnox(adapter, anchor, pieces) end
             if rec.keyed and not G.isOpen(adapter, anchor) then G.lock(adapter, anchor, pieces, false, rec.keyed) end

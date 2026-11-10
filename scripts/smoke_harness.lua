@@ -2536,6 +2536,21 @@ local function scenarioUninstallOpen()
     check(uninstall(d) and not d.door:IsOpen(), "拆讀頭並關門")
     check(d.door:isLockedByKey() and d.door._view.lockedByKey == true and d.door:getKeyId() == 990,
         "IsoThumpable：拿掉門鎖後仍鎖回 lockedByKey 並同步")
+
+    -- 雙開門：關門時第 2、3 片重建，鎖要還原在關好後的那四片上（不是關門前取的舊門片）
+    for i, cls in ipairs({ "IsoDoor", "IsoThumpable" }) do
+        local e = gate(400 + i * 100, { double = true, cls = cls })
+        for _, p in ipairs(e.group.pieces) do
+            p._keyId, p._lockedByKey, p._locked = 991, true, true
+            syncView(p)
+        end
+        cmd(e.owner, "lock", { key = e.key, on = true })
+        openBy(e)
+        check(e.door:IsOpen() and rec(e).keyed == 2, cls .. " 雙開門：Knox Pass 開著（原本是鑰匙鎖）")
+        check(uninstall(e) and not e.door:IsOpen(), cls .. " 雙開門：拆讀頭並關門")
+        check(allPieces(e, function(p) return p:isLockedByKey() and p._view.lockedByKey == true and p._modData.CustomLock == nil end),
+            cls .. " 雙開門：關好後四片（含重建片）都鎖回原本的鑰匙鎖並同步，沒有 CustomLock")
+    end
     clean(from, "門開著時拆讀頭")
 end
 
