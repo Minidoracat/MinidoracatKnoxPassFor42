@@ -1409,6 +1409,16 @@ local FAKE_MODULES = {
             return true
         end
     end,
+    -- 原版拆解（ISDismantleAction.lua:47-96）：先照 buildMaterials 掉料，再移走物件。這裡記呼叫次數，看 Barrier.lua 的包裝擋下還是放行
+    ["TimedActions/ISDismantleAction"] = function()
+        ISDismantleAction = { calls = 0 }
+        function ISDismantleAction:complete()
+            ISDismantleAction.calls = ISDismantleAction.calls + 1
+            for t in pairs(self.thumpable:getBuildMaterials()) do self.thumpable:getSquare():AddWorldInventoryItem(t, 0, 0, 0) end
+            self.thumpable:getSquare():transmitRemoveItemFromSquare(self.thumpable)
+            return true
+        end
+    end,
     ["BuildingObjects/ISDestroyCursor"] = function()
         ISDestroyCursor = {}
         function ISDestroyCursor:canDestroy() return true end   -- 原版判斷（ISDestroyCursor.lua:293-362）此處一律放行
@@ -1422,6 +1432,13 @@ local FAKE_MODULES = {
                 t.modData = {}
                 for k, v in pairs(obj:getModData()) do t.modData[k] = v end
             end
+        end
+        -- 傢俱模式的拆解（ISMoveableSpriteProps.lua:4320-4357）：同 ISDismantleAction，先掉料再移走。記呼叫次數
+        ISThumpableSpriteProps = { calls = 0 }
+        function ISThumpableSpriteProps:scrapObjectViaCursor()
+            ISThumpableSpriteProps.calls = ISThumpableSpriteProps.calls + 1
+            for t in pairs(self.object:getBuildMaterials()) do self.object:getSquare():AddWorldInventoryItem(t, 0, 0, 0) end
+            self.object:getSquare():transmitRemoveItemFromSquare(self.object)
         end
     end,
 }
@@ -1458,7 +1475,7 @@ local function bootMod()
     for k in pairs(handlers) do handlers[k] = nil end
     for k in pairs(systems) do systems[k] = nil end
     MinidoracatKnoxPass, KnoxPassAPI, SGlobalObjectSystem, ISBaseObject = nil, nil, nil, nil
-    ISDestroyStuffAction, ISDestroyCursor, ISMoveableSpriteProps = nil, nil, nil
+    ISDestroyStuffAction, ISDismantleAction, ISDestroyCursor, ISMoveableSpriteProps = nil, nil, nil, nil
     -- 原版撬開判定（ISForceOpen.lua:48-77）這裡只記呼叫次數、回標記，看 Server.lua 的包裝放行（呼叫原函式）還是擋下（不呼叫）
     ISForceOpen = { calls = 0, attempt = function() ISForceOpen.calls = ISForceOpen.calls + 1; return "orig" end }
     for _, name in ipairs(MOD_FILES) do require(name) end
@@ -3297,6 +3314,21 @@ local function scenarioBarrier()
     local res = cmd(builder, "uninstall", { key = g.key })
     check(res.ok == false and res.why == "BuiltIn" and KP.Ledger.get(g.key) ~= nil and countType(builder._inv, READER) == 0,
         "內建讀頭不能單獨拆：BuiltIn、帳本還在、沒有多出讀頭")
+
+    -- 程式自己建立的原版拆解（其他 MOD、改過的客戶端；ISDismantleAction 與傢俱模式的 scrap 兩條路）對閘門一端：拒絕，
+    -- 不掉料、不移除（Barrier.lua）；其他物件照原樣
+    local drops = W.dropped[KIT]
+    check(ISDismantleAction.complete({ thumpable = n[6], character = builder }) == false and ISDismantleAction.calls == 0
+        and W.dropped[KIT] == drops and present(n[6]) and present(n[0]) and KP.Ledger.get(g.key) ~= nil,
+        "原版拆解動作對閘門機箱：拒絕、不呼叫原函式、不掉料，閘門與帳本都在")
+    ISThumpableSpriteProps.scrapObjectViaCursor({ object = n[6] }, builder)
+    check(ISThumpableSpriteProps.calls == 0 and W.dropped[KIT] == drops and present(n[6]) and present(n[0])
+        and KP.Ledger.get(g.key) ~= nil, "傢俱模式的拆解對閘門機箱：不呼叫原函式、不掉料，閘門與帳本都在")
+    local crate, crate2 = makePiece("IsoThumpable", 260, 100, true), makePiece("IsoThumpable", 262, 100, true)
+    ISThumpableSpriteProps.scrapObjectViaCursor({ object = crate2 }, builder)
+    check(ISDismantleAction.complete({ thumpable = crate, character = builder }) == true and ISDismantleAction.calls == 1
+        and not present(crate) and ISThumpableSpriteProps.calls == 1 and not present(crate2),
+        "兩條原版拆解路對不是閘門的物件：各照呼叫原函式一次")
 
     res = dismantle(builder, n[6])
     check(res.ok == true and not present(n[6]) and not present(n[0]) and not present(n[1]) and not present(n[2]),
@@ -5294,6 +5326,12 @@ local function scenarioDismantle()
     W.dropped = {}
     local b6 = buildModelGate("MinidoracatKnoxPass_barrier2", 0, 6, "N", true, 100, 200, owner)
     step()
+    -- 原版的兩條拆解路對模型門的兩端也拒絕（門柱記著整座的材料）：不呼叫原函式、不掉料
+    local c1, c2 = ISDismantleAction.calls, ISThumpableSpriteProps.calls
+    ISThumpableSpriteProps.scrapObjectViaCursor({ object = b6.A }, stranger)
+    check(ISDismantleAction.complete({ thumpable = b6.B, character = stranger }) == false and ISDismantleAction.calls == c1
+        and ISThumpableSpriteProps.calls == c2 and next(W.dropped) == nil and present(b6.A) and present(b6.B),
+        "原版的兩條拆解路對雙桿閘門兩端：拒絕、不掉料，門還在")
     check(dismantle(owner, b6.B).ok == true and not present(b6.A) and not present(b6.lanes[1]) and not present(b6.lanes[6])
         and KP.Ledger.get("101,200,0N") == nil and between("Base.MetalPipe", 1, 4) and W.dropSq == square(107, 200, 0),
         "雙桿閘門拆 B 端：整座移除、內建讀頭帳本刪除，鐵管退 1..4 落在 B 端那格")

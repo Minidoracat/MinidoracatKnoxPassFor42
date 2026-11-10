@@ -381,6 +381,8 @@ end
 if not isClient() then
     require "MinidoracatKnoxPass/Server"
     require "TimedActions/ISDestroyStuffAction"
+    require "TimedActions/ISDismantleAction"
+    require "Moveables/ISMoveableSpriteProps"
 
     Events.OnTick.Add(B.settle)
 
@@ -396,6 +398,27 @@ if not isClient() then
         local done = destroy(self)
         if done and list then B.remove(list, key) end
         return done
+    end
+
+    -- 原版的兩條拆解路對閘門的一端一律拒絕：ISDismantleAction.complete 與傢俱模式的拆解（ISMoveablesAction mode="scrap" →
+    -- ISThumpableSpriteProps:scrapObjectViaCursor，同一段程式搬過去的）都先照 buildMaterials 掉料、再用預設 safelyRemove 移除
+    -- （ISDismantleAction.lua:55-91、ISMoveableSpriteProps.lua:4320-4357），entity 多格物件找不齊就不移（IsoGridSquare.java:5933-5959），
+    -- 每跑一次白掉一份料、閘門還在，也不查擁有者。B42 原版的介面都不會對閘門送出（沒有介面建立 ISDismantleAction；拆解游標只列
+    -- tile 有 Material 的物件），只有其他 MOD 或改過的客戶端會送；拆除走 Server.lua H.dismantle。只做拒絕，其餘照呼叫原函式
+    local function refused(obj, character)
+        if not KP.isGateEnd(obj) then return false end
+        KP.log("vanilla dismantle refused on a gate end by=" .. tostring(character and character:getUsername()))
+        return true
+    end
+    local dismantle = ISDismantleAction.complete
+    function ISDismantleAction:complete()
+        if refused(self.thumpable, self.character) then return false end
+        return dismantle(self)
+    end
+    local scrap = ISThumpableSpriteProps.scrapObjectViaCursor
+    function ISThumpableSpriteProps:scrapObjectViaCursor(character, square, origSpriteName, moveCursor)
+        if refused(self.object, character) then return end
+        return scrap(self, character, square, origSpriteName, moveCursor)
     end
 
     -- 任何途徑移走一片車道或一端：整座跟著移除，不退料。殭屍或武器打壞車道走 IsoDoor.destroyGarageDoor，只拆整條車道鏈、
