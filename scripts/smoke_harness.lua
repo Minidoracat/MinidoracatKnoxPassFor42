@@ -143,7 +143,7 @@ local function newWorld()
         echoQueued = 0, echoLagMs = 250, sounds = {},
         regions = {}, prevFlags = 0, regionJobs = 0,   -- 引擎記著的室內判定位元（格子 key → 位元）、IsoRegions 的 previousFlags、排了幾次重算
         engineErrors = 0,   -- Lua 呼叫的 Java 方法丟了幾次例外（引擎記錯誤、回 nil，Lua 照樣往下跑：MethodCaller.java:34-49）
-        thumpSyncs = 0,   -- IsoThumpable 在伺服器上改耐久時送出的同步（T:286-293）
+        thumpSyncs = 0, modDataTx = 0,   -- IsoThumpable 在伺服器上改耐久時送出的同步（T:286-293）
     }
 end
 -- MapObjects.OnLoadWithSprite（Lua/MapObjects.java:134-176）：每張 sprite 依 priority 各記一個回呼，同 priority 後來的
@@ -313,7 +313,8 @@ function sendAddItemToContainer() if isServer() then W.addSent = W.addSent + 1 e
 local TAG, READER = "MinidoracatKnoxPass.VehicleTag", "MinidoracatKnoxPass.GateReader"
 local COLOR_IDS = { "Black", "Graphite", "Olive", "Navy", "Orange", "Red" }   -- 索引 1-6（米白 0 不帶後綴）
 local PAINTS = { "Base.PaintWhite", "Base.PaintBlack", "Base.PaintGrey", "Base.PaintGreen", "Base.PaintBlue", "Base.PaintOrange", "Base.PaintRed" }
-local USE_DELTA = { [TAG] = 0.001, ["Base.CarBattery1"] = 0.00001, ["Base.BlowTorch"] = 0.1 }   -- 焊槍 drainable.txt:1584
+local USE_DELTA = { [TAG] = 0.001, ["Base.CarBattery1"] = 0.00001, ["Base.CarBattery2"] = 0.00001, ["Base.CarBattery3"] = 0.00001,
+    ["Base.BlowTorch"] = 0.1 }   -- 焊槍 drainable.txt:1584
 for _, id in ipairs(COLOR_IDS) do USE_DELTA[TAG .. "_" .. id] = 0.001 end
 for _, p in ipairs(PAINTS) do USE_DELTA[p] = 0.1 end   -- 原版油漆 UseDelta 0.1（generated/items/drainable.txt:1816-1830）
 local TAGS = { ["Base.Paintbrush"] = "base:paintbrush", ["Base.Screwdriver"] = "base:screwdriver", ["Base.Hammer"] = "base:hammer",
@@ -363,6 +364,7 @@ local function newItem(fullType, charge)
     end
     return new("InventoryItem", Item, { _id = id, _type = fullType, _tag = TAGS[fullType] })
 end
+function instanceItem(fullType) return newItem(fullType) end   -- LuaManager.java:5636-5638（InventoryItemFactory.CreateItem）
 local function newKey(keyId)
     local k = newItem("Base.Key1")
     k._keyId = keyId
@@ -487,6 +489,7 @@ function Base:transmitModData()   -- IsoObject.java:4846-4855：整表送給附�
     local copy = {}
     for k, v in pairs(self._modData) do copy[k] = v end
     self._view.modData = copy
+    W.modDataTx = W.modDataTx + 1
     if copy.CustomLock == true then W.customLockTx = W.customLockTx + 1 end
 end
 function Base:isObstructed()
@@ -579,10 +582,12 @@ function Square:AddTileObject(o)   -- IsoGridSquare.java:5842-5871（門柱讀�
     o._square = self
 end
 -- 原版拆解退料落地（IsoGridSquare.java:6019-6048，伺服器自己送給客戶端）：W.dropped[物品] 累計、W.dropSq 記最後一次的格子
+-- 也收物品物件（:6050-6140，讀頭的汽車電瓶）：W.dropItem 記最後落地的那個物件
 function Square:AddWorldInventoryItem(t)
-    W.dropped[t] = (W.dropped[t] or 0) + 1
-    W.dropSq = self
-    return newItem(t)
+    local item = type(t) == "string" and newItem(t) or t
+    W.dropped[item._type] = (W.dropped[item._type] or 0) + 1
+    W.dropSq, W.dropItem = self, item
+    return item
 end
 
 -- tile 的 sprite（只要 getName）；getSprite(name) 對任何名稱都回一張（MOD 只拿它當建構子參數）
@@ -6497,6 +6502,140 @@ local function scenarioForceOpen()
     clean(from, "撬棍強開")
 end
 
+-- 讀頭的汽車電瓶（使用者 2026-11-12）：能管理的人裝上／取下，伺服器重驗；沒有電網與發電機時每開一次扣 0.5%（滿電 200 次），
+-- 有電網不扣；扣到不夠就不開；電瓶不會跟著讀頭或門消失
+local function scenarioBattery()
+    out("情境：讀頭的汽車電瓶")
+    freshWorld()
+    local from = #logLines + 1
+    local sb = SandboxVars.MinidoracatKnoxPass
+    local B2 = "Base.CarBattery2"
+    local function uses(g) return rec(g).battery and rec(g).battery.uses end
+    local function mark(g) return g.door._modData.KnoxPassBattery end
+    local function reopen(g)   -- 關好再用 Knox Pass 開一次，回 open 的結果
+        cmd(g.owner, "close", { key = g.key })
+        return cmd(g.owner, "open", { key = g.key })
+    end
+
+    local a = gate(100, { power = false })
+    check(cmd(a.owner, "open", { key = a.key }).why == "NoPower" and not a.door:IsOpen(), "（前提）沒電網、沒電瓶：不開，NoPower")
+    local v = makeVehicle(a.cx, a.cy + 30, { tag = 0.5 })
+    register(a, v)
+    KP.passes = { tag = v._parts.KnoxPassTag._item:getID(), keys = { [a.key] = true } }
+    check(select(2, KnoxPassAPI.willOpenFor(v, a.door)) == "NoPower", "（前提）willOpenFor：NoPower")
+
+    -- 被拒的都不動物品、不動帳本
+    local stranger = newPlayer("stranger", 100, 102)
+    local sbat = stranger._inv:AddItem(newItem(B2, 1))
+    local screw = a.owner._inv:AddItem("Base.Screwdriver")
+    local bat = a.owner._inv:AddItem(newItem(B2, 0.62))
+    bat:setCondition(87)
+    a.owner._y = 120
+    local farWhy = cmd(a.owner, "battery", { key = a.key, itemId = bat:getID() }).why
+    a.owner._y = 102
+    check(cmd(stranger, "battery", { key = a.key, itemId = sbat:getID() }).why == "NotOwner"
+        and cmd(stranger, "battery", { key = a.key }).why == "NotOwner"
+        and cmd(a.owner, "battery", { key = a.key, itemId = screw:getID() }).why == "NoBattery"
+        and cmd(a.owner, "battery", { key = a.key, itemId = sbat:getID() }).why == "NoBattery"
+        and cmd(a.owner, "battery", { key = a.key, itemId = "x" }).why == "BadArgs"
+        and cmd(a.owner, "battery", { key = a.key }).why == "NoBattery" and farWhy == "TooFar"
+        and countType(stranger._inv, B2) == 1 and countType(a.owner._inv, B2) == 1 and uses(a) == nil and mark(a) == nil,
+        "陌生人、不是電瓶、別人身上的電瓶、亂填、沒裝就取下、站太遠：都被拒，物品與帳本不動")
+    seat(a.owner, v, 1)
+    check(cmd(a.owner, "battery", { key = a.key, itemId = bat:getID() }).why == "InVehicle", "坐在車上不能裝")
+    unseat(a.owner)
+    a.owner._x, a.owner._y = 100, 102
+
+    local res, st = cmd(a.owner, "battery", { key = a.key, itemId = bat:getID() })
+    check(res.ok == true and res.cmd == "batteryIn" and countType(a.owner._inv, B2) == 0 and near(uses(a), 0.62)
+        and rec(a).battery.cond == 87 and rec(a).battery.type == B2 and mark(a) == true,
+        "擁有者裝上：電瓶離開物品欄，帳本記型號、電量、耐久，錨點標記 true")
+    check(st and st.battery == 62 and st.batteryReady == true and st.batteryOpens == 124 and st.powered == false,
+        "管理視窗的 state：62%、夠開、還能開 124 次")
+    check(KnoxPassAPI.willOpenFor(v, a.door) == true, "willOpenFor：電瓶夠開一次就回 true")
+    local extra = a.owner._inv:AddItem(newItem("Base.CarBattery1", 1))
+    check(cmd(a.owner, "battery", { key = a.key, itemId = extra:getID() }).why == "BatteryPresent"
+        and countType(a.owner._inv, "Base.CarBattery1") == 1, "已經有電瓶：第二顆被拒、留在身上")
+
+    runMs(10250)   -- 過了開不了的重試間隔（3 秒）與指令頻率視窗（10 秒 20 次）；下面每段前同理
+    local tx = W.modDataTx
+    check(cmd(a.owner, "open", { key = a.key }).ok == true and a.door:IsOpen() and near(uses(a), 0.615),
+        "沒電網：用電瓶開門，扣 0.5%")
+    check(reopen(a).ok == true and near(uses(a), 0.61) and W.modDataTx == tx, "再開一次再扣 0.5%；夠不夠沒變，不重送錨點標記")
+    square(100, 100, 0)._grid = true
+    check(reopen(a).ok == true and near(uses(a), 0.61), "有電網：照開、不扣電瓶")
+    square(100, 100, 0)._grid = nil
+    sb.RequirePower = false
+    check(reopen(a).ok == true and near(uses(a), 0.61), "沙盒不需要供電：照開、不扣電瓶")
+    sb.RequirePower = nil
+    runMs(10250)
+    sb.BatteryDrainPercent = 200
+    check(reopen(a).ok == true and near(uses(a), 0.60), "耗電倍率 200：一次扣 1%")
+    sb.BatteryDrainPercent = 0
+    local _, st0 = cmd(a.owner, "query", { key = a.key })
+    check(reopen(a).ok == true and near(uses(a), 0.60) and st0.batteryReady == true and st0.batteryOpens == nil,
+        "耗電倍率 0：不扣，state 不給次數")
+    sb.BatteryDrainPercent = nil
+
+    -- 扣到不夠：最後一次照開，之後不開；標記只在跨過門檻時送一次
+    runMs(10250)
+    rec(a).battery.uses = 0.005
+    tx = W.modDataTx
+    check(reopen(a).ok == true and near(uses(a), 0) and mark(a) == false and W.modDataTx == tx + 1,
+        "剩剛好一次的電：照開、扣到 0，錨點標記改 false、送一次")
+    cmd(a.owner, "close", { key = a.key })
+    runMs(10250)
+    local r2 = cmd(a.owner, "open", { key = a.key })
+    local _, st2 = cmd(a.owner, "query", { key = a.key })
+    check(r2.why == "NoPower" and not a.door:IsOpen() and st2.battery == 0 and st2.batteryReady == false
+        and select(2, KnoxPassAPI.willOpenFor(v, a.door)) == "NoPower", "沒電的電瓶：不開（NoPower），state 與 willOpenFor 跟著")
+
+    -- 沙盒調高耗電讓標記過時：下一次開門失敗時跟著改
+    rec(a).battery.uses = 0.008
+    cmd(a.owner, "battery", { key = a.key })   -- 取下再裝，讓標記回到 true
+    local back = a.owner._inv:getFirstTypeRecurse(B2)
+    check(back ~= nil and near(back:getCurrentUsesFloat(), 0.008) and back:getCondition() == 87 and uses(a) == nil and mark(a) == nil,
+        "取下：做回同型號、電量、耐久的電瓶放進物品欄，帳本與標記清掉")
+    cmd(a.owner, "battery", { key = a.key, itemId = back:getID() })
+    sb.BatteryDrainPercent = 500
+    runMs(10250)
+    check(mark(a) == true and cmd(a.owner, "open", { key = a.key }).why == "NoPower" and mark(a) == false and near(uses(a), 0.008),
+        "耗電倍率調高後不夠開一次：不開、不扣，過時的標記改成 false")
+    sb.BatteryDrainPercent = nil
+
+    runMs(10250)
+    -- 共同管理者能裝，分享的成員不能
+    local c = gate(200, { power = false })
+    rec(c).co = { comgr = true }
+    rec(c).share = "faction"
+    W.factions[#W.factions + 1] = { owner = c.owner._name, members = { member = true } }
+    local comgr, member = newPlayer("comgr", 200, 102), newPlayer("member", 200, 102)
+    local cb, mb = comgr._inv:AddItem(newItem(B2, 0.5)), member._inv:AddItem(newItem(B2, 0.5))
+    check(cmd(member, "battery", { key = c.key, itemId = mb:getID() }).why == "NotOwner"
+        and cmd(comgr, "battery", { key = c.key, itemId = cb:getID() }).ok == true and near(uses(c), 0.5),
+        "分享的陣營成員不能裝；共同管理者能裝")
+    check(cmd(member, "open", { key = c.key }).ok == true and near(uses(c), 0.495), "分享的成員照樣能開門，扣電瓶")
+
+    -- 重開伺服器：電瓶還在
+    restart()
+    check(near(uses(c), 0.495) and near(uses(a), 0.008), "重開伺服器後帳本的電瓶還在")
+
+    -- 拆讀頭：電瓶退給拆的人；門被移走：電瓶落在錨點那格
+    local n = countType(c.owner._inv, B2)
+    c.owner._inv:AddItem("Base.Screwdriver")
+    cmd(c.owner, "close", { key = c.key })
+    check(cmd(c.owner, "uninstall", { key = c.key }).ok == true and countType(c.owner._inv, B2) == n + 1
+        and near(c.owner._inv:getFirstTypeRecurse(B2):getCurrentUsesFloat(), 0.495) and W.dropped[B2] == nil,
+        "拆讀頭：電瓶連同讀頭退給拆的人，不落地")
+    a.door._square:transmitRemoveItemFromSquare(a.door, false)
+    step()
+    check(rec(a) == nil and W.dropped[B2] == 1 and W.dropSq == square(100, 100, 0) and near(W.dropItem:getCurrentUsesFloat(), 0.008)
+        and W.dropItem:getCondition() == 87 and logHas("battery dropped", from),
+        "門被移走：帳本刪除，電瓶照原本的電量與耐久落在錨點那格")
+    KP.passes = nil
+    clean(from, "讀頭的汽車電瓶")
+end
+
 local tests = {
     scenarioParts, scenarioDock, scenarioDetection, scenarioAutoClose, scenarioLocks, scenarioCommands,
     scenarioSinglePlayer, scenarioLedger, scenarioCharging, scenarioReopen, scenarioUninstallOpen, scenarioGarage,
@@ -6508,6 +6647,7 @@ local tests = {
     scenarioRoadText, scenarioBasement, scenarioForceOpen,
     scenarioFlash,
     scenarioDismantle,
+    scenarioBattery,
 }
 for _, t in ipairs(tests) do t() end
 

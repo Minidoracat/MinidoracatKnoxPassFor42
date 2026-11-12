@@ -5,6 +5,8 @@
     "ContextMenu_KnoxPass_Lock": "Trancar (só o Knox Pass abre)",
     "ContextMenu_KnoxPass_Open": "Abrir com Knox Pass",
     "ContextMenu_KnoxPass_Close": "Fechar com Knox Pass",
+    "ContextMenu_KnoxPass_BatteryIn": "Instalar bateria de carro (%1%%)",
+    "ContextMenu_KnoxPass_BatteryOut": "Remover bateria de carro",
     "ContextMenu_KnoxPass_Remove": "Remover leitor",
     "ContextMenu_KnoxPass_DismantleBarrier": "Desmontar a cancela inteira",
     "ContextMenu_KnoxPass_DismantleGate": "Desmontar o portão inteiro",

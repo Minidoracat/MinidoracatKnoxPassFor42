@@ -5,6 +5,8 @@
     "ContextMenu_KnoxPass_Lock": "Замок (открывает только Knox Pass)",
     "ContextMenu_KnoxPass_Open": "Открыть через Knox Pass",
     "ContextMenu_KnoxPass_Close": "Закрыть через Knox Pass",
+    "ContextMenu_KnoxPass_BatteryIn": "Установить автомобильный аккумулятор (%1%%)",
+    "ContextMenu_KnoxPass_BatteryOut": "Снять автомобильный аккумулятор",
     "ContextMenu_KnoxPass_Remove": "Снять считыватель",
     "ContextMenu_KnoxPass_DismantleBarrier": "Разобрать шлагбаум целиком",
     "ContextMenu_KnoxPass_DismantleGate": "Разобрать ворота целиком",

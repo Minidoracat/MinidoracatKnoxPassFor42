@@ -5,6 +5,8 @@
     "ContextMenu_KnoxPass_Lock": "Zablokuj (otwiera tylko Knox Pass)",
     "ContextMenu_KnoxPass_Open": "Otwórz przez Knox Pass",
     "ContextMenu_KnoxPass_Close": "Zamknij przez Knox Pass",
+    "ContextMenu_KnoxPass_BatteryIn": "Zamontuj akumulator (%1%%)",
+    "ContextMenu_KnoxPass_BatteryOut": "Wyjmij akumulator",
     "ContextMenu_KnoxPass_Remove": "Zdemontuj czytnik",
     "ContextMenu_KnoxPass_DismantleBarrier": "Rozbierz cały szlaban",
     "ContextMenu_KnoxPass_DismantleGate": "Rozbierz całą bramę",

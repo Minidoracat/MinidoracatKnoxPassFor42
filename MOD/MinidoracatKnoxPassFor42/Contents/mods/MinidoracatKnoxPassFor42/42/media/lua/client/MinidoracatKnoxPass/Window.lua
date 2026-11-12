@@ -222,6 +222,7 @@ function Win.new(admin)
         aside = math.max(aside, tm:MeasureStringX(FS, t))
     end
     for _, t in ipairs({ getText("IGUI_KnoxPass_NoPower"), getText("IGUI_KnoxPass_PowerNotNeeded"),
+        getText("IGUI_KnoxPass_PowerBattery", "100", "200"), getText("IGUI_KnoxPass_PowerBatteryEmpty"),
         getText("IGUI_KnoxPass_DurabilityShielded"), getText("IGUI_KnoxPass_DurabilityValue", "2500", "2500") }) do
         info = math.max(info, tm:MeasureStringX(FS, t))
     end
@@ -510,6 +511,12 @@ function Win:apply(s)
     rows[2] = tostring(s.owner or "?")
     if not s.needPower then rows[3], self.powerToken = getText("IGUI_KnoxPass_PowerNotNeeded"), "textMuted"
     elseif s.powered then rows[3], self.powerToken = getText("IGUI_KnoxPass_Powered"), "text"
+    -- 沒有電網與發電機：讀頭的汽車電瓶（Server.lua buildState；耗電倍率 0 時沒有次數）
+    elseif s.battery and s.batteryReady then
+        rows[3] = s.batteryOpens and getText("IGUI_KnoxPass_PowerBattery", tostring(s.battery), tostring(s.batteryOpens))
+            or getText("IGUI_KnoxPass_PowerBatteryOnly", tostring(s.battery))
+        self.powerToken = "text"
+    elseif s.battery then rows[3], self.powerToken = getText("IGUI_KnoxPass_PowerBatteryEmpty"), "errorText"
     else rows[3], self.powerToken = getText("IGUI_KnoxPass_NoPower"), "errorText" end
     self:readDoor()
     -- 耐久：剩下耐久最少的那一片（伺服器 S.durability，墊高的照墊之前的值）；不會被破壞時不寫數字

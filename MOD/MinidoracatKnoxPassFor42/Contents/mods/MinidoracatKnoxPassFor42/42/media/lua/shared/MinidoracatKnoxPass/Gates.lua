@@ -557,7 +557,7 @@ end
 -- 公開給其他 MOD（家族 AutoDrive 用）：obj 是一扇 Knox Pass 大門的任一片、而且 Knox Pass 會替這台車開它時回 true。
 -- 條件：車上裝著有電的感應盒、這顆感應盒登記在這扇門（伺服器推送的清單，Sensor.lua pushPasses），或駕駛是本機玩家、
 -- 戴著有作用的地圖手錶模組、這顆模組登記在這扇門（任何一台車都算，Sensor.lua scanDriver 同一份規則）；
--- 門需要供電時有電（KP.squarePowered 在客戶端可用：發電機看區塊資料、電網看沙盒，IsoGridSquare.java:9654,11756）。
+-- 門需要供電時有電或讀頭的汽車電瓶夠開一次（KP.squarePowered 在客戶端可用：發電機看區塊資料、電網看沙盒，IsoGridSquare.java:9654,11756）。
 -- 是預告不是保證：伺服器仍可能開不了（門片擺動範圍被擋、剛斷電、延遲），呼叫端要能在門前停住。
 -- 裝了讀頭的門不會開時，第二個回傳值是原因代碼（whyText 轉成玩家語言）：NoTag、NotRegistered、TagEmpty、NoPower，
 -- 模組登記了這扇門但手錶沒作用（沒戴、沒電、槽位失效）時是 WatchOff，開門方式是「閃一下大燈才開」、而且不是 AutoDrive
@@ -581,7 +581,11 @@ function KnoxPassAPI.willOpenFor(vehicle, obj)
         end
         if KP.charge(tag) <= 0 then return false, "TagEmpty" end
     end
-    if KP.sandbox("RequirePower") == true and not G.powered(G.pieces(adapter, anchor)) then return false, "NoPower" end
+    -- 讀頭的汽車電瓶夠開一次（錨點標記，Server.lua mark／Sensor.lua markBattery）也算有電
+    if KP.sandbox("RequirePower") == true and not (reader and anchor:getModData()[KP.MARKER_BATTERY] == true)
+        and not G.powered(G.pieces(adapter, anchor)) then
+        return false, "NoPower"
+    end
     if reader and anchor:getModData()[KP.MARKER_TRIGGER] == "flash"
         and not (driver and driver:isLocalPlayer() and KP.autoDriveActive(driver:getPlayerNum())) then
         return false, "NeedFlash"

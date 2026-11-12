@@ -5,6 +5,8 @@
     "ContextMenu_KnoxPass_Lock": "上鎖（只有 Knox Pass 能開）",
     "ContextMenu_KnoxPass_Open": "用 Knox Pass 開門",
     "ContextMenu_KnoxPass_Close": "用 Knox Pass 關門",
+    "ContextMenu_KnoxPass_BatteryIn": "裝上汽車電瓶（%1%%）",
+    "ContextMenu_KnoxPass_BatteryOut": "取下汽車電瓶",
     "ContextMenu_KnoxPass_Remove": "拆下讀頭",
     "ContextMenu_KnoxPass_DismantleBarrier": "拆除整座閘門",
     "ContextMenu_KnoxPass_DismantleGate": "拆除整座大門",

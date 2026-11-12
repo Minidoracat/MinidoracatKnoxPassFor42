@@ -115,6 +115,15 @@ local function noteMissing(key, rec, now)
     end
 end
 
+-- 讀頭汽車電瓶的錨點標記（KP.MARKER_BATTERY）：只在「夠不夠開一次」變了才送，一顆電瓶從滿到空送一次
+local function markBattery(anchor, rec)
+    local md, want = anchor:getModData(), KP.batteryMark(rec)
+    if md[KP.MARKER_BATTERY] ~= want then
+        md[KP.MARKER_BATTERY] = want
+        anchor:transmitModData()
+    end
+end
+
 local function drain(tag, part, vehicle)
     local amount = KP.DRAIN_PER_OPEN * KP.drainScale()
     if not tag or amount <= 0 then return end
@@ -169,7 +178,10 @@ function S.open(key, rec, who, tag, part, vehicle, now, holdMs)
     end
     if now < r.failAt then return fail("Busy") end
     local pieces = G.pieces(adapter, anchor)
-    if KP.sandbox("RequirePower") == true and not G.powered(pieces) then
+    -- 電網或發電機優先；都沒有才用讀頭的汽車電瓶（開好才扣，下面）。沙盒改了耗電倍率讓標記過時，在這裡跟著改
+    local mains = KP.sandbox("RequirePower") ~= true or G.powered(pieces)
+    if not mains and not KP.batteryReady(rec) then
+        if rec.battery then markBattery(anchor, rec) end
         r.failAt = now + S.FAIL_MS
         return fail("NoPower")
     end
@@ -188,6 +200,10 @@ function S.open(key, rec, who, tag, part, vehicle, now, holdMs)
     rec.keyed = keyed or nil
     L.setOpen(key, rec, true)
     drain(tag, part, vehicle)
+    if not mains then
+        rec.battery.uses = math.max(0, rec.battery.uses - KP.batteryCost())
+        markBattery(anchor, rec)
+    end
     if tag and rec.tags[tag:getID()] then rec.tags[tag:getID()].last = getGameTime():getWorldAgeHours() end
     return true
 end

@@ -89,10 +89,22 @@ function L.put(key, rec)
     version = version + 1
 end
 
--- 所有刪除路徑（拆讀頭、門不見了、閘門移除）都經過這裡：門柱上的讀頭模型一起拿掉（ReaderPost.lua）
+-- 讀頭上的汽車電瓶不跟著記錄消失：丟在錨點那格的地上（拆讀頭時 H.uninstall 已先退給拆的人，走不到這裡）。
+-- 四條刪除路徑呼叫時那格都載入著（門剛被移走或正要移走）；真的沒有格子就只能記一行
+local function spillBattery(key, rec)
+    local sq = getCell():getGridSquare(rec.x, rec.y, rec.z)
+    local item = sq and KP.makeBattery(rec.battery)
+    if item then sq:AddWorldInventoryItem(item, 0.5, 0.5, 0) end   -- 伺服器上自己送給客戶端（IsoGridSquare.java:6062-6140）
+    KP.log("battery " .. (item and "dropped" or "lost") .. " key=" .. key .. " type=" .. tostring(rec.battery.type)
+        .. " uses=" .. tostring(rec.battery.uses))
+    rec.battery = nil
+end
+
+-- 所有刪除路徑（拆讀頭、門不見了、閘門移除）都經過這裡：門柱上的讀頭模型一起拿掉（ReaderPost.lua）、讀頭上的汽車電瓶丟在地上
 function L.remove(key)
     local rec = L.get(key)
     if not rec then return end
+    if rec.battery then spillBattery(key, rec) end
     if KP.ReaderPost then KP.ReaderPost.detach(key, rec) end
     for id in pairs(rec.tags) do
         if byTag[id] then byTag[id][key] = nil end

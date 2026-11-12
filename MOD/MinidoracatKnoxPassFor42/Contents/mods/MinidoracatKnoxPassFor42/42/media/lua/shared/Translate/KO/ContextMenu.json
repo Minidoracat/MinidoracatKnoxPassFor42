@@ -5,6 +5,8 @@
     "ContextMenu_KnoxPass_Lock": "잠금 (Knox Pass로만 열림)",
     "ContextMenu_KnoxPass_Open": "Knox Pass로 열기",
     "ContextMenu_KnoxPass_Close": "Knox Pass로 닫기",
+    "ContextMenu_KnoxPass_BatteryIn": "차량 배터리 장착 (%1%%)",
+    "ContextMenu_KnoxPass_BatteryOut": "차량 배터리 분리",
     "ContextMenu_KnoxPass_Remove": "리더기 제거",
     "ContextMenu_KnoxPass_DismantleBarrier": "차단기 전체 해체",
     "ContextMenu_KnoxPass_DismantleGate": "대문 전체 해체",

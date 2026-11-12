@@ -30,6 +30,7 @@ do
     end
 end
 
+local BATTERY_TICKS = 100
 local INSTALL_TICKS, UNINSTALL_TICKS, DISMANTLE_TICKS = 150, 100, 200   -- 拆除照原版拆解的基本時間（ISDismantleAction.lua:102）
 local HALO_TICKS = 250 -- 預設 128（IsoGameCharacter.java:604）
 
@@ -77,6 +78,8 @@ local function onResult(args)
         if args.cmd == "install" then C.say(player, getText("IGUI_KnoxPass_Installed"), false)
         elseif args.cmd == "uninstall" then C.say(player, getText("IGUI_KnoxPass_Uninstalled"), false)
         elseif args.cmd == "dismantle" then C.say(player, getText("IGUI_KnoxPass_Dismantled"), false)
+        elseif args.cmd == "batteryIn" then C.say(player, getText("IGUI_KnoxPass_BatteryIn"), false)
+        elseif args.cmd == "batteryOut" then C.say(player, getText("IGUI_KnoxPass_BatteryOut"), false)
         elseif args.cmd == "recolor" or args.cmd == "recolorReader" then C.say(player, getText("IGUI_KnoxPass_Recolored"), false) end
         return
     end
@@ -128,6 +131,7 @@ function Action:isValid()
     if not door or not door:getSquare() or door:getObjectIndex() == -1 then return false end
     if self.command == "dismantle" then return KP.dismantleTool(self.character, door) ~= nil end
     local inv = self.character:getInventory()
+    if self.command == "battery" then return self.itemId == nil or inv:getItemWithIDRecursiv(self.itemId) ~= nil end   -- 不用工具
     if not KP.screwdriverOf(self.character) then return false end -- ISWorldObjectContextMenu.lua:1243
     -- getItemWithIDRecursiv：ItemContainer.java:3125（SP／MP client 都用 ID 找，不比物件參照）
     return self.command ~= "install" or inv:getItemWithIDRecursiv(self.itemId) ~= nil
@@ -152,6 +156,8 @@ function Action:perform()
         local sq = self.door:getSquare()
         C.send(self.character, self.command, { x = sq:getX(), y = sq:getY(), z = sq:getZ(),
             index = self.door:getObjectIndex(), itemId = self.itemId })
+    elseif self.command == "battery" then
+        C.send(self.character, "battery", { key = self.key, itemId = self.itemId })   -- itemId 沒有＝取下
     else
         C.send(self.character, "uninstall", { key = self.key })
     end
@@ -188,6 +194,14 @@ function C.queueUninstall(player, anchor, key)
     local action = Action:new(player, anchor, "uninstall", UNINSTALL_TICKS)
     action.key = key
     queue(player, anchor, action)
+end
+
+-- 讀頭的汽車電瓶：itemId＝要裝上的那顆，沒有＝取下（伺服器 H.battery 重驗權限、距離與物品）。不用工具
+function C.queueBattery(player, anchor, key, itemId)
+    if not luautils.walkAdjWindowOrDoor(player, anchor:getSquare(), anchor) then return end
+    local action = Action:new(player, anchor, "battery", BATTERY_TICKS)
+    action.key, action.itemId = key, itemId
+    ISTimedActionQueue.add(action)
 end
 
 -- 拆除整座（伺服器 H.dismantle 重驗權限、工具與距離）：走到那一端（機箱、門柱是實心的，走到旁邊的空格；兩層樓捲門的門片照門的走法）
@@ -311,6 +325,23 @@ local function onClose(player, key) C.send(player, "close", { key = key }) end
 local function addOpenClose(sub, player, adapter, anchor, key)
     if G.isOpen(adapter, anchor) then return sub:addOption(getText("ContextMenu_KnoxPass_Close"), player, onClose, key) end
     return sub:addOption(getText("ContextMenu_KnoxPass_Open"), player, onOpen, key)
+end
+
+-- 讀頭的汽車電瓶（能管理這扇門的人才看得到）：裝著就給「取下」；沒裝、沙盒要供電、身上有汽車電瓶就給「裝上」，
+-- 挑電量最多的那顆、寫出電量。電量只在管理視窗看得到（錨點標記只有夠不夠開一次）
+local function addBattery(sub, player, anchor, key, md)
+    if md[KP.MARKER_BATTERY] ~= nil then
+        return sub:addOption(getText("ContextMenu_KnoxPass_BatteryOut"), player, C.queueBattery, anchor, key)
+    end
+    if KP.sandbox("RequirePower") ~= true then return end
+    local list, best = player:getInventory():getAllEvalRecurse(KP.isCarBattery), nil   -- ItemContainer.java:1984
+    for i = 0, list:size() - 1 do
+        local item = list:get(i)
+        if not best or KP.charge(item) > KP.charge(best) then best = item end
+    end
+    if not best then return end
+    sub:addOption(getText("ContextMenu_KnoxPass_BatteryIn", tostring(math.floor(KP.charge(best) * 100 + 0.5))),
+        player, C.queueBattery, anchor, key, best:getID())
 end
 
 -- 「重新上色」子選單：列出 current 以外的顏色；缺刷子或該色油漆的灰掉並提示（原版 notAvailable＋池化 tooltip，
@@ -513,6 +544,7 @@ local function onFillMenu(playerIndex, context, worldobjects, test)
     end
 
     addOpenClose(sub, player, adapter, anchor, key)
+    addBattery(sub, player, anchor, key, md)
 
     -- 閘門的讀頭是內建的：不給拆（伺服器 H.uninstall 回 BuiltIn）、不分顏色，要拆整座閘門
     if not KP.isBarrier(anchor) then

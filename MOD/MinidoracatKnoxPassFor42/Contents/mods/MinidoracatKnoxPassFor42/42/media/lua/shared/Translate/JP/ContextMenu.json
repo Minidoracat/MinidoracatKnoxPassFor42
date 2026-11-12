@@ -5,6 +5,8 @@
     "ContextMenu_KnoxPass_Lock": "施錠（Knox Pass でのみ開く）",
     "ContextMenu_KnoxPass_Open": "Knox Pass で開ける",
     "ContextMenu_KnoxPass_Close": "Knox Pass で閉める",
+    "ContextMenu_KnoxPass_BatteryIn": "車両バッテリーを取り付ける（%1%%）",
+    "ContextMenu_KnoxPass_BatteryOut": "車両バッテリーを取り外す",
     "ContextMenu_KnoxPass_Remove": "リーダーを取り外す",
     "ContextMenu_KnoxPass_DismantleBarrier": "遮断機をまるごと解体",
     "ContextMenu_KnoxPass_DismantleGate": "ゲートをまるごと解体",

@@ -1,6 +1,6 @@
 -- 伺服器指令：client 只送意圖（sendClientCommand），這裡重查一切再改世界。
 -- 指令：install、uninstall、dismantle、register、unregister、lock、settings、managers、findPlayers、open、close、query、recolor、
--- recolorReader。回覆：state（只給能管理這扇門的人）、players（共同管理者候選）、result。
+-- recolorReader、battery。回覆：state（只給能管理這扇門的人）、players（共同管理者候選）、result。
 -- SP 的 sendServerCommand 是 no-op（LuaManager.java:8888-8906），回覆直接交給 client 的接收函式（家族 VM 同做法）。
 if isClient() then return end
 require "MinidoracatKnoxPass/Core"
@@ -139,6 +139,7 @@ local function mark(anchor, rec)
     md[KP.MARKER_COLOR] = rec and rec.color ~= 0 and rec.color or nil   -- 只給右鍵選單列出「其他顏色」用
     md[KP.MARKER_SPEED] = rec and rec.speed == "fast" and "fast" or nil   -- client 選開關動畫（BarrierAnim.lua）
     md[KP.MARKER_TRIGGER] = rec and rec.trigger or nil   -- 閃一下大燈才開：willOpenFor 回 NeedFlash（Gates.lua）
+    md[KP.MARKER_BATTERY] = KP.batteryMark(rec)   -- 讀頭的汽車電瓶：true＝夠開一次、false＝不夠（選單、willOpenFor）
     md[KP.MARKER_CO] = rec and nameSet(rec.co) or nil
     md[KP.MARKER_COFACTION] = rec and rec.coFaction or nil
     md[KP.MARKER_COHOUSES] = rec and nameSet(rec.coHouses) or nil
@@ -315,6 +316,13 @@ local function buildState(player, key, rec)
         indestructible = KP.gateIndestructible(rec), indestructibleAll = KP.sandbox("Indestructible") == true,
         isAdmin = adminOf(player),
     }
+    -- 讀頭的汽車電瓶：電量百分比、夠不夠開一次、還能開幾次（耗電倍率 0 時不給次數）
+    if rec.battery then
+        local cost = KP.batteryCost()
+        state.battery = math.floor(rec.battery.uses * 100 + 0.5)
+        state.batteryReady = KP.batteryReady(rec)
+        state.batteryOpens = cost > 0 and math.floor(rec.battery.uses / cost + 1e-6) or nil
+    end
     local adapter, anchor = G.findAt(rec)
     if adapter then
         state.powered = G.powered(G.pieces(adapter, anchor))
@@ -453,9 +461,16 @@ function H.uninstall(player, args)
         mark(anchor, nil)
         if rec.indoor then G.syncRegions(pieces) end   -- 算室內：照門現在的樣子重算，不留下記成牆的紀錄
     end
+    local inv = player:getInventory()
+    -- 讀頭上的汽車電瓶退給拆的人（做不回來的交給 L.remove 記一行）
+    local battery = rec.battery and KP.makeBattery(rec.battery)
+    if battery then
+        inv:AddItem(battery)
+        if isServer() then sendAddItemToContainer(inv, battery) end
+        rec.battery = nil
+    end
     L.remove(args.key)
     S.forget(args.key)
-    local inv = player:getInventory()
     local item = inv:AddItem(KP.colorType(KP.READER_TYPE, rec.color or 0))   -- 退回同色；舊記錄沒有 color＝米白
     if item and isServer() then sendAddItemToContainer(inv, item) end
     KP.log("reader removed key=" .. args.key .. " by=" .. tostring(player:getUsername()))
@@ -826,6 +841,47 @@ function H.query(player, args)
     if not rec then return result(player, "query", false, why, keyOf(args)) end
     -- 沒有管理權：只回 NotOwner，不送這扇門的任何設定（管理視窗收到就關掉，Window.lua Win.onResult）
     if not canManage(player, rec) then return result(player, "query", false, "NotOwner", args.key) end
+    KP.sendState(player, args.key)
+end
+
+-- 讀頭的汽車電瓶（使用者 2026-11-12）：itemId＝身上那顆電瓶的物品 ID＝裝上，沒帶＝取下。能管理這扇門的人、站在門邊、
+-- 不在車上、門不在別人的安全屋裡（同 H.install）；門要載入（錨點標記要跟著改）。裝上：物品從身上移走，帳本記型號、電量、
+-- 耐久；取下：照帳本做回一顆放進物品欄。回覆的 cmd 分 batteryIn／batteryOut（客戶端提示用）
+function H.battery(player, args)
+    local install = args.itemId ~= nil
+    local cmd = install and "batteryIn" or "batteryOut"
+    if install and not KP.isInt(args.itemId) then return result(player, cmd, false, "BadArgs", keyOf(args)) end
+    if player:getVehicle() then return result(player, cmd, false, "InVehicle", keyOf(args)) end
+    local rec, why = gateFor(player, args)
+    if not rec then return result(player, cmd, false, why, keyOf(args)) end
+    if not canManage(player, rec) then return result(player, cmd, false, "NotOwner", args.key) end
+    local adapter, anchor = G.findAt(rec)
+    if not adapter then return result(player, cmd, false, adapter == nil and "NotLoaded" or "NoGate", args.key) end
+    if not SafeHouse.isSafehouseAllowInteract(anchor:getSquare(), player) then
+        return result(player, cmd, false, "Safehouse", args.key)
+    end
+    local inv = player:getInventory()
+    if install then
+        if rec.battery then return result(player, cmd, false, "BatteryPresent", args.key) end
+        local item = inv:getItemWithIDRecursiv(args.itemId)
+        if not KP.isCarBattery(item) then return result(player, cmd, false, "NoBattery", args.key) end
+        local container = item:getContainer()
+        player:removeFromHands(item)
+        container:DoRemoveItem(item)
+        if isServer() then sendRemoveItemFromContainer(container, item) end
+        rec.battery = { type = item:getFullType(), uses = item:getCurrentUsesFloat(), cond = item:getCondition() }
+    else
+        if not rec.battery then return result(player, cmd, false, "NoBattery", args.key) end
+        local item = KP.makeBattery(rec.battery)
+        if not item then return result(player, cmd, false, "Error", args.key) end
+        inv:AddItem(item)
+        if isServer() then sendAddItemToContainer(inv, item) end
+        rec.battery = nil
+    end
+    mark(anchor, rec)
+    KP.log("battery " .. (install and "in" or "out") .. " key=" .. args.key
+        .. " uses=" .. tostring(rec.battery and rec.battery.uses) .. " by=" .. tostring(player:getUsername()))
+    result(player, cmd, true, nil, args.key)
     KP.sendState(player, args.key)
 end
 

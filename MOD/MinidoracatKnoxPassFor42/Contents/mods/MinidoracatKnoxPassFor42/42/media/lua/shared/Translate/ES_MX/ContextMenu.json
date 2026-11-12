@@ -5,6 +5,8 @@
     "ContextMenu_KnoxPass_Lock": "Bloquear (solo Knox Pass lo abre)",
     "ContextMenu_KnoxPass_Open": "Abrir con Knox Pass",
     "ContextMenu_KnoxPass_Close": "Cerrar con Knox Pass",
+    "ContextMenu_KnoxPass_BatteryIn": "Instalar batería de coche (%1%%)",
+    "ContextMenu_KnoxPass_BatteryOut": "Quitar batería de coche",
     "ContextMenu_KnoxPass_Remove": "Quitar lector",
     "ContextMenu_KnoxPass_DismantleBarrier": "Desarmar toda la barrera",
     "ContextMenu_KnoxPass_DismantleGate": "Desarmar todo el portón",

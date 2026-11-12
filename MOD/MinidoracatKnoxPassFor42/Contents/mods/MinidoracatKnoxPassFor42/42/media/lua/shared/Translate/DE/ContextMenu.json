@@ -5,6 +5,8 @@
     "ContextMenu_KnoxPass_Lock": "Sperren (nur Knox Pass öffnet)",
     "ContextMenu_KnoxPass_Open": "Mit Knox Pass öffnen",
     "ContextMenu_KnoxPass_Close": "Mit Knox Pass schließen",
+    "ContextMenu_KnoxPass_BatteryIn": "Autobatterie einbauen (%1%%)",
+    "ContextMenu_KnoxPass_BatteryOut": "Autobatterie entnehmen",
     "ContextMenu_KnoxPass_Remove": "Leser entfernen",
     "ContextMenu_KnoxPass_DismantleBarrier": "Ganze Schranke abbauen",
     "ContextMenu_KnoxPass_DismantleGate": "Ganzes Tor abbauen",

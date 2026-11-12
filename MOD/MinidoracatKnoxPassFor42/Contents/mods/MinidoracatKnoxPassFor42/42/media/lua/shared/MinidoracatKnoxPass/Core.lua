@@ -14,6 +14,7 @@ KP.MARKER_SPEED = "KnoxPassSpeed"                 -- 大門錨點 modData：開�
 KP.MARKER_TRIGGER = "KnoxPassTrigger"             -- 大門錨點 modData：開門方式 "flash"＝閃一下大燈才開（沒有＝靠近就開；KnoxPassAPI.willOpenFor 用）
 KP.MARKER_CO = "KnoxPassCo"                       -- 大門錨點 modData：共同管理者 { [帳號] = true }（右鍵選單用，伺服器不信它）
 KP.MARKER_COFACTION = "KnoxPassCoFaction"         -- 大門錨點 modData：擁有者陣營的成員也是共同管理者（同上）
+KP.MARKER_BATTERY = "KnoxPassBattery"             -- 大門錨點 modData：讀頭裝著汽車電瓶，true＝夠開一次、false＝不夠（沒有＝沒裝；右鍵選單與 willOpenFor 用，伺服器不信它）
 KP.MARKER_COHOUSES = "KnoxPassCoHouses"           -- 大門錨點 modData：勾選的安全屋也是共同管理者 { [原生 owner 字串] = true }（同上）
 KP.MAX_MANAGERS = 8                               -- 每扇門最多幾位個別的共同管理者（陣營另外算）
 KP.MAX_HOUSES = 12                                -- 名單視窗最多列幾間安全屋（擁有者所在的；勾選的排前面，Server.lua ownerHouses）
@@ -23,6 +24,7 @@ KP.REGISTER_RANGE = 15                            -- 登記時車要在大門幾
 KP.CHARGE_PER_HOUR = 0.2                          -- 裝在車上、車在跑、電瓶高於 10% 時每遊戲小時充電量
 KP.CHARGE_MIN_BATTERY = 0.1
 KP.DRAIN_PER_OPEN = 0.01                          -- 每次開門耗電（再乘沙盒耗電倍率）
+KP.BATTERY_PER_OPEN = 0.005                       -- 讀頭的汽車電瓶每次開門耗電：滿電 200 次（使用者 2026-11-12；再乘沙盒 BatteryDrainPercent）
 
 -- 抬升閘門（scripts/build_barrier_tiles.py 產生 tile 與 spriteModels；索引表見該檔 docstring）：
 -- 0-2／3-5＝N／W 向車道 1-3（關，GarageDoor 1-3），8-13＝開（關＋8，IsoDoor.java:614-626），6／7＝N／W 向機箱；
@@ -298,7 +300,7 @@ end
 local DEFAULTS = {
     ReadRange = 8, ReadRangeMin = 2, ReadRangeMax = 30, LeadSeconds = 2.0, AutoDriveAhead = 150,
     CloseDelay = 2, CloseDelayMin = 0, CloseDelayMax = 30, RequirePower = true,
-    TagDrainPercent = 100, AllowCraft = true, SpawnLoot = true, OutsideSafehouse = 1, Indestructible = false,
+    TagDrainPercent = 100, BatteryDrainPercent = 100, AllowCraft = true, SpawnLoot = true, OutsideSafehouse = 1, Indestructible = false,
     WatchSensing = true, WatchRange = 3,
 }
 
@@ -465,6 +467,41 @@ end
 -- 刻意不照原版室外電器要求 getRoom()（ISWorldObjectContextMenu.lua:460-461）：大門在室外，照原版就永遠吃不到電網
 function KP.squarePowered(sq)
     return sq ~= nil and (sq:haveElectricity() or sq:hasGridPower())
+end
+
+-- 讀頭的汽車電瓶（使用者 2026-11-12，B站玩家：大門離房子遠，要專門開一台發電機）：能管理這扇門的人把原版汽車電瓶裝進讀頭
+-- （Server.lua H.battery），帳本記 rec.battery = { type, uses（0..1，同 getCurrentUsesFloat）, cond }，物品本身不留。
+-- 門沒有電網、發電機時每開一次扣 KP.batteryCost()（Sensor.lua S.open）；放著不耗電、在讀頭上不充電，取下來用原版方法充。
+-- 沒有計時器：只在開門那一刻算
+local BATTERIES = { ["Base.CarBattery1"] = true, ["Base.CarBattery2"] = true, ["Base.CarBattery3"] = true }   -- drainable.txt:2349-2404
+
+function KP.isCarBattery(item)
+    return item ~= nil and BATTERIES[item:getFullType()] == true
+end
+
+function KP.batteryCost()
+    return KP.BATTERY_PER_OPEN * (tonumber(KP.sandbox("BatteryDrainPercent")) or 100) / 100
+end
+
+-- 夠開一次門（耗電倍率 0 時有電就算）；1e-6 吸收連扣 200 次的浮點誤差
+function KP.batteryReady(rec)
+    local b = rec.battery
+    return b ~= nil and b.uses > 1e-6 and b.uses + 1e-6 >= KP.batteryCost()
+end
+
+-- 錨點標記 KP.MARKER_BATTERY 該有的值
+function KP.batteryMark(rec)
+    if rec and rec.battery then return KP.batteryReady(rec) end
+    return nil
+end
+
+-- 照帳本做回一顆電瓶（取下、拆讀頭、門沒了時用；原版收音機拆電池也是重建：DeviceData.java:303-316）
+function KP.makeBattery(b)
+    local item = instanceItem(b.type)   -- LuaManager.java:5636-5638
+    if not item then return nil end
+    item:setCurrentUsesFloat(b.uses)
+    item:setCondition(b.cond)
+    return item
 end
 
 -- ── 玩家 ────────────────────────────────────────────────────────────────

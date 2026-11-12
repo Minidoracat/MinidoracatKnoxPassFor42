@@ -86,6 +86,16 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]What they can't[/b]: remove the reader or change the co-manager list; only the owner and server admins can.
 [*] Works in multiplayer only.
 [/list]
+[h3]Power and car batteries[/h3]
+[list]
+[*] [b]Normal power[/b]: while the server keeps "Gate readers need power" on (default), a gate only opens with grid power or inside the range of a running generator.
+[*] [b]With neither[/b]: put a car battery in the reader. Carry a vanilla car battery, right-click the gate → Knox Pass → "Install car battery"; no tool needed. If you carry several, the one with the most charge goes in.
+[*] [b]Who can install or remove it[/b]: the owner, co-managers and server admins.
+[*] [b]Drain[/b]: each opening uses 0.5% of a full charge, so a full battery opens the gate about 200 times; a closed gate uses nothing. Grid power and generators come first and leave the battery untouched.
+[*] [b]Checking the charge[/b]: the "Power" row of the management window shows the charge and how many openings are left. When there isn't enough for one opening, the gate stays shut and tells you it has no power.
+[*] [b]Recharging[/b]: the battery does not recharge in the reader. Right-click → Knox Pass → "Remove car battery", then charge it in a car or with the vanilla battery charger and put it back.
+[*] [b]It never vanishes[/b]: removing the reader gives the battery to whoever removes it; dismantling the whole gate or having it broken drops the battery on the ground at the gate.
+[/list]
 === 🧰 Shell colors and repainting
 {{img:11-shell-colors-en.jpg}}
 [list]
@@ -293,6 +303,7 @@ Sandbox page "Minidoracat Knox Pass":
 [tr][td]Auto-close delay minimum / maximum (seconds)[/td][td]0 / 30[/td][td]0–120[/td][/tr]
 [tr][td]Gate readers need power[/td][td]On[/td][td][/td][/tr]
 [tr][td]Vehicle tag drain multiplier (percent)[/td][td]100%[/td][td]0–500%[/td][/tr]
+[tr][td]Reader battery drain multiplier (percent)[/td][td]100%[/td][td]0–500%[/td][/tr]
 [tr][td]Allow crafting Knox Pass items[/td][td]On[/td][td][/td][/tr]
 [tr][td]Spawn Knox Pass items in world loot[/td][td]On[/td][td][/td][/tr]
 [tr][td]Readers outside safehouses[/td][td]No limit[/td][td]No limit / No locking / No installing[/td][/tr]
@@ -305,8 +316,9 @@ Sandbox page "Minidoracat Knox Pass":
 [*] [b]Minimum / maximum[/b]: the window's dropdown only lists this range, and each gate's effective value is kept inside it. The close delay limits work the same way.
 [*] [b]Look-ahead time[/b]: how far ahead along the car's movement to look; 0 uses the plain range only.
 [*] [b]Self-driving early open distance[/b]: when a car under Minidoracat AutoDrive heads for the gate (the gate within about 12 degrees of its direction of travel), the gate opens once the car is this close. The server must have the gate's area loaded first, so in practice it opens about 70–130 tiles out. 0 treats it like any other car.
-[*] [b]Gate readers need power[/b]: grid power or a generator both count, and outdoor gates do get grid power.
+[*] [b]Gate readers need power[/b]: grid power or a generator both count, and outdoor gates do get grid power; with neither, a car battery in the reader works (see "Power and car batteries").
 [*] [b]Tag drain multiplier[/b]: 0 means it never runs out.
+[*] [b]Reader battery drain multiplier[/b]: what a car battery in a reader uses per opening; 100% is 0.5% of a full charge, 0 means it never drains.
 [*] [b]Readers outside safehouses[/b]: applies when a gate isn't in the reader owner's safehouse, multiplayer only. "No locking" = the Knox Pass lock can't be turned on, opening works as usual; "No installing" = readers only go in your own safehouse. Gates already locked stay locked, and the owner, a co-manager or an admin can turn the lock off. This stops people from putting a reader on someone else's door and locking it.
 [*] [b]Gates with a reader can't be broken[/b]: when on, zombies and weapons can't break gates with a reader, and neither can the cabinets of boom barriers and double boom barriers or the posts of two-story gates. Zombies still bang on them, and the noise still draws nearby zombies. Only the gate itself is covered: walls follow the vanilla "Damage Construction" sandbox option, sledgehammers follow the server settings, and fire works as usual. When it is turned off or the reader is removed, the gate gets back the durability it had before. While it is off, admins can still turn it on for single gates in the manage window.
 [*] [b]Watch modules[/b]: need the Map Watch. When off, walking doesn't open gates and the module can't be crafted; driving and right-click opening still accept the module. The range is how close to the gate line it opens.
@@ -338,7 +350,7 @@ Check that:
 [*] you're in the driver's seat, the tag is in the car you drive (not in a trailer), and it has charge
 [*] this tag is registered at this gate
 [*] if the gate opens on [b]Headlight flash[/b], you flashed your headlights at it first
-[*] the reader has power (the window shows it)
+[*] the reader has power (the window shows it): grid power, a generator, or a charged car battery in the reader
 [/list]
 [h3]The gate won't close?[/h3]
 [list]

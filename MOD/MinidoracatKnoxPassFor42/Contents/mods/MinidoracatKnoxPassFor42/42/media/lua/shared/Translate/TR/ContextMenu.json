@@ -5,6 +5,8 @@
     "ContextMenu_KnoxPass_Lock": "Kilitle (yalnızca Knox Pass açar)",
     "ContextMenu_KnoxPass_Open": "Knox Pass ile aç",
     "ContextMenu_KnoxPass_Close": "Knox Pass ile kapat",
+    "ContextMenu_KnoxPass_BatteryIn": "Araba aküsü tak (%1%%)",
+    "ContextMenu_KnoxPass_BatteryOut": "Araba aküsünü çıkar",
     "ContextMenu_KnoxPass_Remove": "Okuyucuyu sök",
     "ContextMenu_KnoxPass_DismantleBarrier": "Bariyerin tamamını sök",
     "ContextMenu_KnoxPass_DismantleGate": "Kapının tamamını sök",
