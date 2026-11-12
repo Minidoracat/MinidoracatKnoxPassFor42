@@ -2,7 +2,7 @@
 煙霧測試：用假的 PZ 全域載入**真正的** MOD Lua（shared Core/Gates/Parts、server Ledger/Sensor/Server；不載 client），
 跑行為情境並斷言結果。
 
-    lua scripts/smoke_harness.lua        （repo 根目錄執行；標準 Lua 5.x 即可）
+    lua scripts/smoke_harness.lua        （repo 根目錄執行；標準 Lua 5.3 以上：drainable mock 用 string.pack）
 
 為什麼需要（兩類 luac -p 抓不到的錯誤，皆為正式服實際事故）：
 - 改函式簽章漏改呼叫點：語法完全合法，要等該路徑真的執行才炸
@@ -6547,6 +6547,19 @@ local function scenarioBattery()
     check(cmd(a.owner, "battery", { key = a.key, itemId = bat:getID() }).why == "InVehicle", "坐在車上不能裝")
     unseat(a.owner)
     a.owner._x, a.owner._y = 100, 102
+    local dsq, findAt, whys = a.door:getSquare(), KP.Gates.findAt, {}
+    W.safehouse[dsq] = { someoneElse = true }
+    whys[1] = cmd(a.owner, "battery", { key = a.key, itemId = bat:getID() }).why
+    W.safehouse[dsq] = nil
+    KP.Gates.findAt = function() return nil end
+    whys[2] = cmd(a.owner, "battery", { key = a.key, itemId = bat:getID() }).why
+    KP.Gates.findAt = function() return false end
+    whys[3] = cmd(a.owner, "battery", { key = a.key, itemId = bat:getID() }).why
+    KP.Gates.findAt = findAt
+    check(whys[1] == "Safehouse" and whys[2] == "NotLoaded" and whys[3] == "NoGate"
+        and countType(a.owner._inv, B2) == 1 and uses(a) == nil and mark(a) == nil,
+        "門在別人的安全屋、門沒載入、門不見了：都被拒，物品與帳本不動")
+    runMs(10250)
 
     local res, st = cmd(a.owner, "battery", { key = a.key, itemId = bat:getID() })
     check(res.ok == true and res.cmd == "batteryIn" and countType(a.owner._inv, B2) == 0 and near(uses(a), 0.62)
@@ -6606,6 +6619,25 @@ local function scenarioBattery()
     sb.BatteryDrainPercent = nil
 
     runMs(10250)
+    -- 登記的車開過去（感應掃描開的門）：車停在範圍內撐著門只扣一次，關門後再靠近才再扣
+    local d = gate(300, { power = false })
+    local full = d.owner._inv:AddItem(newItem(B2, 1))
+    cmd(d.owner, "battery", { key = d.key, itemId = full:getID() })
+    local vd = car(d, 3, { tag = 0.5 })
+    register(d, vd)
+    driver(vd)
+    step()
+    check(d.door:IsOpen() and near(uses(d), 0.995), "登記的車靠近：感應開門，扣一次")
+    runMs(10000)
+    check(d.door:IsOpen() and near(uses(d), 0.995), "車停在範圍內撐著門 10 秒：不再扣")
+    moveCar(vd, vd._x, vd._y + 40)
+    runMs(3000)
+    moveCar(vd, d.cx, d.cy + 3)
+    step()
+    check(d.door:IsOpen() and near(uses(d), 0.99), "關門後再靠近：再扣一次")
+    moveCar(vd, vd._x, vd._y + 40)
+
+    runMs(10250)
     -- 共同管理者能裝，分享的成員不能
     local c = gate(200, { power = false })
     rec(c).co = { comgr = true }
@@ -6622,7 +6654,7 @@ local function scenarioBattery()
 
     -- 重開伺服器：電瓶還在
     restart()
-    check(near(uses(c), 0.095) and near(uses(a), 0.008), "重開伺服器後帳本的電瓶還在")
+    check(near(uses(c), 0.095) and near(uses(a), 0.008) and near(uses(d), 0.99), "重開伺服器後帳本的電瓶還在")
 
     -- 拆讀頭：電瓶退給拆的人；門被移走：電瓶落在錨點那格
     local n = countType(c.owner._inv, B2)
@@ -6631,6 +6663,7 @@ local function scenarioBattery()
     check(cmd(c.owner, "uninstall", { key = c.key }).ok == true and countType(c.owner._inv, B2) == n + 1
         and near(c.owner._inv:getFirstTypeRecurse(B2):getCurrentUsesFloat(), 0.095) and W.dropped[B2] == nil,
         "拆讀頭：電瓶連同讀頭退給拆的人，不落地")
+    check(logHas("reader removed key=" .. c.key, from) and logHas("battery=" .. B2, from), "拆讀頭的 log 寫出退回的電瓶")
     a.door._square:transmitRemoveItemFromSquare(a.door, false)
     step()
     check(rec(a) == nil and W.dropped[B2] == 1 and W.dropSq == square(100, 100, 0) and near(W.dropItem:getCurrentUsesFloat(), 0.008)

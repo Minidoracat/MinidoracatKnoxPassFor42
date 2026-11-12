@@ -14,8 +14,8 @@ KP.MARKER_SPEED = "KnoxPassSpeed"                 -- 大門錨點 modData：開�
 KP.MARKER_TRIGGER = "KnoxPassTrigger"             -- 大門錨點 modData：開門方式 "flash"＝閃一下大燈才開（沒有＝靠近就開；KnoxPassAPI.willOpenFor 用）
 KP.MARKER_CO = "KnoxPassCo"                       -- 大門錨點 modData：共同管理者 { [帳號] = true }（右鍵選單用，伺服器不信它）
 KP.MARKER_COFACTION = "KnoxPassCoFaction"         -- 大門錨點 modData：擁有者陣營的成員也是共同管理者（同上）
-KP.MARKER_BATTERY = "KnoxPassBattery"             -- 大門錨點 modData：讀頭裝著汽車電瓶，true＝夠開一次、false＝不夠（沒有＝沒裝；右鍵選單與 willOpenFor 用，伺服器不信它）
 KP.MARKER_COHOUSES = "KnoxPassCoHouses"           -- 大門錨點 modData：勾選的安全屋也是共同管理者 { [原生 owner 字串] = true }（同上）
+KP.MARKER_BATTERY = "KnoxPassBattery"             -- 大門錨點 modData：讀頭裝著汽車電瓶，true＝夠開一次、false＝不夠（沒有＝沒裝；右鍵選單與 willOpenFor 用，伺服器不信它）
 KP.MAX_MANAGERS = 8                               -- 每扇門最多幾位個別的共同管理者（陣營另外算）
 KP.MAX_HOUSES = 12                                -- 名單視窗最多列幾間安全屋（擁有者所在的；勾選的排前面，Server.lua ownerHouses）
 KP.NAME_MAX = 32                                  -- 帳號最長幾個字（42.21 起 32，ServerWorldDatabase.isValidUserName）

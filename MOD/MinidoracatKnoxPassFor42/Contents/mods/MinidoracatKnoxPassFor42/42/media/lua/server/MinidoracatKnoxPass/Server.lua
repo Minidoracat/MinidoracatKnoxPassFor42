@@ -463,7 +463,8 @@ function H.uninstall(player, args)
     end
     local inv = player:getInventory()
     -- 讀頭上的汽車電瓶退給拆的人（做不回來的交給 L.remove 記一行）
-    local battery = rec.battery and KP.makeBattery(rec.battery)
+    local had = rec.battery
+    local battery = had and KP.makeBattery(had)
     if battery then
         inv:AddItem(battery)
         if isServer() then sendAddItemToContainer(inv, battery) end
@@ -473,7 +474,8 @@ function H.uninstall(player, args)
     S.forget(args.key)
     local item = inv:AddItem(KP.colorType(KP.READER_TYPE, rec.color or 0))   -- 退回同色；舊記錄沒有 color＝米白
     if item and isServer() then sendAddItemToContainer(inv, item) end
-    KP.log("reader removed key=" .. args.key .. " by=" .. tostring(player:getUsername()))
+    KP.log("reader removed key=" .. args.key .. " by=" .. tostring(player:getUsername())
+        .. (battery and (" battery=" .. had.type .. "/" .. tostring(had.uses)) or ""))
     result(player, cmd, true, nil, args.key)
 end
 
