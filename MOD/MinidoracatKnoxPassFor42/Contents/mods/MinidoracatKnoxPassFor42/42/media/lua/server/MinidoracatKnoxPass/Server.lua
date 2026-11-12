@@ -869,7 +869,7 @@ function H.battery(player, args)
         player:removeFromHands(item)
         container:DoRemoveItem(item)
         if isServer() then sendRemoveItemFromContainer(container, item) end
-        rec.battery = { type = item:getFullType(), uses = item:getCurrentUsesFloat(), cond = item:getCondition() }
+        rec.battery = { type = item:getFullType(), uses = KP.batteryUses(item), cond = item:getCondition() }
     else
         if not rec.battery then return result(player, cmd, false, "NoBattery", args.key) end
         local item = KP.makeBattery(rec.battery)

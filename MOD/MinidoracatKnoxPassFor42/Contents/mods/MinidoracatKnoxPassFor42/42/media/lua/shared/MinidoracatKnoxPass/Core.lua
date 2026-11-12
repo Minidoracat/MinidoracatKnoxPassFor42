@@ -479,6 +479,12 @@ function KP.isCarBattery(item)
     return item ~= nil and BATTERIES[item:getFullType()] == true
 end
 
+-- 電瓶物品的電量（0..1），對齊到它自己的一格（UseDelta 0.00001）：getCurrentUsesFloat 是 float 相乘（DrainableComboItem.java:90-92），
+-- 10% 讀到 0.0999999…，不對齊的話「還能開幾次」算成 19；0.5% 的整數倍裡有 119 個這樣少一次
+function KP.batteryUses(item)
+    return math.floor(item:getCurrentUsesFloat() * 100000 + 0.5) / 100000
+end
+
 function KP.batteryCost()
     return KP.BATTERY_PER_OPEN * (tonumber(KP.sandbox("BatteryDrainPercent")) or 100) / 100
 end

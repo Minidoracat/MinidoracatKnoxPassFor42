@@ -336,7 +336,9 @@ end
 local Drain = setmetatable({}, { __index = Item })
 Drain.__index = Drain
 function Drain:getUseDelta() return self._useDelta end
-function Drain:getCurrentUsesFloat() return self._uses * self._useDelta end
+-- uses（int）× useDelta（float）是 float 相乘（DrainableComboItem.java:90-92）：62000 格讀到 0.61999998，不是 0.62
+local function f32(x) return (string.unpack("f", string.pack("f", x))) end
+function Drain:getCurrentUsesFloat() return f32(self._uses * f32(self._useDelta)) end
 function Drain:setCurrentUsesFloat(v)   -- 量化到一格（Math.round）
     v = math.max(0, math.min(1, v))
     self._uses = math.floor(v / self._useDelta + 0.5)
@@ -6610,22 +6612,24 @@ local function scenarioBattery()
     rec(c).share = "faction"
     W.factions[#W.factions + 1] = { owner = c.owner._name, members = { member = true } }
     local comgr, member = newPlayer("comgr", 200, 102), newPlayer("member", 200, 102)
-    local cb, mb = comgr._inv:AddItem(newItem(B2, 0.5)), member._inv:AddItem(newItem(B2, 0.5))
+    local cb, mb = comgr._inv:AddItem(newItem(B2, 0.1)), member._inv:AddItem(newItem(B2, 0.5))
     check(cmd(member, "battery", { key = c.key, itemId = mb:getID() }).why == "NotOwner"
-        and cmd(comgr, "battery", { key = c.key, itemId = cb:getID() }).ok == true and near(uses(c), 0.5),
-        "分享的陣營成員不能裝；共同管理者能裝")
-    check(cmd(member, "open", { key = c.key }).ok == true and near(uses(c), 0.495), "分享的成員照樣能開門，扣電瓶")
+        and cmd(comgr, "battery", { key = c.key, itemId = cb:getID() }).ok == true and uses(c) == 0.1,
+        "分享的陣營成員不能裝；共同管理者能裝（電量對齊到電瓶的一格：float 讀到 0.100000001）")
+    local _, stc = cmd(c.owner, "query", { key = c.key })
+    check(stc.battery == 10 and stc.batteryOpens == 20, "10% 的電瓶：還能開 20 次（不對齊會算成 19）")
+    check(cmd(member, "open", { key = c.key }).ok == true and near(uses(c), 0.095), "分享的成員照樣能開門，扣電瓶")
 
     -- 重開伺服器：電瓶還在
     restart()
-    check(near(uses(c), 0.495) and near(uses(a), 0.008), "重開伺服器後帳本的電瓶還在")
+    check(near(uses(c), 0.095) and near(uses(a), 0.008), "重開伺服器後帳本的電瓶還在")
 
     -- 拆讀頭：電瓶退給拆的人；門被移走：電瓶落在錨點那格
     local n = countType(c.owner._inv, B2)
     c.owner._inv:AddItem("Base.Screwdriver")
     cmd(c.owner, "close", { key = c.key })
     check(cmd(c.owner, "uninstall", { key = c.key }).ok == true and countType(c.owner._inv, B2) == n + 1
-        and near(c.owner._inv:getFirstTypeRecurse(B2):getCurrentUsesFloat(), 0.495) and W.dropped[B2] == nil,
+        and near(c.owner._inv:getFirstTypeRecurse(B2):getCurrentUsesFloat(), 0.095) and W.dropped[B2] == nil,
         "拆讀頭：電瓶連同讀頭退給拆的人，不落地")
     a.door._square:transmitRemoveItemFromSquare(a.door, false)
     step()

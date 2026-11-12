@@ -337,10 +337,10 @@ local function addBattery(sub, player, anchor, key, md)
     local list, best = player:getInventory():getAllEvalRecurse(KP.isCarBattery), nil   -- ItemContainer.java:1984
     for i = 0, list:size() - 1 do
         local item = list:get(i)
-        if not best or KP.charge(item) > KP.charge(best) then best = item end
+        if not best or KP.batteryUses(item) > KP.batteryUses(best) then best = item end
     end
     if not best then return end
-    sub:addOption(getText("ContextMenu_KnoxPass_BatteryIn", tostring(math.floor(KP.charge(best) * 100 + 0.5))),
+    sub:addOption(getText("ContextMenu_KnoxPass_BatteryIn", tostring(math.floor(KP.batteryUses(best) * 100 + 0.5))),
         player, C.queueBattery, anchor, key, best:getID())
 end
 
