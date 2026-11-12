@@ -6551,8 +6551,9 @@ local function scenarioBattery()
     W.safehouse[dsq] = { someoneElse = true }
     whys[1] = cmd(a.owner, "battery", { key = a.key, itemId = bat:getID() }).why
     W.safehouse[dsq] = nil
-    KP.Gates.findAt = function() return nil end
+    W.unloaded["100,100,0"] = true
     whys[2] = cmd(a.owner, "battery", { key = a.key, itemId = bat:getID() }).why
+    W.unloaded["100,100,0"] = nil
     KP.Gates.findAt = function() return false end
     whys[3] = cmd(a.owner, "battery", { key = a.key, itemId = bat:getID() }).why
     KP.Gates.findAt = findAt
@@ -6609,8 +6610,9 @@ local function scenarioBattery()
     rec(a).battery.uses = 0.008
     cmd(a.owner, "battery", { key = a.key })   -- 取下再裝，讓標記回到 true
     local back = a.owner._inv:getFirstTypeRecurse(B2)
-    check(back ~= nil and near(back:getCurrentUsesFloat(), 0.008) and back:getCondition() == 87 and uses(a) == nil and mark(a) == nil,
-        "取下：做回同型號、電量、耐久的電瓶放進物品欄，帳本與標記清掉")
+    check(back ~= nil and near(back:getCurrentUsesFloat(), 0.008) and back:getCondition() == 87 and uses(a) == nil and mark(a) == nil
+        and logHas("battery out key=" .. a.key .. " uses=0.008", from),
+        "取下：做回同型號、電量、耐久的電瓶放進物品欄，帳本與標記清掉，log 寫出取下時的電量")
     cmd(a.owner, "battery", { key = a.key, itemId = back:getID() })
     sb.BatteryDrainPercent = 500
     runMs(10250)

@@ -862,7 +862,7 @@ function H.battery(player, args)
     if not SafeHouse.isSafehouseAllowInteract(anchor:getSquare(), player) then
         return result(player, cmd, false, "Safehouse", args.key)
     end
-    local inv = player:getInventory()
+    local inv, was = player:getInventory(), rec.battery
     if install then
         if rec.battery then return result(player, cmd, false, "BatteryPresent", args.key) end
         local item = inv:getItemWithIDRecursiv(args.itemId)
@@ -882,7 +882,7 @@ function H.battery(player, args)
     end
     mark(anchor, rec)
     KP.log("battery " .. (install and "in" or "out") .. " key=" .. args.key
-        .. " uses=" .. tostring(rec.battery and rec.battery.uses) .. " by=" .. tostring(player:getUsername()))
+        .. " uses=" .. tostring((rec.battery or was).uses) .. " by=" .. tostring(player:getUsername()))
     result(player, cmd, true, nil, args.key)
     KP.sendState(player, args.key)
 end
