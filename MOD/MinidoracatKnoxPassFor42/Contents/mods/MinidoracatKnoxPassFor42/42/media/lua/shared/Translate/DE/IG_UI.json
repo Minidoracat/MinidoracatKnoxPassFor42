@@ -323,5 +323,5 @@
     "IGUI_KnoxPass_MapNamesWorld": "Tortypen auf der Weltkarte anzeigen",
     "IGUI_KnoxPass_RoadText": "KNOX PASS-Schriftzug auf der Fahrbahn",
     "IGUI_KnoxPass_RoadText_tooltip": "Vor Schranken und Doppelschranken steht KNOX PASS auf der Fahrbahn, damit man sieht, dass das Tor Fahrzeuge aufhält. Abgewählt verschwindet der Schriftzug nur auf deinem eigenen Bildschirm. Die weiße Haltelinie bleibt.",
-    "IGUI_KnoxPass_WhatsNew": "Neu: Öffnen per Lichthupe, ganzes Tor abbauen (Rechtsklick). Türen mit Leser sind nicht aufbrechbar."
+    "IGUI_KnoxPass_WhatsNew": "Neu: Tor-Lesegeräte nehmen eine Autobatterie auf. Kein Netz, kein Generator? Rechtsklick > Knox Pass zum Einbauen: etwa 200 Öffnungen pro Ladung."
 }

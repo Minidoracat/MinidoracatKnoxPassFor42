@@ -23,7 +23,7 @@ do
         and ui.CAPABILITIES and ui.CAPABILITIES.whatsNew and ui.WhatsNew then
         ui.WhatsNew.register({
             modId = "MinidoracatKnoxPassFor42",
-            since = "0.11.0",
+            since = "0.12.0",
             name = "ContextMenu_KnoxPass",
             text = "IGUI_KnoxPass_WhatsNew",
         })

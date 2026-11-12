@@ -323,5 +323,5 @@
     "IGUI_KnoxPass_MapNamesWorld": "Kapı türlerini dünya haritasında göster",
     "IGUI_KnoxPass_RoadText": "Yoldaki KNOX PASS yazısı",
     "IGUI_KnoxPass_RoadText_tooltip": "Bariyerlerin ve çift bariyerlerin önündeki yolda KNOX PASS yazısı vardır; böylece kapının araçları durdurduğu anlaşılır. İşareti kaldırırsan yazı yalnızca senin ekranında gizlenir. Beyaz durma çizgisi kalır.",
-    "IGUI_KnoxPass_WhatsNew": "Yeni: selektörle açılma, sağ tıkla tamamını sökme. Okuyuculu kapılar levyeyle açılamaz."
+    "IGUI_KnoxPass_WhatsNew": "Yeni: kapı okuyucusuna araba aküsü takılabilir. Şebeke ya da jeneratör yok mu? Sağ tık > Knox Pass ile takın: şarj başına yaklaşık 200 açılış."
 }

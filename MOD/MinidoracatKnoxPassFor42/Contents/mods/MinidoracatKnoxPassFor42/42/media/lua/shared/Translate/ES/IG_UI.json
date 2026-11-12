@@ -323,5 +323,5 @@
     "IGUI_KnoxPass_MapNamesWorld": "Mostrar tipos de portón en el mapa del mundo",
     "IGUI_KnoxPass_RoadText": "Texto KNOX PASS en la calzada",
     "IGUI_KnoxPass_RoadText_tooltip": "Las barreras levadizas y las barreras levadizas dobles tienen KNOX PASS pintado en la calzada, para que se vea que el portón detiene vehículos. Desmárcalo para ocultar el texto solo en tu pantalla. La línea de detención blanca se mantiene.",
-    "IGUI_KnoxPass_WhatsNew": "Nuevo: abrir con ráfaga de luces, desarmar con clic derecho. Puertas con lector: no se pueden forzar."
+    "IGUI_KnoxPass_WhatsNew": "Nuevo: el lector del portón admite una batería de coche. Sin red ni generador, clic derecho > Knox Pass para instalarla: unas 200 aperturas por carga."
 }

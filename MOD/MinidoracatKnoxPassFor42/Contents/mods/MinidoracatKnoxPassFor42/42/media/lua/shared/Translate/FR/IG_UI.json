@@ -323,5 +323,5 @@
     "IGUI_KnoxPass_MapNamesWorld": "Afficher les types de portail sur la carte du monde",
     "IGUI_KnoxPass_RoadText": "Texte KNOX PASS sur la chaussée",
     "IGUI_KnoxPass_RoadText_tooltip": "Les barrières levantes et les doubles barrières levantes ont KNOX PASS peint sur la chaussée, pour montrer que le portail arrête les véhicules. Décochez pour masquer le texte sur votre écran uniquement. La ligne d'arrêt blanche reste.",
-    "IGUI_KnoxPass_WhatsNew": "Ouverture par appel de phares, démontage au clic droit. Portes à lecteur impossibles à forcer."
+    "IGUI_KnoxPass_WhatsNew": "Nouveau : le lecteur du portail accepte une batterie de voiture. Ni réseau ni générateur ? Clic droit > Knox Pass pour l'installer : environ 200 ouvertures par charge."
 }

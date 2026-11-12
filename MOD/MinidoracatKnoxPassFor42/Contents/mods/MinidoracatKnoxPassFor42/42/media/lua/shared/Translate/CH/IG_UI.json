@@ -323,5 +323,5 @@
     "IGUI_KnoxPass_MapNamesWorld": "世界地圖顯示門的種類",
     "IGUI_KnoxPass_RoadText": "閘門路面的 KNOX PASS 字樣",
     "IGUI_KnoxPass_RoadText_tooltip": "抬升閘門與雙桿抬升閘門的路面印著 KNOX PASS，\n讓人看出這是會擋車的大門。\n取消勾選只會在你自己的畫面拿掉字樣，\n白色停止線照舊。",
-    "IGUI_KnoxPass_WhatsNew": "新增：大門可設成「閃一下大燈才開」；右鍵 Knox Pass 可拆除整座閘門或大門、拿回材料。裝了讀頭的門撬棍撬不開。"
+    "IGUI_KnoxPass_WhatsNew": "新增：大門讀頭可以裝汽車電瓶。沒有電網、發電機也照不到的門，右鍵 Knox Pass 裝上就能用，滿電約開 200 次，放著不耗電。"
 }
