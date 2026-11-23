@@ -128,14 +128,18 @@ function Cell:render()
     text(self, self.sub, 28, mid + 1, "textMuted")
 end
 
+local function far(p, x, y)
+    return math.abs(p:getX() - x) > CLOSE_RANGE or math.abs(p:getY() - y) > CLOSE_RANGE
+end
+
 -- ── 內容區：prerender 檢查距離、跟上門的開關、讀取失敗時重讀並畫清單底，render 畫資訊列與空清單說明 ─
 local Body = ISPanel:derive("KnoxPassBody")
 function Body:prerender()
     local w = self.kp
     local p = w.player
-    -- 只做數值比較，不配置
+    -- 只做數值比較，不配置。滑動門另量讀頭那一端（w.rx、w.ry）：離兩邊都遠才關
     if not p or p:isDead() or math.floor(p:getZ()) ~= w.gz
-        or math.abs(p:getX() - w.gx) > CLOSE_RANGE or math.abs(p:getY() - w.gy) > CLOSE_RANGE then
+        or (far(p, w.gx, w.gy) and (not w.rx or far(p, w.rx + 0.5, w.ry + 0.5))) then
         w.win:close()
         return
     end
@@ -145,8 +149,9 @@ function Body:prerender()
         w.doorAt = now + DOOR_MS
         w:readDoor()
     end
-    -- 讀取失敗：站進大門 3 格內（同伺服器 gateFor 的判定）就重讀，最多每 RETRY_MS 一次
-    if w.failed and now >= w.retryAt and KP.near(p, w.ax, w.ay, w.gz, KP.MANAGE_RANGE) then
+    -- 讀取失敗：站進大門 3 格內（同伺服器 nearGate 的判定：錨點，滑動門另算讀頭那一端）就重讀，最多每 RETRY_MS 一次
+    if w.failed and now >= w.retryAt and (KP.near(p, w.ax, w.ay, w.gz, KP.MANAGE_RANGE)
+        or (w.rx and KP.near(p, w.rx, w.ry, w.gz, KP.MANAGE_RANGE))) then
         w.retryAt = now + RETRY_MS
         C.send(p, "query", { key = w.key })
     end
@@ -1138,6 +1143,9 @@ function Win.open(player, anchor, key)
     w.player, w.anchor, w.key = player, anchor, key
     w.ax, w.ay, w.gz = sq:getX(), sq:getY(), sq:getZ()
     w.gx, w.gy = w.ax + 0.5, w.ay + 0.5
+    local mg = KP.modelGate(anchor)
+    w.rx, w.ry = nil, nil
+    if mg and mg.def.kind == "Slide" then w.rx, w.ry = KP.readerEnd(mg, w.ax, w.ay) end
     w.adapter = G.resolve(anchor)   -- 只取第一個回傳值（adapter）
     w.doorOpen, w.doorAt = nil, 0   -- 換一扇門：下一次 prerender 就重寫「大門」那列
     w.page, w.failed, w.retryAt = "tags", nil, 0

@@ -116,8 +116,15 @@ local function sharedWith(player, rec)
     return share ~= "faction" and SafeHouse.isInSameSafehouse(rec.owner, name)
 end
 
+-- 站在大門旁：錨點 MANAGE_RANGE 格內。滑動門的讀頭掛在錨點的另一端（KP.readerEnd），站在讀頭那一端也算；
+-- 其他的門只量錨點，和以前一樣
 local function nearGate(player, rec)
-    return KP.near(player, rec.x, rec.y, rec.z, KP.MANAGE_RANGE)
+    if KP.near(player, rec.x, rec.y, rec.z, KP.MANAGE_RANGE) then return true end
+    local _, anchor = G.findAt(rec)
+    local mg = anchor and KP.modelGate(anchor)
+    if not (mg and mg.def.kind == "Slide") then return false end
+    local x, y = KP.readerEnd(mg, rec.x, rec.y)
+    return KP.near(player, x, y, rec.z, KP.MANAGE_RANGE)
 end
 
 -- 名單 { [帳號] = 任何值 } → { [帳號] = true }；空名單回 nil（Kahlua 沒有 next）

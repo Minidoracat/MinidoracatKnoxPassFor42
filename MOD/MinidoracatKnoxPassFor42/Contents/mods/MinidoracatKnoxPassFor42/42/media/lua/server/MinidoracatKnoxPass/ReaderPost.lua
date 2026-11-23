@@ -52,9 +52,8 @@ function R.spot(adapter, anchor)
     local x, y = sq:getX(), sq:getY()
     local mg = KP.modelGate(anchor)
     if mg and mg.def.pillar then
-        local x1, y1, x2, y2 = KP.gateEnds(mg, x, y)
-        if KP.stowAtA(mg) then x1, y1 = x2, y2 end
-        return x1, y1, 8 + mg.def.pillar * 4 + mg.fi
+        local ex, ey = KP.readerEnd(mg, x, y)
+        return ex, ey, 8 + mg.def.pillar * 4 + mg.fi
     end
     if mg and mg.def.kind == "Gate" then
         local ex, ey = KP.gateEnds(mg, x, y)

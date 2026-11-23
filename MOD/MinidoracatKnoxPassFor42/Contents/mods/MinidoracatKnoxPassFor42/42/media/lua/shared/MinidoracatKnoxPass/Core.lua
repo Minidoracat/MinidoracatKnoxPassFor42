@@ -257,6 +257,14 @@ function KP.stowAtA(mg)
     return (string.sub(mg.tileset, -1) == "l") == (mg.face == "N" or mg.face == "W")
 end
 
+-- 車道 1 真門片的格 → 滑動門讀頭掛的那一端的格（門扇關上去的那根門柱）。管理距離除了錨點也量這一端：
+-- 人會走到看得見的讀頭旁邊操作，錨點在另一端（server/Server.lua nearGate、client/Window.lua）
+function KP.readerEnd(mg, ax, ay)
+    local x1, y1, x2, y2 = KP.gateEnds(mg, ax, ay)
+    if KP.stowAtA(mg) then return x2, y2 end
+    return x1, y1
+end
+
 -- 車道 1 真門片的格 → 滑動門收納段第 k 格（k＝1 貼著收的那一端；在擺放的那一列／行）
 function KP.stowSpot(mg, ax, ay, k)
     local a = ALONG[mg.face]

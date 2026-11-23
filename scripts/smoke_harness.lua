@@ -5198,6 +5198,20 @@ local function scenarioModelGates()
         "滑動門裝讀頭：柱面讀頭用滑動門的外觀序 5，掛在門扇關上去的 B 端門柱（往左收的 N 向收在 A 端，那根門柱後面是機箱）")
     res, st = cmd(slider, "settings", { key = res.key, speed = "fast" })
     check(res.ok == true and st.speedSupported == true and st.speed == "fast", "滑動門可以設加速")
+    -- 管理距離：錨點在 A 端旁（907），讀頭掛在 B 端（913）。站在讀頭那一端也算在門旁；其他的門照舊只量錨點
+    slider._x, slider._y = 913.5, 102.5
+    res, st = cmd(slider, "query", { key = "907,100,0N" })
+    check(res.why == nil and st ~= nil, "滑動門：站在讀頭那一端（離錨點 6 格）也查得到")
+    slider._x = 917.6
+    check(cmd(slider, "query", { key = "907,100,0N" }).why == "TooFar", "滑動門：離讀頭那一端 4 格以上回 TooFar")
+    slider._x, slider._z = 913.5, 1
+    check(cmd(slider, "query", { key = "907,100,0N" }).why == "TooFar", "滑動門：站在讀頭那一端但不同樓層回 TooFar")
+    slider._x, slider._y, slider._z = 909.5, 102.5, 0
+    painter._x, painter._y = 607.5, 102.5
+    check(cmd(painter, "query", { key = "601,100,0N" }).why == "TooFar", "兩層樓大門（不是滑動門）：站在另一端照舊回 TooFar，只量錨點")
+    painter._x = 597.5
+    check(cmd(painter, "query", { key = "601,100,0N" }).why == "TooFar", "兩層樓大門：站在 A 端門柱外側（離錨點 4 格）照舊回 TooFar，不多量門柱那一格")
+    painter._x = 603.5
     square(1000, 112, 0)._grid = true
     local slider2 = newPlayer("slideowner2", 1002, 109)
     res = cmd(slider2, "install", { x = 1000, y = 109, z = 0, index = sr.lanes[3]:getObjectIndex(), itemId = slider2._inv:AddItem(READER):getID() })

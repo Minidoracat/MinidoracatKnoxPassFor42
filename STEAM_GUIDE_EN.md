@@ -42,9 +42,9 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [/list]
 === 🧰 Gate Reader
 [list]
-[*] [b]Where it fits[/b]: map doors, fence gates, double doors, garage doors, player-built doors and gates, and Knox Pass's own roll-up garage doors, two-story roll-up doors and two-story gates (see "Build your own gates").
+[*] [b]Where it fits[/b]: map doors, fence gates, double doors, garage doors, player-built doors and gates, and Knox Pass's own roll-up garage doors, two-story roll-up doors, two-story gates and sliding gates (see "Build your own gates").
 [*] [b]Installing[/b]: right-click the gate with the reader and a screwdriver. Whoever installs it owns it. The server can limit readers to your own safehouse (see "Server settings").
-[*] [b]Where it shows[/b]: on the gate post; on the face of the pillar for two-story gates, and on top of the cabinet for boom barriers and double boom barriers. It doesn't block people or cars.
+[*] [b]Where it shows[/b]: on the gate post; on the face of the pillar for two-story gates and sliding gates (on a sliding gate, the post the leaf closes against), and on top of the cabinet for boom barriers and double boom barriers. It doesn't block people or cars.
 [*] [b]Removing[/b]: the owner or a server admin can take the reader back with a screwdriver. If Knox Pass has the gate open, it closes it first and restores the original lock. Co-managers can't remove it.
 [/list]
 [h3]Management window[/h3]
@@ -69,7 +69,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]Server default[/b]: follows the sandbox setting.
 [*] [b]If the server narrows the limits[/b]: gates that were set follow the new limits and keep their value.
 [*] [b]Opens on[/b]: [b]Approach[/b] by default. With [b]Headlight flash[/b], a registered car first flashes its headlights at the gate (toggle them twice within 1.5 seconds: press the headlight key twice, F by default, or click the dashboard light button twice), then the gate opens if the car gets within the read range in the next 5 seconds. No extra key to learn, and unlike the horn it doesn't draw zombies. Cars on AutoDrive still get the gate opened for them. When you drive toward such a gate yourself, a one-time hint tells you to flash your headlights. The keyboard only toggles the headlights when "Toggle Vehicle Headlights" and "Equip/Turn On/Off Light Source" share the same key (that's how vanilla works; both are F by default); if you changed only one of them, the hint points you to the dashboard button instead.
-[*] [b]Speed[/b]: boom barriers, double boom barriers, two-story roll-up doors and two-story gates can be set to [b]Normal (4 s)[/b] or [b]Fast (2.5 s)[/b] under "Speed", and every player sees the same speed.
+[*] [b]Speed[/b]: boom barriers, double boom barriers, two-story roll-up doors, two-story gates and sliding gates can be set to [b]Normal (4 s)[/b] or [b]Fast (2.5 s)[/b] under "Speed", and every player sees the same speed.
 [*] [b]Fixed speed[/b]: one-story roll-up doors and vanilla doors; the dropdown says "Not adjustable".
 [*] [b]Share with[/b]: pick [b]Faction[/b], [b]Safehouse[/b] or [b]Faction + safehouse[/b] to let teammates open and close this gate on foot without a tag (see "Opening and closing on foot"). Not shared by default.
 [*] [b]Counts as indoors[/b]: on garage-style gates (vanilla garage doors, and the roll-up doors, barriers and gates Knox Pass builds), the owner, a co-manager or an admin can tick "Counts as indoors (even when open)". Off by default. Ticked, the gate always counts as a wall, even when open: a ground floor walled in by a barrier or two-story door counts as indoors once the walls and roof are finished, and cars and people still get through the open gate. On boom barriers, double boom barriers, two-story roll-up doors and two-story gates, the gate is also cut away like a wall when it blocks your view of your character. Fence gates and other doors can't be ticked; doors in frames already count as wall.
@@ -187,6 +187,26 @@ Chain-link also comes in 15 paint colors: Black, Dark Gray, Dark Green, White, R
 [*] [b]Placement preview[/b]: painted chain-link gates show the plain gray chain-link while you place them; the paint color appears once built.
 [*] [b]Reader[/b]: none built in; once installed, the reader hangs on the face of the post.
 [/list]
+[h3]Sliding gates[/h3]
+{{img:20-sliding-gates-en.jpg}}
+One leaf slides along the fence line and stows to one side, so nothing swings out in front of or behind the gate. 3, 4 or 6 tiles wide, one or two stories tall (vans and trucks fit under the tall one), in seven looks:
+[table]
+[tr][th]Look[/th][th]Needs (one story / two stories)[/th][th]Materials[/th][/tr]
+[tr][td]Chain-link, Industrial Yellow[/td][td]Welding 4 / 5[/td][td]Welding torch, welding rods, metal pipes, metal bars, wire[/td][/tr]
+[tr][td]Steel Plate[/td][td]Welding 4 / 5[/td][td]Welding torch, welding rods, metal pipes, metal bars, sheet metal[/td][/tr]
+[tr][td]Iron Bars[/td][td]Welding 4 / 5[/td][td]Welding torch, welding rods, metal pipes, metal bars[/td][/tr]
+[tr][td]Barbed Wire[/td][td]Welding 4 / 5[/td][td]Welding torch, welding rods, metal pipes, metal bars, wire, barbed wire[/td][/tr]
+[tr][td]Black Chain-link[/td][td]Welding 4 / 5[/td][td]Same as Chain-link, plus a full can of black paint[/td][/tr]
+[tr][td]Wooden Planks[/td][td]Carpentry 4 / 5[/td][td]Hammer, planks, nails, metal bars[/td][/tr]
+[/table]
+[list]
+[*] [b]Finding them[/b]: search the build menu for "Sliding Gate".
+[*] [b]Amounts[/b]: two stories take twice the one-story materials, and 6 wide takes twice what 3 or 4 wide does.
+[*] [b]Opens left or right[/b]: every look has two build entries, "opens left" and "opens right". The placement preview also shows the row the leaf stows into; if it points the wrong way, rotate, or pick the other entry.
+[*] [b]Leave a clear row[/b]: the stow row is as long as the gate, and those tiles must be empty to build. Once built, you can still walk there and build a fence along it.
+[*] [b]Motor cabinet[/b]: a drive cabinet sits behind the post at the stow end.
+[*] [b]Reader[/b]: none built in; once installed, it hangs on the face of the other post, the one the leaf closes against.
+[/list]
 [h3]Durability, removing and animation[/h3]
 [table]
 [tr][th]Width[/th][th]Durability[/th][/tr]
@@ -196,8 +216,8 @@ Chain-link also comes in 15 paint colors: Black, Dark Gray, Dark Green, White, R
 [/table]
 [list]
 [*] [b]Two-story ones[/b]: 500 more.
-[*] [b]Dismantling[/b]: right-click a double boom barrier, two-story roll-up door or two-story gate → Knox Pass → "Dismantle the whole barrier" or "Dismantle the whole gate". You walk to the nearer end (cabinet or post; on a two-story roll-up door, the piece you clicked) and remove the whole thing; each building material comes back as 1 up to its original amount, and a reader you installed comes back too, all on the ground. One-story roll-up doors use the vanilla "Disassemble".
-[*] [b]Tools for dismantling[/b]: a screwdriver for barriers; a claw hammer for Ranch Wood and Medieval Oak; a welding torch with fuel plus a welder mask for Chain-link, Steel Plate, Iron Bars and two-story roll-up doors (it uses one unit of fuel).
+[*] [b]Dismantling[/b]: right-click a double boom barrier, two-story roll-up door, two-story gate or sliding gate → Knox Pass → "Dismantle the whole barrier" or "Dismantle the whole gate". You walk to the nearer end (cabinet or post; on a two-story roll-up door, the piece you clicked) and remove the whole thing; each building material comes back as 1 up to its original amount, and a reader you installed comes back too, all on the ground. One-story roll-up doors use the vanilla "Disassemble".
+[*] [b]Tools for dismantling[/b]: a screwdriver for barriers; a claw hammer for Ranch Wood, Medieval Oak and Wooden Planks sliding gates; a welding torch with fuel plus a welder mask for Chain-link, Steel Plate and Iron Bars gates, the other sliding gate looks and two-story roll-up doors (it uses one unit of fuel).
 [*] [b]Who can dismantle[/b]: on a gate with a reader, only the owner and server admins, not co-managers; a gate without a reader, anyone. Either way, a gate that reaches into someone else's safehouse can't be dismantled. A sledgehammer on a cabinet or post still removes the whole thing the vanilla way, with no refund.
 [*] [b]Damage[/b]: if any door piece gets broken, the whole thing is destroyed with no refund.
 [*] [b]Animation[/b]: arms, roll-up curtains and gate leaves ease in and out as they move, taking about 4 seconds each way (about 2.5 with "Fast" in the window).
@@ -286,7 +306,7 @@ All crafted with a screwdriver:
 [list]
 [*] [b]Looted color[/b]: random.
 [*] [b]Craft in color[/b]: add one use of paint and a paintbrush to craft a tag or reader in that color (see "Shell colors and repainting").
-[*] [b]Gates you build[/b]: roll-up garage doors, two-story roll-up doors, two-story gates and double boom barriers all come from the build menu; see "Build your own gates" for materials and skills.
+[*] [b]Gates you build[/b]: roll-up garage doors, two-story roll-up doors, two-story gates, sliding gates and double boom barriers all come from the build menu; see "Build your own gates" for materials and skills.
 [*] [b]Sensor module[/b]: the recipe only shows in the crafting list with the Map Watch installed, and not when the server turns off "Registered watch modules open gates on approach".
 [*] [b]Crafting turned off[/b]: when the sandbox option "Allow crafting Knox Pass items" is off, no Knox Pass recipe shows in the crafting list.
 [/list]
@@ -320,7 +340,7 @@ Sandbox page "Minidoracat Knox Pass":
 [*] [b]Tag drain multiplier[/b]: 0 means it never runs out.
 [*] [b]Reader battery drain multiplier[/b]: what a car battery in a reader uses per opening; 100% is 0.5% of a full charge, 0 means it never drains.
 [*] [b]Readers outside safehouses[/b]: applies when a gate isn't in the reader owner's safehouse, multiplayer only. "No locking" = the Knox Pass lock can't be turned on, opening works as usual; "No installing" = readers only go in your own safehouse. Gates already locked stay locked, and the owner, a co-manager or an admin can turn the lock off. This stops people from putting a reader on someone else's door and locking it.
-[*] [b]Gates with a reader can't be broken[/b]: when on, zombies and weapons can't break gates with a reader, and neither can the cabinets of boom barriers and double boom barriers or the posts of two-story gates. Zombies still bang on them, and the noise still draws nearby zombies. Only the gate itself is covered: walls follow the vanilla "Damage Construction" sandbox option, sledgehammers follow the server settings, and fire works as usual. When it is turned off or the reader is removed, the gate gets back the durability it had before. While it is off, admins can still turn it on for single gates in the manage window.
+[*] [b]Gates with a reader can't be broken[/b]: when on, zombies and weapons can't break gates with a reader, and neither can the cabinets of boom barriers and double boom barriers or the posts of two-story gates and sliding gates. Zombies still bang on them, and the noise still draws nearby zombies. Only the gate itself is covered: walls follow the vanilla "Damage Construction" sandbox option, sledgehammers follow the server settings, and fire works as usual. When it is turned off or the reader is removed, the gate gets back the durability it had before. While it is off, admins can still turn it on for single gates in the manage window.
 [*] [b]Watch modules[/b]: need the Map Watch. When off, walking doesn't open gates and the module can't be crafted; driving and right-click opening still accept the module. The range is how close to the gate line it opens.
 [*] [b]Server admins[/b]: roles that can manage safehouses (moderator and admin by default) can manage every reader; if the server owner changed role permissions, the actual permissions apply.
 [/list]
@@ -328,9 +348,9 @@ Sandbox page "Minidoracat Knox Pass":
 [list]
 [*] [b]Modded gates built another way[/b]: not supported automatically (for example ones that fake opening by swapping textures in code). Mod authors can hook them in through the public interface, and players can ask for support in the feedback section.
 [*] [b]Vanilla build-menu garage doors[/b]: not supported (the game itself doesn't open them as a group); for a garage door that opens by itself, build a Knox Pass roll-up garage door instead.
-[*] [b]No barricading[/b]: the door pieces of the barriers, roll-up doors and two-story gates you build are garage doors, which the game doesn't let you barricade.
+[*] [b]No barricading[/b]: the door pieces of the barriers, roll-up doors, two-story gates and sliding gates you build are garage doors, which the game doesn't let you barricade.
 [*] [b]Does your house count as indoors[/b]: green and white roll-up doors and vanilla garage doors count as wall when closed and as a gap when open (that's how the vanilla door pieces work); the industrial white roll-up door counts as wall even when open, and so does any gate with "Counts as indoors" ticked in the management window. On a gate with a reader, the game's indoor check catches up within about 5 seconds however it was opened or closed: by Knox Pass, by right-click or by a zombie. Doors without a reader work as in vanilla, so after a right-click open or close the check may stay as it was.
-[*] [b]Barriers and two-story doors aren't walls on the ground floor by default[/b]: boom barriers, double boom barriers, two-story roll-up doors and two-story gates don't count as wall even when closed, so a ground floor walled in by one isn't indoors; to make it indoors, tick "Counts as indoors" in the management window, or use a one-story roll-up door. Upstairs, the upper half of a two-story roll-up door or gate is an invisible wall: you can't walk through it, and a second-floor room closed in by it counts as indoors. The wall doesn't stop vehicles, so trucks taller than one floor still drive through the open door. Where you already built your own wall on that line upstairs, your wall stays in use; take it down and the invisible wall fills the gap. Like any vanilla wall, your own wall stops trucks that are too tall.
+[*] [b]Barriers, sliding gates and two-story doors aren't walls on the ground floor by default[/b]: boom barriers, double boom barriers, two-story roll-up doors, two-story gates and sliding gates don't count as wall even when closed, so a ground floor walled in by one isn't indoors; to make it indoors, tick "Counts as indoors" in the management window, or use a one-story roll-up door. Upstairs, the upper half of a two-story roll-up door, gate or sliding gate is an invisible wall: you can't walk through it, and a second-floor room closed in by it counts as indoors. The wall doesn't stop vehicles, so trucks taller than one floor still drive through the open door. Where you already built your own wall on that line upstairs, your wall stays in use; take it down and the invisible wall fills the gap. Like any vanilla wall, your own wall stops trucks that are too tall.
 [*] [b]Parked cars don't charge[/b]: a parked car with nobody in it and the engine off doesn't recharge its tag.
 [*] [b]Parallel roads[/b]: when a self-driving car passes along another road heading almost straight at the gate (for example a parallel road a few dozen tiles away), the gate may open early and close again a few seconds later.
 [*] [b]Map must be loaded[/b]: the server can only open a gate once it has loaded that part of the map (roughly 60–130 tiles ahead of the car).
