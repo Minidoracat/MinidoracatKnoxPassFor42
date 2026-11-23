@@ -29,7 +29,9 @@ index = block * 64 + slot, block = widthIdx * len(faces) + faceIdx. Slots (Lua C
     16..    build placeholder of lane k = 16 + k - 1: doorN/W + CustomName only, NO GarageDoor (mods that take over
             ISBuildIsoEntity:setInfo for GarageDoor sprites leave the build alone); Lua OnCreate swaps it for the lane
     25..    sliding gates: stow placeholder k = 25 + k - 1 (the tiles the open leaf covers, past one end): CustomName
-            only, in the entity so the build needs them free; Lua OnCreate removes it, nothing stays on the square
+            only, in the entity so the build needs them free; Lua OnCreate removes it
+    6 14    sliding gates: the invisible marker object Lua leaves on stow tile stow_host(width) (no properties, no
+            2D) / spriteModels only: the open leaf at rest, hosted on that marker (see STOW_HOST below)
     32..40  opening poses (Open clip at k/8), 48..56 closing poses: spriteModels only, SP stepper (BarrierAnim.lua)
 
 Entity faces: N / S one row west -> east [A] P1 .. PL [B]; W / E rows north -> south [B] PL .. P1 [A]; a sliding
@@ -73,9 +75,15 @@ FIRE = "900000"
 # spriteModels-only slots HOST / HOST + OPEN, re-based on lane host_lane(width) (hosted), and the client sets that name
 # as the host's override (BarrierAnim.lua; old saves need nothing). Even widths take the lane past the centre line.
 HOST = 5
+# Sliding gates: the open leaf rests in the stow section, width + 1 tiles from the host lane, so it vanished whenever
+# the lanes were off screen (slide-sp 1123a, zoomed in beside the stow section). Stow tile stow_host(width), under the
+# open leaf's centre, keeps a plain object with the transparent tile STOW_HOST; the client names STOW_HOST + OPEN as
+# its override while the gate rests open and clears the host lane's (BarrierAnim.lua). Clips still play on the lane.
+STOW_HOST = 6
 FAST_SLOTS = (HOST, HOST + OPEN)
 CLIP_S, FAST_CLIP_S = 6.0, 3.75
 ALONG = {"N": (1, 0), "S": (1, 0), "W": (0, -1), "E": (0, -1)}   # lane 1 -> lane L, one square (Lua Core.lua ALONG)
+GATE_DOOR = {"N": (0, 0), "W": (0, 0), "S": (0, 1), "E": (1, 0)}  # placed square -> real lane (Lua KP.GATE_DOOR)
 # tiledef numbers of the model gate tilesets (the reader pillar and upstairs wall: PILLAR_NUMBER, UPPER_NUMBER)
 NUMBERS = {
     "MinidoracatKnoxPass_barrier2": 4,
@@ -280,19 +288,29 @@ def host_lane(width: int) -> int:
     return width // 2 + 1
 
 
+def stow_host(width: int) -> int:
+    """Stow tile (1 = next to the stow end) that keeps the marker drawing the open leaf (Lua KP.stowHost)."""
+    return width // 2
+
+
 def hosted(b: Block) -> dict[int, tuple]:
     """The block's spriteModels as shipped: the manifest hangs the animated model on lane 1 (slots 0 / OPEN, poses);
     move the rest models to HOST / HOST + OPEN and re-base them and the poses on the host lane: spriteModels translate
-    is the world offset (x, -, y) from the hosting square to the model origin, so subtract (host - lane 1)."""
+    is the world offset (x, -, y) from the hosting square to the model origin, so subtract (host - lane 1). The stow
+    host's open leaf (STOW_HOST + OPEN) comes re-based from the manifest."""
     k = host_lane(b.width) - 1
     dx, dy = ALONG[b.face][0] * k, ALONG[b.face][1] * k
 
     def mv(v: tuple) -> tuple:
         return (v[0], (v[1][0] - dx, v[1][1], v[1][2] - dy), *v[2:])
 
-    out = {s: v for s, v in b.sm.items() if s in (END_A, END_B)}
+    out = {s: v for s, v in b.sm.items() if s in (END_A, END_B, STOW_HOST + OPEN)}
     out[HOST], out[HOST + OPEN] = mv(b.sm[0]), mv(b.sm[OPEN])
     return out | {s: mv(v) for s, v in b.sm.items() if s >= POSE_OPEN}
+
+
+def fast_slots(b: Block) -> tuple[int, ...]:
+    return FAST_SLOTS + ((STOW_HOST + OPEN,) if b.stow else ())
 
 
 
@@ -469,6 +487,8 @@ def layout() -> dict[str, dict[int, tuple[tuple[str, ...], dict]]]:
                 cell = b.cells.get(slot)
                 if p or cell:
                     t[b.block * STRIDE + slot] = ((str(cell),) if cell else (), p)
+            if b.stow:   # the stow host marker: transparent, no properties
+                t[b.block * STRIDE + STOW_HOST] = ((), {})
     out[PILLAR_TILESET] = {i: ((), {}) for i in pillar_tiles()}
     out[UPPER_TILESET] = {i: ((), p) for i, p in upper_tiles().items()}
     return out
@@ -510,7 +530,7 @@ def _sm_tile(i: int, model, tr, rot, tex, anim, t) -> str:
 
 def sprite_model_tilesets() -> list[str]:
     """One spriteModels 'tileset' block per tileset (same text layout as build_barrier_tiles.sm_tile), then the fast
-    virtual tilesets (rest models HOST / HOST + OPEN only, model -> <model>Fast)."""
+    virtual tilesets (rest models only, fast_slots; model -> <model>Fast)."""
     blocks = []
     for kind in kinds():
         for name, _, _ in kind.tilesets:
@@ -524,7 +544,7 @@ def sprite_model_tilesets() -> list[str]:
         for name, _, _ in kind.tilesets:
             tiles = [_sm_tile(b.block * STRIDE + slot, sm[slot][0] + "Fast", *sm[slot][1:])
                      for b in sorted((b for b in kind.blocks if b.tileset == name), key=lambda b: b.block)
-                     for sm in (hosted(b),) for slot in FAST_SLOTS]
+                     for sm in (hosted(b),) for slot in fast_slots(b)]
             blocks.append(f"    tileset\n    {{\n        name = {fast_tileset(name)},\n\n" + "".join(tiles) + "    }\n")
     return blocks
 
@@ -668,6 +688,7 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
             for s in b.stow:
                 assert t[base + s] == {"CustomName": kind.name, "firerequirement": FIRE}, (b, s)
                 assert f"{b.tileset}_{base + s}" in pack_names, (b, s)
+            assert (f"{b.tileset}_{base + STOW_HOST}" in pack_names) == bool(b.stow) and not t[base + STOW_HOST], b
             if b.stow:
                 rows, n = [s for r in faces_rows(kind, b) for s in r], b.width
                 assert len(rows) == 2 * n + 2 and (rows[:n][::-1] if b.stow_head else rows[-n:]) == list(b.stow), (b, rows)
@@ -678,7 +699,7 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
             # manifest: model on lane 1 only: closed = Open t0, open = Close t0, 9 + 9 poses; ends static
             sm = b.sm
             assert set(sm) == {0, OPEN, *range(POSE_OPEN, POSE_OPEN + 9), *range(POSE_CLOSE, POSE_CLOSE + 9)} | (
-                {END_A, END_B} if kind.ends else set()), (b, sorted(sm))
+                {END_A, END_B} if kind.ends else set()) | ({STOW_HOST + OPEN} if b.stow else set()), (b, sorted(sm))
             assert sm[0][4:] == ("Open", 0.0) and sm[OPEN][4:] == ("Close", 0.0), b
             for f in range(POSES + 1):
                 assert sm[POSE_OPEN + f][4:] == sm[POSE_CLOSE + f][4:] == ("Open", f / POSES), (b, f)
@@ -692,8 +713,15 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
             for s, o in ((HOST, 0), (HOST + OPEN, OPEN), *((p, p) for p in sm if p >= POSE_OPEN)):
                 tr = sm[o][1]
                 assert h[s] == (sm[o][0], (tr[0] - dx, tr[1], tr[2] - dy), *sm[o][2:]), (b, s)
+            if b.stow:   # stow host: the same model, at the same world point as from lane 1
+                (ax, ay), (gx, gy), k = ALONG[b.face], GATE_DOOR[b.face], stow_host(b.width)
+                past_a = (b.face in "NS") == b.stow_head
+                ox, oy = ((-k - 1) * ax - gx, (-k - 1) * ay - gy) if past_a else ((b.width + k) * ax - gx, (b.width + k) * ay - gy)
+                tr, got = sm[OPEN][1], h[STOW_HOST + OPEN]
+                assert got == (sm[OPEN][0], got[1], *sm[OPEN][2:]) and got[1] == (
+                    round(tr[0] - ox, 4), tr[1], round(tr[2] - oy, 4)), (b, ox, oy)
     # host lane: 3 -> 2, 4 -> 3, 6 -> 4, 9 -> 5; re-based origin (spot values: same world point as lane 1's)
-    assert [host_lane(w) for w in (3, 4, 6, 9)] == [2, 3, 4, 5]
+    assert [host_lane(w) for w in (3, 4, 6, 9)] == [2, 3, 4, 5] and [stow_host(w) for w in (3, 4, 6)] == [1, 2, 3]
     spot = {("MinidoracatKnoxPass_barrier2", 9, "W"): (0, 0, 5), ("MinidoracatKnoxPass_gate_a", 9, "S"): (5, 0, -1),
             ("MinidoracatKnoxPass_gate_a", 9, "E"): (-1, 0, -5), ("MinidoracatKnoxPass_roll2f_green", 4, "N"): (-2, 0, 0)}
     for kind in kinds():
@@ -710,7 +738,7 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     assert TILE_GEOMETRY.read_text(encoding="ascii") == tile_geometry(), "tileGeometry.txt is stale"
     names = set(re.findall(r"^    model (\w+)", ms, re.M))
     used = {v[0] for kind in kinds() for b in kind.blocks for v in b.sm.values()}
-    used |= {hosted(b)[s][0] + "Fast" for kind in kinds() for b in kind.blocks for s in FAST_SLOTS}
+    used |= {hosted(b)[s][0] + "Fast" for kind in kinds() for b in kind.blocks for s in fast_slots(b)}
     assert used <= names | {"MinidoracatKnoxPass_BarrierCabinet"}, used - names
     # 加速：每個有動畫的模型都有 <名稱>Fast；clip 正常 6.0 s、加速 3.75 s（引擎 1.5 倍速：4 s／2.5 s）
     animated = [m for kind in kinds() for m in kind.models if m[3]]
@@ -735,8 +763,9 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     lua_sets = dict(re.findall(r"^    (MinidoracatKnoxPass_\w+) = (\w+),", lua, re.M))
     assert set(lua_sets) == {n for n, _, _ in specs} - {PILLAR_TILESET, UPPER_TILESET}, sorted(lua_sets)
     assert f'KP.UPPER_WALL_TILESET = "{UPPER_TILESET}"' in lua
-    assert re.search(rf"^KP\.GATE_SLOT = \{{ .*\bHOST = {HOST},", lua, re.M) and (
-        "function KP.hostLane(width)\n    return math.floor(width / 2) + 1\nend" in lua), "Lua KP.GATE_SLOT.HOST / KP.hostLane"
+    assert re.search(rf"^KP\.GATE_SLOT = \{{ .*\bHOST = {HOST}, STOW_HOST = {STOW_HOST},", lua, re.M) and (
+        "function KP.hostLane(width)\n    return math.floor(width / 2) + 1\nend" in lua) and (
+        "function KP.stowHost(width)\n    return math.floor(width / 2)\nend" in lua), "Lua KP.GATE_SLOT / KP.hostLane / KP.stowHost"
     see = {t for k in kinds() if k.key in TWO_STORY for t, _, v in k.tilesets if v in k.see_through and v not in k.base}
     m = re.search(r"^KP\.SEE_THROUGH = \{ (.*) \}$", lua, re.M)
     assert m and set(re.findall(r"(MinidoracatKnoxPass_\w+) = true", m.group(1))) == see, f"Lua KP.SEE_THROUGH != {see}"

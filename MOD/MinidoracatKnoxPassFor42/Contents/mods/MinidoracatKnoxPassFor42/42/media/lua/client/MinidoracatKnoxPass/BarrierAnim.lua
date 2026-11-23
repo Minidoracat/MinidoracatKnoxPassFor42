@@ -19,6 +19,9 @@
 -- 每扇門的開關速度（Server.lua mark 在錨點的 KP.MARKER_SPEED）：加速的門靜止時覆寫成加速版 spriteModel（KP.fastTwin，
 -- *_fast 模型、clip 3.75 s）。多人收到開關同步時引擎照中間片當下的 getSpriteModel() 播（IsoDoor.PlayAnimation，
 -- 逐物件覆寫優先，IsoObject.java:6258-6265），所以播的是加速版；通道姿勢是 clip 的比例時間，兩種速度共用，只換補播時長
+-- 滑動門開著時門扇整個在收納段，離中間片 L＋1 格，中間片那格一出畫面就不畫（slide-sp 1123a）：開著靜止時改由收納段的
+-- 標記物件畫（server/Barrier.lua MG.onCreate 留的一般物件，覆寫成格位 STOW_HOST＋OPEN），中間片不畫；開關一動就交回
+-- 中間片（clip 與通道姿勢都以它為原點）。標記那格沒載入或被移走時照舊由中間片畫，每秒再找
 require "MinidoracatKnoxPass/Core"
 local KP = MinidoracatKnoxPass
 
@@ -33,7 +36,7 @@ local FAR = 120                                                  -- 離本機玩
 local STEPS = 96                                                 -- 4 秒 96 格＝每秒 24 格
 local SWEEP_MS = 1000                                            -- 多久查一次移除與距離
 
-local tracked = {}   -- 掛模型那片 → { anchor, open, start, q, chan, tileset, base, close, rest, width, fast, sm }
+local tracked = {}   -- 掛模型那片 → { anchor, open, start, q, chan, tileset, base, close, rest, width, fast, sm, stow, mark }
 local anchors = {}   -- 錨點 → 掛模型那片（那格還沒載入：false）
 local channels = {}  -- 通道名稱 → { sm = SpriteModel 腳本物件, user = 正在用的那片 }
 local lastSweep = 0
@@ -51,11 +54,12 @@ local function setSm(obj, s, name)
     end
 end
 -- 不在補播時該用的覆寫。模型門：中間片共用的 sprite 沒有模型，一律指名區塊的 HOST 兩格（關／開）；
--- 單臂閘門：車道 2 的 tile 自己帶桿子，正常速度不覆寫。加速的門用那張的加速版（沒登錄就照正常版）
-local function restName(obj, s)
+-- 單臂閘門：車道 2 的 tile 自己帶桿子，正常速度不覆寫。加速的門用那張的加速版（沒登錄就照正常版）。
+-- slot＝改取區塊裡相對 HOST 的另一格（滑動門收納段標記用的那格）
+local function restName(obj, s, slot)
     local name
     if s.rest then
-        name = s.tileset .. "_" .. (s.rest + (obj:IsOpen() and SLOT.OPEN or 0))
+        name = s.tileset .. "_" .. (s.rest + (slot or obj:IsOpen() and SLOT.OPEN or 0))
     else
         local spr = obj:getSprite()
         name = spr and spr:getName()
@@ -67,14 +71,44 @@ local function restName(obj, s)
     return s.rest and name or nil
 end
 
--- 錨點 → 這座門的動畫資料：姿勢的 tileset、抬起姿勢起點、放下姿勢相對抬起的位移、模型門 HOST 格位、寬度；不是錨點回 nil
+-- 滑動門收納段的標記物件；那格沒載入或被移走回 nil
+local function markOf(s)
+    local sq = getCell():getGridSquare(s.stow[1], s.stow[2], s.stow[3])
+    local objects = sq and sq:getObjects()
+    local want = s.tileset .. "_" .. (s.rest - SLOT.HOST + SLOT.STOW_HOST)
+    for i = 0, (objects and objects:size() or 0) - 1 do
+        local o = objects:get(i)
+        local spr = o:getSprite()
+        if spr and spr:getName() == want then return o end
+    end
+    return nil
+end
+
+-- 靜止時的覆寫：s.mark（滑動門開著、標記找到了）在就由標記畫、中間片不畫，否則中間片畫
+local function settle(obj, s)
+    local name = restName(obj, s)
+    if s.mark then
+        s.mark:setSpriteModelName(restName(obj, s, SLOT.STOW_HOST + SLOT.OPEN - SLOT.HOST))
+        name = nil
+    end
+    setSm(obj, s, name)
+end
+
+-- 錨點 → 這座門的動畫資料：姿勢的 tileset、抬起姿勢起點、放下姿勢相對抬起的位移、模型門 HOST 格位、寬度、
+-- 滑動門收納段標記的格 stow；不是錨點回 nil
 local function gateOf(obj)
     local base = POSE_BASE[KP.barrierIndex(obj)]
     if base then return { tileset = KP.BARRIER_TILESET, base = base, close = KP.BARRIER_CLOSE_POSES, width = 3 } end
     local mg = KP.modelGate(obj)
     if mg and (mg.slot == 0 or mg.slot == SLOT.OPEN) then
-        return { tileset = mg.tileset, base = mg.index0 + SLOT.POSE_OPEN, close = SLOT.POSE_CLOSE - SLOT.POSE_OPEN,
+        local g = { tileset = mg.tileset, base = mg.index0 + SLOT.POSE_OPEN, close = SLOT.POSE_CLOSE - SLOT.POSE_OPEN,
             rest = mg.index0 + SLOT.HOST, width = mg.width }
+        local sq = mg.def.kind == "Slide" and obj:getSquare()
+        if sq then
+            local x, y = KP.stowSpot(mg, sq:getX(), sq:getY(), KP.stowHost(mg.width))
+            g.stow = { x, y, sq:getZ() }
+        end
+        return g
     end
 end
 
@@ -233,7 +267,7 @@ function A.tick()
                 -- 擁有者改了速度（錨點標記隨 transmitModData 到）：每秒對一次，不在補播中就換覆寫
                 if isFast(s.anchor) ~= s.fast then
                     s.fast = not s.fast
-                    if not s.start then setSm(obj, s, restName(obj, s)) end
+                    if not s.start then settle(obj, s) end
                 end
             end
             local open = obj:IsOpen()
@@ -248,6 +282,18 @@ function A.tick()
                         s.q = q
                         channels[s.chan].sm:setAnimationTime(q / STEPS)
                     end
+                end
+            end
+            if s.stow then
+                if not open or s.start or obj:isAnimating() then   -- 關著或在動：交回中間片（開關時 toggled 已設好它的覆寫）
+                    if s.mark then
+                        if s.mark:getObjectIndex() ~= -1 then s.mark:setSpriteModelName(nil) end
+                        if s.sm == nil then setSm(obj, s, restName(obj, s)) end
+                    end
+                    s.mark = nil
+                elseif s.mark == nil or sweep and (not s.mark or s.mark:getObjectIndex() == -1) then
+                    s.mark = markOf(s) or false   -- false＝找過了不在，每秒再找
+                    settle(obj, s)
                 end
             end
         end

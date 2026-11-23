@@ -58,7 +58,9 @@ def slot_table(look, story, L, face, side):
     post = {"model": S.post_model(look, story), "translate": [0.0, 0.0, 0.0], "rotate": list(G.ROTATE[face])}
     t = {0: {"spriteModel": dict(leaf, animation="Open", animationTime=0.0)},
          8: {"spriteModel": dict(leaf, animation="Close", animationTime=0.0)},
-         3: {"cell": rel(cells / "endA.png"), "spriteModel": post}, 4: {"cell": rel(cells / "endB.png"), "spriteModel": post}}
+         3: {"cell": rel(cells / "endA.png"), "spriteModel": post}, 4: {"cell": rel(cells / "endB.png"), "spriteModel": post},
+         S.STOW_HOST + 8: {"spriteModel": dict(leaf, translate=list(S.stow_translate(face, L, side)), animation="Close",
+                                               animationTime=0.0)}}
     for k in range(L):
         t[16 + k] = {"cell": rel(cells / "lane.png")}
         t[S.STOW + k] = {"cell": rel(cells / "stow.png")}
@@ -76,6 +78,8 @@ def manifest():
          "slots": {"0 / 8": "leaf at rest closed / open (build_model_gates.py re-hosts them on the middle lane)",
                    "3 / 4": "end A / end B post", "16..": "lane placeholders",
                    f"{S.STOW}..": "stow placeholders k = 1..L from the stow end: build footprint only, Lua removes them",
+                   f"{S.STOW_HOST} / {S.STOW_HOST + 8}": "invisible marker object Lua leaves on stow tile k = L // 2 / the "
+                                                           "open leaf at rest it draws (spriteModels only)",
                    "32.. / 48..": "opening / closing poses"},
          "kinds": {}, "tilesets": {}, "models": {}, "posts": {}, "reader_mount": [], "entities": {}, "blocks": []}
     mounts = []

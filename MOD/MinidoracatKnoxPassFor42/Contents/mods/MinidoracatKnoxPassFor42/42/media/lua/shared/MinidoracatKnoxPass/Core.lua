@@ -92,14 +92,22 @@ end
 -- upper＝兩層樓：二樓門線另放看不見的牆（server/Barrier.lua 的二樓隱形牆）
 -- 滑動門（kind Slide，scripts/blender/slide/spec.py）：單扇沿門線滑過一端門柱，收進和門一樣長的收納段。tileset 名尾 l／r＝
 -- 從門柱那側看往左／右收。25 起＝收納段的建造替代 tile（k＝25＋k−1）：只為了建造時要求那幾格空著，OnCreate 當場移除
--- （server/Barrier.lua），蓋好後收納段沒有物件、不擋人車。pillar＝柱面讀頭的外觀序（接在 KP.GATE_LOOKS 後面；
--- 門柱比兩層樓大門更靠格內，build_model_gates.py pillar_tiles），body＝右鍵點得到的門身高度（樓層，client/Client.lua）
-KP.GATE_SLOT = { END_A = 3, END_B = 4, HOST = 5, OPEN = 8, PLACEHOLDER = 16, STOW = 25, POSE_OPEN = 32, POSE_CLOSE = 48 }
+-- （server/Barrier.lua），收納段不擋人車。開著的門扇整個在收納段，離掛模型那片 L＋1 格，那片一出畫面就不畫
+-- （slide-sp 1123a：站在收納段旁、鏡頭拉近時門扇不見）：收納段第 KP.stowHost 格留一個看不見、沒有屬性的一般物件（格位 6），
+-- 門開著靜止時由它畫門扇（格位 14，只在 spriteModels；client 的 BarrierAnim 指名），開關中仍由中間片畫。
+-- pillar＝柱面讀頭的外觀序（接在 KP.GATE_LOOKS 後面；門柱比兩層樓大門更靠格內，build_model_gates.py pillar_tiles），
+-- body＝右鍵點得到的門身高度（樓層，client/Client.lua）
+KP.GATE_SLOT = { END_A = 3, END_B = 4, HOST = 5, STOW_HOST = 6, OPEN = 8, PLACEHOLDER = 16, STOW = 25, POSE_OPEN = 32, POSE_CLOSE = 48 }
 
 -- 掛 3D 模型的那一片（第幾片，1 起）：正中間，偶數寬取過中線那片（3→2、4→3、6→4、9→5；單臂閘門 3 格是車道 2）。
 -- build_model_gates.py host_lane 同一條規則；伺服器開關門也從這一片同步（Gates.lua setGarageOpen）
 function KP.hostLane(width)
     return math.floor(width / 2) + 1
+end
+
+-- 滑動門收納段留標記物件的那一格（第幾格，1 貼著收的那一端）：開著的門扇中心底下。build_model_gates.py stow_host 同一條規則
+function KP.stowHost(width)
+    return math.floor(width / 2)
 end
 
 local BARRIER2 = { kind = "Barrier", builtin = true, ends = true, widths = { 6, 9 }, faces = { "N", "W" },
@@ -216,6 +224,15 @@ function KP.gateAnchor(mg, x, y)
     local a, d = ALONG[mg.face], KP.GATE_DOOR[mg.face]
     if mg.slot == KP.GATE_SLOT.END_B then x, y = x - a[1] * (mg.width + 1), y - a[2] * (mg.width + 1) end
     return x + a[1] + d[1], y + a[2] + d[2]
+end
+
+-- 車道 1 真門片的格 → 滑動門收納段第 k 格（k＝1 貼著收的那一端；在擺放的那一列／行）。往左收的在 N／W 向收過 A 端、
+-- S／E 向收過 B 端，往右收的相反（scripts/blender/slide/spec.py stow_end）
+function KP.stowSpot(mg, ax, ay, k)
+    local a = ALONG[mg.face]
+    local x1, y1, x2, y2 = KP.gateEnds(mg, ax, ay)
+    if (string.sub(mg.tileset, -1) == "l") == (mg.face == "N" or mg.face == "W") then return x1 - a[1] * k, y1 - a[2] * k end
+    return x2 + a[1] * k, y2 + a[2] * k
 end
 
 -- 車道 tile 的 DoorWallN／W（關著時車輛的 WallN／WallW 物理形狀 IsoChunk.java:2070-2090、AutoDrive 的 closedDoor）

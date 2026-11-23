@@ -6,6 +6,7 @@
   "3 / 4": "end A / end B post",
   "16..": "lane placeholders",
   "25..": "stow placeholders k = 1..L from the stow end: build footprint only, Lua removes them",
+  "6 / 14": "invisible marker object Lua leaves on stow tile k = L // 2 / the open leaf at rest it draws (spriteModels only)",
   "32.. / 48..": "opening / closing poses"
  },
  "kinds": {
@@ -217,6 +218,23 @@
       "animationTime": 0.0
      }
     },
+    "14": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       3.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
     "16": {
      "cell": "scripts/blender/slide/cells/A1/N/lane.png"
     },
@@ -635,6 +653,23 @@
        0.0,
        0.0,
        1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
+    "14": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       -3.0
       ],
       "rotate": [
        0.0,
@@ -1073,6 +1108,23 @@
       "animationTime": 0.0
      }
     },
+    "14": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -3.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
     "16": {
      "cell": "scripts/blender/slide/cells/A1/S/lane.png"
     },
@@ -1491,6 +1543,23 @@
        -1.0,
        0.0,
        -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
+    "14": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       3.0
       ],
       "rotate": [
        0.0,
@@ -1929,6 +1998,23 @@
       "animationTime": 0.0
      }
     },
+    "14": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -3.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
     "16": {
      "cell": "scripts/blender/slide/cells/A1/N/lane.png"
     },
@@ -2347,6 +2433,23 @@
        -0.82,
        0.0,
        -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
+    "14": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       3.0
       ],
       "rotate": [
        0.0,
@@ -2785,6 +2888,23 @@
       "animationTime": 0.0
      }
     },
+    "14": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       3.0,
+       0.0,
+       0.82
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
     "16": {
      "cell": "scripts/blender/slide/cells/A1/S/lane.png"
     },
@@ -3203,6 +3323,23 @@
        -0.18,
        0.0,
        1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
+    "14": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.82,
+       0.0,
+       -3.0
       ],
       "rotate": [
        0.0,

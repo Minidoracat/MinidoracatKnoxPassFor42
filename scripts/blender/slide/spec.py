@@ -44,6 +44,10 @@ LEAF_X0, LEAF_X1 = 0.10, 0.90
 Z0 = 0.10                              # leaf bottom: the wheel carriages run under it
 LEAF_T = {"A": 0.08}                   # total leaf thickness
 STOW = 25                              # first stow slot (build_model_gates.py STOW, Lua KP.GATE_SLOT.STOW)
+# The open leaf lies in the stow section, L + 1 tiles from the lane that hosts the model, and the engine draws a model
+# only while its host's square is on screen: one stow tile keeps an invisible object (slot STOW_HOST) that draws the
+# open leaf at rest (spriteModels-only slot STOW_HOST + 8, client BarrierAnim.lua)
+STOW_HOST = 6
 OPP = {"N": "S", "S": "N", "W": "E", "E": "W"}
 # model +X and +Y in PZ tile coordinates (x east, y south) under the face's rotation (../gate/spec.py ROTATE)
 AXES = {"N": ((1, 0), (0, -1)), "W": ((0, -1), (-1, 0)), "S": ((-1, 0), (0, 1)), "E": ((0, 1), (1, 0))}
@@ -131,6 +135,17 @@ def leaf_translate(face, L, side):
     return (round(ox - hx, 4), 0.0, round(oy - hy, 4))
 
 
+def stow_host(L):
+    """Stow tile k (1 = next to the stow end) under the open leaf's centre (Lua KP.stowHost)."""
+    return L // 2
+
+
+def stow_translate(face, L, side):
+    """spriteModels translate of the open leaf on the stow host tile."""
+    (hx, hy), (ox, oy) = stow_tiles(face, L, side)[stow_host(L) - 1], leaf_origin(face, L, side)
+    return (round(ox - hx, 4), 0.0, round(oy - hy, 4))
+
+
 def pillar_translate(face):
     """The gates' reader pillar model (built for a post at PLANE_Y) on a slide post."""
     yx, yy = AXES[face][1]
@@ -164,5 +179,8 @@ if __name__ == "__main__":   # self-check
     assert leaf_translate("S", 6, "L") == (6, 0, -1) and leaf_translate("W", 6, "R") == (-0.82, 0, -6)
     assert stow_tiles("N", 3, "L") == [(-1, 0), (-2, 0), (-3, 0)] and stow_tiles("W", 3, "L") == [(0, 5), (0, 6), (0, 7)]
     assert all(travel(L) + LEAF_X1 - 0.5 <= L + 0.9 and L + LEAF_X1 - travel(L) <= 0.5 for L in (3, 4, 6))
+    assert [stow_host(L) for L in (3, 4, 6)] == [1, 2, 3] and stow_translate("N", 6, "L") == (3, 0, 0)
+    # open leaf centre (model x) within half a tile of the stow host tile's centre
+    assert all(abs((LEAF_X0 + L + LEAF_X1) / 2 - travel(L) + stow_host(L)) <= 0.5 for L in (3, 4, 6))
     assert max(len(w) for w in GROUPS.values()) * 4 * 64 <= 512 and STOW + 6 <= 32
     print("spec ok")

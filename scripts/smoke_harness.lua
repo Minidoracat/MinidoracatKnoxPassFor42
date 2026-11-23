@@ -5147,30 +5147,38 @@ local function scenarioModelGates()
     check(res.key == "601,100,0N" and post and post.i == 8 and readersAt(600, 100) == "pillar_0",
         "上色款（黑色鐵網）裝讀頭：柱面讀頭照 A，掛在 A 端門柱那格（外觀 A、N 向＝0）")
 
-    -- 滑動門（一層樓 6 格）：收納段只在建造時佔位，替代 tile 當場移除、不回物件；其餘同大門（車庫門鏈、兩端門柱、柱面讀頭）
-    local function stowed(g, at)
+    -- 滑動門（一層樓 6 格）：收納段只在建造時佔位，替代 tile 當場移除、不回物件，只有第 3 格（KP.stowHost）換成沒有屬性的
+    -- 標記物件（格位 6，client 用它畫開著的門扇）；其餘同大門（車庫門鏈、兩端門柱、柱面讀頭）
+    local function stowed(g, at, markName)
         for k = 1, 6 do
             local s = g.stow[k]
-            if not (s.res.replaceObject == true and s.res.object == nil and s.sq == at(k) and #s.sq._objects == 0) then return false end
+            local mark = s.res.object
+            if not (s.res.replaceObject == true and s.sq == at(k)) then return false end
+            if k == 3 then
+                if not (mark and not instanceof(mark, "IsoThumpable") and mark:getSprite():getName() == markName
+                    and #s.sq._objects == 1 and s.sq._objects[1] == mark) then return false end
+            elseif mark ~= nil or #s.sq._objects ~= 0 then
+                return false
+            end
         end
         return #g.stow == 6
     end
     local sl = buildModelGate("MinidoracatKnoxPass_slide1_a6l", 0, 6, "N", true, 900, 100, builder, "L")
     step()
     local sad, san = G.resolve(sl.lanes[5])
-    check(stowed(sl, function(k) return square(906 - k, 100, 0) end) and sl.A._square == square(906, 100, 0)
-        and sl.B._square == square(913, 100, 0), "滑動門 6 格 N 左收：收納段 6 格在 A 端西邊，替代 tile 當場移除、格子上沒有物件，回 replaceObject 不帶 object")
+    check(stowed(sl, function(k) return square(906 - k, 100, 0) end, "MinidoracatKnoxPass_slide1_a6l_6") and sl.A._square == square(906, 100, 0)
+        and sl.B._square == square(913, 100, 0), "滑動門 6 格 N 左收：收納段 6 格在 A 端西邊，替代 tile 當場移除、回 replaceObject 不帶 object；第 3 格留標記物件（不是 IsoThumpable）")
     check(all(sl, function(p, k) return instanceof(p, "IsoDoor") and p._north and p._square == square(906 + k, 100, 0) and p._health == 1500 end)
         and san == sl.lanes[1] and #G.pieces(sad, san) == 6 and G.kind(sad, san) == "Slide" and KP.Ledger.get("907,100,0N") == nil
-        and #KP.Barrier.parts(sl.B) == 8 and sl.lanes[1]:getSprite():getName() == "MinidoracatKnoxPass_slide1_a6l_0",
-        "滑動門：六片車庫門鏈、錨點第 1 片、類型 Slide、耐久 1500、不自動登記，整座＝六片＋兩端（收納段不算）")
+        and #KP.Barrier.parts(sl.B) == 9 and sl.lanes[1]:getSprite():getName() == "MinidoracatKnoxPass_slide1_a6l_0",
+        "滑動門：六片車庫門鏈、錨點第 1 片、類型 Slide、耐久 1500、不自動登記，整座＝六片＋兩端＋收納段標記")
     local sr = buildModelGate("MinidoracatKnoxPass_slide1_a6r", 1, 6, "W", true, 1000, 100, builder, "R")
-    check(stowed(sr, function(k) return square(1000, 106 - k, 0) end) and sr.B._square == square(1000, 106, 0)
+    check(stowed(sr, function(k) return square(1000, 106 - k, 0) end, "MinidoracatKnoxPass_slide1_a6r_70") and sr.B._square == square(1000, 106, 0)
         and sr.A._square == square(1000, 113, 0) and sr.lanes[1]._square == square(1000, 112, 0) and not sr.lanes[1]._north
         and sr.lanes[1]:getSprite():getName() == "MinidoracatKnoxPass_slide1_a6r_64",
         "滑動門 6 格 W 右收：收納段在 B 端北邊（從門柱那側看的右手邊），錨點在最南")
     local ss = buildModelGate("MinidoracatKnoxPass_slide1_a6l", 2, 6, "S", true, 1100, 100, builder, "L")
-    check(stowed(ss, function(k) return square(1107 + k, 100, 0) end) and ss.A._square == square(1100, 100, 0)
+    check(stowed(ss, function(k) return square(1107 + k, 100, 0) end, "MinidoracatKnoxPass_slide1_a6l_134") and ss.A._square == square(1100, 100, 0)
         and ss.lanes[1]._square == square(1101, 101, 0), "滑動門 6 格 S 左收：收納段在 B 端東邊，門片在擺放列的下一列")
     square(907, 100, 0)._grid = true
     local slider = newPlayer("slideowner", 909, 102)
@@ -5182,8 +5190,8 @@ local function scenarioModelGates()
     check(res.ok == true and st.speedSupported == true and st.speed == "fast", "滑動門可以設加速")
     slider._inv:AddItem("Base.BlowTorch")
     slider._inv:AddItem("Base.WeldingMask")
-    check(dismantle(slider, sl.B).ok == true and gone(sl) and KP.Ledger.get("907,100,0N") == nil and readersAt(906, 100) == "",
-        "右鍵拆除滑動門 B 端門柱：整座移除、帳本刪除、柱面讀頭拿掉")
+    check(dismantle(slider, sl.B).ok == true and gone(sl) and KP.Ledger.get("907,100,0N") == nil and readersAt(906, 100) == ""
+        and #square(903, 100, 0)._objects == 0, "右鍵拆除滑動門 B 端門柱：整座移除（連收納段標記）、帳本刪除、柱面讀頭拿掉")
 
     -- 拆除與打壞：整座一起移除、帳本刪除、柱面讀頭拿掉；拆除只退被拆那一端的材料
     local pipes = W.dropped["Base.MetalPipe"] or 0
@@ -5251,6 +5259,32 @@ local function scenarioModelGates()
     runMs(1350)
     check(a._smName == "MinidoracatKnoxPassFast_roll2f_white_141" and not a:isAnimating(),
         "2.5 秒走完（正常要 4 秒）：換成加速版（開的那張）")
+    -- 滑動門：開著靜止時門扇由收納段標記畫（格位 14）、中間片不畫；一動就交回中間片；標記不在時照舊由中間片畫
+    me._x, me._y = 505, 103
+    local sg = buildModelGate("MinidoracatKnoxPass_slide1_a6l", 0, 6, "N", true, 500, 100, me, "L")
+    local host, mark, SL = sg.lanes[4], sg.stow[3].res.object, "MinidoracatKnoxPass_slide1_a6l_"
+    step()
+    check(host._smName == SL .. "5" and mark._smName == nil, "滑動門關著：中間片（第 4 片）畫，標記不畫")
+    host:ToggleDoor(me)
+    step()
+    check(host._smName == SL .. "32" and mark._smName == nil, "滑動門打開中：中間片走通道，標記不畫")
+    runMs(4250)
+    check(host._smName == nil and mark._smName == SL .. "14" and not host:isAnimating(), "滑動門開著走完：交給標記畫（＋14），中間片不畫")
+    sg.lanes[1]._modData[KP.MARKER_SPEED] = "fast"
+    runMs(1000)
+    check(host._smName == nil and mark._smName == "MinidoracatKnoxPassFast_slide1_a6l_14", "加速的滑動門：標記換成加速版，中間片仍不畫")
+    mark._square:transmitRemoveItemFromSquare(mark)
+    runMs(1000)
+    check(host._smName == "MinidoracatKnoxPassFast_slide1_a6l_13", "標記被移走：每秒巡到，交回中間片畫開的靜止模型")
+    sg = buildModelGate("MinidoracatKnoxPass_slide1_a6l", 0, 6, "N", true, 500, 110, me, "L")
+    host, mark = sg.lanes[4], sg.stow[3].res.object
+    host:ToggleDoor(me)
+    runMs(4250)
+    host:ToggleDoor(me)
+    step()
+    check(host._smName == SL .. "48" and mark._smName == nil, "滑動門關上：當下清掉標記的覆寫，中間片走放下那組通道")
+    runMs(4250)
+    check(host._smName == SL .. "5" and mark._smName == nil and not host:isAnimating(), "關好：中間片畫關的靜止模型")
     clean(from, "模型門動畫（SP）")
 
     -- MP client：寬門跨 chunk、片的載入順序不定；舊版存檔的門（錨點帶覆寫、中間片沒有）

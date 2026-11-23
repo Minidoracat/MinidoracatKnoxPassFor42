@@ -772,9 +772,10 @@ def check() -> None:
     per_page = [sum(1 for pg, _ in rects.values() if pg == i) for i in range(len(pages))]
     assert per_page[:-1] == [PAGE_CELLS] * (len(pages) - 1) and 0 < per_page[-1] <= PAGE_CELLS, per_page
     assert all(s.width == 8 * CELL_W and s.height == CELL_H * -(-n // 8) for s, n in zip(sheets, per_page))
+    mgl = MG.layout()   # model gates: every layout index (the reader pillar and stow host tiles have no properties)
     for ts in tsets:   # pack sprites = tiledef indices that are meant to have 2D (readers: the coloured variants)
-        want = (set(READER_TILES) if ts["name"] == READER_TILESET else set(MG.pillar_tiles())
-                if ts["name"] == MG.PILLAR_TILESET else {i for i, p in enumerate(ts["tiles"]) if p})
+        want = (set(READER_TILES) if ts["name"] == READER_TILESET else set(mgl[ts["name"]])
+                if ts["name"] in mgl else {i for i, p in enumerate(ts["tiles"]) if p})
         assert {int(n.rsplit("_", 1)[1]) for n in names if n.rsplit("_", 1)[0] == ts["name"]} == want, ts["name"]
 
     # ---- spriteModels ----

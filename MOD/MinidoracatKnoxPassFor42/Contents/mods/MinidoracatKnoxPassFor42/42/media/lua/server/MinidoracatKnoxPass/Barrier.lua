@@ -88,7 +88,8 @@ local function spriteAt(x, y, z, want)
     return nil
 end
 
--- 有兩端的模型門整座的物件與錨點的帳本 key；沒有兩端的（兩層樓捲門）回 nil，照一般車庫門由 ReaderPost 收帳本
+-- 有兩端的模型門整座的物件與錨點的帳本 key；沒有兩端的（兩層樓捲門）回 nil，照一般車庫門由 ReaderPost 收帳本。
+-- 滑動門連收納段的標記物件（MG.onCreate）一起算：拆除時跟著收；它不是 IsoThumpable，耐久與打不壞都略過它（Sensor.lua hasHealth）
 local function modelParts(obj)
     local mg = KP.modelGate(obj)
     if not (mg and mg.def.ends) then return nil end
@@ -114,6 +115,10 @@ local function modelParts(obj)
         local x1, y1, x2, y2 = KP.gateEnds(mg, ax, ay)
         out[#out + 1] = spriteAt(x1, y1, z, { [name(SLOT.END_A)] = true })
         out[#out + 1] = spriteAt(x2, y2, z, { [name(SLOT.END_B)] = true })
+        if mg.def.kind == "Slide" then
+            local sx, sy = KP.stowSpot(mg, ax, ay, KP.stowHost(mg.width))
+            out[#out + 1] = spriteAt(sx, sy, z, { [name(SLOT.STOW_HOST)] = true })
+        end
     end
     return out, key
 end
@@ -340,7 +345,9 @@ end
 
 -- 模型門的 SpriteConfig OnCreate：替代 tile（格位 16＋k−1）換成車道 k 的門片（第 1 片 GarageDoor 1 是錨點，
 -- 中間 GarageDoor 2，最後 GarageDoor 3；3D 模型由 client 的 BarrierAnim 掛在中間那片），耐久照 KP.MODEL_GATES；兩端（格位 3／4）回 nil，照原版送 IsoThumpable。
--- 滑動門的收納段替代 tile（格位 25 起）當場移除、不留物件：回 replaceObject 但不帶 object，原版就不送它（ISBuildIsoEntity.lua setInfo）。
+-- 滑動門的收納段替代 tile（格位 25 起）當場移除：回 replaceObject 但不帶 object，原版就不送它（ISBuildIsoEntity.lua setInfo）。
+-- 第 KP.stowHost 格換成一個沒有屬性的一般物件（格位 STOW_HOST 的透明 tile）：不擋人車、不是 IsoThumpable，
+-- 門開著時 client 的 BarrierAnim 用它畫收好的門扇（Core.lua KP.GATE_SLOT 的說明）。
 -- 內建讀頭的（雙桿閘門）下一個 tick 登記，擁有者是建造者（B.settle）
 local MG = {}
 KP.ModelGate = MG
@@ -349,8 +356,12 @@ function MG.onCreate(params)
     local thump = params and params.thumpable
     local mg = KP.modelGate(thump)
     if mg and mg.slot >= SLOT.STOW and mg.slot < SLOT.POSE_OPEN then
-        thump:getSquare():RemoveTileObject(thump, false)   -- false：只移這一格（單參數版會連整座一起移）
-        return { replaceObject = true }
+        local sq = thump:getSquare()
+        sq:RemoveTileObject(thump, false)   -- false：只移這一格（單參數版會連整座一起移）
+        if mg.slot - SLOT.STOW + 1 ~= KP.stowHost(mg.width) then return { replaceObject = true } end
+        local mark = IsoObject.new(getCell(), sq, mg.tileset .. "_" .. (mg.index0 + SLOT.STOW_HOST))
+        sq:AddTileObject(mark)
+        return { replaceObject = true, object = mark }
     end
     local k = mg and mg.slot - SLOT.PLACEHOLDER + 1
     if not k or k < 1 or k > mg.width then
