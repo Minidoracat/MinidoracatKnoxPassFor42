@@ -5291,9 +5291,14 @@ local function scenarioModelGates()
     check(valid(SL1 .. "16", spot, builder) == false and valid(SL1 .. "3", spot, builder) == false
         and valid(SL1 .. "25", spot, builder) == false and valid("MinidoracatKnoxPass_barrier_160", spot, builder) == false,
         "伺服器驗建造：交易的玩家不是成員，別人的安全屋裡每一格（車道、兩端、收納段、單臂閘門）都不給蓋")
+    local nobody = 0
     check(KP.Barrier.onIsValid({ square = spot, tileInfo = { getSpriteName = function() return SL1 .. "16" end } }) == true
         and valid(SL1 .. "16", spot) == true,
-        "驗完就放掉施工者；不知道是誰在蓋（別的程式直接問）照原版放行")
+        "驗完就放掉建造物件；不知道是誰在蓋（別的程式直接問）照原版放行")
+    for i = from, #logLines do
+        if string.find(logLines[i], "no builder on the server", 1, true) then nobody = nobody + 1 end
+    end
+    check(nobody == 1, "伺服器上問不到施工者（安全屋檢查停了）：log 記一次，不洗版")
     check(valid(at("MinidoracatKnoxPass_slide1_a6l", "S", 16), square(1300, 99, 0), builder) == false
         and valid(at("MinidoracatKnoxPass_slide1_a6l", "E", 16), square(1299, 100, 0), builder) == false
         and valid("MinidoracatKnoxPass_barrier_240", square(1300, 99, 0), builder) == false
@@ -5549,13 +5554,14 @@ local function scenarioModelGates()
     -- 物件的新格子在畫面上時，會把中間片藏起來，門扇整片不見）。重用後第一個 tick 就要對；四個相位都跑（同上）
     local stray, home, markSprite = square(900, 900, 0), mark._square, mark._spriteObj
     local hostDraws = true
-    for _ = 1, 4 do
+    for k = 1, 4 do
+        local busy = k % 2 == 0   -- 新主人自己在不在播動畫都不關我們的事
         home:transmitRemoveItemFromSquare(mark)
-        mark._spriteObj, mark._smName, mark._animating = getSprite("vegetation_foliage_01_0"), nil, false
+        mark._spriteObj, mark._smName, mark._animating = getSprite("vegetation_foliage_01_0"), nil, busy
         stray:AddTileObject(mark)
         host._square._off = true
         step()
-        hostDraws = hostDraws and mark:getObjectIndex() == 0 and mark._smName == nil and not mark:isAnimating()
+        hostDraws = hostDraws and mark:getObjectIndex() == 0 and mark._smName == nil and mark:isAnimating() == busy
             and host._smName == SL .. "5"
         host._square._off = nil
         stray:transmitRemoveItemFromSquare(mark)
@@ -5563,7 +5569,18 @@ local function scenarioModelGates()
         home:AddTileObject(mark)
         runMs(1000)   -- 巡檢重新找到標記；一輪 5 個 tick，相位往後一格
     end
-    check(hostDraws, "標記的物件被引擎重用到別格：當下那個 tick 就不碰它（不設模型、不標 animating），門扇留給中間片畫")
+    check(hostDraws, "標記的物件被引擎重用到別格：當下那個 tick 就不碰它（不設模型、不動它的 animating），門扇留給中間片畫")
+    -- 標記正在畫的時候那個 chunk 被卸載：物件離開格子進回收池，引擎不清 animating（IsoObject.reset），要趁丟掉參照時清
+    host._square._off = true
+    step()
+    local drawing = mark:isAnimating()
+    home:transmitRemoveItemFromSquare(mark)
+    step()
+    check(drawing and mark._square == nil and not mark:isAnimating(),
+        "標記正在畫時被引擎收走（不在任何格上）：丟掉參照前把它的 animating 清掉，不帶進回收池")
+    host._square._off = nil
+    home:AddTileObject(mark)
+    runMs(1000)
     clean(from, "模型門動畫（SP）")
 
     -- MP client：寬門跨 chunk、片的載入順序不定；舊版存檔的門（錨點帶覆寫、中間片沒有）

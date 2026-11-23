@@ -10,7 +10,7 @@
 -- media/lua/server 的檔 MP client 也會載入：函式照常定義（entity 腳本以名稱找 OnCreate），事件只在 server／SP 掛。
 require "MinidoracatKnoxPass/Core"
 require "MinidoracatKnoxPass/Gates"
-require "BuildingObjects/ISBuildIsoEntity"   -- 下面包裝它的 isValid；client 檔先 require 本檔時原版那個還沒載入
+require "BuildingObjects/ISBuildIsoEntity"   -- 下面包裝它的 isValidPerSquare；client 檔先 require 本檔時原版那個還沒載入
 local KP = MinidoracatKnoxPass
 local G = KP.Gates
 
@@ -331,20 +331,21 @@ function B.allowDismantle(list, player)
     return true
 end
 
--- 這一格建造驗證的施工者：ISBuildIsoEntity:isValidPerSquare 的包裝記下，下面的 OnIsValid 回呼（參數只有格子）讀它。
--- 包在逐格這一層：游標的地面格線（:62）不經過整座的 isValid，直接問這裡。客戶端 player 是本機玩家序號（原版 :457 同用法）；
--- 伺服器是 BuildAction.parse 放進去的交易玩家（連線認證過的那位，BuildAction.java:161）。伺服器只有 create 扣料前那一次
--- 驗證（ISBuildIsoEntity.lua:543）會走到這裡，BuildAction.isValid 在 42.22 沒有人呼叫，不要把 create 那一道當成多餘的
-local builder = nil
+-- 這一格建造驗證是哪個建造物件在問：ISBuildIsoEntity:isValidPerSquare 的包裝記下，下面的 OnIsValid 回呼（參數只有格子）
+-- 從它讀施工者。包在逐格這一層：游標的地面格線（:62）不經過整座的 isValid，直接問這裡。這個包裝每一種 entity 建造
+-- （原版與別的 MOD）每格每幀都經過，所以只記物件、參數原樣轉傳，別的都不做。
+-- 建造物件的 player：客戶端是本機玩家序號（原版 :457 同用法）；伺服器是 BuildAction.parse 放進去的交易玩家（連線認證過
+-- 的那位，BuildAction.java:161）。伺服器只有 create 扣料前那一次驗證（ISBuildIsoEntity.lua:543）會走到這裡，
+-- BuildAction.isValid 在 42.22 沒有人呼叫，不要把 create 那一道當成多餘的
+local building = nil
 local vanillaPerSquare = ISBuildIsoEntity.isValidPerSquare
-function ISBuildIsoEntity:isValidPerSquare(square, tileInfo, requiresFloor, extendsN, extendsW)
-    local p = self.player
-    if type(p) == "number" then p = getSpecificPlayer(p) end
-    builder = p or self.character
-    local ok = vanillaPerSquare(self, square, tileInfo, requiresFloor, extendsN, extendsW)
-    builder = nil
+function ISBuildIsoEntity:isValidPerSquare(...)
+    building = self
+    local ok = vanillaPerSquare(self, ...)
+    building = nil
     return ok
 end
+local warned = false
 
 -- 這張替代 tile 建好後除了擺放格還佔哪一格：S／E 向的車道門片（B.onCreate、MG.onCreate）與兩層樓門兩端的二樓隱形牆
 -- （upperSpot）在下一列／下一行，回 KP.GATE_DOOR 的 { dx, dy }。N／W 向、一層樓的兩端、機箱、收納段、車庫捲門只佔擺放格，回 nil
@@ -378,8 +379,17 @@ function B.onIsValid(params)
         and (sq:isSolid() or sq:isSolidTrans() or sq:has(IsoPropertyType.BLOCKS_PLACEMENT) or sq:has(IsoObjectType.tree)) then
         return false
     end
-    local who = builder
-    if not who or not (isClient() or isServer()) then return true end
+    if not (isClient() or isServer()) then return true end
+    local who = building and (building.player or building.character)
+    if type(who) == "number" then who = getSpecificPlayer(who) end
+    if not who then
+        -- 伺服器上不該發生：別的 MOD 整個換掉 isValidPerSquare 時才會，這道檢查就停了。只記一次
+        if isServer() and not warned then
+            warned = true
+            KP.log("build check: no builder on the server, safehouse check skipped (is another mod replacing ISBuildIsoEntity.isValidPerSquare?)")
+        end
+        return true
+    end
     -- 能進別人安全屋的管理員不受限：客戶端的 isSafeHouse 自己放行，伺服器上那段不跑（SafeHouse.java:205-209），這裡對
     local role = isServer() and who:getRole() or nil
     if role and role:hasCapability(Capability.CanGoInsideSafehouses) then return true end

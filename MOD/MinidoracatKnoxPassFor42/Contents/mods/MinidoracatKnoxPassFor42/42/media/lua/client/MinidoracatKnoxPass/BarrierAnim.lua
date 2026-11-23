@@ -15,7 +15,7 @@
 -- （紅燈；S／E 向各＋80）；模型門是區塊起點＋32-40／48-56（Core.lua KP.GATE_SLOT）。燈色跟著 spriteModel 的 texture 走
 -- （IsoObjectModelDrawer.java:134-139）。每組 9 個通道，同款同方向同時在動的門各用一個，不會互相蓋掉。
 -- 只改本機顯示，不經網路；SP 存檔會連覆寫名稱一起存（IsoObject.java:1568-1570），載入時一律重設。
--- 閒置時每幀只問一次 IsOpen；移除、距離與還沒找到的中間片每秒掃一次
+-- 閒置時每幀只問一次 IsOpen（滑動門另外每幀決定誰畫門扇，見 stowTick）；移除、距離與還沒找到的中間片每秒掃一次
 -- 每扇門的開關速度（Server.lua mark 在錨點的 KP.MARKER_SPEED）：加速的門靜止時覆寫成加速版 spriteModel（KP.fastTwin，
 -- *_fast 模型、clip 3.75 s）。多人收到開關同步時引擎照中間片當下的 getSpriteModel() 播（IsoDoor.PlayAnimation，
 -- 逐物件覆寫優先，IsoObject.java:6258-6265），所以播的是加速版；通道姿勢是 clip 的比例時間，兩種速度共用，只換補播時長
@@ -77,13 +77,11 @@ local function restName(obj, s)
     return s.rest and name or nil
 end
 
-local function markName(s) return s.tileset .. "_" .. (s.rest - SLOT.HOST + SLOT.STOW_HOST) end
-
 -- 滑動門收納段的標記物件；那格沒載入或被移走回 nil
 local function markOf(s)
     local sq = getCell():getGridSquare(s.stow[1], s.stow[2], s.stow[3])
     local objects = sq and sq:getObjects()
-    local want = markName(s)
+    local want = s.markName
     for i = 0, (objects and objects:size() or 0) - 1 do
         local o = objects:get(i)
         local spr = o:getSprite()
@@ -100,14 +98,21 @@ local function markValid(s)
     if not sq then return false end
     local spr = m:getSprite()
     return sq:getX() == s.stow[1] and sq:getY() == s.stow[2] and sq:getZ() == s.stow[3]
-        and spr ~= nil and spr:getName() == markName(s)
+        and spr ~= nil and spr:getName() == s.markName
 end
 
--- 標記的覆寫：name＝要畫的模型，nil＝不畫；沒變就不重設。參照已經不是我們的標記就不碰它，丟掉、下一個 tick 重找
+-- 參照已經不是我們的標記：丟掉，下一個 tick 重找，不碰它。例外是它還掛著我們設的「每幀畫」就被引擎收走（不在任何格上）：
+-- 引擎回收不清這個旗標（IsoObject.reset，IsoObject.java:2155-2252），趁還沒配給別的地圖物件清掉
+local function dropMark(s)
+    if s.msm and s.mark:getSquare() == nil then s.mark:setAnimating(false) end
+    s.mark, s.msm = nil, false
+end
+
+-- 標記的覆寫：name＝要畫的模型，nil＝不畫；沒變就不重設
 local function markDraw(s, name)
     if name == s.msm then return end
     if not markValid(s) then
-        s.mark, s.msm = nil, false
+        dropMark(s)
         return
     end
     s.msm = name
@@ -143,6 +148,7 @@ local function gateOf(obj)
         if sq then
             local x, y = KP.stowSpot(mg, sq:getX(), sq:getY(), KP.stowHost(mg.width))
             g.stow = { x, y, sq:getZ() }
+            g.markName = g.tileset .. "_" .. (g.rest - SLOT.HOST + SLOT.STOW_HOST)
         end
         return g
     end
@@ -313,7 +319,7 @@ end
 -- 沒登錄就畫靜止的）
 local function stowTick(obj, s, open, now, sweep)
     -- 每個 tick 都對：被引擎重用的參照下面會拿它的格子決定誰畫，認錯會把中間片藏起來、標記又不是我們的，門扇整片不見
-    if s.mark and not markValid(s) then s.mark, s.msm = nil, false end
+    if s.mark and not markValid(s) then dropMark(s) end
     if s.mark == nil or sweep and not s.mark then
         local mark = markOf(s) or false   -- false＝找過了不在，每秒再找
         if mark ~= s.mark then s.mark, s.msm = mark, false end   -- 新找到的一律重設：SP 存檔帶著上次的覆寫
