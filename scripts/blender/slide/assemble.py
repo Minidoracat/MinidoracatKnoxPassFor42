@@ -79,7 +79,8 @@ def manifest():
                    "3 / 4": "end A / end B post", "16..": "lane placeholders",
                    f"{S.STOW}..": "stow placeholders k = 1..L from the stow end: build footprint only, Lua removes them",
                    f"{S.STOW_HOST} / {S.STOW_HOST + 8}": "invisible marker object Lua leaves on stow tile k = L // 2 / the "
-                                                           "open leaf at rest it draws (spriteModels only)",
+                                                           "open leaf re-hosted on it: build_model_gates.py only reads its "
+                                                           "translate to place the marker's own rest and pose slots",
                    "32.. / 48..": "opening / closing poses"},
          "kinds": {}, "tilesets": {}, "models": {}, "posts": {}, "reader_mount": [], "entities": {}, "blocks": []}
     mounts = []

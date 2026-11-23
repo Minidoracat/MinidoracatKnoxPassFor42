@@ -181,6 +181,7 @@ end
 function Square:getX() return self._x end
 function Square:getY() return self._y end
 function Square:getZ() return self._z end
+function Square:IsOnScreen() return self._off ~= true end   -- IsoGridSquare.java:7835-7868；情境用 _off 把一格移出畫面
 function Square:getObjects() return javaList(self._objects) end
 function Square:getSpecialObjects()   -- 門屬於 special objects（IsoGridSquare.java:9251；雙開門重建時也加進這裡 IsoDoor.java:2738-2741）
     local list = {}
@@ -5263,46 +5264,88 @@ local function scenarioModelGates()
     runMs(1350)
     check(a._smName == "MinidoracatKnoxPassFast_roll2f_white_141" and not a:isAnimating(),
         "2.5 秒走完（正常要 4 秒）：換成加速版（開的那張）")
-    -- 滑動門：開著靜止時門扇由收納段標記畫（格位 14）、中間片不畫；一動就交回中間片；標記不在時照舊由中間片畫。
+    -- 滑動門：中間片那格離畫面邊緣兩格以上由中間片畫；否則標記那格在畫面上就由標記畫同一個模型（靜止 ＋7／＋15，滑動中
+    -- ＋41 起／＋57 起的通道，自己照時間走），中間片的覆寫清成 nil；標記不在時照舊由中間片畫。
     -- 標記是一般物件，靜止時烤進 chunk 貼圖、改覆寫也不重畫（knoxslide-sp-1123b：一般鏡頭下開著的門扇整片不見）：
     -- 在畫的期間要標成 animating 才每幀畫（FBORenderCell.java:1762、:1928），接手與交回都把那個 chunk 標髒
     me._x, me._y = 505, 103
     local sg = buildModelGate("MinidoracatKnoxPass_slide1_a6l", 0, 6, "N", true, 500, 100, me, "L")
     local host, mark, SL = sg.lanes[4], sg.stow[3].res.object, "MinidoracatKnoxPass_slide1_a6l_"
+    local hsq, msq = host._square, mark._square
     step()
-    check(host._smName == SL .. "5" and mark._smName == nil, "滑動門關著：中間片（第 4 片）畫，標記不畫")
+    check(host._smName == SL .. "5" and mark._smName == nil and not mark:isAnimating(), "滑動門關著、整座在畫面上：中間片（第 4 片）畫，標記不畫")
+    local inv = W.invalidated
+    hsq._off = true
+    step()
+    check(host._smName == nil and mark._smName == SL .. "7" and mark:isAnimating() and W.invalidated > inv,
+        "中間片那格出畫面：標記畫關的靜止模型（＋7）、標成 animating 並重畫它的 chunk，中間片不畫")
     host:ToggleDoor(me)
     step()
-    check(host._smName == SL .. "32" and mark._smName == nil, "滑動門打開中：中間片走通道，標記不畫")
-    local inv = W.invalidated
-    runMs(4250)
-    check(host._smName == nil and mark._smName == SL .. "14" and not host:isAnimating(), "滑動門開著走完：交給標記畫（＋14），中間片不畫")
-    check(mark:isAnimating() and W.invalidated >= inv + 2, "標記在畫時標成 animating（每幀畫，不烤進 chunk 貼圖），接手時重畫它的 chunk")
+    check(host._smName == nil and mark._smName == SL .. "41" and smTime(mark) < 0.1, "這時打開：標記走自己的通道（＋41），從關的姿勢起步")
+    runMs(2000)
+    check(mark._smName == SL .. "41" and math.abs(smTime(mark) - 0.5) < 0.011, "2 秒：標記的通道走到 0.5")
+    hsq._off = nil
+    step()
+    check(host._smName == SL .. "32" and math.abs(smTime(host) - 0.5625) < 0.011 and mark._smName == nil and not mark:isAnimating(),
+        "滑到一半中間片回到畫面：交回中間片的通道（同一個進度），標記不畫、清掉 animating")
+    square(hsq._x + 2, hsq._y - 2, 0)._off = true
+    step()
+    check(host._smName == nil and mark._smName == SL .. "41" and math.abs(smTime(mark) - 0.625) < 0.011,
+        "中間片離畫面邊緣不到兩格：先換給標記（等它真的出畫面才換會空一幀）")
+    runMs(2250)
+    check(host._smName == nil and mark._smName == SL .. "15" and not host:isAnimating() and mark:isAnimating(),
+        "開著走完：標記畫開的靜止模型（＋15）")
+    msq._off = true
+    step()
+    check(host._smName == SL .. "13" and mark._smName == nil, "兩格都不在畫面上：留給中間片")
+    msq._off = nil
+    host:ToggleDoor(me)
+    step()
+    runMs(1000)
+    check(host._smName == nil and mark._smName == SL .. "57" and math.abs(smTime(mark) - 0.75) < 0.011,
+        "關上：標記走關上那組通道（＋57），1 秒時 0.75")
+    runMs(3250)
+    check(host._smName == nil and mark._smName == SL .. "7" and not host:isAnimating(), "關好：標記畫關的靜止模型")
     sg.lanes[1]._modData[KP.MARKER_SPEED] = "fast"
     runMs(1000)
-    check(host._smName == nil and mark._smName == "MinidoracatKnoxPassFast_slide1_a6l_14", "加速的滑動門：標記換成加速版，中間片仍不畫")
-    mark._square:transmitRemoveItemFromSquare(mark)
-    runMs(1000)
-    check(host._smName == "MinidoracatKnoxPassFast_slide1_a6l_13", "標記被移走：每秒巡到，交回中間片畫開的靜止模型")
-    sg = buildModelGate("MinidoracatKnoxPass_slide1_a6l", 0, 6, "N", true, 500, 110, me, "L")
-    host, mark = sg.lanes[4], sg.stow[3].res.object
-    host:ToggleDoor(me)
-    runMs(4250)
-    inv = W.invalidated
     host:ToggleDoor(me)
     step()
-    check(host._smName == SL .. "48" and mark._smName == nil, "滑動門關上：當下清掉標記的覆寫，中間片走放下那組通道")
-    check(not mark:isAnimating() and W.invalidated > inv, "交回中間片：標記清掉 animating，重畫它的 chunk")
-    runMs(4250)
-    check(host._smName == SL .. "5" and mark._smName == nil and not host:isAnimating(), "關好：中間片畫關的靜止模型")
-    -- MP 收到關門同步時標記正在畫、中間片沒有模型：引擎的 PlayAnimation 取不到模型，clip 沒播、只 setAnimating(true)
-    -- （IsoDoor.java:1471-1478；knoxslide-mp-1123b 實測門扇直接跳到關好、animating 卡住）。不能當成引擎在播：由通道補播
-    host:ToggleDoor(me)
-    runMs(4250)
+    runMs(1250)
+    check(mark._smName == SL .. "41" and math.abs(smTime(mark) - 0.5) < 0.011, "加速的滑動門：標記的通道 1.25 秒走到 0.5（2.5 秒走完）")
+    runMs(1350)
+    check(mark._smName == SL .. "15", "加速的門走完：標記的靜止模型不分速度（它不播 clip）")
+    mark._square:transmitRemoveItemFromSquare(mark)
+    runMs(1000)
+    check(host._smName == "MinidoracatKnoxPassFast_slide1_a6l_13", "標記被移走：每秒巡到，交回中間片畫（它那格不在畫面上也一樣）")
+    -- MP：中間片有模型時收到開關同步，引擎在它身上播原生 clip（沒有 s.start）；標記照自己的時間走，隨時可以接手
+    sg = buildModelGate("MinidoracatKnoxPass_slide1_a6l", 0, 6, "N", true, 500, 110, me, "L")
+    host, mark = sg.lanes[4], sg.stow[3].res.object
+    step()
     host:ToggleDoor(me)
     host:setAnimating(true)
     step()
-    check(host._smName == SL .. "48" and mark._smName == nil, "標記在畫時收到關門同步（中間片沒有模型、引擎沒播）：由通道補播，不直接跳到關好")
+    check(host._smName == SL .. "13" and mark._smName == nil, "MP 收到開門同步、中間片在畫面上：引擎播原生 clip，中間片換成開的靜止模型，不走通道")
+    runMs(1000)
+    host._square._off = true
+    step()
+    check(host._smName == nil and mark._smName == SL .. "41" and math.abs(smTime(mark) - 0.3125) < 0.011,
+        "原生 clip 播到一半中間片出畫面：標記照自己的時間接著畫（1.25 秒 0.3125）")
+    host._square._off = nil
+    step()
+    check(host._smName == SL .. "13" and mark._smName == nil, "回到畫面：中間片換回覆寫（引擎的 clip 還在它身上）")
+    host:setAnimating(false)   -- 引擎播完（IsoObjectAnimations.java:76-78）
+    runMs(3250)
+    -- MP 收到關門同步時標記正在畫、中間片沒有模型：引擎的 PlayAnimation 取不到模型，clip 沒播、只 setAnimating(true)
+    -- （IsoDoor.java:1471-1478；knoxslide-mp-1123b 實測門扇直接跳到關好、animating 卡住）。不能當成引擎在播：由通道補播
+    host._square._off = true
+    step()
+    host:ToggleDoor(me)
+    host:setAnimating(true)
+    step()
+    check(host._smName == nil and mark._smName == SL .. "57", "標記在畫時收到關門同步（中間片沒有模型、引擎沒播）：標記走關上的通道")
+    host._square._off = nil
+    step()
+    check(host._smName == SL .. "48" and mark._smName == nil, "這時中間片回到畫面：由中間片的通道補播，不直接跳到關好")
     runMs(4250)
     check(host._smName == SL .. "5" and not host:isAnimating(), "補播走完：關的靜止模型，清掉引擎留下的 animating")
     clean(from, "模型門動畫（SP）")

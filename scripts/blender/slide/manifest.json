@@ -6,7 +6,7 @@
   "3 / 4": "end A / end B post",
   "16..": "lane placeholders",
   "25..": "stow placeholders k = 1..L from the stow end: build footprint only, Lua removes them",
-  "6 / 14": "invisible marker object Lua leaves on stow tile k = L // 2 / the open leaf at rest it draws (spriteModels only)",
+  "6 / 14": "invisible marker object Lua leaves on stow tile k = L // 2 / the open leaf re-hosted on it: build_model_gates.py only reads its translate to place the marker's own rest and pose slots",
   "32.. / 48..": "opening / closing poses"
  },
  "kinds": {

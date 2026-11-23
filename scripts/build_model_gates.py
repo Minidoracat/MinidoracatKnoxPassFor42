@@ -30,9 +30,10 @@ index = block * 64 + slot, block = widthIdx * len(faces) + faceIdx. Slots (Lua C
             ISBuildIsoEntity:setInfo for GarageDoor sprites leave the build alone); Lua OnCreate swaps it for the lane
     25..    sliding gates: stow placeholder k = 25 + k - 1 (the tiles the open leaf covers, past one end): CustomName
             only, in the entity so the build needs them free; Lua OnCreate removes it
-    6 14    sliding gates: the invisible marker object Lua leaves on stow tile stow_host(width) (no properties, no
-            2D) / spriteModels only: the open leaf at rest, hosted on that marker (see STOW_HOST below)
+    6       sliding gates: the invisible marker object Lua leaves on stow tile stow_host(width) (no properties, no 2D)
+    7 15    sliding gates, spriteModels only: the leaf at rest closed / open, hosted on that marker (STOW_REST below)
     32..40  opening poses (Open clip at k/8), 48..56 closing poses: spriteModels only, SP stepper (BarrierAnim.lua)
+    41..47  sliding gates: the opening poses hosted on the marker, 57..63 the closing ones (STOW_POSE below)
 
 Entity faces: N / S one row west -> east [A] P1 .. PL [B]; W / E rows north -> south [B] PL .. P1 [A]; a sliding
 gate's stow tiles continue the row past its stow end. Doors exist only
@@ -75,11 +76,16 @@ FIRE = "900000"
 # spriteModels-only slots HOST / HOST + OPEN, re-based on lane host_lane(width) (hosted), and the client sets that name
 # as the host's override (BarrierAnim.lua; old saves need nothing). Even widths take the lane past the centre line.
 HOST = 5
-# Sliding gates: the open leaf rests in the stow section, width + 1 tiles from the host lane, so it vanished whenever
-# the lanes were off screen (slide-sp 1123a, zoomed in beside the stow section). Stow tile stow_host(width), under the
-# open leaf's centre, keeps a plain object with the transparent tile STOW_HOST; the client names STOW_HOST + OPEN as
-# its override while the gate rests open and clears the host lane's (BarrierAnim.lua). Clips still play on the lane.
+# Sliding gates: the leaf travels width + 0.45 tiles from the host lane into the stow section, and a model is drawn
+# only while its host's square is on screen (slide-sp 1123a: zoomed in beside the stow section the open leaf vanished).
+# Stow tile stow_host(width), under the open leaf's centre, keeps a plain object with the transparent tile STOW_HOST;
+# while the host lane's square is off screen (or within two tiles of the edge) the client draws the leaf from that
+# marker instead (BarrierAnim.lua): STOW_REST / + OPEN at rest, a STOW_POSE channel while it slides (opening poses,
+# then the closing ones at + POSE_CLOSE - POSE_OPEN; one channel per gate moving at once, as POSE_OPEN). Same models
+# as the host lane's, re-based on the marker's square by the manifest's stow-host offset (hosted).
 STOW_HOST = 6
+STOW_REST = 7
+STOW_POSE, STOW_POSES = 41, 7
 FAST_SLOTS = (HOST, HOST + OPEN)
 CLIP_S, FAST_CLIP_S = 6.0, 3.75
 ALONG = {"N": (1, 0), "S": (1, 0), "W": (0, -1), "E": (0, -1)}   # lane 1 -> lane L, one square (Lua Core.lua ALONG)
@@ -296,21 +302,30 @@ def stow_host(width: int) -> int:
 def hosted(b: Block) -> dict[int, tuple]:
     """The block's spriteModels as shipped: the manifest hangs the animated model on lane 1 (slots 0 / OPEN, poses);
     move the rest models to HOST / HOST + OPEN and re-base them and the poses on the host lane: spriteModels translate
-    is the world offset (x, -, y) from the hosting square to the model origin, so subtract (host - lane 1). The stow
-    host's open leaf (STOW_HOST + OPEN) comes re-based from the manifest."""
+    is the world offset (x, -, y) from the hosting square to the model origin, so subtract (host - lane 1). A sliding
+    gate's marker gets the same rest models and poses, moved by the manifest's stow-host offset (its open leaf on
+    STOW_HOST + OPEN, not shipped itself)."""
     k = host_lane(b.width) - 1
     dx, dy = ALONG[b.face][0] * k, ALONG[b.face][1] * k
 
     def mv(v: tuple) -> tuple:
         return (v[0], (v[1][0] - dx, v[1][1], v[1][2] - dy), *v[2:])
 
-    out = {s: v for s, v in b.sm.items() if s in (END_A, END_B, STOW_HOST + OPEN)}
+    out = {s: v for s, v in b.sm.items() if s in (END_A, END_B)}
     out[HOST], out[HOST + OPEN] = mv(b.sm[0]), mv(b.sm[OPEN])
-    return out | {s: mv(v) for s, v in b.sm.items() if s >= POSE_OPEN}
+    out |= {s: mv(v) for s, v in b.sm.items() if s >= POSE_OPEN}
+    if b.stow:
+        d = [p - q for p, q in zip(b.sm[STOW_HOST + OPEN][1], b.sm[OPEN][1])]
+        for s, o in mark_slots():
+            v = b.sm[o]
+            out[s] = (v[0], tuple(round(p + q, 4) for p, q in zip(v[1], d)), *v[2:])
+    return out
 
 
-def fast_slots(b: Block) -> tuple[int, ...]:
-    return FAST_SLOTS + ((STOW_HOST + OPEN,) if b.stow else ())
+def mark_slots() -> list[tuple[int, int]]:
+    """(slot hosted on a sliding gate's marker, the manifest lane-1 slot it shows)."""
+    return [(STOW_REST, 0), (STOW_REST + OPEN, OPEN)] + [
+        (STOW_POSE + base - POSE_OPEN + k, base + k) for base in (POSE_OPEN, POSE_CLOSE) for k in range(STOW_POSES)]
 
 
 
@@ -530,7 +545,7 @@ def _sm_tile(i: int, model, tr, rot, tex, anim, t) -> str:
 
 def sprite_model_tilesets() -> list[str]:
     """One spriteModels 'tileset' block per tileset (same text layout as build_barrier_tiles.sm_tile), then the fast
-    virtual tilesets (rest models only, fast_slots; model -> <model>Fast)."""
+    virtual tilesets (rest models only, FAST_SLOTS; model -> <model>Fast)."""
     blocks = []
     for kind in kinds():
         for name, _, _ in kind.tilesets:
@@ -544,7 +559,7 @@ def sprite_model_tilesets() -> list[str]:
         for name, _, _ in kind.tilesets:
             tiles = [_sm_tile(b.block * STRIDE + slot, sm[slot][0] + "Fast", *sm[slot][1:])
                      for b in sorted((b for b in kind.blocks if b.tileset == name), key=lambda b: b.block)
-                     for sm in (hosted(b),) for slot in fast_slots(b)]
+                     for sm in (hosted(b),) for slot in FAST_SLOTS]
             blocks.append(f"    tileset\n    {{\n        name = {fast_tileset(name)},\n\n" + "".join(tiles) + "    }\n")
     return blocks
 
@@ -709,17 +724,20 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
                 assert len(tex) == 1 and next(iter(tex)).lower().endswith("_" + variant[b.tileset].lower()), (b, tex)
             # shipped: rest models on HOST / HOST + OPEN, nothing on any lane tile, poses re-based with them
             h, (dx, dy) = hosted(b), (ALONG[b.face][0] * (b.width // 2), ALONG[b.face][1] * (b.width // 2))
-            assert set(h) == set(sm) - {0, OPEN} | {HOST, HOST + OPEN} and not {0, 1, 2, OPEN, OPEN + 1, OPEN + 2} & set(h)
+            marks = {s for s, _ in mark_slots()} if b.stow else set()
+            assert set(h) == set(sm) - {0, OPEN, STOW_HOST + OPEN} | {HOST, HOST + OPEN} | marks, (b, sorted(h))
+            assert not {0, 1, 2, OPEN, OPEN + 1, OPEN + 2} & set(h) and not marks & (set(sm) | set(b.cells) | set(b.stow)), b
             for s, o in ((HOST, 0), (HOST + OPEN, OPEN), *((p, p) for p in sm if p >= POSE_OPEN)):
                 tr = sm[o][1]
                 assert h[s] == (sm[o][0], (tr[0] - dx, tr[1], tr[2] - dy), *sm[o][2:]), (b, s)
-            if b.stow:   # stow host: the same model, at the same world point as from lane 1
+            if b.stow:   # the marker's models: the same model, at the same world point as from lane 1
                 (ax, ay), (gx, gy), k = ALONG[b.face], GATE_DOOR[b.face], stow_host(b.width)
                 past_a = (b.face in "NS") == b.stow_head
                 ox, oy = ((-k - 1) * ax - gx, (-k - 1) * ay - gy) if past_a else ((b.width + k) * ax - gx, (b.width + k) * ay - gy)
-                tr, got = sm[OPEN][1], h[STOW_HOST + OPEN]
-                assert got == (sm[OPEN][0], got[1], *sm[OPEN][2:]) and got[1] == (
-                    round(tr[0] - ox, 4), tr[1], round(tr[2] - oy, 4)), (b, ox, oy)
+                for s, o in mark_slots():
+                    tr = sm[o][1]
+                    assert h[s] == (sm[o][0], (round(tr[0] - ox, 4), tr[1], round(tr[2] - oy, 4)), *sm[o][2:]), (b, s, ox, oy)
+                assert not any(base + s in lay[b.tileset] for s in marks) and max(marks) < STRIDE, b
     # host lane: 3 -> 2, 4 -> 3, 6 -> 4, 9 -> 5; re-based origin (spot values: same world point as lane 1's)
     assert [host_lane(w) for w in (3, 4, 6, 9)] == [2, 3, 4, 5] and [stow_host(w) for w in (3, 4, 6)] == [1, 2, 3]
     spot = {("MinidoracatKnoxPass_barrier2", 9, "W"): (0, 0, 5), ("MinidoracatKnoxPass_gate_a", 9, "S"): (5, 0, -1),
@@ -738,7 +756,7 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     assert TILE_GEOMETRY.read_text(encoding="ascii") == tile_geometry(), "tileGeometry.txt is stale"
     names = set(re.findall(r"^    model (\w+)", ms, re.M))
     used = {v[0] for kind in kinds() for b in kind.blocks for v in b.sm.values()}
-    used |= {hosted(b)[s][0] + "Fast" for kind in kinds() for b in kind.blocks for s in fast_slots(b)}
+    used |= {hosted(b)[s][0] + "Fast" for kind in kinds() for b in kind.blocks for s in FAST_SLOTS}
     assert used <= names | {"MinidoracatKnoxPass_BarrierCabinet"}, used - names
     # 加速：每個有動畫的模型都有 <名稱>Fast；clip 正常 6.0 s、加速 3.75 s（引擎 1.5 倍速：4 s／2.5 s）
     animated = [m for kind in kinds() for m in kind.models if m[3]]
@@ -763,7 +781,8 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     lua_sets = dict(re.findall(r"^    (MinidoracatKnoxPass_\w+) = (\w+),", lua, re.M))
     assert set(lua_sets) == {n for n, _, _ in specs} - {PILLAR_TILESET, UPPER_TILESET}, sorted(lua_sets)
     assert f'KP.UPPER_WALL_TILESET = "{UPPER_TILESET}"' in lua
-    assert re.search(rf"^KP\.GATE_SLOT = \{{ .*\bHOST = {HOST}, STOW_HOST = {STOW_HOST},", lua, re.M) and (
+    assert re.search(rf"^KP\.GATE_SLOT = \{{ .*\bHOST = {HOST}, STOW_HOST = {STOW_HOST}, STOW_REST = {STOW_REST}, .*"
+                     rf"\bSTOW_POSE = {STOW_POSE}, POSE_CLOSE = {POSE_CLOSE} \}}", lua, re.M) and (
         "function KP.hostLane(width)\n    return math.floor(width / 2) + 1\nend" in lua) and (
         "function KP.stowHost(width)\n    return math.floor(width / 2)\nend" in lua), "Lua KP.GATE_SLOT / KP.hostLane / KP.stowHost"
     see = {t for k in kinds() if k.key in TWO_STORY for t, _, v in k.tilesets if v in k.see_through and v not in k.base}

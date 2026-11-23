@@ -92,12 +92,13 @@ end
 -- upper＝兩層樓：二樓門線另放看不見的牆（server/Barrier.lua 的二樓隱形牆）
 -- 滑動門（kind Slide，scripts/blender/slide/spec.py）：單扇沿門線滑過一端門柱，收進和門一樣長的收納段。tileset 名尾 l／r＝
 -- 從門柱那側看往左／右收。25 起＝收納段的建造替代 tile（k＝25＋k−1）：只為了建造時要求那幾格空著，OnCreate 當場移除
--- （server/Barrier.lua），收納段不擋人車。開著的門扇整個在收納段，離掛模型那片 L＋1 格，那片一出畫面就不畫
+-- （server/Barrier.lua），收納段不擋人車。門扇從車道滑進收納段，離掛模型那片最遠 L＋1 格，那片一出畫面就不畫
 -- （slide-sp 1123a：站在收納段旁、鏡頭拉近時門扇不見）：收納段第 KP.stowHost 格留一個看不見、沒有屬性的一般物件（格位 6），
--- 門開著靜止時由它畫門扇（格位 14，只在 spriteModels；client 的 BarrierAnim 指名），開關中仍由中間片畫。
+-- 中間片那格不在畫面上（或離畫面邊緣不到兩格）時改由它畫門扇（client 的 BarrierAnim 指名）：靜止 7／15（關／開），
+-- 滑動中 41-47／57-63（打開／關上的姿勢通道）；都只在 spriteModels，和中間片那幾格是同一個模型、原點換成這一格。
 -- pillar＝柱面讀頭的外觀序（接在 KP.GATE_LOOKS 後面；門柱比兩層樓大門更靠格內，build_model_gates.py pillar_tiles），
 -- body＝右鍵點得到的門身高度（樓層，client/Client.lua）
-KP.GATE_SLOT = { END_A = 3, END_B = 4, HOST = 5, STOW_HOST = 6, OPEN = 8, PLACEHOLDER = 16, STOW = 25, POSE_OPEN = 32, POSE_CLOSE = 48 }
+KP.GATE_SLOT = { END_A = 3, END_B = 4, HOST = 5, STOW_HOST = 6, STOW_REST = 7, OPEN = 8, PLACEHOLDER = 16, STOW = 25, POSE_OPEN = 32, STOW_POSE = 41, POSE_CLOSE = 48 }
 
 -- 掛 3D 模型的那一片（第幾片，1 起）：正中間，偶數寬取過中線那片（3→2、4→3、6→4、9→5；單臂閘門 3 格是車道 2）。
 -- build_model_gates.py host_lane 同一條規則；伺服器開關門也從這一片同步（Gates.lua setGarageOpen）
