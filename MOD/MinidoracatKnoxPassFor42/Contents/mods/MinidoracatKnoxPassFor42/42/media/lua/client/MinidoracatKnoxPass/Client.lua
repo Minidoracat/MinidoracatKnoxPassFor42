@@ -370,8 +370,12 @@ end
 -- 1. 點門下的路面選到地板 → 照原版掃同格
 -- 2. 點機箱或門柱選到那一端 → 沿整座找車道（KP.Barrier 在 server/Barrier.lua，客戶端也會載入 server 目錄，GameLoadingState.java:149）
 -- 3. 模型門的車道片沒有 2D 圖，點在桿子或門扇上選到的是門線後面的地板（北邊 2 格）→ 從點到的格往鏡頭方向（+x +y）找車道門片，
---    滑鼠落在門線往上 BODY_FLOORS 層的範圍內就算。高度取關著時的外形加一點餘量；抬起的桿子上半段點不到，點機箱即可
+--    滑鼠落在門線往上 BODY_FLOORS 層的範圍內就算（滑動門讀 def.body）。高度取關著時的外形加一點餘量；抬起的桿子上半段點不到，點機箱即可
 local BODY_FLOORS = { Barrier = 0.6, Gate = 2.0, Garage = 2.2 }
+local function bodyFloors(obj)
+    local mg = KP.modelGate(obj)
+    return mg and mg.def.body or BODY_FLOORS[KP.gateKind(obj)]
+end
 local function onBody(door, floors, mx, my)
     local x, y, z = door:getX(), door:getY(), door:getZ()
     local x2, y2 = x + 1, y
@@ -391,7 +395,7 @@ local function gateBody(squares, mx, my)
                 local objects = s and s:getObjects()
                 for i = 0, (objects and objects:size() or 0) - 1 do
                     local obj = objects:get(i)
-                    local floors = instanceof(obj, "IsoDoor") and BODY_FLOORS[KP.gateKind(obj)]
+                    local floors = instanceof(obj, "IsoDoor") and bodyFloors(obj)
                     if floors and onBody(obj, floors, mx, my) then
                         local adapter, anchor = G.resolve(obj)
                         if adapter then return obj, adapter, anchor end

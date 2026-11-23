@@ -701,4 +701,47 @@ module Base
         meshFile = IsoObject/MinidoracatKnoxPass_gate_E9_fast,
         keepMeshAnimations = true,
     }
+
+    model MinidoracatKnoxPass_slide1_A6
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_A6,
+        animationsMesh = MinidoracatKnoxPass_slide1_A6,
+        texture = IsoObject/MinidoracatKnoxPass_gate_A,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_A6
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_A6,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slidepost1_A
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidepost1_A,
+        texture = IsoObject/MinidoracatKnoxPass_gate_A,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_A6Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_A6_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_A6Fast,
+        texture = IsoObject/MinidoracatKnoxPass_gate_A,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_A6Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_A6_fast,
+        keepMeshAnimations = true,
+    }
 }

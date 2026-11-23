@@ -1,0 +1,205 @@
+module Base
+{
+    xuiSkin default
+    {
+        entity ES_MinidoracatKnoxPassSlide1A6L
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_Slide1_A6L,
+            Icon = media/ui/MinidoracatKnoxPass/slide1_a_6l.png,
+        }
+
+        entity ES_MinidoracatKnoxPassSlide1A6R
+        {
+            LuaWindowClass = ISEntityWindow,
+            DisplayName = IGUI_KnoxPass_Slide1_A6R,
+            Icon = media/ui/MinidoracatKnoxPass/slide1_a_6r.png,
+        }
+    }
+
+    entity MinidoracatKnoxPassSlide1A6L
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassSlide1A6L,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            health = 1500,
+            skillBaseHealth = 0,
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_slide1_a6l_30 MinidoracatKnoxPass_slide1_a6l_29 MinidoracatKnoxPass_slide1_a6l_28 MinidoracatKnoxPass_slide1_a6l_27 MinidoracatKnoxPass_slide1_a6l_26 MinidoracatKnoxPass_slide1_a6l_25 MinidoracatKnoxPass_slide1_a6l_3 MinidoracatKnoxPass_slide1_a6l_16 MinidoracatKnoxPass_slide1_a6l_17 MinidoracatKnoxPass_slide1_a6l_18 MinidoracatKnoxPass_slide1_a6l_19 MinidoracatKnoxPass_slide1_a6l_20 MinidoracatKnoxPass_slide1_a6l_21 MinidoracatKnoxPass_slide1_a6l_4,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_slide1_a6l_68,
+                    row = MinidoracatKnoxPass_slide1_a6l_85,
+                    row = MinidoracatKnoxPass_slide1_a6l_84,
+                    row = MinidoracatKnoxPass_slide1_a6l_83,
+                    row = MinidoracatKnoxPass_slide1_a6l_82,
+                    row = MinidoracatKnoxPass_slide1_a6l_81,
+                    row = MinidoracatKnoxPass_slide1_a6l_80,
+                    row = MinidoracatKnoxPass_slide1_a6l_67,
+                    row = MinidoracatKnoxPass_slide1_a6l_89,
+                    row = MinidoracatKnoxPass_slide1_a6l_90,
+                    row = MinidoracatKnoxPass_slide1_a6l_91,
+                    row = MinidoracatKnoxPass_slide1_a6l_92,
+                    row = MinidoracatKnoxPass_slide1_a6l_93,
+                    row = MinidoracatKnoxPass_slide1_a6l_94,
+                }
+            }
+
+            face S
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_slide1_a6l_131 MinidoracatKnoxPass_slide1_a6l_144 MinidoracatKnoxPass_slide1_a6l_145 MinidoracatKnoxPass_slide1_a6l_146 MinidoracatKnoxPass_slide1_a6l_147 MinidoracatKnoxPass_slide1_a6l_148 MinidoracatKnoxPass_slide1_a6l_149 MinidoracatKnoxPass_slide1_a6l_132 MinidoracatKnoxPass_slide1_a6l_153 MinidoracatKnoxPass_slide1_a6l_154 MinidoracatKnoxPass_slide1_a6l_155 MinidoracatKnoxPass_slide1_a6l_156 MinidoracatKnoxPass_slide1_a6l_157 MinidoracatKnoxPass_slide1_a6l_158,
+                }
+            }
+
+            face E
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_slide1_a6l_222,
+                    row = MinidoracatKnoxPass_slide1_a6l_221,
+                    row = MinidoracatKnoxPass_slide1_a6l_220,
+                    row = MinidoracatKnoxPass_slide1_a6l_219,
+                    row = MinidoracatKnoxPass_slide1_a6l_218,
+                    row = MinidoracatKnoxPass_slide1_a6l_217,
+                    row = MinidoracatKnoxPass_slide1_a6l_196,
+                    row = MinidoracatKnoxPass_slide1_a6l_213,
+                    row = MinidoracatKnoxPass_slide1_a6l_212,
+                    row = MinidoracatKnoxPass_slide1_a6l_211,
+                    row = MinidoracatKnoxPass_slide1_a6l_210,
+                    row = MinidoracatKnoxPass_slide1_a6l_209,
+                    row = MinidoracatKnoxPass_slide1_a6l_208,
+                    row = MinidoracatKnoxPass_slide1_a6l_195,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 450,
+            category = Welding,
+            SkillRequired = MetalWelding:4,
+            xpAward = MetalWelding:45,
+            inputs
+            {
+                item 10 [Base.BlowTorch] flags[DontRecordInput],
+                item 10 [Base.WeldingRods] flags[DontRecordInput],
+                item 8 [Base.MetalPipe],
+                item 2 [Base.MetalBar],
+                item 4 [Base.Wire],
+            }
+        }
+    }
+
+    entity MinidoracatKnoxPassSlide1A6R
+    {
+        component UiConfig
+        {
+            xuiSkin = default,
+            entityStyle = ES_MinidoracatKnoxPassSlide1A6R,
+            uiEnabled = false,
+        }
+
+        component SpriteConfig
+        {
+            health = 1500,
+            skillBaseHealth = 0,
+            dontNeedFrame = true,
+            OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+
+            face N
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_slide1_a6r_3 MinidoracatKnoxPass_slide1_a6r_16 MinidoracatKnoxPass_slide1_a6r_17 MinidoracatKnoxPass_slide1_a6r_18 MinidoracatKnoxPass_slide1_a6r_19 MinidoracatKnoxPass_slide1_a6r_20 MinidoracatKnoxPass_slide1_a6r_21 MinidoracatKnoxPass_slide1_a6r_4 MinidoracatKnoxPass_slide1_a6r_25 MinidoracatKnoxPass_slide1_a6r_26 MinidoracatKnoxPass_slide1_a6r_27 MinidoracatKnoxPass_slide1_a6r_28 MinidoracatKnoxPass_slide1_a6r_29 MinidoracatKnoxPass_slide1_a6r_30,
+                }
+            }
+
+            face W
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_slide1_a6r_94,
+                    row = MinidoracatKnoxPass_slide1_a6r_93,
+                    row = MinidoracatKnoxPass_slide1_a6r_92,
+                    row = MinidoracatKnoxPass_slide1_a6r_91,
+                    row = MinidoracatKnoxPass_slide1_a6r_90,
+                    row = MinidoracatKnoxPass_slide1_a6r_89,
+                    row = MinidoracatKnoxPass_slide1_a6r_68,
+                    row = MinidoracatKnoxPass_slide1_a6r_85,
+                    row = MinidoracatKnoxPass_slide1_a6r_84,
+                    row = MinidoracatKnoxPass_slide1_a6r_83,
+                    row = MinidoracatKnoxPass_slide1_a6r_82,
+                    row = MinidoracatKnoxPass_slide1_a6r_81,
+                    row = MinidoracatKnoxPass_slide1_a6r_80,
+                    row = MinidoracatKnoxPass_slide1_a6r_67,
+                }
+            }
+
+            face S
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_slide1_a6r_158 MinidoracatKnoxPass_slide1_a6r_157 MinidoracatKnoxPass_slide1_a6r_156 MinidoracatKnoxPass_slide1_a6r_155 MinidoracatKnoxPass_slide1_a6r_154 MinidoracatKnoxPass_slide1_a6r_153 MinidoracatKnoxPass_slide1_a6r_131 MinidoracatKnoxPass_slide1_a6r_144 MinidoracatKnoxPass_slide1_a6r_145 MinidoracatKnoxPass_slide1_a6r_146 MinidoracatKnoxPass_slide1_a6r_147 MinidoracatKnoxPass_slide1_a6r_148 MinidoracatKnoxPass_slide1_a6r_149 MinidoracatKnoxPass_slide1_a6r_132,
+                }
+            }
+
+            face E
+            {
+                layer
+                {
+                    row = MinidoracatKnoxPass_slide1_a6r_196,
+                    row = MinidoracatKnoxPass_slide1_a6r_213,
+                    row = MinidoracatKnoxPass_slide1_a6r_212,
+                    row = MinidoracatKnoxPass_slide1_a6r_211,
+                    row = MinidoracatKnoxPass_slide1_a6r_210,
+                    row = MinidoracatKnoxPass_slide1_a6r_209,
+                    row = MinidoracatKnoxPass_slide1_a6r_208,
+                    row = MinidoracatKnoxPass_slide1_a6r_195,
+                    row = MinidoracatKnoxPass_slide1_a6r_217,
+                    row = MinidoracatKnoxPass_slide1_a6r_218,
+                    row = MinidoracatKnoxPass_slide1_a6r_219,
+                    row = MinidoracatKnoxPass_slide1_a6r_220,
+                    row = MinidoracatKnoxPass_slide1_a6r_221,
+                    row = MinidoracatKnoxPass_slide1_a6r_222,
+                }
+            }
+        }
+
+        component CraftRecipe
+        {
+            timedAction = BuildWallMetal,
+            time = 450,
+            category = Welding,
+            SkillRequired = MetalWelding:4,
+            xpAward = MetalWelding:45,
+            inputs
+            {
+                item 10 [Base.BlowTorch] flags[DontRecordInput],
+                item 10 [Base.WeldingRods] flags[DontRecordInput],
+                item 8 [Base.MetalPipe],
+                item 2 [Base.MetalBar],
+                item 4 [Base.Wire],
+            }
+        }
+    }
+}

@@ -841,7 +841,8 @@ end
 -- 原版捲門每款北向、西向的第 1 片起連續三張（同 Barrier.lua ROLL_STYLES）
 local VANILLA_GARAGE = { industry_trucks_01 = { 35, 32 }, walls_garage_01 = { 19, 16, 51, 48 } }
 local MODEL_SETS = {}
-for _, s in ipairs({ "barrier2", "roll2f_industry", "roll2f_green", "roll2f_white", "gate_a", "gate_b", "gate_c", "gate_d", "gate_e" }) do
+for _, s in ipairs({ "barrier2", "roll2f_industry", "roll2f_green", "roll2f_white", "gate_a", "gate_b", "gate_c", "gate_d", "gate_e",
+    "slide1_a6l", "slide1_a6r" }) do
     MODEL_SETS["MinidoracatKnoxPass_" .. s] = true
 end
 for _, c in ipairs({ "black", "grey", "brown", "red", "orange", "yellow", "lightbrown", "pink", "purple", "blue", "lightblue", "cyan", "turquoise" }) do
@@ -4984,8 +4985,9 @@ end
 
 -- 模型門（Core.lua KP.MODEL_GATES、Barrier.lua KP.ModelGate）：entity 建造照 build_model_gates.py faces_rows——
 -- N／S 一列沿 +x [A] 車道 1..L [B]，W／E 沿 +y [B] 車道 L..1 [A]；車道放替代 tile（格位 16＋k−1），兩端是格位 3／4。
--- 回傳 { lanes = { [k] = 物件 }, A = 端 A, B = 端 B }
-local function buildModelGate(tileset, block, width, face, ends, x, y, builder)
+-- side（滑動門 "L"／"R"）：收納段替代 tile（格位 25＋k−1，k＝1 貼著收的那一端）接在這一列的前面或後面。
+-- 回傳 { lanes = { [k] = 物件 }, A = 端 A, B = 端 B, stow = { [k] = { res = OnCreate 回傳, sq = 那格 } } }
+local function buildModelGate(tileset, block, width, face, ends, x, y, builder, side)
     local slots = {}
     for k = 1, width do slots[k] = 15 + k end
     if ends then
@@ -4998,7 +5000,11 @@ local function buildModelGate(tileset, block, width, face, ends, x, y, builder)
         for i = #slots, 1, -1 do r[#r + 1] = slots[i] end
         slots = r
     end
-    local made, ent = { lanes = {} }, { size = #slots }
+    if side then
+        local head = (face == "N" or face == "E") == (side == "L")
+        for k = 1, width do table.insert(slots, head and 1 or #slots + 1, 24 + k) end
+    end
+    local made, ent = { lanes = {}, stow = {} }, { size = #slots }
     for j, slot in ipairs(slots) do
         local th = new("IsoThumpable", Thump, {
             _open = false, _locked = false, _lockedByKey = false, _keyId = -1, _modData = {}, _north = false,
@@ -5007,10 +5013,12 @@ local function buildModelGate(tileset, block, width, face, ends, x, y, builder)
         })
         ent[#ent + 1] = th
         syncView(th)
-        square(x + (row and j - 1 or 0), y + (row and 0 or j - 1), 0):AddSpecialObject(th)
+        local sq = square(x + (row and j - 1 or 0), y + (row and 0 or j - 1), 0)
+        sq:AddSpecialObject(th)
         local res = KP.ModelGate.onCreate({ thumpable = th, character = builder, facing = face })
         local o = res and res.replaceObject and res.object or th
-        if slot >= 16 then made.lanes[slot - 15] = o elseif slot == 3 then made.A = o else made.B = o end
+        if slot >= 25 then made.stow[slot - 24] = { res = res, sq = sq }
+        elseif slot >= 16 then made.lanes[slot - 15] = o elseif slot == 3 then made.A = o else made.B = o end
     end
     return made
 end
@@ -5138,6 +5146,44 @@ local function scenarioModelGates()
     local post = res.ok and KP.Ledger.get(res.key).post
     check(res.key == "601,100,0N" and post and post.i == 8 and readersAt(600, 100) == "pillar_0",
         "上色款（黑色鐵網）裝讀頭：柱面讀頭照 A，掛在 A 端門柱那格（外觀 A、N 向＝0）")
+
+    -- 滑動門（一層樓 6 格）：收納段只在建造時佔位，替代 tile 當場移除、不回物件；其餘同大門（車庫門鏈、兩端門柱、柱面讀頭）
+    local function stowed(g, at)
+        for k = 1, 6 do
+            local s = g.stow[k]
+            if not (s.res.replaceObject == true and s.res.object == nil and s.sq == at(k) and #s.sq._objects == 0) then return false end
+        end
+        return #g.stow == 6
+    end
+    local sl = buildModelGate("MinidoracatKnoxPass_slide1_a6l", 0, 6, "N", true, 900, 100, builder, "L")
+    step()
+    local sad, san = G.resolve(sl.lanes[5])
+    check(stowed(sl, function(k) return square(906 - k, 100, 0) end) and sl.A._square == square(906, 100, 0)
+        and sl.B._square == square(913, 100, 0), "滑動門 6 格 N 左收：收納段 6 格在 A 端西邊，替代 tile 當場移除、格子上沒有物件，回 replaceObject 不帶 object")
+    check(all(sl, function(p, k) return instanceof(p, "IsoDoor") and p._north and p._square == square(906 + k, 100, 0) and p._health == 1500 end)
+        and san == sl.lanes[1] and #G.pieces(sad, san) == 6 and G.kind(sad, san) == "Slide" and KP.Ledger.get("907,100,0N") == nil
+        and #KP.Barrier.parts(sl.B) == 8 and sl.lanes[1]:getSprite():getName() == "MinidoracatKnoxPass_slide1_a6l_0",
+        "滑動門：六片車庫門鏈、錨點第 1 片、類型 Slide、耐久 1500、不自動登記，整座＝六片＋兩端（收納段不算）")
+    local sr = buildModelGate("MinidoracatKnoxPass_slide1_a6r", 1, 6, "W", true, 1000, 100, builder, "R")
+    check(stowed(sr, function(k) return square(1000, 106 - k, 0) end) and sr.B._square == square(1000, 106, 0)
+        and sr.A._square == square(1000, 113, 0) and sr.lanes[1]._square == square(1000, 112, 0) and not sr.lanes[1]._north
+        and sr.lanes[1]:getSprite():getName() == "MinidoracatKnoxPass_slide1_a6r_64",
+        "滑動門 6 格 W 右收：收納段在 B 端北邊（從門柱那側看的右手邊），錨點在最南")
+    local ss = buildModelGate("MinidoracatKnoxPass_slide1_a6l", 2, 6, "S", true, 1100, 100, builder, "L")
+    check(stowed(ss, function(k) return square(1107 + k, 100, 0) end) and ss.A._square == square(1100, 100, 0)
+        and ss.lanes[1]._square == square(1101, 101, 0), "滑動門 6 格 S 左收：收納段在 B 端東邊，門片在擺放列的下一列")
+    square(907, 100, 0)._grid = true
+    local slider = newPlayer("slideowner", 909, 102)
+    res = cmd(slider, "install", { x = 909, y = 100, z = 0, index = sl.lanes[3]:getObjectIndex(), itemId = slider._inv:AddItem(READER):getID() })
+    post = res.ok and KP.Ledger.get(res.key).post
+    check(res.key == "907,100,0N" and post and post.i == 8 + 5 * 4 and readersAt(906, 100) == "pillar_20",
+        "滑動門裝讀頭：柱面讀頭掛 A 端門柱，用滑動門的外觀序 5（門柱比大門靠格內，模型位置不同）")
+    res, st = cmd(slider, "settings", { key = res.key, speed = "fast" })
+    check(res.ok == true and st.speedSupported == true and st.speed == "fast", "滑動門可以設加速")
+    slider._inv:AddItem("Base.BlowTorch")
+    slider._inv:AddItem("Base.WeldingMask")
+    check(dismantle(slider, sl.B).ok == true and gone(sl) and KP.Ledger.get("907,100,0N") == nil and readersAt(906, 100) == "",
+        "右鍵拆除滑動門 B 端門柱：整座移除、帳本刪除、柱面讀頭拿掉")
 
     -- 拆除與打壞：整座一起移除、帳本刪除、柱面讀頭拿掉；拆除只退被拆那一端的材料
     local pipes = W.dropped["Base.MetalPipe"] or 0

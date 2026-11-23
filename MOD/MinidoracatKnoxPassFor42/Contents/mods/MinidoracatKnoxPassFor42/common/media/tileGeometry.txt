@@ -9306,4 +9306,334 @@ tileGeometry
             }
         }
     }
+
+    tileset
+    {
+        name = MinidoracatKnoxPass_slide1_a6l,
+
+        tile
+        {
+            xy = 1x0,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 1x1,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 3x0,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 4x0,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 1x8,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 1x9,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 3x8,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 4x8,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 1x16,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 1x17,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 3x16,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 4x16,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 1x24,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 1x25,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 3x24,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 4x24,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+    }
+
+    tileset
+    {
+        name = MinidoracatKnoxPass_slide1_a6r,
+
+        tile
+        {
+            xy = 1x0,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 1x1,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 3x0,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 4x0,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 1x8,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 1x9,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 3x8,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 4x8,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 1x16,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 1x17,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 3x16,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 4x16,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 1x24,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 1x25,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 3x24,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+
+        tile
+        {
+            xy = 4x24,
+
+            properties
+            {
+                Translucent = true,
+            }
+        }
+    }
 }

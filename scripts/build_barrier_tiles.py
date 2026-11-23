@@ -723,8 +723,9 @@ def check() -> None:
     want_rd = {s * stride + slot: (f"{ts}_{(n if e == 'N' else w) + k - 1}", {f"door{e}": "", "CustomName": ROLLDOOR_NAME})
                for s, (_, ts, n, w) in enumerate(styles) for slot, (e, k) in slots.items()}
     assert rolldoor_layout() == want_rd, "roll door layout differs from the contract"
-    # vanilla pieces really are closed garage doors of that edge and chain position
-    vt = {t["name"]: t["tiles"] for t in pzfmt.read_tiles((GAME / "newtiledefinitions.tiles").read_bytes(), 10**5, 10**5)}
+    # vanilla pieces really are closed garage doors of that edge and chain position (42.22 moved the tiledefs)
+    vt = {t["name"]: t["tiles"] for t in pzfmt.read_tiles(
+        (GAME / "tile_definitions" / "newtiledefinitions.tiles").read_bytes(), 10**5, 10**5)}
     for i, (sprite, _) in want_rd.items():
         ts, idx = sprite.rsplit("_", 1)
         e, k = slots[i % stride]

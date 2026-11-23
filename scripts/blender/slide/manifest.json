@@ -1,0 +1,3561 @@
+{
+ "kind": "slide",
+ "modelSpace": "spec.py docstring: leaf origin = stow end tile, closed x = LEAF_X0 .. L + LEAF_X1, plane y = LEAF_Y; post symmetric about x = 0 at y = POST_Y; side R = the L glb turned 180 deg",
+ "slots": {
+  "0 / 8": "leaf at rest closed / open (build_model_gates.py re-hosts them on the middle lane)",
+  "3 / 4": "end A / end B post",
+  "16..": "lane placeholders",
+  "25..": "stow placeholders k = 1..L from the stow end: build footprint only, Lua removes them",
+  "32.. / 48..": "opening / closing poses"
+ },
+ "kinds": {
+  "slide1w6": {
+   "story": 1,
+   "widths": [
+    6
+   ]
+  }
+ },
+ "tilesets": {
+  "MinidoracatKnoxPass_slide1_a6l": {
+   "kind": "slide1w6",
+   "look": "A",
+   "side": "L",
+   "variant": "AL",
+   "seeThrough": true,
+   "readerMount": 0
+  },
+  "MinidoracatKnoxPass_slide1_a6r": {
+   "kind": "slide1w6",
+   "look": "A",
+   "side": "R",
+   "variant": "AR",
+   "seeThrough": true,
+   "readerMount": 0
+  }
+ },
+ "models": {
+  "MinidoracatKnoxPass_slide1_A6": {
+   "kind": "slide1w6",
+   "src": "scripts/blender/slide/export/MinidoracatKnoxPass_slide1_A6.glb",
+   "ship": "models_X/IsoObject/MinidoracatKnoxPass_slide1_A6.glb",
+   "modelScript": {
+    "name": "MinidoracatKnoxPass_slide1_A6",
+    "mesh": "IsoObject/MinidoracatKnoxPass_slide1_A6",
+    "texture": "IsoObject/MinidoracatKnoxPass_gate_A"
+   }
+  }
+ },
+ "posts": {
+  "MinidoracatKnoxPass_slidepost1_A": {
+   "kind": "slide1w6",
+   "src": "scripts/blender/slide/export/MinidoracatKnoxPass_slidepost1_A.glb",
+   "ship": "models_X/IsoObject/MinidoracatKnoxPass_slidepost1_A.glb",
+   "modelScript": {
+    "name": "MinidoracatKnoxPass_slidepost1_A",
+    "mesh": "IsoObject/MinidoracatKnoxPass_slidepost1_A",
+    "texture": "IsoObject/MinidoracatKnoxPass_gate_A"
+   }
+  }
+ },
+ "reader_mount": [
+  {
+   "model": "MinidoracatKnoxPass_ReaderPillarA",
+   "postHalfWidth": 0.17,
+   "faces": {
+    "N": {
+     "translate": [
+      -0.0,
+      0.0,
+      0.255
+     ],
+     "rotate": [
+      0.0,
+      180.0,
+      0.0
+     ]
+    },
+    "W": {
+     "translate": [
+      0.255,
+      0.0,
+      -0.0
+     ],
+     "rotate": [
+      0.0,
+      -90.0,
+      0.0
+     ]
+    },
+    "S": {
+     "translate": [
+      -0.0,
+      0.0,
+      -0.255
+     ],
+     "rotate": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "E": {
+     "translate": [
+      -0.255,
+      0.0,
+      -0.0
+     ],
+     "rotate": [
+      0.0,
+      90.0,
+      0.0
+     ]
+    }
+   }
+  }
+ ],
+ "entities": {
+  "MinidoracatKnoxPassSlide1A6L": {
+   "kind": "slide1w6",
+   "variant": "AL",
+   "width": 6,
+   "health": 1500,
+   "icon": "scripts/blender/slide/icons/slide1_a_6l.png",
+   "ship": "ui/MinidoracatKnoxPass/slide1_a_6l.png"
+  },
+  "MinidoracatKnoxPassSlide1A6R": {
+   "kind": "slide1w6",
+   "variant": "AR",
+   "width": 6,
+   "health": 1500,
+   "icon": "scripts/blender/slide/icons/slide1_a_6r.png",
+   "ship": "ui/MinidoracatKnoxPass/slide1_a_6r.png"
+  }
+ },
+ "blocks": [
+  {
+   "kind": "slide1w6",
+   "tileset": "MinidoracatKnoxPass_slide1_a6l",
+   "blockInTileset": 0,
+   "width": 6,
+   "face": "N",
+   "side": "L",
+   "entity": "MinidoracatKnoxPassSlide1A6L",
+   "stowHead": true,
+   "stow": [
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+   ],
+   "slots": {
+    "0": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "3": {
+     "cell": "scripts/blender/slide/cells/A1/N/endA.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ]
+     }
+    },
+    "4": {
+     "cell": "scripts/blender/slide/cells/A1/N/endB.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ]
+     }
+    },
+    "8": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
+    "16": {
+     "cell": "scripts/blender/slide/cells/A1/N/lane.png"
+    },
+    "17": {
+     "cell": "scripts/blender/slide/cells/A1/N/lane.png"
+    },
+    "18": {
+     "cell": "scripts/blender/slide/cells/A1/N/lane.png"
+    },
+    "19": {
+     "cell": "scripts/blender/slide/cells/A1/N/lane.png"
+    },
+    "20": {
+     "cell": "scripts/blender/slide/cells/A1/N/lane.png"
+    },
+    "21": {
+     "cell": "scripts/blender/slide/cells/A1/N/lane.png"
+    },
+    "25": {
+     "cell": "scripts/blender/slide/cells/A1/N/stow.png"
+    },
+    "26": {
+     "cell": "scripts/blender/slide/cells/A1/N/stow.png"
+    },
+    "27": {
+     "cell": "scripts/blender/slide/cells/A1/N/stow.png"
+    },
+    "28": {
+     "cell": "scripts/blender/slide/cells/A1/N/stow.png"
+    },
+    "29": {
+     "cell": "scripts/blender/slide/cells/A1/N/stow.png"
+    },
+    "30": {
+     "cell": "scripts/blender/slide/cells/A1/N/stow.png"
+    },
+    "32": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "33": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "34": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "35": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "36": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "37": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "38": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "39": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "40": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    },
+    "48": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "49": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "50": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "51": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "52": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "53": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "54": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "55": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "56": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    }
+   }
+  },
+  {
+   "kind": "slide1w6",
+   "tileset": "MinidoracatKnoxPass_slide1_a6l",
+   "blockInTileset": 1,
+   "width": 6,
+   "face": "W",
+   "side": "L",
+   "entity": "MinidoracatKnoxPassSlide1A6L",
+   "stowHead": false,
+   "stow": [
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+   ],
+   "slots": {
+    "0": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "3": {
+     "cell": "scripts/blender/slide/cells/A1/W/endA.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ]
+     }
+    },
+    "4": {
+     "cell": "scripts/blender/slide/cells/A1/W/endB.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ]
+     }
+    },
+    "8": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
+    "16": {
+     "cell": "scripts/blender/slide/cells/A1/W/lane.png"
+    },
+    "17": {
+     "cell": "scripts/blender/slide/cells/A1/W/lane.png"
+    },
+    "18": {
+     "cell": "scripts/blender/slide/cells/A1/W/lane.png"
+    },
+    "19": {
+     "cell": "scripts/blender/slide/cells/A1/W/lane.png"
+    },
+    "20": {
+     "cell": "scripts/blender/slide/cells/A1/W/lane.png"
+    },
+    "21": {
+     "cell": "scripts/blender/slide/cells/A1/W/lane.png"
+    },
+    "25": {
+     "cell": "scripts/blender/slide/cells/A1/W/stow.png"
+    },
+    "26": {
+     "cell": "scripts/blender/slide/cells/A1/W/stow.png"
+    },
+    "27": {
+     "cell": "scripts/blender/slide/cells/A1/W/stow.png"
+    },
+    "28": {
+     "cell": "scripts/blender/slide/cells/A1/W/stow.png"
+    },
+    "29": {
+     "cell": "scripts/blender/slide/cells/A1/W/stow.png"
+    },
+    "30": {
+     "cell": "scripts/blender/slide/cells/A1/W/stow.png"
+    },
+    "32": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "33": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "34": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "35": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "36": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "37": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "38": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "39": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "40": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    },
+    "48": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "49": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "50": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "51": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "52": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "53": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "54": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "55": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "56": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       0.0,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    }
+   }
+  },
+  {
+   "kind": "slide1w6",
+   "tileset": "MinidoracatKnoxPass_slide1_a6l",
+   "blockInTileset": 2,
+   "width": 6,
+   "face": "S",
+   "side": "L",
+   "entity": "MinidoracatKnoxPassSlide1A6L",
+   "stowHead": false,
+   "stow": [
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+   ],
+   "slots": {
+    "0": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "3": {
+     "cell": "scripts/blender/slide/cells/A1/S/endA.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ]
+     }
+    },
+    "4": {
+     "cell": "scripts/blender/slide/cells/A1/S/endB.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ]
+     }
+    },
+    "8": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
+    "16": {
+     "cell": "scripts/blender/slide/cells/A1/S/lane.png"
+    },
+    "17": {
+     "cell": "scripts/blender/slide/cells/A1/S/lane.png"
+    },
+    "18": {
+     "cell": "scripts/blender/slide/cells/A1/S/lane.png"
+    },
+    "19": {
+     "cell": "scripts/blender/slide/cells/A1/S/lane.png"
+    },
+    "20": {
+     "cell": "scripts/blender/slide/cells/A1/S/lane.png"
+    },
+    "21": {
+     "cell": "scripts/blender/slide/cells/A1/S/lane.png"
+    },
+    "25": {
+     "cell": "scripts/blender/slide/cells/A1/S/stow.png"
+    },
+    "26": {
+     "cell": "scripts/blender/slide/cells/A1/S/stow.png"
+    },
+    "27": {
+     "cell": "scripts/blender/slide/cells/A1/S/stow.png"
+    },
+    "28": {
+     "cell": "scripts/blender/slide/cells/A1/S/stow.png"
+    },
+    "29": {
+     "cell": "scripts/blender/slide/cells/A1/S/stow.png"
+    },
+    "30": {
+     "cell": "scripts/blender/slide/cells/A1/S/stow.png"
+    },
+    "32": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "33": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "34": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "35": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "36": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "37": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "38": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "39": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "40": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    },
+    "48": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "49": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "50": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "51": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "52": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "53": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "54": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "55": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "56": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -1.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    }
+   }
+  },
+  {
+   "kind": "slide1w6",
+   "tileset": "MinidoracatKnoxPass_slide1_a6l",
+   "blockInTileset": 3,
+   "width": 6,
+   "face": "E",
+   "side": "L",
+   "entity": "MinidoracatKnoxPassSlide1A6L",
+   "stowHead": true,
+   "stow": [
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+   ],
+   "slots": {
+    "0": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "3": {
+     "cell": "scripts/blender/slide/cells/A1/E/endA.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ]
+     }
+    },
+    "4": {
+     "cell": "scripts/blender/slide/cells/A1/E/endB.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ]
+     }
+    },
+    "8": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
+    "16": {
+     "cell": "scripts/blender/slide/cells/A1/E/lane.png"
+    },
+    "17": {
+     "cell": "scripts/blender/slide/cells/A1/E/lane.png"
+    },
+    "18": {
+     "cell": "scripts/blender/slide/cells/A1/E/lane.png"
+    },
+    "19": {
+     "cell": "scripts/blender/slide/cells/A1/E/lane.png"
+    },
+    "20": {
+     "cell": "scripts/blender/slide/cells/A1/E/lane.png"
+    },
+    "21": {
+     "cell": "scripts/blender/slide/cells/A1/E/lane.png"
+    },
+    "25": {
+     "cell": "scripts/blender/slide/cells/A1/E/stow.png"
+    },
+    "26": {
+     "cell": "scripts/blender/slide/cells/A1/E/stow.png"
+    },
+    "27": {
+     "cell": "scripts/blender/slide/cells/A1/E/stow.png"
+    },
+    "28": {
+     "cell": "scripts/blender/slide/cells/A1/E/stow.png"
+    },
+    "29": {
+     "cell": "scripts/blender/slide/cells/A1/E/stow.png"
+    },
+    "30": {
+     "cell": "scripts/blender/slide/cells/A1/E/stow.png"
+    },
+    "32": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "33": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "34": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "35": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "36": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "37": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "38": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "39": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "40": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    },
+    "48": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "49": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "50": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "51": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "52": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "53": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "54": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "55": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "56": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    }
+   }
+  },
+  {
+   "kind": "slide1w6",
+   "tileset": "MinidoracatKnoxPass_slide1_a6r",
+   "blockInTileset": 0,
+   "width": 6,
+   "face": "N",
+   "side": "R",
+   "entity": "MinidoracatKnoxPassSlide1A6R",
+   "stowHead": false,
+   "stow": [
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+   ],
+   "slots": {
+    "0": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "3": {
+     "cell": "scripts/blender/slide/cells/A1/N/endA.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ]
+     }
+    },
+    "4": {
+     "cell": "scripts/blender/slide/cells/A1/N/endB.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ]
+     }
+    },
+    "8": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
+    "16": {
+     "cell": "scripts/blender/slide/cells/A1/N/lane.png"
+    },
+    "17": {
+     "cell": "scripts/blender/slide/cells/A1/N/lane.png"
+    },
+    "18": {
+     "cell": "scripts/blender/slide/cells/A1/N/lane.png"
+    },
+    "19": {
+     "cell": "scripts/blender/slide/cells/A1/N/lane.png"
+    },
+    "20": {
+     "cell": "scripts/blender/slide/cells/A1/N/lane.png"
+    },
+    "21": {
+     "cell": "scripts/blender/slide/cells/A1/N/lane.png"
+    },
+    "25": {
+     "cell": "scripts/blender/slide/cells/A1/N/stow.png"
+    },
+    "26": {
+     "cell": "scripts/blender/slide/cells/A1/N/stow.png"
+    },
+    "27": {
+     "cell": "scripts/blender/slide/cells/A1/N/stow.png"
+    },
+    "28": {
+     "cell": "scripts/blender/slide/cells/A1/N/stow.png"
+    },
+    "29": {
+     "cell": "scripts/blender/slide/cells/A1/N/stow.png"
+    },
+    "30": {
+     "cell": "scripts/blender/slide/cells/A1/N/stow.png"
+    },
+    "32": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "33": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "34": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "35": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "36": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "37": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "38": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "39": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "40": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    },
+    "48": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "49": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "50": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "51": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "52": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "53": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "54": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "55": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "56": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       6.0,
+       0.0,
+       -0.82
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    }
+   }
+  },
+  {
+   "kind": "slide1w6",
+   "tileset": "MinidoracatKnoxPass_slide1_a6r",
+   "blockInTileset": 1,
+   "width": 6,
+   "face": "W",
+   "side": "R",
+   "entity": "MinidoracatKnoxPassSlide1A6R",
+   "stowHead": true,
+   "stow": [
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+   ],
+   "slots": {
+    "0": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "3": {
+     "cell": "scripts/blender/slide/cells/A1/W/endA.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ]
+     }
+    },
+    "4": {
+     "cell": "scripts/blender/slide/cells/A1/W/endB.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ]
+     }
+    },
+    "8": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
+    "16": {
+     "cell": "scripts/blender/slide/cells/A1/W/lane.png"
+    },
+    "17": {
+     "cell": "scripts/blender/slide/cells/A1/W/lane.png"
+    },
+    "18": {
+     "cell": "scripts/blender/slide/cells/A1/W/lane.png"
+    },
+    "19": {
+     "cell": "scripts/blender/slide/cells/A1/W/lane.png"
+    },
+    "20": {
+     "cell": "scripts/blender/slide/cells/A1/W/lane.png"
+    },
+    "21": {
+     "cell": "scripts/blender/slide/cells/A1/W/lane.png"
+    },
+    "25": {
+     "cell": "scripts/blender/slide/cells/A1/W/stow.png"
+    },
+    "26": {
+     "cell": "scripts/blender/slide/cells/A1/W/stow.png"
+    },
+    "27": {
+     "cell": "scripts/blender/slide/cells/A1/W/stow.png"
+    },
+    "28": {
+     "cell": "scripts/blender/slide/cells/A1/W/stow.png"
+    },
+    "29": {
+     "cell": "scripts/blender/slide/cells/A1/W/stow.png"
+    },
+    "30": {
+     "cell": "scripts/blender/slide/cells/A1/W/stow.png"
+    },
+    "32": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "33": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "34": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "35": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "36": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "37": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "38": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "39": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "40": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    },
+    "48": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "49": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "50": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "51": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "52": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "53": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "54": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "55": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "56": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.82,
+       0.0,
+       -6.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    }
+   }
+  },
+  {
+   "kind": "slide1w6",
+   "tileset": "MinidoracatKnoxPass_slide1_a6r",
+   "blockInTileset": 2,
+   "width": 6,
+   "face": "S",
+   "side": "R",
+   "entity": "MinidoracatKnoxPassSlide1A6R",
+   "stowHead": true,
+   "stow": [
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+   ],
+   "slots": {
+    "0": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "3": {
+     "cell": "scripts/blender/slide/cells/A1/S/endA.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ]
+     }
+    },
+    "4": {
+     "cell": "scripts/blender/slide/cells/A1/S/endB.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       0.0,
+       0.0
+      ]
+     }
+    },
+    "8": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
+    "16": {
+     "cell": "scripts/blender/slide/cells/A1/S/lane.png"
+    },
+    "17": {
+     "cell": "scripts/blender/slide/cells/A1/S/lane.png"
+    },
+    "18": {
+     "cell": "scripts/blender/slide/cells/A1/S/lane.png"
+    },
+    "19": {
+     "cell": "scripts/blender/slide/cells/A1/S/lane.png"
+    },
+    "20": {
+     "cell": "scripts/blender/slide/cells/A1/S/lane.png"
+    },
+    "21": {
+     "cell": "scripts/blender/slide/cells/A1/S/lane.png"
+    },
+    "25": {
+     "cell": "scripts/blender/slide/cells/A1/S/stow.png"
+    },
+    "26": {
+     "cell": "scripts/blender/slide/cells/A1/S/stow.png"
+    },
+    "27": {
+     "cell": "scripts/blender/slide/cells/A1/S/stow.png"
+    },
+    "28": {
+     "cell": "scripts/blender/slide/cells/A1/S/stow.png"
+    },
+    "29": {
+     "cell": "scripts/blender/slide/cells/A1/S/stow.png"
+    },
+    "30": {
+     "cell": "scripts/blender/slide/cells/A1/S/stow.png"
+    },
+    "32": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "33": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "34": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "35": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "36": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "37": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "38": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "39": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "40": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    },
+    "48": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "49": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "50": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "51": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "52": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "53": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "54": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "55": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "56": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -1.0,
+       0.0,
+       -0.18
+      ],
+      "rotate": [
+       0.0,
+       180.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    }
+   }
+  },
+  {
+   "kind": "slide1w6",
+   "tileset": "MinidoracatKnoxPass_slide1_a6r",
+   "blockInTileset": 3,
+   "width": 6,
+   "face": "E",
+   "side": "R",
+   "entity": "MinidoracatKnoxPassSlide1A6R",
+   "stowHead": false,
+   "stow": [
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+   ],
+   "slots": {
+    "0": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "3": {
+     "cell": "scripts/blender/slide/cells/A1/E/endA.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ]
+     }
+    },
+    "4": {
+     "cell": "scripts/blender/slide/cells/A1/E/endB.png",
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slidepost1_A",
+      "translate": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "rotate": [
+       0.0,
+       90.0,
+       0.0
+      ]
+     }
+    },
+    "8": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Close",
+      "animationTime": 0.0
+     }
+    },
+    "16": {
+     "cell": "scripts/blender/slide/cells/A1/E/lane.png"
+    },
+    "17": {
+     "cell": "scripts/blender/slide/cells/A1/E/lane.png"
+    },
+    "18": {
+     "cell": "scripts/blender/slide/cells/A1/E/lane.png"
+    },
+    "19": {
+     "cell": "scripts/blender/slide/cells/A1/E/lane.png"
+    },
+    "20": {
+     "cell": "scripts/blender/slide/cells/A1/E/lane.png"
+    },
+    "21": {
+     "cell": "scripts/blender/slide/cells/A1/E/lane.png"
+    },
+    "25": {
+     "cell": "scripts/blender/slide/cells/A1/E/stow.png"
+    },
+    "26": {
+     "cell": "scripts/blender/slide/cells/A1/E/stow.png"
+    },
+    "27": {
+     "cell": "scripts/blender/slide/cells/A1/E/stow.png"
+    },
+    "28": {
+     "cell": "scripts/blender/slide/cells/A1/E/stow.png"
+    },
+    "29": {
+     "cell": "scripts/blender/slide/cells/A1/E/stow.png"
+    },
+    "30": {
+     "cell": "scripts/blender/slide/cells/A1/E/stow.png"
+    },
+    "32": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "33": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "34": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "35": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "36": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "37": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "38": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "39": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "40": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    },
+    "48": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.0
+     }
+    },
+    "49": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.125
+     }
+    },
+    "50": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.25
+     }
+    },
+    "51": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.375
+     }
+    },
+    "52": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.5
+     }
+    },
+    "53": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.625
+     }
+    },
+    "54": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.75
+     }
+    },
+    "55": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 0.875
+     }
+    },
+    "56": {
+     "spriteModel": {
+      "model": "MinidoracatKnoxPass_slide1_A6",
+      "translate": [
+       -0.18,
+       0.0,
+       1.0
+      ],
+      "rotate": [
+       0.0,
+       -90.0,
+       0.0
+      ],
+      "animation": "Open",
+      "animationTime": 1.0
+     }
+    }
+   }
+  }
+ ]
+}

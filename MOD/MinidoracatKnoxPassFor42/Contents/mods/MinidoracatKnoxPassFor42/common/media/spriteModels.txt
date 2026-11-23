@@ -67844,6 +67844,1746 @@ spriteModel
 
     tileset
     {
+        name = MinidoracatKnoxPass_slide1_a6l,
+
+        tile
+        {
+            xy = 3 0,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 4 0,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 5 0,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 1,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 0 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 5,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 0 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 7,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 3 8,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 4 8,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 5 8,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 9,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 0 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 13,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 0 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 15,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 3 16,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 4 16,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 5 16,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 17,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 0 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 21,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 0 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 23,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 3 24,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 4 24,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 5 24,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 25,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 0 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 29,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 0 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 31,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+    }
+
+    tileset
+    {
+        name = MinidoracatKnoxPass_slide1_a6r,
+
+        tile
+        {
+            xy = 3 0,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 4 0,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 5 0,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 1,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 0 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 4,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 5,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 0 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 6,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 7,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 3 8,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 4 8,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 5 8,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 9,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 0 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 12,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 13,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 0 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 14,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 15,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 3 16,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 4 16,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 5 16,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 17,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 0 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 20,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 21,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 0 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 22,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 23,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 3 24,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 4 24,
+            modelScript = Base.MinidoracatKnoxPass_slidepost1_A,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 5 24,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 25,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 0 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 28,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 29,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+        tile
+        {
+            xy = 0 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 1 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.1250,
+        }
+        tile
+        {
+            xy = 2 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.2500,
+        }
+        tile
+        {
+            xy = 3 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.3750,
+        }
+        tile
+        {
+            xy = 4 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.5000,
+        }
+        tile
+        {
+            xy = 5 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.6250,
+        }
+        tile
+        {
+            xy = 6 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.7500,
+        }
+        tile
+        {
+            xy = 7 30,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.8750,
+        }
+        tile
+        {
+            xy = 0 31,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 1.0000,
+        }
+    }
+
+    tileset
+    {
         name = MinidoracatKnoxPass_readerpillar,
 
         tile
@@ -68023,6 +69763,42 @@ spriteModel
             modelScript = Base.MinidoracatKnoxPass_ReaderPillarE,
             texture = WorldItems/MinidoracatKnoxPassReader,
             translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 4 2,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader,
+            translate = -0.0000 0.0000 0.2550,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 5 2,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader,
+            translate = 0.2550 0.0000 -0.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 6 2,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader,
+            translate = -0.0000 0.0000 -0.2550,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 7 2,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader,
+            translate = -0.2550 0.0000 -0.0000,
             rotate = 0.0000 90.0000 0.0000,
             scale = 1.0000,
         }
@@ -68208,6 +69984,42 @@ spriteModel
         }
         tile
         {
+            xy = 4 6,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Black,
+            translate = -0.0000 0.0000 0.2550,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 5 6,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Black,
+            translate = 0.2550 0.0000 -0.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 6 6,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Black,
+            translate = -0.0000 0.0000 -0.2550,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 7 6,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Black,
+            translate = -0.2550 0.0000 -0.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
             xy = 0 8,
             modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
             texture = WorldItems/MinidoracatKnoxPassReader_Graphite,
@@ -68383,6 +70195,42 @@ spriteModel
             modelScript = Base.MinidoracatKnoxPass_ReaderPillarE,
             texture = WorldItems/MinidoracatKnoxPassReader_Graphite,
             translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 4 10,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Graphite,
+            translate = -0.0000 0.0000 0.2550,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 5 10,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Graphite,
+            translate = 0.2550 0.0000 -0.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 6 10,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Graphite,
+            translate = -0.0000 0.0000 -0.2550,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 7 10,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Graphite,
+            translate = -0.2550 0.0000 -0.0000,
             rotate = 0.0000 90.0000 0.0000,
             scale = 1.0000,
         }
@@ -68568,6 +70416,42 @@ spriteModel
         }
         tile
         {
+            xy = 4 14,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Olive,
+            translate = -0.0000 0.0000 0.2550,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 5 14,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Olive,
+            translate = 0.2550 0.0000 -0.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 6 14,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Olive,
+            translate = -0.0000 0.0000 -0.2550,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 7 14,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Olive,
+            translate = -0.2550 0.0000 -0.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
             xy = 0 16,
             modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
             texture = WorldItems/MinidoracatKnoxPassReader_Navy,
@@ -68743,6 +70627,42 @@ spriteModel
             modelScript = Base.MinidoracatKnoxPass_ReaderPillarE,
             texture = WorldItems/MinidoracatKnoxPassReader_Navy,
             translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 4 18,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Navy,
+            translate = -0.0000 0.0000 0.2550,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 5 18,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Navy,
+            translate = 0.2550 0.0000 -0.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 6 18,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Navy,
+            translate = -0.0000 0.0000 -0.2550,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 7 18,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Navy,
+            translate = -0.2550 0.0000 -0.0000,
             rotate = 0.0000 90.0000 0.0000,
             scale = 1.0000,
         }
@@ -68928,6 +70848,42 @@ spriteModel
         }
         tile
         {
+            xy = 4 22,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Orange,
+            translate = -0.0000 0.0000 0.2550,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 5 22,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Orange,
+            translate = 0.2550 0.0000 -0.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 6 22,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Orange,
+            translate = -0.0000 0.0000 -0.2550,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 7 22,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Orange,
+            translate = -0.2550 0.0000 -0.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
             xy = 0 24,
             modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
             texture = WorldItems/MinidoracatKnoxPassReader_Red,
@@ -69103,6 +71059,42 @@ spriteModel
             modelScript = Base.MinidoracatKnoxPass_ReaderPillarE,
             texture = WorldItems/MinidoracatKnoxPassReader_Red,
             translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 4 26,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Red,
+            translate = -0.0000 0.0000 0.2550,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 5 26,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Red,
+            translate = 0.2550 0.0000 -0.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 6 26,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Red,
+            translate = -0.0000 0.0000 -0.2550,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+        tile
+        {
+            xy = 7 26,
+            modelScript = Base.MinidoracatKnoxPass_ReaderPillarA,
+            texture = WorldItems/MinidoracatKnoxPassReader_Red,
+            translate = -0.2550 0.0000 -0.0000,
             rotate = 0.0000 90.0000 0.0000,
             scale = 1.0000,
         }
@@ -75664,6 +77656,178 @@ spriteModel
             texture = IsoObject/MinidoracatKnoxPass_gate_ATurquoise,
             translate = -1.0000 0.0000 -5.0000,
             rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+    }
+
+    tileset
+    {
+        name = MinidoracatKnoxPassFast_slide1_a6l,
+
+        tile
+        {
+            xy = 5 0,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 1,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = -4.0000 0.0000 0.0000,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 8,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 9,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = 0.0000 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 16,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 17,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = 3.0000 0.0000 -1.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 24,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 25,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = -1.0000 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+    }
+
+    tileset
+    {
+        name = MinidoracatKnoxPassFast_slide1_a6r,
+
+        tile
+        {
+            xy = 5 0,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 1,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = 3.0000 0.0000 -0.8200,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 8,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 9,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = -0.8200 0.0000 -3.0000,
+            rotate = 0.0000 90.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 16,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 17,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = -4.0000 0.0000 -0.1800,
+            rotate = 0.0000 180.0000 0.0000,
+            scale = 1.0000,
+            animation = Close,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 24,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
+            scale = 1.0000,
+            animation = Open,
+            animationTime = 0.0000,
+        }
+        tile
+        {
+            xy = 5 25,
+            modelScript = Base.MinidoracatKnoxPass_slide1_A6Fast,
+            translate = -0.1800 0.0000 4.0000,
+            rotate = 0.0000 -90.0000 0.0000,
             scale = 1.0000,
             animation = Close,
             animationTime = 0.0000,

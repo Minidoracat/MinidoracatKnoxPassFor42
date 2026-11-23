@@ -340,6 +340,7 @@ end
 
 -- 模型門的 SpriteConfig OnCreate：替代 tile（格位 16＋k−1）換成車道 k 的門片（第 1 片 GarageDoor 1 是錨點，
 -- 中間 GarageDoor 2，最後 GarageDoor 3；3D 模型由 client 的 BarrierAnim 掛在中間那片），耐久照 KP.MODEL_GATES；兩端（格位 3／4）回 nil，照原版送 IsoThumpable。
+-- 滑動門的收納段替代 tile（格位 25 起）當場移除、不留物件：回 replaceObject 但不帶 object，原版就不送它（ISBuildIsoEntity.lua setInfo）。
 -- 內建讀頭的（雙桿閘門）下一個 tick 登記，擁有者是建造者（B.settle）
 local MG = {}
 KP.ModelGate = MG
@@ -347,6 +348,10 @@ KP.ModelGate = MG
 function MG.onCreate(params)
     local thump = params and params.thumpable
     local mg = KP.modelGate(thump)
+    if mg and mg.slot >= SLOT.STOW and mg.slot < SLOT.POSE_OPEN then
+        thump:getSquare():RemoveTileObject(thump, false)   -- false：只移這一格（單參數版會連整座一起移）
+        return { replaceObject = true }
+    end
     local k = mg and mg.slot - SLOT.PLACEHOLDER + 1
     if not k or k < 1 or k > mg.width then
         placeUpper(upperSpot(thump))   -- 兩端

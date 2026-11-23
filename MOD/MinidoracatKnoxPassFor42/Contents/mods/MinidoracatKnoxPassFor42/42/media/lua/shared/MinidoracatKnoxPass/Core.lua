@@ -90,7 +90,11 @@ end
 -- 擺放：N／S 一列西→東 [A] 車道 1..L [B]；W／E 一行北→南 [B] 車道 L..1 [A]。門只能在 N／W 邊，S／E 的車道門片
 -- 建在下一列／下一行（同轉 180° 的單臂閘門）。耐久照大小（2026-10-08 使用者決定）：一車 1000、兩車 1500、三車 2000，兩層樓 +500。
 -- upper＝兩層樓：二樓門線另放看不見的牆（server/Barrier.lua 的二樓隱形牆）
-KP.GATE_SLOT = { END_A = 3, END_B = 4, HOST = 5, OPEN = 8, PLACEHOLDER = 16, POSE_OPEN = 32, POSE_CLOSE = 48 }
+-- 滑動門（kind Slide，scripts/blender/slide/spec.py）：單扇沿門線滑過一端門柱，收進和門一樣長的收納段。tileset 名尾 l／r＝
+-- 從門柱那側看往左／右收。25 起＝收納段的建造替代 tile（k＝25＋k−1）：只為了建造時要求那幾格空著，OnCreate 當場移除
+-- （server/Barrier.lua），蓋好後收納段沒有物件、不擋人車。pillar＝柱面讀頭的外觀序（接在 KP.GATE_LOOKS 後面；
+-- 門柱比兩層樓大門更靠格內，build_model_gates.py pillar_tiles），body＝右鍵點得到的門身高度（樓層，client/Client.lua）
+KP.GATE_SLOT = { END_A = 3, END_B = 4, HOST = 5, OPEN = 8, PLACEHOLDER = 16, STOW = 25, POSE_OPEN = 32, POSE_CLOSE = 48 }
 
 -- 掛 3D 模型的那一片（第幾片，1 起）：正中間，偶數寬取過中線那片（3→2、4→3、6→4、9→5；單臂閘門 3 格是車道 2）。
 -- build_model_gates.py host_lane 同一條規則；伺服器開關門也從這一片同步（Gates.lua setGarageOpen）
@@ -104,6 +108,8 @@ local ROLL2F = { kind = "Garage", ends = false, upper = true, widths = { 3, 4, 6
     health = { [3] = 1500, [4] = 1500, [6] = 2000, [9] = 2500 } }
 local GATE = { kind = "Gate", ends = true, upper = true, widths = { 6, 9 }, faces = { "N", "W", "S", "E" },
     health = { [6] = 2000, [9] = 2500 } }
+local SLIDE1_6 = { kind = "Slide", ends = true, pillar = 5, body = 1.0, widths = { 6 }, faces = { "N", "W", "S", "E" },
+    health = { [6] = 1500 } }
 KP.MODEL_GATES = {
     MinidoracatKnoxPass_barrier2 = BARRIER2,
     MinidoracatKnoxPass_roll2f_industry = ROLL2F,
@@ -143,6 +149,8 @@ KP.MODEL_GATES = {
     MinidoracatKnoxPass_gate_alightblue = GATE,
     MinidoracatKnoxPass_gate_acyan = GATE,
     MinidoracatKnoxPass_gate_aturquoise = GATE,
+    MinidoracatKnoxPass_slide1_a6l = SLIDE1_6,
+    MinidoracatKnoxPass_slide1_a6r = SLIDE1_6,
 }
 
 -- 鐵網 A 的上色款（scripts/blender/gate/spec.py SKINS，tileset gate_a<顏色>）：用 A 的模型（spriteModels 換貼圖），所以柱面讀頭
