@@ -26,7 +26,7 @@ SpriteModelsFile.java:225; IsoDoor garage open sprite = closed index + 8, IsoDoo
                   GarageDoor / doorTrans / spriteModel, so mods that take over ISBuildIsoEntity:setInfo for GarageDoor
                   sprites leave our build alone; Lua OnCreate swaps each for the real lane door
 
-Every index up to the highest (245) is a tiledef entry (IsoWorld.java:700-716 makes a sprite per entry); the ones not
+Every index up to the highest (245) is a tiledef entry (IsoWorld.java:712-728 makes a sprite per entry); the ones not
 listed above carry no properties and no 2D cell.
 
 lane1 = GarageDoor 1 = chain anchor (min x for N-edge doors, max y for W-edge doors: IsoDoor.getGarageDoorPrev/Next,
@@ -151,16 +151,16 @@ def reader_tex(c: int) -> str:
     return f"WorldItems/MinidoracatKnoxPassReader{KP.suffix(KP.COLORS[c][0])}"
 
 
-# closed: doorN/doorW (tile type -> IsoDoor on load, IsoWorld.java:752-764; CellLoader.java:93-105),
+# closed: doorN/doorW (tile type -> IsoDoor on load, IsoWorld.java:764-776; CellLoader.java:93-105),
 # GarageDoor k (chain, IsoDoor.java:3212-3238), doorTrans (sight passes, IsoDoor.java:1107).
 # DoorWallN/W (vehicle WallN/WallW shape while !open, IsoChunk.java:2068-2092; AutoDrive closedDoor) is NOT
-# written here: loading it from a .tiles also sets sprite.cutN/cutW (IsoWorld.java:928-941), the lanes become an
+# written here: loading it from a .tiles also sets sprite.cutN/cutW (IsoWorld.java:940-953), the lanes become an
 # exterior wall for cutaway, and a cut-away garage door draws only its 2D sprite, never the 3D arm
 # (IsoGridSquare.java:1318-1319, 2301-2309, 2392-2394; barrier-mp 2026-10-05: open/animating arm invisible near
 # the line). Core.lua sets the DoorWall flag and key at OnLoadedTileDefinitions instead, without cutN/cutW.
 # NO WallN/WallW/collide/solid on chain pieces: shouldHaveCollision would make AutoDrive treat it as a wall
 # (MDAD_Sensor.lua:425 before :436-437) and solid would make isDoorObstructed true (IsoDoor.java:2743).
-# open: same + GarageDoor k+3 (setOpenDoorProperties adds the open flag, IsoWorld.java:1488-1493).
+# open: same + GarageDoor k+3 (setOpenDoorProperties adds the open flag, IsoWorld.java:1489-1505).
 
 
 def lane_props(edge: str, k: int, is_open: bool) -> dict:

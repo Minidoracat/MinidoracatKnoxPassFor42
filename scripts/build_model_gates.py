@@ -3,9 +3,9 @@
 Imported by build_barrier_tiles.py, which owns the single .pack / .tiles / spriteModels.txt of the MOD. Sources are the
 Blender deliverables under scripts/blender/<kind>/ (manifest.json; rebuild order in each folder's README.md).
 
-Tilesets (tiledef file 7430). A mod tiledef holds at most 512 tiles per tileset (IsoWorld.java:639-640), so every
+Tilesets (tiledef file 7430). A mod tiledef holds at most 512 tiles per tileset (IsoWorld.java:651-652), so every
 style / look gets its own tileset; the numbers are fixed in NUMBERS (a placed sprite is keyed by its tileset number,
-IsoWorld.java:632-634, so a shipped number never moves):
+IsoWorld.java:644-646, so a shipped number never moves):
 
     4      MinidoracatKnoxPass_barrier2                       blocks 6N 6W 9N 9W
     5-7    MinidoracatKnoxPass_roll2f_industry/green/white    blocks 3N 3W 4N 4W 6N 6W 9N 9W
@@ -458,7 +458,7 @@ def pillar_tiles() -> dict[int, tuple]:
 
 # Upstairs wall (Barrier.lua): a two-story roll door or gate has objects on its ground floor only, so Lua puts this
 # invisible wall on the gate line one floor up, over every lane and end. WallN / WallW = collideN/W + cutN/W + tile type
-# wall (IsoWorld.java:882-906): it blocks walking, and IsoRegions counts the cut flags as a wall (IsoRegions.java:322-349),
+# wall (IsoWorld.java:894-918): it blocks walking, and IsoRegions counts the cut flags as a wall (IsoRegions.java:322-349),
 # so the upstairs room closes. CarSlowFactor keeps cars from hitting it: the physics world builds walls on every floor,
 # and a truck taller than one floor (F700 box truck) stuck under the open gate (tallcar-mp); a square carrying the
 # property gets no wall / door physics (IsoChunk.calcPhysics), while cars read the property only on their own floor
@@ -641,7 +641,7 @@ def write() -> None:
 def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     """Assert the shipped r4 assets; tsets = tiledef name -> tileset, sm_text = spriteModels.txt."""
     # tiledef: one tileset per style / look at its NUMBERS number, the reader pillars 13, the upstairs wall 14,
-    # <= 512 tiles (IsoWorld.java:639-640); the numbers that shipped before the painted colours never move
+    # <= 512 tiles (IsoWorld.java:651-652); the numbers that shipped before the painted colours never move
     specs = tileset_specs()
     nums = {n: no for n, no, _ in specs}
     assert nums == NUMBERS | {PILLAR_TILESET: PILLAR_NUMBER, UPPER_TILESET: UPPER_NUMBER} and len(set(nums.values())) == len(nums)
