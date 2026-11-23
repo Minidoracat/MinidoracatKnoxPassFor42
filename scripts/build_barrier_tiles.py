@@ -169,7 +169,7 @@ def lane_props(edge: str, k: int, is_open: bool) -> dict:
         "GarageDoor": str(k + 3 if is_open else k),
         "doorTrans": "",
         "CustomName": NAME,
-        "firerequirement": "900000",
+        "fireRequirement": "900000",   # the vanilla spelling (build_model_gates.py FIRE_PROP)
     }
 
 
@@ -181,7 +181,7 @@ def cabinet_props(edge: str) -> dict:
         "BlocksPlacement": "",
         "Facing": edge,
         "CustomName": NAME,
-        "firerequirement": "900000",
+        "fireRequirement": "900000",
     }
 
 
@@ -204,7 +204,7 @@ def layout() -> dict[int, tuple[tuple[str, ...], dict]]:
         edge, k = "NNNWWW"[real], real % 3 + 1
         cells = {0: t[real][0], MIRROR: (f"{'S' if edge == 'N' else 'E'}/lane{k}_closed.png",)}
         for m, rels in cells.items():
-            t[PLACEHOLDER + m + real] = (rels, {f"door{edge}": "", "CustomName": NAME, "firerequirement": "900000"})
+            t[PLACEHOLDER + m + real] = (rels, {f"door{edge}": "", "CustomName": NAME, "fireRequirement": "900000"})
     return t
 
 
@@ -695,14 +695,14 @@ def check() -> None:
     # ---- the contract, written out literally (Lua Core.lua / Barrier.lua depend on these numbers) ----
     lanes = (("N", 1), ("N", 2), ("N", 3), ("W", 1), ("W", 2), ("W", 3))          # real lane index 0..5
     lane = lambda e, k, o: {f"door{e}": "", "GarageDoor": str(k + 3 * o), "doorTrans": "",  # noqa: E731
-                            "CustomName": NAME, "firerequirement": "900000"}
+                            "CustomName": NAME, "fireRequirement": "900000"}
     cabinet = lambda f: {"solid": "", "BlocksPlacement": "", "Facing": f,  # noqa: E731
-                         "CustomName": NAME, "firerequirement": "900000"}
+                         "CustomName": NAME, "fireRequirement": "900000"}
     want_props, want_2d = {}, {}
     for i, (e, k) in enumerate(lanes):
         for m in (0, 80):                       # 80 = S / E (KP.BARRIER_MIRROR): same chain edge, empty 2D
             want_props[m + i], want_props[m + i + 8] = lane(e, k, 0), lane(e, k, 1)
-            want_props[160 + m + i] = {f"door{e}": "", "CustomName": NAME, "firerequirement": "900000"}
+            want_props[160 + m + i] = {f"door{e}": "", "CustomName": NAME, "fireRequirement": "900000"}
         want_2d |= {i: (f"{e}/lane{k}_closed.png",), i + 8: (f"{e}/lane{k}_open.png",), 80 + i: (), 88 + i: (),
                     160 + i: (f"{e}/lane{k}_closed.png",), 240 + i: (f"{'S' if e == 'N' else 'E'}/lane{k}_closed.png",)}
     for i, f in ((6, "N"), (7, "W"), (86, "S"), (87, "E")):

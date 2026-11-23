@@ -6,11 +6,13 @@ Camera, lighting and glb placement = ../barrier/render_tiles.py through ../gate/
 placed with the engine's spriteModels formula at the transforms spec.py gives, so every render also checks them.
 Renders with Cycles on the CPU (render_tiles.reset picks EEVEE, which needs a GPU the build VM does not have).
 
-cells/<look><story>/<face>/{lane,endA,endB,stow}.png  128x256 build-ghost cells, shared by every width and both sides
+cells/<look><story>/<face>/{lane,endA,endB,motorA,motorB,stow}.png  128x256 build-ghost cells, shared by every width
     (使用者 2026-11-23：虛影共用圖格): lane = one leaf tile of the closed gate, endA / endB = post + leaf end,
-    stow = one leaf tile of the open gate (assemble.py fades it: where the leaf goes when open).
+    motorA / motorB = the same end when the leaf stows past it (post + cabinet), stow = one leaf tile of the open
+    gate (assemble.py fades it: where the leaf goes when open). Geometry looks only: a painted look uses its base's.
 previews/<look><story>_<L><side>_<face>_<closed|half|open>.png  game camera, tile grid, car box, the reader on the
-    end-A post, one-story wall stubs on the line past both ends (the stow section runs along its inner face).
+    post the leaf closes against, one-story wall stubs on the line past both ends. N / L for every model; the other
+    faces and side R (the same glb turned) only for PREVIEW_ALL.
 icons/_render/<look><story>_<L>.png  N closed on transparent, for the 64x64 entity icons (assemble.py).
 """
 import importlib.util
@@ -38,6 +40,7 @@ S = _load("knoxpass_slide_spec", HERE / "spec.py")
 G = S.G
 EXPORT = HERE / "export"
 STATES = {"closed": ("Open", 0.0), "half": ("Open", 0.5), "open": ("Close", 0.0)}
+PREVIEW_ALL = {("A", 1, 6), ("D", 2, 3)}
 
 
 def reset():
@@ -52,30 +55,41 @@ def place(look, story, L, face, side, reader=False):
     rot = G.ROTATE[face]
     rig = R.import_glb(EXPORT / f"{S.leaf_model(look, story, L)}.glb", RG.at(G.real_lane(face, L, 1))
                        @ R.pz_matrix(S.leaf_translate(face, L, side), S.leaf_rotate(face, side)))
-    statics = [R.import_glb(EXPORT / f"{S.post_model(look, story)}.glb", RG.at(p) @ R.pz_matrix((0, 0, 0), rot))
-               for p in (G.end_a(face, L), G.end_b(face, L))]
+    stow, other = S.stow_end(face, L, side)
+    statics = [R.import_glb(EXPORT / f"{S.post_model(look, story, motor)}.glb", RG.at(p) @ R.pz_matrix((0, 0, 0), rot))
+               for p, motor in ((stow, True), (other, False))]
+    meshes = [o for o in rig.children if o.type == "MESH"] + statics
+    if look in S.PAINT:                 # the base look's models with the painted atlas (spriteModels texture in game)
+        img = bpy.data.images.load(str(HERE / "textures" / f"{S.texture(look)}.png"))
+        for n in (n for o in meshes for mat in o.data.materials for n in mat.node_tree.nodes if n.type == "TEX_IMAGE"):
+            n.image = img
     if reader:
-        statics.append(R.import_glb(GATE / "export" / f"knoxpass_reader_pillar_{S.geometry(look)}.glb",
-                                    RG.at(G.end_a(face, L)) @ R.pz_matrix(S.pillar_translate(face), rot)))
-    return rig, [o for o in rig.children if o.type == "MESH"] + statics
+        meshes.append(R.import_glb(GATE / "export" / "knoxpass_reader_pillar_A.glb",
+                                   RG.at(other) @ R.pz_matrix(S.pillar_translate(face), rot)))
+    return rig, meshes
 
 
 def cells():
     L = 6
     for look, story in sorted({(S.geometry(v[0]), v[1]) for v in S.VARIANTS}):
         for face in S.FACES:
-            for state, tiles in (("closed", (("lane", G.placeholder(face, L, 3)), ("endA", G.end_a(face, L)),
-                                             ("endB", G.end_b(face, L)))),
-                                 ("open", (("stow", S.stow_tiles(face, L, "L")[2]),))):
-                reset()
-                rig, meshes = place(look, story, L, face, "L")
-                RG.play(rig, *STATES[state])
-                centres, _ = RG.masks(meshes)
-                for name, (x, y) in tiles:
-                    for c in centres:
-                        c[0].default_value, c[1].default_value = x, -y
-                    R.aim((x, -y, 0), 64, 224, 128, 256)
-                    R.render(HERE / "cells" / f"{look}{story}" / face / f"{name}.png")
+            ends = {G.end_a(face, L): "A", G.end_b(face, L): "B"}
+            for side in S.SIDES:
+                stow, other = S.stow_end(face, L, side)
+                shots = [("closed", [(f"motor{ends[stow]}", stow), (f"end{ends[other]}", other)])]
+                if side == "L":
+                    shots[0][1].append(("lane", G.placeholder(face, L, 3)))
+                    shots.append(("open", [("stow", S.stow_tiles(face, L, "L")[2])]))
+                for state, tiles in shots:
+                    reset()
+                    rig, meshes = place(look, story, L, face, side)
+                    RG.play(rig, *STATES[state])
+                    centres, _ = RG.masks(meshes)
+                    for name, (x, y) in tiles:
+                        for c in centres:
+                            c[0].default_value, c[1].default_value = x, -y
+                        R.aim((x, -y, 0), 64, 224, 128, 256)
+                        R.render(HERE / "cells" / f"{look}{story}" / face / f"{name}.png")
 
 
 def scale_refs(face, L):
@@ -94,31 +108,35 @@ def scale_refs(face, L):
         box("wall", a0, a1, 0.5, 0.6, G.STORY, (0.2, 0.11, 0.08, 1.0))
 
 
+def models():
+    """(look, story, L) of every build-menu model, painted looks included."""
+    return [(look, story, L) for look, story, group in S.VARIANTS for L in S.GROUPS[group]]
+
+
 def game():
-    for look, story, group in S.VARIANTS:
-        for L in S.GROUPS[group]:
-            for face, side in (("N", "L"), ("N", "R"), ("S", "L"), ("W", "L"), ("E", "R")):
-                for state in STATES:
-                    reset()
-                    bpy.data.objects["Sun"].data.use_shadow = False   # PZ draws no model shadows
-                    R.ground()
-                    ground = bpy.context.object
-                    ground.scale = (3.0, 3.0, 1.0)
-                    rig, meshes = place(look, story, L, face, side, reader=True)
-                    RG.play(rig, *STATES[state])
-                    scale_refs(face, L)
-                    RG.fit([o for o in bpy.data.objects if o.type == "MESH" and o != ground])
-                    R.render(HERE / "previews" / f"{look}{story}_{L}{side}_{face}_{state}.png")
+    for look, story, L in models():
+        every = (S.geometry(look), story, L) in PREVIEW_ALL and look not in S.PAINT
+        for face, side in (("N", "L"), ("N", "R"), ("S", "L"), ("W", "L"), ("E", "R")) if every else (("N", "L"),):
+            for state in STATES:
+                reset()
+                bpy.data.objects["Sun"].data.use_shadow = False   # PZ draws no model shadows
+                R.ground()
+                ground = bpy.context.object
+                ground.scale = (3.0, 3.0, 1.0)
+                rig, meshes = place(look, story, L, face, side, reader=True)
+                RG.play(rig, *STATES[state])
+                scale_refs(face, L)
+                RG.fit([o for o in bpy.data.objects if o.type == "MESH" and o != ground])
+                R.render(HERE / "previews" / f"{look}{story}_{L}{side}_{face}_{state}.png")
 
 
 def icons():
-    for look, story, group in S.VARIANTS:
-        for L in S.GROUPS[group]:
-            reset()
-            rig, meshes = place(look, story, L, "N", "L")
-            RG.play(rig, "Open", 0.0)
-            RG.fit(meshes, margin=4)
-            R.render(HERE / "icons" / "_render" / f"{look}{story}_{L}.png")
+    for look, story, L in models():
+        reset()
+        rig, meshes = place(look, story, L, "N", "L")
+        RG.play(rig, "Open", 0.0)
+        RG.fit(meshes, margin=4)
+        R.render(HERE / "icons" / "_render" / f"{look}{story}_{L}.png")
 
 
 if __name__ == "__main__":

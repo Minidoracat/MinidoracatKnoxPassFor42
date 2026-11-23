@@ -44,7 +44,7 @@ local DOOR_ADAPTERS = { ["vanilla.IsoDoor"] = true, ["vanilla.IsoThumpable"] = t
 --   W 向第 1 片在南端（y 最大）、第 4 片在北端，開門搬到 x+1（往東擺）。兩扇門葉的鉸鏈都在外端，第 1／4 片不搬格
 -- - 車庫門：第 1 片在 N 向最小 x、W 向最大 y（getGarageDoorPrev 往 x-1／y+1，IsoDoor.java:3064-3103），外端＝西／南端，捲起不擺
 -- - 兩層樓大門：門柱 0.34-0.60 格厚，上面的讀頭會埋進去，改用柱面讀頭掛在 A 端門柱（宿主＝A 端那格）；鐵網上色款用 A 的門柱，
---   柱面讀頭照 A（KP.GATE_SKIN）。滑動門同樣掛 A 端門柱，外觀序是 def.pillar
+--   柱面讀頭照 A（KP.GATE_SKIN）。滑動門同樣用柱面讀頭（外觀序 def.pillar），掛在門扇關上去的那一端：收的那一端門柱後面是機箱
 -- 回傳宿主 x, y, 變體（0 N 西端、1 N 東端、2 W 北端、3 W 南端；大門與滑動門 8＋外觀序×4＋方向序）；閘門（機箱頂已有讀頭）與其他 MOD 的門回 nil
 function R.spot(adapter, anchor)
     if not DOOR_ADAPTERS[adapter.id] or KP.isBarrier(anchor) then return nil end
@@ -52,8 +52,9 @@ function R.spot(adapter, anchor)
     local x, y = sq:getX(), sq:getY()
     local mg = KP.modelGate(anchor)
     if mg and mg.def.pillar then
-        local ex, ey = KP.gateEnds(mg, x, y)
-        return ex, ey, 8 + mg.def.pillar * 4 + mg.fi
+        local x1, y1, x2, y2 = KP.gateEnds(mg, x, y)
+        if KP.stowAtA(mg) then x1, y1 = x2, y2 end
+        return x1, y1, 8 + mg.def.pillar * 4 + mg.fi
     end
     if mg and mg.def.kind == "Gate" then
         local ex, ey = KP.gateEnds(mg, x, y)
@@ -239,11 +240,11 @@ Events.LoadChunk.Add(function(chunk)
 end)
 
 -- 格上已有的讀頭模型（帳本被清掉、存檔不同步時的孤兒）：chunk 載入時逐物件回呼（Lua/MapObjects.java:134-216，
--- 觸發點 IsoChunk.java:3828，伺服器與 SP 都跑）。7 色 × 變體 0-3
+-- 觸發點 IsoChunk.java:3828，伺服器與 SP 都跑）。7 色 × 門柱讀頭 0-3 與每一款柱面讀頭
 local names = {}
 for c = 0, #KP.COLORS - 1 do
     for v = 0, 3 do names[#names + 1] = KP.readerTileName(c * 64 + v) end
-    for v = 8, 8 + #KP.GATE_LOOKS * 4 - 1 do names[#names + 1] = KP.readerTileName(c * 64 + v) end
+    for v = 8, 8 + KP.READER_PILLAR_LOOKS * 4 - 1 do names[#names + 1] = KP.readerTileName(c * 64 + v) end
 end
 MapObjects.OnLoadWithSprite(names, function(obj)
     local sq = obj:getSquare()

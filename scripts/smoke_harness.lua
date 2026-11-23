@@ -842,9 +842,13 @@ end
 -- 原版捲門每款北向、西向的第 1 片起連續三張（同 Barrier.lua ROLL_STYLES）
 local VANILLA_GARAGE = { industry_trucks_01 = { 35, 32 }, walls_garage_01 = { 19, 16, 51, 48 } }
 local MODEL_SETS = {}
-for _, s in ipairs({ "barrier2", "roll2f_industry", "roll2f_green", "roll2f_white", "gate_a", "gate_b", "gate_c", "gate_d", "gate_e",
-    "slide1_a6l", "slide1_a6r" }) do
+for _, s in ipairs({ "barrier2", "roll2f_industry", "roll2f_green", "roll2f_white", "gate_a", "gate_b", "gate_c", "gate_d", "gate_e" }) do
     MODEL_SETS["MinidoracatKnoxPass_" .. s] = true
+end
+for _, look in ipairs({ "a", "b", "c", "d", "f", "g", "ablack" }) do   -- 滑動門：2 樓層 × 寬組 34／6 × 7 外觀 × 左右收
+    for _, mid in ipairs({ "1_%s34", "1_%s6", "2_%s34", "2_%s6" }) do
+        for _, side in ipairs({ "l", "r" }) do MODEL_SETS["MinidoracatKnoxPass_slide" .. string.format(mid, look) .. side] = true end
+    end
 end
 for _, c in ipairs({ "black", "grey", "brown", "red", "orange", "yellow", "lightbrown", "pink", "purple", "blue", "lightblue", "cyan", "turquoise" }) do
     MODEL_SETS["MinidoracatKnoxPass_roll2f_" .. c] = true   -- 上色款（2026-11-01）：捲門 13 色，鐵網大門再加綠、白共 15 色
@@ -5148,21 +5152,22 @@ local function scenarioModelGates()
     check(res.key == "601,100,0N" and post and post.i == 8 and readersAt(600, 100) == "pillar_0",
         "上色款（黑色鐵網）裝讀頭：柱面讀頭照 A，掛在 A 端門柱那格（外觀 A、N 向＝0）")
 
-    -- 滑動門（一層樓 6 格）：收納段只在建造時佔位，替代 tile 當場移除、不回物件，只有第 3 格（KP.stowHost）換成沒有屬性的
+    -- 滑動門：收納段只在建造時佔位，替代 tile 當場移除、不回物件，只有第 KP.stowHost 格換成沒有屬性的
     -- 標記物件（格位 6，client 用它畫開著的門扇）；其餘同大門（車庫門鏈、兩端門柱、柱面讀頭）
     local function stowed(g, at, markName)
-        for k = 1, 6 do
+        local w = #g.lanes
+        for k = 1, w do
             local s = g.stow[k]
             local mark = s.res.object
             if not (s.res.replaceObject == true and s.sq == at(k)) then return false end
-            if k == 3 then
+            if k == KP.stowHost(w) then
                 if not (mark and not instanceof(mark, "IsoThumpable") and mark:getSprite():getName() == markName
                     and #s.sq._objects == 1 and s.sq._objects[1] == mark) then return false end
             elseif mark ~= nil or #s.sq._objects ~= 0 then
                 return false
             end
         end
-        return #g.stow == 6
+        return #g.stow == w
     end
     local sl = buildModelGate("MinidoracatKnoxPass_slide1_a6l", 0, 6, "N", true, 900, 100, builder, "L")
     step()
@@ -5189,14 +5194,29 @@ local function scenarioModelGates()
     local slider = newPlayer("slideowner", 909, 102)
     res = cmd(slider, "install", { x = 909, y = 100, z = 0, index = sl.lanes[3]:getObjectIndex(), itemId = slider._inv:AddItem(READER):getID() })
     post = res.ok and KP.Ledger.get(res.key).post
-    check(res.key == "907,100,0N" and post and post.i == 8 + 5 * 4 and readersAt(906, 100) == "pillar_20",
-        "滑動門裝讀頭：柱面讀頭掛 A 端門柱，用滑動門的外觀序 5（門柱比大門靠格內，模型位置不同）")
+    check(res.key == "907,100,0N" and post and post.i == 8 + 5 * 4 and readersAt(913, 100) == "pillar_20" and readersAt(906, 100) == "",
+        "滑動門裝讀頭：柱面讀頭用滑動門的外觀序 5，掛在門扇關上去的 B 端門柱（往左收的 N 向收在 A 端，那根門柱後面是機箱）")
     res, st = cmd(slider, "settings", { key = res.key, speed = "fast" })
     check(res.ok == true and st.speedSupported == true and st.speed == "fast", "滑動門可以設加速")
+    square(1000, 112, 0)._grid = true
+    local slider2 = newPlayer("slideowner2", 1002, 109)
+    res = cmd(slider2, "install", { x = 1000, y = 109, z = 0, index = sr.lanes[3]:getObjectIndex(), itemId = slider2._inv:AddItem(READER):getID() })
+    check(res.ok and KP.Ledger.get(res.key).post.i == 8 + 5 * 4 + 1 and readersAt(1000, 113) == "pillar_21" and readersAt(1000, 106) == "",
+        "往右收的 W 向收在 B 端：讀頭掛 A 端門柱（方向序 1）")
     slider._inv:AddItem("Base.BlowTorch")
     slider._inv:AddItem("Base.WeldingMask")
-    check(dismantle(slider, sl.B).ok == true and gone(sl) and KP.Ledger.get("907,100,0N") == nil and readersAt(906, 100) == ""
+    check(dismantle(slider, sl.B).ok == true and gone(sl) and KP.Ledger.get("907,100,0N") == nil and readersAt(913, 100) == ""
         and #square(903, 100, 0)._objects == 0, "右鍵拆除滑動門 B 端門柱：整座移除（連收納段標記）、帳本刪除、柱面讀頭拿掉")
+    -- 量產款：寬組 34 的 4 格（區塊 4 起）耐久 1000、木板款拆除要鐵鎚
+    local s4 = buildModelGate("MinidoracatKnoxPass_slide1_d34l", 4, 4, "N", true, 1200, 100, builder, "L")
+    step()
+    check(stowed(s4, function(k) return square(1204 - k, 100, 0) end, "MinidoracatKnoxPass_slide1_d34l_262")
+        and all(s4, function(p, k) return p._square == square(1204 + k, 100, 0) and p._health == 1000 end)
+        and s4.lanes[1]:getSprite():getName() == "MinidoracatKnoxPass_slide1_d34l_256" and #KP.Barrier.parts(s4.A) == 7,
+        "滑動門 4 格 N 左收（木板）：收納段 4 格、標記在第 2 格，四片耐久 1000，整座＝四片＋兩端＋標記")
+    check(dismantle(slider, s4.B).why == "NeedHammer" and present(s4.A), "木板滑動門帶著焊槍也不行：NeedHammer")
+    slider._inv:AddItem("Base.Hammer")
+    check(dismantle(slider, s4.B).ok == true and gone(s4) and #square(1202, 100, 0)._objects == 0, "帶鎚子拆木板滑動門")
 
     -- 拆除與打壞：整座一起移除、帳本刪除、柱面讀頭拿掉；拆除只退被拆那一端的材料
     local pipes = W.dropped["Base.MetalPipe"] or 0
@@ -5588,6 +5608,13 @@ local function scenarioUpperWall()
     check(walls(498, 98, 503, 112) == line(501, 100, 501, 110, 0), "兩層樓大門 9 格 E：門線那行（擺放行的東邊一行）11 道 W 邊（索引 0）")
     buildModelGate("MinidoracatKnoxPass_barrier2", 0, 6, "N", true, 600, 100, builder)
     check(walls(598, 98, 609, 102) == "", "雙桿閘門不是兩層樓：不放")
+    buildModelGate("MinidoracatKnoxPass_slide2_c6r", 2, 6, "S", true, 1300, 100, builder, "R")
+    check(walls(1298, 98, 1315, 103) == line(1306, 101, 1313, 101, 3),
+        "兩層樓滑動門 6 格 S 右收、鐵欄杆：兩端與六片各一道（視線穿過，索引 3），收納段那六格不放")
+    buildModelGate("MinidoracatKnoxPass_slide2_b34l", 5, 4, "W", true, 1400, 100, builder, "L")
+    check(walls(1398, 98, 1402, 112) == line(1400, 100, 1400, 105, 0), "兩層樓滑動門 4 格 W 左收、鋼板：兩端與四片共六道 W 邊、擋視線（索引 0）")
+    buildModelGate("MinidoracatKnoxPass_slide1_a6l", 0, 6, "N", true, 1500, 100, builder, "L")
+    check(walls(1498, 98, 1515, 102) == "", "一層樓滑動門不是兩層樓：不放")
     local mine = IsoObject.new(nil, nil, "walls_exterior_wooden_01_24")
     mine._flags = { cutW = true }
     square(700, 103, 1):AddTileObject(mine)

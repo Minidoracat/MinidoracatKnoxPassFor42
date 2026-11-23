@@ -96,8 +96,9 @@ end
 -- （slide-sp 1123a：站在收納段旁、鏡頭拉近時門扇不見）：收納段第 KP.stowHost 格留一個看不見、沒有屬性的一般物件（格位 6），
 -- 中間片那格不在畫面上（或離畫面邊緣不到兩格）時改由它畫門扇（client 的 BarrierAnim 指名）：靜止 7／15（關／開），
 -- 滑動中 41-47／57-63（打開／關上的姿勢通道）；都只在 spriteModels，和中間片那幾格是同一個模型、原點換成這一格。
--- pillar＝柱面讀頭的外觀序（接在 KP.GATE_LOOKS 後面；門柱比兩層樓大門更靠格內，build_model_gates.py pillar_tiles），
--- body＝右鍵點得到的門身高度（樓層，client/Client.lua）
+-- 收的那一端的門柱後面帶機箱（模型的一部分，在門柱自己那格內），讀頭掛另一端（KP.stowAtA、server/ReaderPost.lua）。
+-- pillar＝柱面讀頭的外觀序（接在 KP.GATE_LOOKS 後面；門柱比兩層樓大門更靠格內，build_model_gates.py pillar_tiles；
+-- 七款外觀的門柱一樣粗，共用一款），body＝右鍵點得到的門身高度（樓層，client/Client.lua），story、group＝tileset 名裡的樓層與寬組
 KP.GATE_SLOT = { END_A = 3, END_B = 4, HOST = 5, STOW_HOST = 6, STOW_REST = 7, OPEN = 8, PLACEHOLDER = 16, STOW = 25, POSE_OPEN = 32, STOW_POSE = 41, POSE_CLOSE = 48 }
 
 -- 掛 3D 模型的那一片（第幾片，1 起）：正中間，偶數寬取過中線那片（3→2、4→3、6→4、9→5；單臂閘門 3 格是車道 2）。
@@ -117,8 +118,14 @@ local ROLL2F = { kind = "Garage", ends = false, upper = true, widths = { 3, 4, 6
     health = { [3] = 1500, [4] = 1500, [6] = 2000, [9] = 2500 } }
 local GATE = { kind = "Gate", ends = true, upper = true, widths = { 6, 9 }, faces = { "N", "W", "S", "E" },
     health = { [6] = 2000, [9] = 2500 } }
-local SLIDE1_6 = { kind = "Slide", ends = true, pillar = 5, body = 1.0, widths = { 6 }, faces = { "N", "W", "S", "E" },
-    health = { [6] = 1500 } }
+local SLIDE1_34 = { kind = "Slide", ends = true, pillar = 5, body = 1.0, story = 1, group = "34", widths = { 3, 4 },
+    faces = { "N", "W", "S", "E" }, health = { [3] = 1000, [4] = 1000 } }
+local SLIDE1_6 = { kind = "Slide", ends = true, pillar = 5, body = 1.0, story = 1, group = "6", widths = { 6 },
+    faces = { "N", "W", "S", "E" }, health = { [6] = 1500 } }
+local SLIDE2_34 = { kind = "Slide", ends = true, upper = true, pillar = 5, body = 2.0, story = 2, group = "34", widths = { 3, 4 },
+    faces = { "N", "W", "S", "E" }, health = { [3] = 1500, [4] = 1500 } }
+local SLIDE2_6 = { kind = "Slide", ends = true, upper = true, pillar = 5, body = 2.0, story = 2, group = "6", widths = { 6 },
+    faces = { "N", "W", "S", "E" }, health = { [6] = 2000 } }
 KP.MODEL_GATES = {
     MinidoracatKnoxPass_barrier2 = BARRIER2,
     MinidoracatKnoxPass_roll2f_industry = ROLL2F,
@@ -158,12 +165,11 @@ KP.MODEL_GATES = {
     MinidoracatKnoxPass_gate_alightblue = GATE,
     MinidoracatKnoxPass_gate_acyan = GATE,
     MinidoracatKnoxPass_gate_aturquoise = GATE,
-    MinidoracatKnoxPass_slide1_a6l = SLIDE1_6,
-    MinidoracatKnoxPass_slide1_a6r = SLIDE1_6,
 }
 
 -- 鐵網 A 的上色款（scripts/blender/gate/spec.py SKINS，tileset gate_a<顏色>）：用 A 的模型（spriteModels 換貼圖），所以柱面讀頭
--- （server/ReaderPost.lua）與二樓隱形牆看不看得穿（server/Barrier.lua）都照 A。外觀 → 照哪個外觀
+-- （server/ReaderPost.lua）與二樓隱形牆看不看得穿（server/Barrier.lua）都照 A。外觀 → 照哪個外觀。只有兩層樓大門用；
+-- 滑動門的柱面讀頭照 def.pillar，看不看得穿直接登在 KP.SEE_THROUGH
 KP.GATE_SKIN = {}
 for ts in pairs(KP.MODEL_GATES) do
     if string.match(ts, "^MinidoracatKnoxPass_gate_a%l") then KP.GATE_SKIN[ts] = "MinidoracatKnoxPass_gate_a" end
@@ -171,6 +177,24 @@ end
 
 -- 看得穿的外觀（車道 tile 帶 doorTrans，build_model_gates.py see_through）：二樓隱形牆也讓視線穿過；上色款查 KP.GATE_SKIN
 KP.SEE_THROUGH = { MinidoracatKnoxPass_gate_a = true, MinidoracatKnoxPass_gate_c = true }
+
+-- 木頭外觀：拆除用鐵鎚（KP.dismantleTool）
+KP.WOOD_LOOKS = { MinidoracatKnoxPass_gate_d = true, MinidoracatKnoxPass_gate_e = true }
+
+-- 滑動門的 tileset：樓層 × 寬組 × 外觀 × 左右收，MinidoracatKnoxPass_slide<樓層>_<外觀><寬組><l|r>，共 56 個
+-- （build_model_gates.py --check 核對）。外觀：a 鐵網、b 鋼板、c 鐵欄杆、d 木板、f 工業黃、g 刺絲、ablack 黑色鐵網；
+-- 值 see＝看得穿，wood＝木頭
+local SLIDE_LOOKS = { a = "see", b = "", c = "see", d = "wood", f = "see", g = "see", ablack = "see" }
+for _, def in ipairs({ SLIDE1_34, SLIDE1_6, SLIDE2_34, SLIDE2_6 }) do
+    for look, trait in pairs(SLIDE_LOOKS) do
+        for _, side in ipairs({ "l", "r" }) do
+            local ts = "MinidoracatKnoxPass_slide" .. def.story .. "_" .. look .. def.group .. side
+            KP.MODEL_GATES[ts] = def
+            if trait == "see" then KP.SEE_THROUGH[ts] = true end
+            if trait == "wood" then KP.WOOD_LOOKS[ts] = true end
+        end
+    end
+end
 
 -- 兩層樓捲門拆除的退料（server/Barrier.lua B.dismantle）：沒有兩端，門片是 IsoDoor、沒有 buildMaterials，改照配方裡建造會記下的
 -- 材料（ISBuildingObject.lua:357-371 getAllRecordedConsumedItems：不含 mode:keep 的工具與 DontRecordInput）。寬度 → { [物品] = 數量 }，
@@ -227,12 +251,17 @@ function KP.gateAnchor(mg, x, y)
     return x + a[1] + d[1], y + a[2] + d[2]
 end
 
--- 車道 1 真門片的格 → 滑動門收納段第 k 格（k＝1 貼著收的那一端；在擺放的那一列／行）。往左收的在 N／W 向收過 A 端、
--- S／E 向收過 B 端，往右收的相反（scripts/blender/slide/spec.py stow_end）
+-- 滑動門收在 A 端那一側（否則 B 端）：往左收的在 N／W 向收過 A 端、S／E 向收過 B 端，往右收的相反
+-- （scripts/blender/slide/spec.py stow_at_a）。收的那一端門柱帶機箱，讀頭掛另一端
+function KP.stowAtA(mg)
+    return (string.sub(mg.tileset, -1) == "l") == (mg.face == "N" or mg.face == "W")
+end
+
+-- 車道 1 真門片的格 → 滑動門收納段第 k 格（k＝1 貼著收的那一端；在擺放的那一列／行）
 function KP.stowSpot(mg, ax, ay, k)
     local a = ALONG[mg.face]
     local x1, y1, x2, y2 = KP.gateEnds(mg, ax, ay)
-    if (string.sub(mg.tileset, -1) == "l") == (mg.face == "N" or mg.face == "W") then return x1 - a[1] * k, y1 - a[2] * k end
+    if KP.stowAtA(mg) then return x1 - a[1] * k, y1 - a[2] * k end
     return x2 + a[1] * k, y2 + a[2] * k
 end
 
@@ -294,10 +323,11 @@ function KP.readerPostIndex(obj)
     return n and tonumber(n) or nil
 end
 
--- 兩層樓大門的讀頭掛在 A 端門柱的柱面（門柱 0.34-0.60 格厚，門柱讀頭會埋進去；scripts/build_model_gates.py）：
--- 索引＝顏色×32＋外觀×4＋方向序（外觀照 KP.GATE_LOOKS，方向 N W S E）
+-- 兩層樓大門與滑動門的讀頭掛在門柱的柱面（門柱 0.34-0.60 格厚，門柱讀頭會埋進去；scripts/build_model_gates.py）：
+-- 索引＝顏色×32＋外觀×4＋方向序（外觀照 KP.GATE_LOOKS，後面接滑動門那一款，共 READER_PILLAR_LOOKS 款；方向 N W S E）
 KP.READER_PILLAR_TILESET = "MinidoracatKnoxPass_readerpillar"
 KP.READER_PILLAR_STRIDE = 32
+KP.READER_PILLAR_LOOKS = 6
 KP.GATE_LOOKS = { "MinidoracatKnoxPass_gate_a", "MinidoracatKnoxPass_gate_b", "MinidoracatKnoxPass_gate_c", "MinidoracatKnoxPass_gate_d", "MinidoracatKnoxPass_gate_e" }
 
 -- 讀頭模型的代碼＝顏色×64＋變體：變體 0-3 門柱讀頭（READER_POST），8 起柱面讀頭（8＋外觀×4＋方向序）；不是讀頭模型回 nil
@@ -637,7 +667,7 @@ end
 -- 閘門（單臂、雙桿）螺絲起子；牧場木門 D、中世紀厚木門 E 沒壞的鐵鎚（tag base:hammer）；其他（金屬大門、兩層樓捲門）焊槍
 -- （至少一格，ISMoveableSpriteProps.lua:4-6 同款）＋焊接面罩（tag base:weldingmask），同原版金屬拆解（ISMoveableDefinitions.lua:446
 -- MetalPlates），拆完扣焊槍一格（ISMoveableSpriteProps.lua:3787-3789）。obj＝那一端或門片。回傳工具（焊槍時第二個是面罩），缺工具回 nil, 原因代碼
-local WOOD_LOOKS = { MinidoracatKnoxPass_gate_d = true, MinidoracatKnoxPass_gate_e = true }
+-- 木頭外觀（KP.WOOD_LOOKS：兩層樓大門 D、E 與滑動門木板款）
 function KP.dismantleTool(player, obj)
     local inv = player:getInventory()
     if KP.isBarrier(obj) then
@@ -646,7 +676,7 @@ function KP.dismantleTool(player, obj)
         return nil, "NeedScrewdriver"
     end
     local mg = KP.modelGate(obj)
-    if mg and WOOD_LOOKS[mg.tileset] then
+    if mg and KP.WOOD_LOOKS[mg.tileset] then
         local t = inv:getFirstTagEvalRecurse(ItemTag.HAMMER, notBroken)
         if t then return t end
         return nil, "NeedHammer"

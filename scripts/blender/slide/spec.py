@@ -6,9 +6,12 @@ two-story gates' (../gate/spec.py): 1 unit = 1 tile, +X along the line, +Y towar
               (it overlaps both posts), centre plane y = LEAF_Y: between the posts and the door line, so the leaf is
               drawn 0.09 from where the lane doors block. Open moves it travel(L) toward -X.
   post model  origin = its own tile centre; post centred on x = 0, y = POST_Y, symmetric about x = 0 (both ends share
-              one transform); the guide bracket reaches over the leaf plane.
+              one transform); the guide bracket reaches over the leaf plane. The stow end's post is the motor model:
+              the same post with the drive cabinet behind it (-Y, MOTOR_Y), inside its own solid tile.
 Posts sit POST_Y - gate PLANE_Y nearer the tile centre than the two-story gates' so the leaf passes between the post
-(and the reader on its face) and the door line; the reader pillar models are the gates', shifted by the same amount.
+(and the reader on its face) and the door line; the reader pillar model is the gates' look A one (every slide post is
+POST_HW wide, the wooden look's too), shifted by the same amount. The reader hangs on the post the leaf closes
+against, the one without the cabinet (Lua ReaderPost.lua).
 
 Sides (which end the leaf stows past):
   L  the glb as built: the face's rotation, origin on the end at the model's -X side (N / W end A, S / E end B).
@@ -31,18 +34,29 @@ def _load(name, path):
 
 G = _load("knoxpass_gate_spec", HERE.parent / "gate" / "spec.py")   # by path: both folders call the file spec.py
 
-# (look, story, width group) built so far. Order = tileset / build-menu order: append only once shipped.
-VARIANTS = (("A", 1, "6"),)
+# Looks in tileset / build-menu order (append only once shipped; tileset numbers: scripts/build_model_gates.py NUMBERS).
+# A-D wear the two-story gates' paint, F = safety-yellow truss with a hazard kick strip, G = dark chain-link under
+# concertina wire, ABlack = look A's models with the gates' black skin atlas and one can of black paint in the recipe.
+LOOKS = ("A", "B", "C", "D", "F", "G", "ABlack")
+PAINT = {"ABlack": ("A", "Black")}     # painted look -> (geometry look, vanilla paint)
+CUTOUT = "AFG"                         # geometry looks with chain-link: binary alpha (glTF alphaMode MASK)
+SEE_THROUGH = "ACFG"                   # geometry looks whose closed lanes pass sight (doorTrans)
+STORIES = (1, 2)
 GROUPS = {"34": (3, 4), "6": (6,)}     # widths of one tileset: 2 widths x 4 faces = the 512-tile limit
+VARIANTS = tuple((look, story, group) for story in STORIES for group in GROUPS for look in LOOKS)
 SIDES = "LR"
 FACES = G.FACES
 TOP = {1: 2.15, 2: 4.45}               # leaf top by story
 HEALTH = {1: {3: 1000, 4: 1000, 6: 1500}, 2: {3: 1500, 4: 1500, 6: 2000}}   # by size, two-story + 500 (2026-10-08)
 POST_Y = 0.105
+POST_HW = 0.17                         # every look: one reader mount (the two-story wooden gate's posts are 0.20)
+MOTOR_Y = (-0.47, -0.10)               # drive cabinet body behind the post; its cap overhangs 0.02
 LEAF_Y = 0.41
 LEAF_X0, LEAF_X1 = 0.10, 0.90
 Z0 = 0.10                              # leaf bottom: the wheel carriages run under it
-LEAF_T = {"A": 0.08}                   # total leaf thickness
+# total leaf thickness (everything proud of the centre plane included): it has to pass between the reader on the post
+# face and the outer guide roller, which stays inside the tile (verify_slide.py)
+LEAF_T = {"A": 0.08, "B": 0.10, "C": 0.08, "D": 0.12, "F": 0.112, "G": 0.10}
 STOW = 25                              # first stow slot (build_model_gates.py STOW, Lua KP.GATE_SLOT.STOW)
 # The open leaf lies in the stow section, L + 1 tiles from the lane that hosts the model, and the engine draws a model
 # only while its host's square is on screen: one stow tile keeps an invisible object (slot STOW_HOST) that draws the
@@ -59,23 +73,24 @@ def travel(L):
 
 
 def geometry(look):
-    return look
+    return PAINT[look][0] if look in PAINT else look
 
 
-def post_hw(look):
-    return G.LOOK[geometry(look)]["post_hw"]
+def stow_at_a(face, side):
+    """The leaf stows past end A (Lua KP.stowAtA): the motor post is end A, the reader hangs on end B."""
+    return (face in "NW") == (side == "L")
 
 
 def leaf_model(look, story, L):
     return f"MinidoracatKnoxPass_slide{story}_{geometry(look)}{L}"
 
 
-def post_model(look, story):
-    return f"MinidoracatKnoxPass_slidepost{story}_{geometry(look)}"
+def post_model(look, story, motor=False):
+    return f"MinidoracatKnoxPass_slide{'motor' if motor else 'post'}{story}_{geometry(look)}"
 
 
 def texture(look):
-    return G.texture(look)             # the two-story gate's atlas (shipped by the gate kind)
+    return f"MinidoracatKnoxPass_slide_{look}"
 
 
 def tileset(look, story, group, side):
@@ -101,7 +116,7 @@ def block(group, L, face):
 def stow_end(face, L, side):
     """(tile of the end post the leaf slides past, tile of the other end), from the entity origin without stow."""
     a, b = G.end_a(face, L), G.end_b(face, L)
-    return (a, b) if (face in "NW") == (side == "L") else (b, a)
+    return (a, b) if stow_at_a(face, side) else (b, a)
 
 
 def stow_tiles(face, L, side):
@@ -183,4 +198,6 @@ if __name__ == "__main__":   # self-check
     # open leaf centre (model x) within half a tile of the stow host tile's centre
     assert all(abs((LEAF_X0 + L + LEAF_X1) / 2 - travel(L) + stow_host(L)) <= 0.5 for L in (3, 4, 6))
     assert max(len(w) for w in GROUPS.values()) * 4 * 64 <= 512 and STOW + 6 <= 32
+    assert set(LEAF_T) == {geometry(lk) for lk in LOOKS} and len(VARIANTS) == len(LOOKS) * 4
+    assert all(LEAF_Y + t / 2 <= 0.48 and LEAF_Y - t / 2 >= POST_Y + POST_HW + 0.06 for t in LEAF_T.values())
     print("spec ok")

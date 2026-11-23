@@ -1,20 +1,626 @@
 
-== MinidoracatKnoxPass_slidepost1_A.glb (56384 bytes) static, verts=216 tris=108 bbox ([-0.24, -0.135, 0.0], [0.24, 0.495, 2.44]) images ['MinidoracatKnoxPass_gate_A']
+== MinidoracatKnoxPass_slidepost1_A.glb (56420 bytes) static, verts=216 tris=108 bbox ([-0.24, -0.135, 0.0], [0.24, 0.477, 2.44]) images ['MinidoracatKnoxPass_slide_A']
 
-== MinidoracatKnoxPass_slide1_A6.glb (78352 bytes)
-glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_gate_A']
+== MinidoracatKnoxPass_slidemotor1_A.glb (58800 bytes) static, verts=284 tris=142 bbox ([-0.28, -0.49, 0.0], [0.28, 0.477, 2.44]) images ['MinidoracatKnoxPass_slide_A']
+
+== MinidoracatKnoxPass_slide1_A3.glb (72008 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_A']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=292 tris=146
+rest (closed) bbox ([0.1, 0.37, 0.03], [3.9, 0.45, 2.15])  height 0.88 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.37, 0.03], [0.45, 0.45, 2.15])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_A3_fast.glb (70504 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_A']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=292 tris=146
+rest (closed) bbox ([0.1, 0.37, 0.03], [3.9, 0.45, 2.15])  height 0.88 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.37, 0.03], [0.45, 0.45, 2.15])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_A4.glb (73328 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_A']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=316 tris=158
+rest (closed) bbox ([0.1, 0.37, 0.03], [4.9, 0.45, 2.15])  height 0.88 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+open bbox ([-4.35, 0.37, 0.03], [0.45, 0.45, 2.15])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_A4_fast.glb (71824 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_A']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=316 tris=158
+rest (closed) bbox ([0.1, 0.37, 0.03], [4.9, 0.45, 2.15])  height 0.88 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+open bbox ([-4.35, 0.37, 0.03], [0.45, 0.45, 2.15])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slide1_A6.glb (78388 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_A']
 bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=408 tris=204
 rest (closed) bbox ([0.1, 0.37, 0.03], [6.9, 0.45, 2.15])  height 0.88 stories
 clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
 open bbox ([-6.35, 0.37, 0.03], [0.45, 0.45, 2.15])
 clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
 
-== MinidoracatKnoxPass_slide1_A6_fast.glb (76852 bytes)
-glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_gate_A']
+== MinidoracatKnoxPass_slide1_A6_fast.glb (76884 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_A']
 bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=408 tris=204
 rest (closed) bbox ([0.1, 0.37, 0.03], [6.9, 0.45, 2.15])  height 0.88 stories
 clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
 open bbox ([-6.35, 0.37, 0.03], [0.45, 0.45, 2.15])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slidepost2_A.glb (58660 bytes) static, verts=280 tris=140 bbox ([-0.24, -0.135, 0.0], [0.24, 0.477, 4.74]) images ['MinidoracatKnoxPass_slide_A']
+
+== MinidoracatKnoxPass_slidemotor2_A.glb (61040 bytes) static, verts=348 tris=174 bbox ([-0.28, -0.49, 0.0], [0.28, 0.477, 4.74]) images ['MinidoracatKnoxPass_slide_A']
+
+== MinidoracatKnoxPass_slide2_A3.glb (76628 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_A']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=376 tris=188
+rest (closed) bbox ([0.1, 0.37, 0.03], [3.9, 0.45, 4.45])  height 1.82 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.37, 0.03], [0.45, 0.45, 4.45])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_A3_fast.glb (75124 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_A']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=376 tris=188
+rest (closed) bbox ([0.1, 0.37, 0.03], [3.9, 0.45, 4.45])  height 1.82 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.37, 0.03], [0.45, 0.45, 4.45])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_A4.glb (78828 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_A']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=416 tris=208
+rest (closed) bbox ([0.1, 0.37, 0.03], [4.9, 0.45, 4.45])  height 1.82 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+open bbox ([-4.35, 0.37, 0.03], [0.45, 0.45, 4.45])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_A4_fast.glb (77324 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_A']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=416 tris=208
+rest (closed) bbox ([0.1, 0.37, 0.03], [4.9, 0.45, 4.45])  height 1.82 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+open bbox ([-4.35, 0.37, 0.03], [0.45, 0.45, 4.45])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slide2_A6.glb (85648 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_A']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=540 tris=270
+rest (closed) bbox ([0.1, 0.37, 0.03], [6.9, 0.45, 4.45])  height 1.82 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+open bbox ([-6.35, 0.37, 0.03], [0.45, 0.45, 4.45])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_A6_fast.glb (84144 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_A']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=540 tris=270
+rest (closed) bbox ([0.1, 0.37, 0.03], [6.9, 0.45, 4.45])  height 1.82 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+open bbox ([-6.35, 0.37, 0.03], [0.45, 0.45, 4.45])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slidepost1_B.glb (11412 bytes) static, verts=216 tris=108 bbox ([-0.24, -0.135, 0.0], [0.24, 0.487, 2.44]) images ['MinidoracatKnoxPass_slide_B']
+
+== MinidoracatKnoxPass_slidemotor1_B.glb (13792 bytes) static, verts=284 tris=142 bbox ([-0.28, -0.49, 0.0], [0.28, 0.487, 2.44]) images ['MinidoracatKnoxPass_slide_B']
+
+== MinidoracatKnoxPass_slide1_B3.glb (28984 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_B']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=328 tris=164
+rest (closed) bbox ([0.1, 0.36, 0.03], [3.9, 0.46, 2.15])  height 0.88 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.36, 0.03], [0.45, 0.46, 2.15])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_B3_fast.glb (27480 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_B']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=328 tris=164
+rest (closed) bbox ([0.1, 0.36, 0.03], [3.9, 0.46, 2.15])  height 0.88 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.36, 0.03], [0.45, 0.46, 2.15])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_B4.glb (30524 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_B']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=356 tris=178
+rest (closed) bbox ([0.1, 0.36, 0.03], [4.9, 0.46, 2.15])  height 0.88 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+open bbox ([-4.35, 0.36, 0.03], [0.45, 0.46, 2.15])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_B4_fast.glb (29020 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_B']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=356 tris=178
+rest (closed) bbox ([0.1, 0.36, 0.03], [4.9, 0.46, 2.15])  height 0.88 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+open bbox ([-4.35, 0.36, 0.03], [0.45, 0.46, 2.15])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slide1_B6.glb (34704 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_B']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=432 tris=216
+rest (closed) bbox ([0.1, 0.36, 0.03], [6.9, 0.46, 2.15])  height 0.88 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+open bbox ([-6.35, 0.36, 0.03], [0.45, 0.46, 2.15])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_B6_fast.glb (33204 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_B']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=432 tris=216
+rest (closed) bbox ([0.1, 0.36, 0.03], [6.9, 0.46, 2.15])  height 0.88 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+open bbox ([-6.35, 0.36, 0.03], [0.45, 0.46, 2.15])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slidepost2_B.glb (13652 bytes) static, verts=280 tris=140 bbox ([-0.24, -0.135, 0.0], [0.24, 0.487, 4.74]) images ['MinidoracatKnoxPass_slide_B']
+
+== MinidoracatKnoxPass_slidemotor2_B.glb (16036 bytes) static, verts=348 tris=174 bbox ([-0.28, -0.49, 0.0], [0.28, 0.487, 4.74]) images ['MinidoracatKnoxPass_slide_B']
+
+== MinidoracatKnoxPass_slide2_B3.glb (35804 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_B']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=452 tris=226
+rest (closed) bbox ([0.1, 0.36, 0.03], [3.9, 0.46, 4.45])  height 1.82 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.36, 0.03], [0.45, 0.46, 4.45])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_B3_fast.glb (34304 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_B']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=452 tris=226
+rest (closed) bbox ([0.1, 0.36, 0.03], [3.9, 0.46, 4.45])  height 1.82 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.36, 0.03], [0.45, 0.46, 4.45])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_B4.glb (38224 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_B']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=496 tris=248
+rest (closed) bbox ([0.1, 0.36, 0.03], [4.9, 0.46, 4.45])  height 1.82 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+open bbox ([-4.35, 0.36, 0.03], [0.45, 0.46, 4.45])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_B4_fast.glb (36720 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_B']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=496 tris=248
+rest (closed) bbox ([0.1, 0.36, 0.03], [4.9, 0.46, 4.45])  height 1.82 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+open bbox ([-4.35, 0.36, 0.03], [0.45, 0.46, 4.45])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slide2_B6.glb (44164 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_B']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=604 tris=302
+rest (closed) bbox ([0.1, 0.36, 0.03], [6.9, 0.46, 4.45])  height 1.82 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+open bbox ([-6.35, 0.36, 0.03], [0.45, 0.46, 4.45])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_B6_fast.glb (42660 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_B']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=604 tris=302
+rest (closed) bbox ([0.1, 0.36, 0.03], [6.9, 0.46, 4.45])  height 1.82 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+open bbox ([-6.35, 0.36, 0.03], [0.45, 0.46, 4.45])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slidepost1_C.glb (11224 bytes) static, verts=216 tris=108 bbox ([-0.24, -0.135, 0.0], [0.24, 0.477, 2.44]) images ['MinidoracatKnoxPass_slide_C']
+
+== MinidoracatKnoxPass_slidemotor1_C.glb (13608 bytes) static, verts=284 tris=142 bbox ([-0.28, -0.49, 0.0], [0.28, 0.477, 2.44]) images ['MinidoracatKnoxPass_slide_C']
+
+== MinidoracatKnoxPass_slide1_C3.glb (56860 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_C']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=844 tris=368
+rest (closed) bbox ([0.1, 0.37, 0.03], [3.9, 0.45, 2.15])  height 0.88 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.37, 0.03], [0.45, 0.45, 2.15])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_C3_fast.glb (55356 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_C']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=844 tris=368
+rest (closed) bbox ([0.1, 0.37, 0.03], [3.9, 0.45, 2.15])  height 0.88 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.37, 0.03], [0.45, 0.45, 2.15])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_C4.glb (69088 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_C']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=1068 tris=464
+rest (closed) bbox ([0.1, 0.37, 0.03], [4.9, 0.45, 2.15])  height 0.88 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+open bbox ([-4.35, 0.37, 0.03], [0.45, 0.45, 2.15])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_C4_fast.glb (67584 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_C']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=1068 tris=464
+rest (closed) bbox ([0.1, 0.37, 0.03], [4.9, 0.45, 2.15])  height 0.88 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+open bbox ([-4.35, 0.37, 0.03], [0.45, 0.45, 2.15])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slide1_C6.glb (90480 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_C']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=1460 tris=632
+rest (closed) bbox ([0.1, 0.37, 0.03], [6.9, 0.45, 2.15])  height 0.88 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+open bbox ([-6.35, 0.37, 0.03], [0.45, 0.45, 2.15])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_C6_fast.glb (88976 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_C']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=1460 tris=632
+rest (closed) bbox ([0.1, 0.37, 0.03], [6.9, 0.45, 2.15])  height 0.88 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+open bbox ([-6.35, 0.37, 0.03], [0.45, 0.45, 2.15])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slidepost2_C.glb (13468 bytes) static, verts=280 tris=140 bbox ([-0.24, -0.135, 0.0], [0.24, 0.477, 4.74]) images ['MinidoracatKnoxPass_slide_C']
+
+== MinidoracatKnoxPass_slidemotor2_C.glb (15848 bytes) static, verts=348 tris=174 bbox ([-0.28, -0.49, 0.0], [0.28, 0.477, 4.74]) images ['MinidoracatKnoxPass_slide_C']
+
+== MinidoracatKnoxPass_slide2_C3.glb (57956 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_C']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=864 tris=378
+rest (closed) bbox ([0.1, 0.37, 0.03], [3.9, 0.45, 4.45])  height 1.82 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.37, 0.03], [0.45, 0.45, 4.45])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_C3_fast.glb (56456 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_C']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=864 tris=378
+rest (closed) bbox ([0.1, 0.37, 0.03], [3.9, 0.45, 4.45])  height 1.82 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.37, 0.03], [0.45, 0.45, 4.45])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_C4.glb (70184 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_C']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=1088 tris=474
+rest (closed) bbox ([0.1, 0.37, 0.03], [4.9, 0.45, 4.45])  height 1.82 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+open bbox ([-4.35, 0.37, 0.03], [0.45, 0.45, 4.45])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_C4_fast.glb (68684 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_C']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=1088 tris=474
+rest (closed) bbox ([0.1, 0.37, 0.03], [4.9, 0.45, 4.45])  height 1.82 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+open bbox ([-4.35, 0.37, 0.03], [0.45, 0.45, 4.45])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slide2_C6.glb (91580 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_C']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=1480 tris=642
+rest (closed) bbox ([0.1, 0.37, 0.03], [6.9, 0.45, 4.45])  height 1.82 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+open bbox ([-6.35, 0.37, 0.03], [0.45, 0.45, 4.45])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_C6_fast.glb (90076 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_C']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=1480 tris=642
+rest (closed) bbox ([0.1, 0.37, 0.03], [6.9, 0.45, 4.45])  height 1.82 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+open bbox ([-6.35, 0.37, 0.03], [0.45, 0.45, 4.45])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slidepost1_D.glb (12260 bytes) static, verts=204 tris=100 bbox ([-0.24, -0.135, 0.0], [0.24, 0.497, 2.44]) images ['MinidoracatKnoxPass_slide_D']
+
+== MinidoracatKnoxPass_slidemotor1_D.glb (14640 bytes) static, verts=272 tris=134 bbox ([-0.28, -0.49, 0.0], [0.28, 0.497, 2.44]) images ['MinidoracatKnoxPass_slide_D']
+
+== MinidoracatKnoxPass_slide1_D3.glb (37744 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_D']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=464 tris=232
+rest (closed) bbox ([0.1, 0.35, 0.03], [3.9, 0.47, 2.15])  height 0.88 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.35, 0.03], [0.45, 0.47, 2.15])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_D3_fast.glb (36240 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_D']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=464 tris=232
+rest (closed) bbox ([0.1, 0.35, 0.03], [3.9, 0.47, 2.15])  height 0.88 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.35, 0.03], [0.45, 0.47, 2.15])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_D4.glb (41044 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_D']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=524 tris=262
+rest (closed) bbox ([0.1, 0.35, 0.03], [4.9, 0.47, 2.15])  height 0.88 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+open bbox ([-4.35, 0.35, 0.03], [0.45, 0.47, 2.15])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_D4_fast.glb (39540 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_D']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=524 tris=262
+rest (closed) bbox ([0.1, 0.35, 0.03], [4.9, 0.47, 2.15])  height 0.88 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+open bbox ([-4.35, 0.35, 0.03], [0.45, 0.47, 2.15])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slide1_D6.glb (50284 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_D']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=692 tris=346
+rest (closed) bbox ([0.1, 0.35, 0.03], [6.9, 0.47, 2.15])  height 0.88 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+open bbox ([-6.35, 0.35, 0.03], [0.45, 0.47, 2.15])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_D6_fast.glb (48784 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_D']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=692 tris=346
+rest (closed) bbox ([0.1, 0.35, 0.03], [6.9, 0.47, 2.15])  height 0.88 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+open bbox ([-6.35, 0.35, 0.03], [0.45, 0.47, 2.15])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slidepost2_D.glb (14500 bytes) static, verts=268 tris=132 bbox ([-0.24, -0.135, 0.0], [0.24, 0.497, 4.74]) images ['MinidoracatKnoxPass_slide_D']
+
+== MinidoracatKnoxPass_slidemotor2_D.glb (16884 bytes) static, verts=336 tris=166 bbox ([-0.28, -0.49, 0.0], [0.28, 0.497, 4.74]) images ['MinidoracatKnoxPass_slide_D']
+
+== MinidoracatKnoxPass_slide2_D3.glb (51384 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_D']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=712 tris=356
+rest (closed) bbox ([0.1, 0.35, 0.03], [3.9, 0.47, 4.45])  height 1.82 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.35, 0.03], [0.45, 0.47, 4.45])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_D3_fast.glb (49884 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_D']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=712 tris=356
+rest (closed) bbox ([0.1, 0.35, 0.03], [3.9, 0.47, 4.45])  height 1.82 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.35, 0.03], [0.45, 0.47, 4.45])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_D4.glb (56444 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_D']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=804 tris=402
+rest (closed) bbox ([0.1, 0.35, 0.03], [4.9, 0.47, 4.45])  height 1.82 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+open bbox ([-4.35, 0.35, 0.03], [0.45, 0.47, 4.45])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_D4_fast.glb (54940 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_D']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=804 tris=402
+rest (closed) bbox ([0.1, 0.35, 0.03], [4.9, 0.47, 4.45])  height 1.82 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+open bbox ([-4.35, 0.35, 0.03], [0.45, 0.47, 4.45])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slide2_D6.glb (71852 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_D']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=1084 tris=542
+rest (closed) bbox ([0.1, 0.35, 0.03], [6.9, 0.47, 4.45])  height 1.82 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+open bbox ([-6.35, 0.35, 0.03], [0.45, 0.47, 4.45])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_D6_fast.glb (70348 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['OPAQUE']  images ['MinidoracatKnoxPass_slide_D']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=1084 tris=542
+rest (closed) bbox ([0.1, 0.35, 0.03], [6.9, 0.47, 4.45])  height 1.82 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+open bbox ([-6.35, 0.35, 0.03], [0.45, 0.47, 4.45])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slidepost1_F.glb (57100 bytes) static, verts=216 tris=108 bbox ([-0.24, -0.135, 0.0], [0.24, 0.493, 2.44]) images ['MinidoracatKnoxPass_slide_F']
+
+== MinidoracatKnoxPass_slidemotor1_F.glb (59480 bytes) static, verts=284 tris=142 bbox ([-0.28, -0.49, 0.0], [0.28, 0.493, 2.44]) images ['MinidoracatKnoxPass_slide_F']
+
+== MinidoracatKnoxPass_slide1_F3.glb (75108 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_F']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=336 tris=168
+rest (closed) bbox ([0.1, 0.354, 0.03], [3.9, 0.466, 2.15])  height 0.88 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.354, 0.03], [0.45, 0.466, 2.15])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_F3_fast.glb (73604 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_F']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=336 tris=168
+rest (closed) bbox ([0.1, 0.354, 0.03], [3.9, 0.466, 2.15])  height 0.88 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.354, 0.03], [0.45, 0.466, 2.15])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_F4.glb (76868 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_F']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=368 tris=184
+rest (closed) bbox ([0.1, 0.354, 0.03], [4.9, 0.466, 2.15])  height 0.88 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+open bbox ([-4.35, 0.354, 0.03], [0.45, 0.466, 2.15])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_F4_fast.glb (75364 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_F']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=368 tris=184
+rest (closed) bbox ([0.1, 0.354, 0.03], [4.9, 0.466, 2.15])  height 0.88 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+open bbox ([-4.35, 0.354, 0.03], [0.45, 0.466, 2.15])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slide1_F6.glb (82808 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_F']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=476 tris=238
+rest (closed) bbox ([0.1, 0.354, 0.03], [6.9, 0.466, 2.15])  height 0.88 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+open bbox ([-6.35, 0.354, 0.03], [0.45, 0.466, 2.15])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_F6_fast.glb (81304 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_F']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=476 tris=238
+rest (closed) bbox ([0.1, 0.354, 0.03], [6.9, 0.466, 2.15])  height 0.88 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+open bbox ([-6.35, 0.354, 0.03], [0.45, 0.466, 2.15])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slidepost2_F.glb (59340 bytes) static, verts=280 tris=140 bbox ([-0.24, -0.135, 0.0], [0.24, 0.493, 4.74]) images ['MinidoracatKnoxPass_slide_F']
+
+== MinidoracatKnoxPass_slidemotor2_F.glb (61720 bytes) static, verts=348 tris=174 bbox ([-0.28, -0.49, 0.0], [0.28, 0.493, 4.74]) images ['MinidoracatKnoxPass_slide_F']
+
+== MinidoracatKnoxPass_slide2_F3.glb (79728 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_F']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=420 tris=210
+rest (closed) bbox ([0.1, 0.354, 0.03], [3.9, 0.466, 4.45])  height 1.82 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.354, 0.03], [0.45, 0.466, 4.45])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_F3_fast.glb (78224 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_F']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=420 tris=210
+rest (closed) bbox ([0.1, 0.354, 0.03], [3.9, 0.466, 4.45])  height 1.82 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.354, 0.03], [0.45, 0.466, 4.45])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_F4.glb (82368 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_F']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=468 tris=234
+rest (closed) bbox ([0.1, 0.354, 0.03], [4.9, 0.466, 4.45])  height 1.82 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+open bbox ([-4.35, 0.354, 0.03], [0.45, 0.466, 4.45])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_F4_fast.glb (80864 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_F']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=468 tris=234
+rest (closed) bbox ([0.1, 0.354, 0.03], [4.9, 0.466, 4.45])  height 1.82 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+open bbox ([-4.35, 0.354, 0.03], [0.45, 0.466, 4.45])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slide2_F6.glb (90068 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_F']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=608 tris=304
+rest (closed) bbox ([0.1, 0.354, 0.03], [6.9, 0.466, 4.45])  height 1.82 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+open bbox ([-6.35, 0.354, 0.03], [0.45, 0.466, 4.45])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_F6_fast.glb (88564 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_F']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=608 tris=304
+rest (closed) bbox ([0.1, 0.354, 0.03], [6.9, 0.466, 4.45])  height 1.82 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+open bbox ([-6.35, 0.354, 0.03], [0.45, 0.466, 4.45])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slidepost1_G.glb (57544 bytes) static, verts=216 tris=108 bbox ([-0.24, -0.135, 0.0], [0.24, 0.487, 2.44]) images ['MinidoracatKnoxPass_slide_G']
+
+== MinidoracatKnoxPass_slidemotor1_G.glb (59924 bytes) static, verts=284 tris=142 bbox ([-0.28, -0.49, 0.0], [0.28, 0.487, 2.44]) images ['MinidoracatKnoxPass_slide_G']
+
+== MinidoracatKnoxPass_slide1_G3.glb (79516 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_G']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=408 tris=204
+rest (closed) bbox ([0.1, 0.36, 0.03], [3.9, 0.46, 2.13])  height 0.87 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.36, 0.03], [0.45, 0.46, 2.13])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_G3_fast.glb (78012 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_G']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=408 tris=204
+rest (closed) bbox ([0.1, 0.36, 0.03], [3.9, 0.46, 2.13])  height 0.87 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.36, 0.03], [0.45, 0.46, 2.13])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_G4.glb (81276 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_G']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=440 tris=220
+rest (closed) bbox ([0.1, 0.36, 0.03], [4.9, 0.46, 2.13])  height 0.87 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+open bbox ([-4.35, 0.36, 0.03], [0.45, 0.46, 2.13])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_G4_fast.glb (79772 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_G']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=440 tris=220
+rest (closed) bbox ([0.1, 0.36, 0.03], [4.9, 0.46, 2.13])  height 0.87 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+open bbox ([-4.35, 0.36, 0.03], [0.45, 0.46, 2.13])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slide1_G6.glb (86996 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_G']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=544 tris=272
+rest (closed) bbox ([0.1, 0.36, 0.03], [6.9, 0.46, 2.13])  height 0.87 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+open bbox ([-6.35, 0.36, 0.03], [0.45, 0.46, 2.13])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide1_G6_fast.glb (85492 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_G']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=544 tris=272
+rest (closed) bbox ([0.1, 0.36, 0.03], [6.9, 0.46, 2.13])  height 0.87 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+open bbox ([-6.35, 0.36, 0.03], [0.45, 0.46, 2.13])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slidepost2_G.glb (59784 bytes) static, verts=280 tris=140 bbox ([-0.24, -0.135, 0.0], [0.24, 0.487, 4.74]) images ['MinidoracatKnoxPass_slide_G']
+
+== MinidoracatKnoxPass_slidemotor2_G.glb (62168 bytes) static, verts=348 tris=174 bbox ([-0.28, -0.49, 0.0], [0.28, 0.487, 4.74]) images ['MinidoracatKnoxPass_slide_G']
+
+== MinidoracatKnoxPass_slide2_G3.glb (84136 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_G']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=492 tris=246
+rest (closed) bbox ([0.1, 0.36, 0.03], [3.9, 0.46, 4.43])  height 1.81 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.36, 0.03], [0.45, 0.46, 4.43])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0300, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_G3_fast.glb (82636 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_G']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=492 tris=246
+rest (closed) bbox ([0.1, 0.36, 0.03], [3.9, 0.46, 4.43])  height 1.81 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.108, 0.108), (0.5, 1.725, 1.725), (0.9, 3.342, 3.342), (1.0, 3.45, 3.45)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+open bbox ([-3.35, 0.36, 0.03], [0.45, 0.46, 4.43])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 3.45, 3.45), (0.1, 3.342, 3.342), (0.5, 1.725, 1.725), (0.9, 0.108, 0.108), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0480, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_G4.glb (86776 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_G']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=540 tris=270
+rest (closed) bbox ([0.1, 0.36, 0.03], [4.9, 0.46, 4.43])  height 1.81 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+open bbox ([-4.35, 0.36, 0.03], [0.45, 0.46, 4.43])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0390, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_G4_fast.glb (85272 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_G']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=540 tris=270
+rest (closed) bbox ([0.1, 0.36, 0.03], [4.9, 0.46, 4.43])  height 1.81 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.139, 0.139), (0.5, 2.225, 2.225), (0.9, 4.311, 4.311), (1.0, 4.45, 4.45)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+open bbox ([-4.35, 0.36, 0.03], [0.45, 0.46, 4.43])
+clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 4.45, 4.45), (0.1, 4.311, 4.311), (0.5, 2.225, 2.225), (0.9, 0.139, 0.139), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0620, first 0.0020 last 0.0020
+
+== MinidoracatKnoxPass_slide2_G6.glb (94260 bytes)
+glTF animations {'Close': (0.041666666666666664, 6.041666666666667), 'Open': (0.041666666666666664, 6.041666666666667)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_G']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=676 tris=338
+rest (closed) bbox ([0.1, 0.36, 0.03], [6.9, 0.46, 4.43])  height 1.81 stories
+clip Open: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+open bbox ([-6.35, 0.36, 0.03], [0.45, 0.46, 4.43])
+clip Close: frames 1-145 = 6.00 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0010 max 0.0560, first 0.0010 last 0.0010
+
+== MinidoracatKnoxPass_slide2_G6_fast.glb (92756 bytes)
+glTF animations {'Close': (0.041666666666666664, 3.7916666666666665), 'Open': (0.041666666666666664, 3.7916666666666665)}  alphaMode ['MASK']  images ['MinidoracatKnoxPass_slide_G']
+bones [('LeafBone', (0.1, 0.41, 0.0)), ('PostBone', (0.0, 0.0, 0.0))]  verts=676 tris=338
+rest (closed) bbox ([0.1, 0.36, 0.03], [6.9, 0.46, 4.43])  height 1.81 stories
+clip Open: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 0.0, 0.0), (0.1, 0.202, 0.202), (0.5, 3.225, 3.225), (0.9, 6.248, 6.248), (1.0, 6.45, 6.45)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
+open bbox ([-6.35, 0.36, 0.03], [0.45, 0.46, 4.43])
 clip Close: frames 1-91 = 3.75 s, (t, slid, want) [(0.0, 6.45, 6.45), (0.1, 6.248, 6.248), (0.5, 3.225, 3.225), (0.9, 0.202, 0.202), (1.0, 0.0, 0.0)]; per-frame step min 0.0020 max 0.0900, first 0.0020 last 0.0020
 
 ALL OK

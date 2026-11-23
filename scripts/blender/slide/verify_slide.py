@@ -1,6 +1,6 @@
 """Re-import every export/*.glb and check it: clips, bones, the leaf's slide along Open and Close (= travel x ease(t),
 monotonic, eased start and stop), closed / open spans, and that the leaf stays in its plane clear of the posts, the
-guide brackets and the reader on the end-A post.
+guide brackets and the reader on a post face; the motor post = the post plus the cabinet behind it, inside the tile.
 用法：blender -b --factory-startup --python verify_slide.py      (writes export/verify.txt, exit 1 on any failure)
 """
 import importlib.util
@@ -37,14 +37,13 @@ def leaf(look, story, L, suffix=""):
     assert set(anims) == {"Open", "Close"}, anims
     assert all(abs(t0 - 1 / G.FPS) < 1e-4 and abs(t1 - t0 - clip_s) < 1e-3 for t0, t1 in anims.values()), anims
     assert [i.get("name") for i in j["images"]] == [S.texture(look)], j["images"]
-    if S.geometry(look) == "A":
-        assert j["materials"][0].get("alphaMode") == "MASK", j["materials"]
+    assert (j["materials"][0].get("alphaMode") == "MASK") == (look in S.CUTOUT), j["materials"]
     sc, rig, mesh = V.load(glb)
     out(f"bones {[(b.name, tuple(round(v, 3) for v in b.head_local)) for b in rig.data.bones]}  "
         f"verts={len(mesh.data.vertices)} tris={V.tris(mesh)}")
     assert sorted(b.name for b in rig.data.bones) == ["LeafBone", "PostBone"]
     assert len(V.verts(mesh, "LeafBone")) == len(mesh.data.vertices), "every vertex rides the leaf bone"
-    hw, half, top = S.post_hw(look), S.LEAF_T[S.geometry(look)] / 2, S.TOP[story]
+    hw, half, top = S.POST_HW, S.LEAF_T[look] / 2, S.TOP[story]
     ad = rig.animation_data
     for tr in ad.nla_tracks:
         tr.mute = True
@@ -94,17 +93,23 @@ def leaf(look, story, L, suffix=""):
             assert b[1][0] <= 0.5 and b[0][0] >= -L - 0.5, "open leaf inside the stow end's tile and the L stow tiles"
 
 
-def post(look, story):
-    glb = HERE / "export" / f"{S.post_model(look, story)}.glb"
+def post(look, story, motor):
+    glb = HERE / "export" / f"{S.post_model(look, story, motor)}.glb"
     j, size = V.gltf(glb)
     sc, _, mesh = V.load(glb)
     ws = V.verts(mesh)
     b = V.box(ws)
     out(f"\n== {glb.name} ({size} bytes) static, verts={len(mesh.data.vertices)} tris={V.tris(mesh)} bbox {b} "
         f"images {[i.get('name') for i in j['images']]}")
-    hw, half, top = S.post_hw(look), S.LEAF_T[S.geometry(look)] / 2, S.TOP[story]
+    hw, half, top = S.POST_HW, S.LEAF_T[look] / 2, S.TOP[story]
+    assert [i.get("name") for i in j["images"]] == [S.texture(look)], j["images"]
     assert abs(b[0][0] + b[1][0]) < 1e-3 and b[1][2] < story * G.STORY, b   # symmetric: both ends share a transform
     assert -0.5 < b[0][1] and b[1][1] < 0.5, b
+    # behind the post: the footing, or the cabinet (waist high) on the motor post
+    back = S.MOTOR_Y[0] - 0.02 if motor else S.POST_Y - hw - 0.07
+    assert abs(b[0][1] - back) < 1e-3, (b, back)
+    cab = [w for w in ws if w.y < S.POST_Y - hw - 0.07 - 1e-4]
+    assert bool(cab) == motor and all(w.z <= 1.0 for w in cab), (motor, len(cab))
     # the guide bracket (everything off the post's line-side face) clears the leaf's swept box by 0.01
     for w in ws:
         if w.y > S.POST_Y + hw + 1e-4 and w.z > 0.2:
@@ -119,9 +124,10 @@ def check(fn, *a):
         out("FAIL " + traceback.format_exc())
 
 
-for look, story, group in S.VARIANTS:
-    check(post, look, story)
-    for L in S.GROUPS[group]:
+for look, story in sorted({(S.geometry(v[0]), v[1]) for v in S.VARIANTS}):
+    for motor in (False, True):
+        check(post, look, story, motor)
+    for L in (L for g in S.GROUPS.values() for L in g):
         check(leaf, look, story, L)
         check(leaf, look, story, L, "_fast")
 out(f"\n{'FAILED ' + str(V.failed) if V.failed else 'ALL OK'}")

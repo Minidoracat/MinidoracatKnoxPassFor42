@@ -702,11 +702,527 @@ module Base
         keepMeshAnimations = true,
     }
 
+    model MinidoracatKnoxPass_slide1_A3
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_A3,
+        animationsMesh = MinidoracatKnoxPass_slide1_A3,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_A3
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_A3,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_A4
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_A4,
+        animationsMesh = MinidoracatKnoxPass_slide1_A4,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_A4
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_A4,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_B3
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_B3,
+        animationsMesh = MinidoracatKnoxPass_slide1_B3,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_B3
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_B3,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_B4
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_B4,
+        animationsMesh = MinidoracatKnoxPass_slide1_B4,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_B4
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_B4,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_C3
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_C3,
+        animationsMesh = MinidoracatKnoxPass_slide1_C3,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_C3
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_C3,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_C4
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_C4,
+        animationsMesh = MinidoracatKnoxPass_slide1_C4,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_C4
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_C4,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_D3
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_D3,
+        animationsMesh = MinidoracatKnoxPass_slide1_D3,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_D3
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_D3,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_D4
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_D4,
+        animationsMesh = MinidoracatKnoxPass_slide1_D4,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_D4
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_D4,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_F3
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_F3,
+        animationsMesh = MinidoracatKnoxPass_slide1_F3,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_F3
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_F3,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_F4
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_F4,
+        animationsMesh = MinidoracatKnoxPass_slide1_F4,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_F4
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_F4,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_G3
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_G3,
+        animationsMesh = MinidoracatKnoxPass_slide1_G3,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_G3
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_G3,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_G4
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_G4,
+        animationsMesh = MinidoracatKnoxPass_slide1_G4,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_G4
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_G4,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slidepost1_A
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidepost1_A,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidemotor1_A
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidemotor1_A,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidepost1_B
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidepost1_B,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidemotor1_B
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidemotor1_B,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidepost1_C
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidepost1_C,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidemotor1_C
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidemotor1_C,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidepost1_D
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidepost1_D,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidemotor1_D
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidemotor1_D,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidepost1_F
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidepost1_F,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidemotor1_F
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidemotor1_F,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidepost1_G
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidepost1_G,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidemotor1_G
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidemotor1_G,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_A3Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_A3_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_A3Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_A3Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_A3_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_A4Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_A4_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_A4Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_A4Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_A4_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_B3Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_B3_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_B3Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_B3Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_B3_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_B4Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_B4_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_B4Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_B4Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_B4_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_C3Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_C3_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_C3Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_C3Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_C3_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_C4Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_C4_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_C4Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_C4Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_C4_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_D3Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_D3_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_D3Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_D3Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_D3_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_D4Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_D4_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_D4Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_D4Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_D4_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_F3Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_F3_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_F3Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_F3Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_F3_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_F4Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_F4_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_F4Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_F4Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_F4_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_G3Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_G3_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_G3Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_G3Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_G3_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_G4Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_G4_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_G4Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_G4Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_G4_fast,
+        keepMeshAnimations = true,
+    }
+
     model MinidoracatKnoxPass_slide1_A6
     {
         mesh = IsoObject/MinidoracatKnoxPass_slide1_A6,
         animationsMesh = MinidoracatKnoxPass_slide1_A6,
-        texture = IsoObject/MinidoracatKnoxPass_gate_A,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
         shader = door,
         static = false,
         scale = 1.0,
@@ -719,20 +1235,96 @@ module Base
         keepMeshAnimations = true,
     }
 
-    model MinidoracatKnoxPass_slidepost1_A
+    model MinidoracatKnoxPass_slide1_B6
     {
-        mesh = IsoObject/MinidoracatKnoxPass_slidepost1_A,
-        texture = IsoObject/MinidoracatKnoxPass_gate_A,
-        static = true,
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_B6,
+        animationsMesh = MinidoracatKnoxPass_slide1_B6,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        shader = door,
+        static = false,
         scale = 1.0,
         undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_B6
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_B6,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_C6
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_C6,
+        animationsMesh = MinidoracatKnoxPass_slide1_C6,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_C6
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_C6,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_D6
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_D6,
+        animationsMesh = MinidoracatKnoxPass_slide1_D6,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_D6
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_D6,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_F6
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_F6,
+        animationsMesh = MinidoracatKnoxPass_slide1_F6,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_F6
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_F6,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_G6
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_G6,
+        animationsMesh = MinidoracatKnoxPass_slide1_G6,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_G6
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_G6,
+        keepMeshAnimations = true,
     }
 
     model MinidoracatKnoxPass_slide1_A6Fast
     {
         mesh = IsoObject/MinidoracatKnoxPass_slide1_A6_fast,
         animationsMesh = MinidoracatKnoxPass_slide1_A6Fast,
-        texture = IsoObject/MinidoracatKnoxPass_gate_A,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
         shader = door,
         static = false,
         scale = 1.0,
@@ -742,6 +1334,811 @@ module Base
     animationsMesh MinidoracatKnoxPass_slide1_A6Fast
     {
         meshFile = IsoObject/MinidoracatKnoxPass_slide1_A6_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_B6Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_B6_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_B6Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_B6Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_B6_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_C6Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_C6_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_C6Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_C6Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_C6_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_D6Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_D6_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_D6Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_D6Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_D6_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_F6Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_F6_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_F6Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_F6Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_F6_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide1_G6Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide1_G6_fast,
+        animationsMesh = MinidoracatKnoxPass_slide1_G6Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide1_G6Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide1_G6_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_A3
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_A3,
+        animationsMesh = MinidoracatKnoxPass_slide2_A3,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_A3
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_A3,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_A4
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_A4,
+        animationsMesh = MinidoracatKnoxPass_slide2_A4,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_A4
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_A4,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_B3
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_B3,
+        animationsMesh = MinidoracatKnoxPass_slide2_B3,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_B3
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_B3,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_B4
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_B4,
+        animationsMesh = MinidoracatKnoxPass_slide2_B4,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_B4
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_B4,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_C3
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_C3,
+        animationsMesh = MinidoracatKnoxPass_slide2_C3,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_C3
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_C3,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_C4
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_C4,
+        animationsMesh = MinidoracatKnoxPass_slide2_C4,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_C4
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_C4,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_D3
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_D3,
+        animationsMesh = MinidoracatKnoxPass_slide2_D3,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_D3
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_D3,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_D4
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_D4,
+        animationsMesh = MinidoracatKnoxPass_slide2_D4,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_D4
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_D4,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_F3
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_F3,
+        animationsMesh = MinidoracatKnoxPass_slide2_F3,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_F3
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_F3,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_F4
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_F4,
+        animationsMesh = MinidoracatKnoxPass_slide2_F4,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_F4
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_F4,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_G3
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_G3,
+        animationsMesh = MinidoracatKnoxPass_slide2_G3,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_G3
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_G3,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_G4
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_G4,
+        animationsMesh = MinidoracatKnoxPass_slide2_G4,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_G4
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_G4,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slidepost2_A
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidepost2_A,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidemotor2_A
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidemotor2_A,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidepost2_B
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidepost2_B,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidemotor2_B
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidemotor2_B,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidepost2_C
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidepost2_C,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidemotor2_C
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidemotor2_C,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidepost2_D
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidepost2_D,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidemotor2_D
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidemotor2_D,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidepost2_F
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidepost2_F,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidemotor2_F
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidemotor2_F,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidepost2_G
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidepost2_G,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slidemotor2_G
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slidemotor2_G,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        static = true,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_A3Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_A3_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_A3Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_A3Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_A3_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_A4Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_A4_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_A4Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_A4Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_A4_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_B3Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_B3_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_B3Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_B3Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_B3_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_B4Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_B4_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_B4Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_B4Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_B4_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_C3Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_C3_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_C3Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_C3Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_C3_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_C4Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_C4_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_C4Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_C4Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_C4_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_D3Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_D3_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_D3Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_D3Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_D3_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_D4Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_D4_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_D4Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_D4Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_D4_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_F3Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_F3_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_F3Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_F3Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_F3_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_F4Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_F4_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_F4Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_F4Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_F4_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_G3Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_G3_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_G3Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_G3Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_G3_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_G4Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_G4_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_G4Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_G4Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_G4_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_A6
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_A6,
+        animationsMesh = MinidoracatKnoxPass_slide2_A6,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_A6
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_A6,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_B6
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_B6,
+        animationsMesh = MinidoracatKnoxPass_slide2_B6,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_B6
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_B6,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_C6
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_C6,
+        animationsMesh = MinidoracatKnoxPass_slide2_C6,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_C6
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_C6,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_D6
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_D6,
+        animationsMesh = MinidoracatKnoxPass_slide2_D6,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_D6
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_D6,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_F6
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_F6,
+        animationsMesh = MinidoracatKnoxPass_slide2_F6,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_F6
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_F6,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_G6
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_G6,
+        animationsMesh = MinidoracatKnoxPass_slide2_G6,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_G6
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_G6,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_A6Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_A6_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_A6Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_A,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_A6Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_A6_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_B6Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_B6_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_B6Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_B,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_B6Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_B6_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_C6Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_C6_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_C6Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_C,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_C6Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_C6_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_D6Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_D6_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_D6Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_D,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_D6Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_D6_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_F6Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_F6_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_F6Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_F,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_F6Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_F6_fast,
+        keepMeshAnimations = true,
+    }
+
+    model MinidoracatKnoxPass_slide2_G6Fast
+    {
+        mesh = IsoObject/MinidoracatKnoxPass_slide2_G6_fast,
+        animationsMesh = MinidoracatKnoxPass_slide2_G6Fast,
+        texture = IsoObject/MinidoracatKnoxPass_slide_G,
+        shader = door,
+        static = false,
+        scale = 1.0,
+        undoCoreScale = true,
+    }
+
+    animationsMesh MinidoracatKnoxPass_slide2_G6Fast
+    {
+        meshFile = IsoObject/MinidoracatKnoxPass_slide2_G6_fast,
         keepMeshAnimations = true,
     }
 }

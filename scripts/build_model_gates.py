@@ -14,7 +14,8 @@ IsoWorld.java:644-646, so a shipped number never moves):
     14     MinidoracatKnoxPass_upperwall                      upstairs wall of the two-story gates (Barrier.lua)
     15-29  MinidoracatKnoxPass_gate_ablack .. _aturquoise     painted chain-link skins of look A (2026-11-01)
     30-42  MinidoracatKnoxPass_roll2f_black .. _turquoise     painted roll door styles (2026-11-01)
-    43-    MinidoracatKnoxPass_slide<story>_<look><widths><l|r>   sliding gates (scripts/blender/slide/spec.py)
+    43-98  MinidoracatKnoxPass_slide<story>_<look><widths><l|r>   sliding gates (scripts/blender/slide/spec.py):
+                                                              2 stories x widths 34 / 6 x 7 looks x stow side
 
 Painted gate skins and roll door styles: look A's / the roll door's models with their own atlas (spriteModels
 texture), the base recipe plus one can of the vanilla paint (scripts/blender/paint.py).
@@ -23,7 +24,8 @@ index = block * 64 + slot, block = widthIdx * len(faces) + faceIdx. Slots (Lua C
 
     0 1 2   lane closed: GarageDoor 1 (chain anchor: ledger, reader, markers) / every middle piece / last piece
     8 9 10  lane open: GarageDoor 4 / 5 / 6 (engine open sprite = closed + 8, IsoDoor.java:793-805)
-    3 4     end A (lane-1 side) / end B: solid IsoThumpable (cabinet or post), static model
+    3 4     end A (lane-1 side) / end B: solid IsoThumpable (cabinet or post), static model; a sliding gate's stow end
+            is the post with the drive cabinet
     5 13    spriteModels only: the animated model at rest, closed (Open t0) / open (Close t0), hosted on the middle piece
             (lane host_lane(width)); lanes carry no spriteModel of their own (see HOST below)
     16..    build placeholder of lane k = 16 + k - 1: doorN/W + CustomName only, NO GarageDoor (mods that take over
@@ -52,6 +54,7 @@ import json
 import re
 from dataclasses import dataclass, field
 from functools import cache
+from itertools import product
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -68,6 +71,9 @@ PLACEHOLDER = 16
 POSE_OPEN, POSE_CLOSE, POSES = 32, 48, 8
 ONCREATE = "MinidoracatKnoxPass.ModelGate.onCreate"
 FIRE = "900000"
+# the vanilla spelling: the lower-case one works too (IsoWorld.java:779-782) but logs "Property Name not found" at boot
+# (IsoPropertyType.java:215, :280-291)
+FIRE_PROP = "fireRequirement"
 # 加速版：中間片靜止時的關／開模型（HOST 兩格），clip 秒數（Blender CLIP_S；KNOXPASS_FAST=1）
 # The animated model hangs on the middle piece, not on lane 1: the translucent pass draws an object only while its square
 # IsOnScreen() (FBORenderCell.java:3558, IsoGridSquare.java:7839-7869), so a 9-wide gate hosted on lane 1 vanished
@@ -108,8 +114,12 @@ NUMBERS = {
     "MinidoracatKnoxPass_roll2f_purple": 38, "MinidoracatKnoxPass_roll2f_blue": 39,
     "MinidoracatKnoxPass_roll2f_lightblue": 40, "MinidoracatKnoxPass_roll2f_cyan": 41,
     "MinidoracatKnoxPass_roll2f_turquoise": 42,
-    "MinidoracatKnoxPass_slide1_a6l": 43, "MinidoracatKnoxPass_slide1_a6r": 44,
 }
+# sliding gates 43-98: story, width group, look, side in this order. A shipped number never moves: a later look gets
+# its own entries after these, not a place in this product
+SLIDE_LOOKS = ("a", "b", "c", "d", "f", "g", "ablack")
+NUMBERS |= {f"MinidoracatKnoxPass_slide{s}_{lk}{g}{side}": 43 + i
+            for i, (s, g, lk, side) in enumerate(product((1, 2), ("34", "6"), SLIDE_LOOKS, "lr"))}
 
 
 def fast_tileset(name: str) -> str:
@@ -247,7 +257,8 @@ def _gate() -> Kind:
 
 
 def _slide() -> list[Kind]:
-    """One kind per story x width group (scripts/blender/slide/spec.py); tileset variant = look + side (AL, AR)."""
+    """One kind per story x width group (scripts/blender/slide/spec.py); tileset variant = look + side (AL, ABlackR).
+    A painted look (ABlack) = its base look's models with its own atlas, the base recipe plus one can of paint."""
     m = _manifest("slide")
     out = []
     for key, kv in m["kinds"].items():
@@ -257,7 +268,11 @@ def _slide() -> list[Kind]:
         k = Kind(key, "Knox Pass Sliding Gate", tuple(kv["widths"]), ("N", "W", "S", "E"), True,
                  [(t, NUMBERS[t], v["variant"]) for t, v in sets.items()],
                  frozenset(v["variant"] for v in sets.values() if v["seeThrough"]),
+                 base={v["variant"]: v["base"] for v in sets.values() if "base" in v},
+                 paint={v["variant"]: v["paint"] for v in sets.values() if "paint" in v},
                  story=kv["story"], pillar=len(GATE_LOOKS) + mounts.pop())
+        if not out:   # one atlas per look, shared by every kind
+            k.textures = [(REPO / v["src"], _ship(v["ship"])) for v in m["textures"].values()]
         for b in (b for b in m["blocks"] if b["kind"] == key):
             slots = {int(s): v for s, v in b["slots"].items()}
             k.blocks.append(Block(b["tileset"], b["blockInTileset"], b["width"], b["face"], b["entity"],
@@ -333,6 +348,9 @@ def mark_slots() -> list[tuple[int, int]]:
 # 2026-10-08 design (temp/design-knoxpass-r4): barrier2 = boom barrier kit + parts; roll2f = the one-story roll door of
 # the same width x2 (build_barrier_tiles.py ROLLDOOR_RECIPE), time x1.5, MetalWelding 4; gate 9 wide = 6 wide x1.5,
 # iron looks MetalWelding 5 (vanilla double wire gate is 5), wood looks Woodwork 5, E also welds its iron bands.
+# 2026-11-23 sliding gates: two-story = the same look's gate per 3 tiles of width (3 and 4 wide = 1, 6 wide = 2) with
+# MetalBar (the rail) for the hinges; one-story = half of everything, skill 4. F = C's pipes + A's wire, G = A +
+# barbed wire.
 ROLL_ONE_STORY = {3: (300, 6, 6, 4, 4, 4), 4: (400, 8, 8, 5, 5, 5), 6: (600, 12, 12, 8, 8, 8), 9: (900, 18, 18, 12, 12, 12)}
 SCREWDRIVER = "item 1 tags[base:screwdriver] mode:keep flags[Prop1;MayDegradeVeryLight]"
 HAMMER = "item 1 tags[base:hammer] mode:keep flags[Prop1;MayDegradeVeryLight]"
@@ -364,14 +382,20 @@ def _recipe(kind: Kind, variant, width: int) -> tuple[dict, list[str]]:
                  "SkillRequired": "MetalWelding:4", "xpAward": f"MetalWelding:{time * 3 // 20}"},
                 [_item(torch * 2, "Base.BlowTorch", True), _item(rods * 2, "Base.WeldingRods", True),
                  _item(sheet * 2, "Base.SheetMetal"), _item(pipe * 2, "Base.MetalPipe"), _item(hinge * 2, "Base.Hinge")])
-    if kind.story:                           # sliding gate: the two-story gates' pace per 3 tiles, MetalBar = the rail;
-        look, s, half = variant[:-1], max(1, round(width / 3)), kind.story == 1   # one story: half of all, skill 4
+    if kind.story:
+        look, s, half = variant[:-1], max(1, round(width / 3)), kind.story == 1
         n = lambda q: q * s // (2 if half else 1)  # noqa: E731
-        extra = {"A": [_item(n(4), "Base.Wire")], "B": [_item(n(4), "Base.SheetMetal")]}.get(look, [])
+        if look == "D":
+            return ({"timedAction": "BuildWallHammer", "time": n(450), "category": "Carpentry",
+                     "SkillRequired": f"Woodwork:{4 if half else 5}", "xpAward": f"Woodwork:{n(450) // 10}"},
+                    [HAMMER, _item(n(12), "Base.Plank"), _item(n(16), "Base.Nails"), _item(n(2), "Base.MetalBar")])
+        wire = [_item(n(4), "Base.Wire")]
+        extra = {"A": wire, "B": [_item(n(4), "Base.SheetMetal")], "C": [], "F": wire,
+                 "G": wire + [_item(n(2), "Base.BarbedWire")]}[look]
         return ({"timedAction": "BuildWallMetal", "time": n(450), "category": "Welding",
                  "SkillRequired": f"MetalWelding:{4 if half else 5}", "xpAward": f"MetalWelding:{n(450) // 10}"},
                 [_item(n(10), "Base.BlowTorch", True), _item(n(10), "Base.WeldingRods", True),
-                 _item(n(8), "Base.MetalPipe"), _item(n(2), "Base.MetalBar")] + extra)
+                 _item(n(12 if look in "CF" else 8), "Base.MetalPipe"), _item(n(2), "Base.MetalBar")] + extra)
     s = {6: 2, 9: 3}[width]                  # halves: 6 wide = 2, 9 wide = 3
     time = {6: 900, 9: 1200}[width]
     xp = time // 10
@@ -397,6 +421,64 @@ def display_key(kind: Kind, variant, width: int) -> str:
         return f"IGUI_KnoxPass_Slide{kind.story}_{variant[:-1]}{width}{variant[-1]}"
     return {"barrier2": f"IGUI_KnoxPass_Barrier2_{width}", "roll2f": f"IGUI_KnoxPass_Roll2F_{variant}{width}",
             "gate": f"IGUI_KnoxPass_Gate_{variant}{width}"}[kind.key]
+
+
+# ---- sliding gate names ---------------------------------------------------------------------------------------------
+# 84 build-menu names x 16 languages are one sentence of four parts, so they are composed here (as gen_colors.py does
+# for the recipe names). language -> (sentence, one / two story, stows left / right, looks in SLIDE_NAME_LOOKS order)
+TRANSLATE = MEDIA / "lua" / "shared" / "Translate"
+SLIDE_NAME_LOOKS = ("A", "B", "C", "D", "F", "G", "ABlack")
+_ES = ("Portón corredizo de {story} ({look}, {width} de ancho, abre a la {side})", ("un piso", "dos pisos"),
+       ("izquierda", "derecha"), ("malla metálica", "chapa de acero", "barrotes de hierro", "tablones de madera",
+                                  "amarillo industrial", "malla con alambre de púas", "malla metálica negra"))
+_PT = ("Portão de Correr de {story} ({look}, {width} de largura, abre para a {side})", ("Um Andar", "Dois Andares"),
+       ("esquerda", "direita"), ("Tela de Arame", "Chapa de Aço", "Barras de Ferro", "Tábuas de Madeira",
+                                 "Amarelo Industrial", "Tela com Arame Farpado", "Tela de Arame Preta"))
+SLIDE_NAMES = {
+    "AR": _ES, "ES": _ES, "ES_CL": _ES, "ES_MX": _ES, "PT": _PT, "PTBR": _PT,
+    "CH": ("{story}滑動大門（{look}，{width} 格寬，往{side}收）", ("一層樓", "兩層樓"), ("左", "右"),
+           ("鐵網", "鋼板", "鐵欄杆", "木板", "工業黃", "帶刺鐵絲網", "黑色鐵網")),
+    "CN": ("{story}滑动大门（{look}，{width} 格宽，往{side}收）", ("一层楼", "两层楼"), ("左", "右"),
+           ("铁网", "钢板", "铁栏杆", "木板", "工业黄", "带刺铁丝网", "黑色铁网")),
+    "DE": ("{story} Schiebetor ({look}, {width} breit, öffnet nach {side})", ("Einstöckiges", "Zweistöckiges"),
+           ("links", "rechts"), ("Maschendraht", "Stahlblech", "Eisenstäbe", "Holzbretter", "Industriegelb",
+                                 "Maschendraht mit Stacheldraht", "Maschendraht in Schwarz")),
+    "EN": ("{story} Sliding Gate ({look}, {width} wide, opens {side})", ("One-Story", "Two-Story"), ("left", "right"),
+           ("Chain-link", "Steel Plate", "Iron Bars", "Wooden Planks", "Industrial Yellow", "Barbed Wire", "Black Chain-link")),
+    "FR": ("Portail coulissant (hauteur {story}, {look}, largeur {width}, ouverture à {side})", ("1 étage", "2 étages"),
+           ("gauche", "droite"), ("grillage", "tôle d'acier", "barreaux de fer", "planches de bois", "jaune industriel",
+                                  "grillage barbelé", "grillage noir")),
+    "JP": ("{story}スライドゲート（{look}・{width} マス幅・{side}開き）", ("1 階建て", "2 階建て"), ("左", "右"),
+           ("金網", "鋼板", "鉄柵", "木の板", "工業用イエロー", "有刺鉄線", "ブラックの金網")),
+    "KO": ("{story} 높이의 미닫이 대문 ({look}, 폭 {width}, {side}으로 열림)", ("1층", "2층"), ("왼쪽", "오른쪽"),
+           ("철망", "강철판", "쇠창살", "나무 판자", "산업용 노란색", "가시철조망", "검은색 철망")),
+    "PL": ("{story} brama przesuwna ({look}, szer. {width}, otwiera się w {side})", ("Parterowa", "Piętrowa"),
+           ("lewo", "prawo"), ("siatka", "blacha stalowa", "żelazne pręty", "deski", "żółć przemysłowa",
+                               "siatka z drutem kolczastym", "czarna siatka")),
+    "RU": ("{story} откатные ворота ({look}, ширина {width}, открываются {side})", ("Одноэтажные", "Двухэтажные"),
+           ("влево", "вправо"), ("сетка-рабица", "стальной лист", "железные прутья", "доски", "промышленные жёлтые",
+                                 "сетка с колючей проволокой", "чёрная сетка-рабица")),
+    "TR": ("{story} Sürgülü Kapı ({look}, {width} kare genişliğinde, {side} açılır)", ("Tek Katlı", "İki Katlı"),
+           ("sola", "sağa"), ("Tel Örgü", "Çelik Levha", "Demir Parmaklık", "Ahşap Kalas", "Endüstriyel Sarı",
+                              "Dikenli Tel", "Siyah Tel Örgü")),
+}
+
+
+def ig_ui_with_slide_names(lang: str, text: str) -> str:
+    """IG_UI.json with the sliding gate names: hand-written entries keep their order, the names follow Kind_Slide."""
+    sentence, stories, sides, looks = SLIDE_NAMES[lang]
+    look = dict(zip(SLIDE_NAME_LOOKS, looks, strict=True))
+    names = {display_key(k, v, w): sentence.format(story=stories[k.story - 1], look=look[v[:-1]], width=w,
+                                                   side=sides["LR".index(v[-1])])
+             for k in kinds() if k.story for _, _, v in k.tilesets for w in k.widths}
+    out = {}
+    for key, value in json.loads(text).items():
+        if not re.match(r"IGUI_KnoxPass_Slide\d_", key):
+            out[key] = value
+            if key == "IGUI_KnoxPass_Kind_Slide":
+                out |= names
+    assert names.keys() <= out.keys(), f"{lang}/IG_UI.json has no IGUI_KnoxPass_Kind_Slide"
+    return json.dumps(out, ensure_ascii=False, indent=4) + "\n"
 
 
 # Two-story roll door dismantle refund (Lua Core.lua KP.ROLL2F_REFUND, Barrier.lua B.dismantle): its lanes are IsoDoors with
@@ -436,13 +518,13 @@ def slot_props(kind: Kind, variant, b: Block, slot: int) -> dict:
         p = {f"door{edge}": "", "GarageDoor": str(slot % OPEN + 1 + (3 if slot >= OPEN else 0))}
         if variant in kind.see_through:
             p["doorTrans"] = ""
-        return p | {"CustomName": kind.name, "firerequirement": FIRE}
+        return p | {"CustomName": kind.name, FIRE_PROP: FIRE}
     if kind.ends and slot in (END_A, END_B):
-        return {"solid": "", "BlocksPlacement": "", "Facing": b.face, "CustomName": kind.name, "firerequirement": FIRE}
+        return {"solid": "", "BlocksPlacement": "", "Facing": b.face, "CustomName": kind.name, FIRE_PROP: FIRE}
     if PLACEHOLDER <= slot < PLACEHOLDER + b.width:
-        return {f"door{edge}": "", "CustomName": kind.name, "firerequirement": FIRE}
+        return {f"door{edge}": "", "CustomName": kind.name, FIRE_PROP: FIRE}
     if slot in b.stow:
-        return {"CustomName": kind.name, "firerequirement": FIRE}
+        return {"CustomName": kind.name, FIRE_PROP: FIRE}
     return {}
 
 
@@ -479,15 +561,19 @@ def pillar_tiles() -> dict[int, tuple]:
 # property gets no wall / door physics (IsoChunk.calcPhysics), while cars read the property only on their own floor
 # (BaseVehicle.breakingObjects / damageObjects), so nothing changes on the ground floor. The closed gate still stops
 # cars with its ground-floor door. *Trans adds transparentN/W (sight passes) for the see-through looks (Lua
-# KP.SEE_THROUGH). firerequirement >= FIRE_IMMUNE_THRESHOLD keeps BurnWalls from turning it into a visible burnt wall
+# KP.SEE_THROUGH). fireRequirement >= FIRE_IMMUNE_THRESHOLD keeps BurnWalls from turning it into a visible burnt wall
 # (IsoGridSquare.java:301, 6296, 6341-6350). Transparent pack entry. index = 2 * see-through + north
 UPPER_TILESET, UPPER_NUMBER = "MinidoracatKnoxPass_upperwall", 14
 TWO_STORY = ("roll2f", "gate")    # kinds that get the upstairs wall (Lua KP.MODEL_GATES upper = true)
 
 
+def two_story(kind: Kind) -> bool:
+    return kind.key in TWO_STORY or kind.story == 2
+
+
 def upper_tiles() -> dict[int, dict]:
     return {i: {("WallN" if i % 2 else "WallW") + ("Trans" if i >= 2 else ""): "", "CarSlowFactor": "0",
-                "firerequirement": FIRE} for i in range(4)}
+                FIRE_PROP: FIRE} for i in range(4)}
 
 
 def layout() -> dict[str, dict[int, tuple[tuple[str, ...], dict]]]:
@@ -650,6 +736,9 @@ def write() -> None:
     for kind in kinds():
         entity_path(kind).write_text(entity_script(kind), encoding="ascii", newline="\n")
     CORE_LUA.write_text(core_lua_with_refund(CORE_LUA.read_text(encoding="utf-8")), encoding="utf-8", newline="\n")
+    for lang in SLIDE_NAMES:
+        path = TRANSLATE / lang / "IG_UI.json"
+        path.write_text(ig_ui_with_slide_names(lang, path.read_text(encoding="utf-8")), encoding="utf-8", newline="\n")
 
 
 # ---- check ------------------------------------------------------------------------------------------------------
@@ -670,7 +759,7 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     assert all(f"{PILLAR_TILESET}_{i}" in pack_names for i in pillar)
     lay = layout()
     # upstairs wall: 0 W, 1 N, 2 / 3 the same with sight passing; no car physics; nothing else on the tile, empty 2D
-    car = {"CarSlowFactor": "0", "firerequirement": FIRE}
+    car = {"CarSlowFactor": "0", FIRE_PROP: FIRE}
     assert tsets[UPPER_TILESET]["tiles"] == [{"WallW": ""} | car, {"WallN": ""} | car, {"WallWTrans": ""} | car,
                                              {"WallNTrans": ""} | car], tsets[UPPER_TILESET]
     assert all(c == () for c, _ in lay[UPPER_TILESET].values()) and all(
@@ -701,16 +790,22 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
             # makes a door (Lua removes it); side R = side L's model turned 180 deg
             assert len(b.stow) == (b.width if kind.story else 0) and not set(b.stow) & set(range(PLACEHOLDER + b.width)), b
             for s in b.stow:
-                assert t[base + s] == {"CustomName": kind.name, "firerequirement": FIRE}, (b, s)
+                assert t[base + s] == {"CustomName": kind.name, FIRE_PROP: FIRE}, (b, s)
                 assert f"{b.tileset}_{base + s}" in pack_names, (b, s)
             assert (f"{b.tileset}_{base + STOW_HOST}" in pack_names) == bool(b.stow) and not t[base + STOW_HOST], b
             if b.stow:
                 rows, n = [s for r in faces_rows(kind, b) for s in r], b.width
                 assert len(rows) == 2 * n + 2 and (rows[:n][::-1] if b.stow_head else rows[-n:]) == list(b.stow), (b, rows)
-                if variant[b.tileset].endswith("R"):
+                side = variant[b.tileset][-1]
+                if side == "R":
                     left = next(o for o in kind.blocks if (o.entity, o.face) == (b.entity[:-1] + "L", b.face))
                     assert b.sm[0][0] == left.sm[0][0] and b.stow_head != left.stow_head, b
                     assert [(x - y) % 360 for x, y in zip(b.sm[0][2], left.sm[0][2])] == [0, 180, 0], b
+                # the drive cabinet stands on the end the leaf stows past (Lua KP.stowAtA; the reader takes the other)
+                at_a = (b.face in "NW") == (side == "L")
+                assert ["slidemotor" in b.sm[s][0] for s in (END_A, END_B)] == [at_a, not at_a], b
+                assert b.sm[END_A][0].replace("motor", "post") == b.sm[END_B][0].replace("motor", "post"), b
+                assert b.stow_head == ((b.face in "NS") == at_a), b
             # manifest: model on lane 1 only: closed = Open t0, open = Close t0, 9 + 9 poses; ends static
             sm = b.sm
             assert set(sm) == {0, OPEN, *range(POSE_OPEN, POSE_OPEN + 9), *range(POSE_CLOSE, POSE_CLOSE + 9)} | (
@@ -720,8 +815,9 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
                 assert sm[POSE_OPEN + f][4:] == sm[POSE_CLOSE + f][4:] == ("Open", f / POSES), (b, f)
                 assert sm[POSE_OPEN + f][:3] == sm[0][:3], (b, f)   # texture may differ: barrier2 lights go green
             if variant[b.tileset] in kind.paint:   # a painted variant wears its own atlas on every model slot
+                look = variant[b.tileset][:-1] if kind.story else variant[b.tileset]
                 tex = {s[3] for s in sm.values()}
-                assert len(tex) == 1 and next(iter(tex)).lower().endswith("_" + variant[b.tileset].lower()), (b, tex)
+                assert len(tex) == 1 and next(iter(tex)).lower().endswith("_" + look.lower()), (b, tex)
             # shipped: rest models on HOST / HOST + OPEN, nothing on any lane tile, poses re-based with them
             h, (dx, dy) = hosted(b), (ALONG[b.face][0] * (b.width // 2), ALONG[b.face][1] * (b.width // 2))
             marks = {s for s, _ in mark_slots()} if b.stow else set()
@@ -779,7 +875,19 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     lua = CORE_LUA.read_text(encoding="utf-8")
     assert core_lua_with_refund(lua) == lua, "Core.lua KP.ROLL2F_REFUND is stale: rerun the builder"
     lua_sets = dict(re.findall(r"^    (MinidoracatKnoxPass_\w+) = (\w+),", lua, re.M))
-    assert set(lua_sets) == {n for n, _, _ in specs} - {PILLAR_TILESET, UPPER_TILESET}, sorted(lua_sets)
+    slide = [k for k in kinds() if k.story]
+    assert set(lua_sets) == {n for n, _, _ in specs} - {PILLAR_TILESET, UPPER_TILESET} - {
+        t for k in slide for t, _, _ in k.tilesets}, sorted(lua_sets)
+    # sliding gates: Lua builds the tileset names from its defs x SLIDE_LOOKS x l / r; look -> "see" (sight passes:
+    # doorTrans lanes, the see-through upstairs wall), "wood" (dismantled with a hammer, as its recipe builds) or ""
+    m = re.search(r"^local SLIDE_LOOKS = \{ (.*) \}$", lua, re.M)
+    lua_looks = dict(re.findall(r'(\w+) = "(\w*)"', m.group(1)))
+    assert lua_looks == {v[:-1].lower(): "wood" if "hammer" in recipe(k, v, k.widths[0])[1][0] else
+                         "see" if v in k.see_through else "" for k in slide for _, _, v in k.tilesets}, lua_looks
+    assert tuple(lua_looks) == SLIDE_LOOKS and len({(k.story, k.key) for k in slide}) == 4
+    assert '"MinidoracatKnoxPass_slide" .. def.story .. "_" .. look .. def.group .. side' in lua
+    assert ("for _, def in ipairs({ " + ", ".join(f"SLIDE{k.story}_{k.key.split('w')[1]}" for k in slide) + " }) do") in lua
+    assert all(not (v in k.see_through and "hammer" in recipe(k, v, k.widths[0])[1][0]) for k in slide for _, _, v in k.tilesets)
     assert f'KP.UPPER_WALL_TILESET = "{UPPER_TILESET}"' in lua
     assert re.search(rf"^KP\.GATE_SLOT = \{{ .*\bHOST = {HOST}, STOW_HOST = {STOW_HOST}, STOW_REST = {STOW_REST}, .*"
                      rf"\bSTOW_POSE = {STOW_POSE}, POSE_CLOSE = {POSE_CLOSE} \}}", lua, re.M) and (
@@ -789,6 +897,7 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
     m = re.search(r"^KP\.SEE_THROUGH = \{ (.*) \}$", lua, re.M)
     assert m and set(re.findall(r"(MinidoracatKnoxPass_\w+) = true", m.group(1))) == see, f"Lua KP.SEE_THROUGH != {see}"
     assert f'KP.READER_PILLAR_TILESET = "{PILLAR_TILESET}"' in lua and f"KP.READER_PILLAR_STRIDE = {PILLAR_STRIDE}" in lua
+    assert f"KP.READER_PILLAR_LOOKS = {n_looks}" in lua, "Lua KP.READER_PILLAR_LOOKS (orphan reader sweep, ReaderPost.lua)"
     assert ('string.match(spriteName, "^MinidoracatKnoxPass_(.+)$")' in lua
             and '"MinidoracatKnoxPassFast_" .. rest' in lua), "Lua KP.fastTwin no longer matches fast_tileset()"
     gate = kinds()[2]
@@ -801,13 +910,20 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
         t for t in lua_sets if re.match(r"MinidoracatKnoxPass_gate_a[a-z]", t)} and set(gate.base.values()) == {"A"}
     for kind in kinds():
         for name, _, _ in kind.tilesets:
-            d = re.search(rf"^local {lua_sets[name]} = \{{(.*?)\}}\n(?!\s)", lua, re.M | re.S).group(1)
+            group = kind.key.split("w")[1] if kind.story else None
+            d = re.search(rf"^local {f'SLIDE{kind.story}_{group}' if kind.story else lua_sets[name]} = \{{(.*?)\}}\n(?!\s)",
+                          lua, re.M | re.S).group(1)
             assert re.search(r"widths = \{ " + ", ".join(map(str, kind.widths)) + r" \}", d), (name, d)
             assert re.search(r"faces = \{ " + ", ".join(f'"{f}"' for f in kind.faces) + r" \}", d), (name, d)
             assert re.search(rf"ends = {str(kind.ends).lower()}", d), (name, d)
-            assert ("upper = true" in d) == (kind.key in TWO_STORY), (name, d)
+            assert ("upper = true" in d) == two_story(kind), (name, d)
             assert kind.pillar is None or f"pillar = {kind.pillar}" in d, (name, d)
+            assert not kind.story or f'story = {kind.story}, group = "{group}"' in d, (name, d)
             for w in kind.widths:
                 hp = {h for (v, wd, h) in kind.entities.values() if wd == w}
                 assert len(hp) == 1 and f"[{w}] = {hp.pop()}" in d, (name, w)
+    assert set(SLIDE_NAMES) == {d.name for d in TRANSLATE.iterdir()}, "a language has no sliding gate names"
+    for lang in SLIDE_NAMES:
+        text = (TRANSLATE / lang / "IG_UI.json").read_text(encoding="utf-8")
+        assert ig_ui_with_slide_names(lang, text) == text, f"{lang}/IG_UI.json sliding gate names are stale: rerun the builder"
     return f"r4 {len(specs)} tilesets / {n_blocks} blocks / {sum(len(k.entities) for k in kinds())} entities"
