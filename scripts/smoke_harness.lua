@@ -128,7 +128,8 @@ function instanceof(o, name)
     return false
 end
 
-Capability = { CanOpenLockedDoors = "CanOpenLockedDoors", CanSetupSafehouses = "CanSetupSafehouses" }
+Capability = { CanOpenLockedDoors = "CanOpenLockedDoors", CanSetupSafehouses = "CanSetupSafehouses",
+    CanGoInsideSafehouses = "CanGoInsideSafehouses" }
 
 -- ===== 假世界 =====
 local W
@@ -219,7 +220,6 @@ local cell = {
         return square(x, y, z)
     end,
     createNewGridSquare = function(_, x, y, z) return square(x, y, z) end,   -- IsoCell.java（ISBuildIsoEntity.lua 同用法）
-    getDrag = function(_, n) return W.drag and W.drag[n] end,   -- 玩家 n 手上的建造游標（IsoCell.java:2578）；情境設 W.drag[n]
 }
 -- 載入 (x, y) 所在的 chunk：LoadChunk(chunk)（IsoChunk.java:3968）。Lua 拿得到的只有 chunk 內座標的 getGridSquare 與樓層範圍
 local function loadChunk(x, y)
@@ -1443,6 +1443,15 @@ local FAKE_MODULES = {
             return true
         end
     end,
+    -- 原版建造驗證只留本 MOD 接的那一段（ISBuildIsoEntity.lua:444-485、:177-197）：對一格呼叫 SpriteConfig 的 OnIsValid。
+    -- 建造物件 { sprite＝那格的替代 tile, player＝客戶端的玩家序號／伺服器 BuildAction.parse 放的交易玩家（BuildAction.java:161） }
+    ["BuildingObjects/ISBuildIsoEntity"] = function()
+        ISBuildIsoEntity = {}
+        function ISBuildIsoEntity:isValid(square)
+            local name = self.sprite
+            return MinidoracatKnoxPass.Barrier.onIsValid({ square = square, tileInfo = { getSpriteName = function() return name end } })
+        end
+    end,
     ["BuildingObjects/ISDestroyCursor"] = function()
         ISDestroyCursor = {}
         function ISDestroyCursor:canDestroy() return true end   -- 原版判斷（ISDestroyCursor.lua:293-362）此處一律放行
@@ -1500,6 +1509,7 @@ local function bootMod()
     for k in pairs(systems) do systems[k] = nil end
     MinidoracatKnoxPass, KnoxPassAPI, SGlobalObjectSystem, ISBaseObject = nil, nil, nil, nil
     ISDestroyStuffAction, ISDismantleAction, ISDestroyCursor, ISMoveableSpriteProps = nil, nil, nil, nil
+    ISBuildIsoEntity = nil
     -- 原版撬開判定（ISForceOpen.lua:48-77）這裡只記呼叫次數、回標記，看 Server.lua 的包裝放行（呼叫原函式）還是擋下（不呼叫）
     ISForceOpen = { calls = 0, attempt = function() ISForceOpen.calls = ISForceOpen.calls + 1; return "orig" end }
     for _, name in ipairs(MOD_FILES) do require(name) end
@@ -5251,24 +5261,52 @@ local function scenarioModelGates()
     check(dismantle(slider, s4.B).why == "NeedHammer" and present(s4.A), "木板滑動門帶著焊槍也不行：NeedHammer")
     slider._inv:AddItem("Base.Hammer")
     check(dismantle(slider, s4.B).ok == true and gone(s4) and #square(1202, 100, 0)._objects == 0, "帶鎚子拆木板滑動門")
-    -- 建造逐格檢查（SpriteConfig OnIsValid，游標與伺服器驗建造都經過）：收納段那格有實心物不給蓋；伺服器不查安全屋
-    local function valid(name, sq, facing)
-        return KP.Barrier.onIsValid({ square = sq, facing = facing, tileInfo = { getSpriteName = function() return name end } })
+    -- 建造逐格檢查（SpriteConfig OnIsValid，游標與伺服器驗建造都經過 ISBuildIsoEntity:isValid）：收納段那格有實心物或樹
+    -- 不給蓋；伺服器照交易的玩家逐格查安全屋（原版 entity 建造只在客戶端查，改過的客戶端直接送建造就繞過）
+    local function valid(name, sq, who)
+        return ISBuildIsoEntity.isValid({ sprite = name, player = who }, sq)
+    end
+    -- 模型門 tileset 第一種寬度、face 向那一區塊的格位
+    local function at(tileset, face, slot)
+        for i, f in ipairs(KP.MODEL_GATES[tileset].faces) do
+            if f == face then return tileset .. "_" .. ((i - 1) * 64 + slot) end
+        end
     end
     local SL1, spot = "MinidoracatKnoxPass_slide1_a6l_", square(1300, 100, 0)
-    check(valid(SL1 .. "25", spot, "n") == true, "收納段空著：可以蓋")
+    check(valid(SL1 .. "25", spot) == true, "收納段空著：可以蓋")
     spot._props = { solidtrans = true }
-    check(valid(SL1 .. "25", spot, "n") == false and valid(SL1 .. "30", spot, "n") == false and valid(SL1 .. "16", spot, "n") == true
-        and valid("MinidoracatKnoxPass_gate_a_16", spot, "n") == true,
+    check(valid(SL1 .. "25", spot) == false and valid(SL1 .. "30", spot) == false and valid(SL1 .. "16", spot) == true
+        and valid("MinidoracatKnoxPass_gate_a_16", spot) == true,
         "收納段那格有實心物（家具）：不給蓋（原版對有 sprite 的格子不查）；車道的替代 tile 與別種門不歸這條管")
     spot._props = { [IsoPropertyType.BLOCKS_PLACEMENT] = true }
-    check(valid(SL1 .. "27", spot, "n") == false, "收納段那格帶 BlocksPlacement：不給蓋")
+    check(valid(SL1 .. "27", spot) == false, "收納段那格帶 BlocksPlacement：不給蓋")
+    spot._props = { [IsoObjectType.tree] = true }
+    check(valid(SL1 .. "26", spot) == false and valid(SL1 .. "16", spot) == true,
+        "收納段那格有樹（樹不帶 solid，IsoGridSquare.java:3389）：不給蓋")
     spot._props = { WallN = true, HoppableN = true }
-    check(valid(SL1 .. "25", spot, "n") == true, "沿門線的牆與圍籬不是實心物：收納段照樣能蓋")
-    W.houses[#W.houses + 1] = { owner = "neighbor", members = {} }
-    W.houseAt[spot], W.locals, W.drag = W.houses[#W.houses], { builder }, { [0] = true }
-    check(valid(SL1 .. "16", spot, "n") == true, "伺服器驗建造時不查安全屋（參數沒有施工者，同原版只在客戶端查）")
-    W.houseAt[spot], W.locals, W.drag = nil, {}, nil
+    check(valid(SL1 .. "25", spot) == true, "沿門線的牆與圍籬不是實心物：收納段照樣能蓋")
+    local house = { owner = "neighbor", members = {} }
+    W.houses[#W.houses + 1] = house
+    W.houseAt[spot] = house
+    check(valid(SL1 .. "16", spot, builder) == false and valid(SL1 .. "3", spot, builder) == false
+        and valid(SL1 .. "25", spot, builder) == false and valid("MinidoracatKnoxPass_barrier_160", spot, builder) == false,
+        "伺服器驗建造：交易的玩家不是成員，別人的安全屋裡每一格（車道、兩端、收納段、單臂閘門）都不給蓋")
+    check(KP.Barrier.onIsValid({ square = spot, tileInfo = { getSpriteName = function() return SL1 .. "16" end } }) == true
+        and valid(SL1 .. "16", spot) == true,
+        "驗完就放掉施工者；不知道是誰在蓋（別的程式直接問）照原版放行")
+    check(valid(at("MinidoracatKnoxPass_slide1_a6l", "S", 16), square(1300, 99, 0), builder) == false
+        and valid(at("MinidoracatKnoxPass_slide1_a6l", "E", 16), square(1299, 100, 0), builder) == false
+        and valid("MinidoracatKnoxPass_barrier_240", square(1300, 99, 0), builder) == false
+        and valid("MinidoracatKnoxPass_barrier_243", square(1299, 100, 0), builder) == false
+        and valid(SL1 .. "16", square(1300, 99, 0), builder) == true,
+        "伺服器 S／E 向：車道擺放格在外面、門片落的下一列／下一行在別人的安全屋裡 → 不給蓋（滑動門與單臂閘門）")
+    house.members.builder = true
+    check(valid(SL1 .. "16", spot, builder) == true, "伺服器：成員可以蓋")
+    house.members.builder = nil
+    builder._role._caps.CanGoInsideSafehouses = true
+    check(valid(SL1 .. "16", spot, builder) == true, "伺服器：能進別人安全屋的管理員不受限（客戶端的 isSafeHouse 自己放行，伺服器要自己對）")
+    builder._role._caps.CanGoInsideSafehouses = nil
+    W.houseAt[spot] = nil
     -- 孤兒標記：整座被移走時標記那格沒載入（跨 chunk）收不到它；那格載入時錨點已經沒有這座門就移除，錨點沒載入先留著
     local so = buildModelGate("MinidoracatKnoxPass_slide1_a6r", 0, 6, "N", true, 1300, 110, builder, "R")
     step()
@@ -5278,6 +5316,11 @@ local function scenarioModelGates()
     loadSprite(omark)
     step()
     check(present(omark), "標記載入時門還在：留著")
+    so.lanes[1]:ToggleDoor(builder)
+    loadSprite(omark)
+    step()
+    check(so.lanes[1]:IsOpen() and present(omark), "標記載入時門開著（車道 1 是開的 sprite）：一樣留著")
+    so.lanes[1]:ToggleDoor(builder)
     W.unloaded[okey] = true
     ISDestroyStuffAction.complete({ item = so.lanes[2] })
     step()
@@ -5287,10 +5330,12 @@ local function scenarioModelGates()
     loadSprite(omark)
     step()
     check(present(omark), "標記載入時錨點那格沒載入：先留著，不誤刪")
+    runMs(20000)
+    check(present(omark), "錨點那格一直沒載入：隔一陣子重對也不刪")
     W.unloaded[akey] = nil
-    loadSprite(omark)
-    step()
-    check(not present(omark) and #osq._objects == 0, "標記載入時錨點那格已經沒有這座門：移除孤兒標記")
+    runMs(15250)
+    check(not present(omark) and #osq._objects == 0,
+        "錨點那格後來才載入、已經沒有這座門：不必等標記重新載入，重對時移除孤兒標記")
 
     -- 拆除與打壞：整座一起移除、帳本刪除、柱面讀頭拿掉；拆除只退被拆那一端的材料
     local pipes = W.dropped["Base.MetalPipe"] or 0
@@ -5460,19 +5505,50 @@ local function scenarioModelGates()
     runMs(1250)
     check(host._smName == SL .. "48" and math.abs(smTime(host) - 0.5) < 0.011, "下一次開關才用新的速度：1.25 秒走到一半")
     runMs(1350)
+    -- MP：開關同步與擁有者改速落在同一個每秒巡檢的 tick：引擎的原生 clip 是用改速前掛著的模型起播的，這一次照原本的
+    -- 4 秒鎖（先改速再鎖的話標記照 2.5 秒追一個 4 秒的 clip，換手時門扇會跳）。巡檢落在哪個 tick 從外面看不到，四個相位都跑
+    sg.lanes[1]._modData[KP.MARKER_SPEED] = nil   -- 上一段留著加速
+    runMs(1000)
+    for _ = 1, 4 do
+        sg.lanes[1]._modData[KP.MARKER_SPEED] = "fast"
+        host:ToggleDoor(me)
+        host:setAnimating(true)
+        step()
+        runMs(750)
+        host._square._off = true
+        step()
+        check(math.abs(smTime(mark) - 0.25) < 0.011, "開門同步與改速同一個 tick：1 秒時標記在 0.25（照 4 秒），不是 0.4")
+        host._square._off = nil
+        host:setAnimating(false)
+        runMs(3250)
+        sg.lanes[1]._modData[KP.MARKER_SPEED] = nil
+        runMs(1000)
+        host:ToggleDoor(me)
+        host:setAnimating(true)
+        step()
+        host:setAnimating(false)
+        runMs(4500)   -- 一輪 41 個 tick：下一輪的相位往後一格
+    end
     -- 標記那個 chunk 卸載後，引擎把同一個 Java 物件配給別的地圖物件（換了格子與 sprite，getObjectIndex 又有效）：
-    -- 快取的參照不是我們的標記了，不能在它身上設模型或 animating
-    local stray = square(900, 900, 0)
-    mark._square:transmitRemoveItemFromSquare(mark)
-    mark._spriteObj, mark._smName, mark._animating = getSprite("vegetation_foliage_01_0"), nil, false
-    stray:AddTileObject(mark)
-    host._square._off = true
-    step()
-    step()
-    host._square._off = nil
-    check(mark:getObjectIndex() == 0 and mark._smName == nil and not mark:isAnimating()
-        and host._smName == "MinidoracatKnoxPassFast_slide1_a6l_5",
-        "標記的物件被引擎重用到別格：不碰它（不設模型、不標 animating），門扇留給中間片畫")
+    -- 快取的參照不是我們的標記了，不能在它身上設模型或 animating，也不能拿它的格子決定誰畫（中間片不在畫面上、那個
+    -- 物件的新格子在畫面上時，會把中間片藏起來，門扇整片不見）。重用後第一個 tick 就要對；四個相位都跑（同上）
+    local stray, home, markSprite = square(900, 900, 0), mark._square, mark._spriteObj
+    local hostDraws = true
+    for _ = 1, 4 do
+        home:transmitRemoveItemFromSquare(mark)
+        mark._spriteObj, mark._smName, mark._animating = getSprite("vegetation_foliage_01_0"), nil, false
+        stray:AddTileObject(mark)
+        host._square._off = true
+        step()
+        hostDraws = hostDraws and mark:getObjectIndex() == 0 and mark._smName == nil and not mark:isAnimating()
+            and host._smName == SL .. "5"
+        host._square._off = nil
+        stray:transmitRemoveItemFromSquare(mark)
+        mark._spriteObj = markSprite
+        home:AddTileObject(mark)
+        runMs(1000)   -- 巡檢重新找到標記；一輪 5 個 tick，相位往後一格
+    end
+    check(hostDraws, "標記的物件被引擎重用到別格：當下那個 tick 就不碰它（不設模型、不標 animating），門扇留給中間片畫")
     clean(from, "模型門動畫（SP）")
 
     -- MP client：寬門跨 chunk、片的載入順序不定；舊版存檔的門（錨點帶覆寫、中間片沒有）
@@ -5481,23 +5557,38 @@ local function scenarioModelGates()
     local viewer = newPlayer("viewer", 205, 103)
     W.locals = { viewer }
     local ts, base = "MinidoracatKnoxPass_barrier2", 2 * 64   -- 雙桿閘門 9 格 N（區塊 2）
-    -- 建造逐格檢查在客戶端每一格都查安全屋（原版只查游標原點那格）：別人的安全屋裡的格子不給蓋，S／E 向連門片實際落的
-    -- 下一列／下一行；自己是成員、手上沒有建造游標（不是他在蓋）都放行
+    -- 建造逐格檢查在客戶端每一格都查安全屋（原版只查游標原點那格）：別人的安全屋裡的格子不給蓋；S／E 向的車道門片與
+    -- 兩層樓門兩端的二樓牆落在下一列／下一行，那一格也查；自己是成員放行；分割畫面只看正在蓋的那位
     W.houses[1] = { owner = "neighbor", members = {} }
-    local theirs = square(250, 100, 0)
-    W.houseAt[theirs], W.drag = W.houses[1], { [0] = true }
-    check(valid(ts .. "_16", theirs, "n") == false and valid(ts .. "_3", theirs, "n") == false
-        and valid("MinidoracatKnoxPass_barrier_160", theirs, "n") == false and valid(SL .. "25", theirs, "n") == false
-        and valid(ts .. "_16", square(251, 100, 0), "n") == true,
+    local theirs, SLT, SLT2 = square(250, 100, 0), "MinidoracatKnoxPass_slide1_a6l", "MinidoracatKnoxPass_slide2_a6l"
+    W.houseAt[theirs] = W.houses[1]
+    check(valid(ts .. "_16", theirs, 0) == false and valid(ts .. "_3", theirs, 0) == false
+        and valid("MinidoracatKnoxPass_barrier_160", theirs, 0) == false and valid(SL .. "25", theirs, 0) == false
+        and valid(ts .. "_16", square(251, 100, 0), 0) == true,
         "MP 客戶端：別人的安全屋裡的每一格（車道、兩端、收納段、單臂閘門）都不給蓋，隔壁格可以")
-    check(valid(SL .. "16", square(250, 99, 0), "s") == false and valid(SL .. "16", square(249, 100, 0), "e") == false
-        and valid(SL .. "16", square(250, 99, 0), "n") == true,
-        "S／E 向：擺放格在外面、門片落的下一列／下一行在別人的安全屋裡 → 不給蓋")
+    check(valid(at(SLT, "S", 16), square(250, 99, 0), 0) == false and valid(at(SLT, "E", 16), square(249, 100, 0), 0) == false
+        and valid(at(SLT, "N", 16), square(250, 99, 0), 0) == true,
+        "S／E 向：車道擺放格在外面、門片落的下一列／下一行在別人的安全屋裡 → 不給蓋")
+    check(valid(at(SLT, "S", 25), square(250, 99, 0), 0) == true and valid(at(SLT, "S", 3), square(250, 99, 0), 0) == true
+        and valid("MinidoracatKnoxPass_barrier_86", square(250, 99, 0), 0) == true,
+        "S 向一層樓的兩端、收納段、單臂閘門的機箱只佔擺放格：下一列是別人的安全屋照樣能蓋")
+    check(valid(at(SLT2, "S", 3), square(250, 99, 0), 0) == false and valid(at(SLT2, "S", 25), square(250, 99, 0), 0) == true,
+        "S 向兩層樓門的一端：二樓隱形牆落在下一列，那一格在別人的安全屋裡 → 不給蓋；收納段不放牆，可以")
+    check(valid(at(SLT, "S", 16), theirs, 0) == false,
+        "S 向車道的擺放格在別人的安全屋裡、門片落的下一列在外面：照樣不給蓋（兩格都查）")
+    W.unloaded["250,100,1"], W.unloaded["251,100,1"], W.unloaded["252,100,1"], W.unloaded["252,100,0"] = true, true, true, true
+    check(valid(at(SLT, "S", 16), square(250, 99, 1), 0) == false and valid(at(SLT, "S", 16), square(251, 99, 1), 0) == true
+        and valid(at(SLT, "S", 16), square(252, 99, 1), 0) == false,
+        "樓上的 S 向車道：門片落的那格在那一層還沒有格子 → 看地面那層（安全屋只看 x、y）：在別人的安全屋裡不給蓋，不在就可以；"
+        .. "連地面那層都沒載入，查不了就不給蓋")
+    W.unloaded["250,100,1"], W.unloaded["251,100,1"], W.unloaded["252,100,1"], W.unloaded["252,100,0"] = nil, nil, nil, nil
+    local guest = setmetatable({ _name = "guest" }, getmetatable(viewer))
     W.houses[1].members.viewer = true
-    check(valid(ts .. "_16", theirs, "n") == true, "自己是那間安全屋的成員：可以蓋")
+    W.locals = { viewer, guest }
+    check(valid(ts .. "_16", theirs, 0) == true and valid(ts .. "_16", theirs, 1) == false,
+        "自己是那間安全屋的成員：可以蓋；分割畫面的另一位不是成員，只擋他自己的游標")
     W.houses[1].members.viewer = nil
-    W.drag = nil
-    check(valid(ts .. "_16", theirs, "n") == true, "手上沒有建造游標的本機玩家不算（分割畫面只看正在蓋的那位）")
+    W.locals = { viewer }
     W.houseAt[theirs] = nil
     local function piece(k, x)
         local d = IsoDoor.new(nil, nil, getSprite(ts .. "_" .. (base + (k == 1 and 0 or k == 9 and 2 or 1))), true)

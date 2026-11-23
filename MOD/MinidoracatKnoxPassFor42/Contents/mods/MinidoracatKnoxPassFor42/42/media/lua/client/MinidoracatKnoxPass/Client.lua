@@ -173,14 +173,14 @@ function Action:new(character, door, command, ticks)
 end
 
 -- 讀頭上的動作（拆、換電瓶、換色）走位與面向的目標：讀頭旁的那片門。讀頭都在錨點那一端，只有往 A 端收的滑動門掛在
--- 另一端（KP.readerEnd）：那種門走到最後一片，不然人在讀頭前點了動作，角色卻繞到門的另一頭。指令照舊帶帳本 key，
--- 伺服器兩端都認（Server.lua nearGate）
+-- 另一端（KP.readerEnd）：那種門走到最後一片，不然人在讀頭前點了動作，角色卻繞到門的另一頭。鏈沒載齊（尾端在還沒
+-- 載入的 chunk）時找到的最後一片不是讀頭端，照舊走到錨點。指令照舊帶帳本 key，伺服器兩端都認（Server.lua nearGate）
 local function readerDoor(anchor)
     local mg = KP.modelGate(anchor)
     if not (mg and mg.def.kind == "Slide" and KP.stowAtA(mg)) then return anchor end
     local adapter, first = G.resolve(anchor)
     local pieces = adapter and G.pieces(adapter, first)
-    return pieces and pieces[#pieces] or anchor
+    return pieces and #pieces == mg.width and pieces[#pieces] or anchor
 end
 
 -- 走到門邊（原版開關門／鎖門同款：ISWorldObjectContextMenu.lua:1510）→ 拿起子（:1371）→ 動作

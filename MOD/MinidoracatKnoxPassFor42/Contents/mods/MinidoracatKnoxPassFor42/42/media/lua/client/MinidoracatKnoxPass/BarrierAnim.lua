@@ -312,7 +312,9 @@ end
 -- STOW_POSE 的通道照 s.mstart 走（打開那組之後 s.close 格是關上那組，共 POSE_CLOSE − STOW_POSE 個；都被拿走就共用，
 -- 沒登錄就畫靜止的）
 local function stowTick(obj, s, open, now, sweep)
-    if s.mark == nil or sweep and not markValid(s) then
+    -- 每個 tick 都對：被引擎重用的參照下面會拿它的格子決定誰畫，認錯會把中間片藏起來、標記又不是我們的，門扇整片不見
+    if s.mark and not markValid(s) then s.mark, s.msm = nil, false end
+    if s.mark == nil or sweep and not s.mark then
         local mark = markOf(s) or false   -- false＝找過了不在，每秒再找
         if mark ~= s.mark then s.mark, s.msm = mark, false end   -- 新找到的一律重設：SP 存檔帶著上次的覆寫
     end
@@ -360,6 +362,9 @@ function A.tick()
             drop = drop or {}
             drop[#drop + 1] = obj
         else
+            -- 開關先於下面的改速：MP 的原生 clip 是引擎用改速前掛著的模型起播的，這一次的時長（s.ms）要照那個速度鎖
+            local open = obj:IsOpen()
+            if open ~= s.open then toggled(obj, s, open, now) end
             if sweep then
                 align(obj)   -- 鏈上晚載入的片（例如在第三個 chunk 的尾端）每秒對齊一次
                 -- 擁有者改了速度（錨點標記隨 transmitModData 到）：每秒對一次，不在補播中就換覆寫
@@ -368,8 +373,6 @@ function A.tick()
                     if not s.start then setSm(obj, s, restName(obj, s)) end
                 end
             end
-            local open = obj:IsOpen()
-            if open ~= s.open then toggled(obj, s, open, now) end
             if s.start then
                 local t = (now - s.start) / s.ms
                 if t >= 1 then

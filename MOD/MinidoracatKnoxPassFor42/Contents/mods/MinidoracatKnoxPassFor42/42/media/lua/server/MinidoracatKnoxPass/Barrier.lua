@@ -10,6 +10,7 @@
 -- media/lua/server 的檔 MP client 也會載入：函式照常定義（entity 腳本以名稱找 OnCreate），事件只在 server／SP 掛。
 require "MinidoracatKnoxPass/Core"
 require "MinidoracatKnoxPass/Gates"
+require "BuildingObjects/ISBuildIsoEntity"   -- 下面包裝它的 isValid；client 檔先 require 本檔時原版那個還沒載入
 local KP = MinidoracatKnoxPass
 local G = KP.Gates
 
@@ -330,28 +331,68 @@ function B.allowDismantle(list, player)
     return true
 end
 
--- SpriteConfig OnIsValid（Knox Pass 每一種自建大門）：建造游標逐格問，伺服器驗建造時也經過（BuildAction.java:72-76 呼叫
--- 同一個 isValid；ISBuildIsoEntity.lua:186-197）。補原版兩個缺口：
--- 一、安全屋只查游標原點那一格（:457）：一座門 3–19 格，其他格子、S／E 向門片實際落的下一列／下一行都要查，不然原點
---     在外面就能把門蓋進別人的安全屋。和原版那一格一樣只在客戶端查（參數沒有施工者，伺服器不知道是誰在蓋）
--- 二、有 sprite 的格子不查空不空（:215 的 not 先結合，整段 isFree 被跳過）：滑動門的收納段有實心物（家具、機箱）就不給蓋，
---     不然門扇打開時穿過去。沿門線的牆與圍籬不是實心物，照樣能蓋
+-- 這一次建造驗證的施工者：ISBuildIsoEntity:isValid 的包裝記下，下面的 OnIsValid 回呼（參數只有格子）讀它。
+-- 客戶端 player 是本機玩家序號（原版 :457 同用法）；伺服器是 BuildAction.parse 放進去的交易玩家（連線認證過的那位，
+-- BuildAction.java:161），交易進行中（:72-76）與 create 扣料前（ISBuildIsoEntity.lua:543）都經過同一個 isValid
+local builder = nil
+local vanillaIsValid = ISBuildIsoEntity.isValid
+function ISBuildIsoEntity:isValid(square)
+    local p = self.player
+    if type(p) == "number" then p = getSpecificPlayer(p) end
+    builder = p or self.character
+    local ok = vanillaIsValid(self, square)
+    builder = nil
+    return ok
+end
+
+-- 這張替代 tile 建好後除了擺放格還佔哪一格：S／E 向的車道門片（B.onCreate、MG.onCreate）與兩層樓門兩端的二樓隱形牆
+-- （upperSpot）在下一列／下一行，回 KP.GATE_DOOR 的 { dx, dy }。N／W 向、一層樓的兩端、機箱、收納段、車庫捲門只佔擺放格，回 nil
+local function shifted(name, mg)
+    local d = nil
+    if mg then
+        local s = mg.slot
+        if s >= SLOT.PLACEHOLDER and s < SLOT.STOW or mg.def.upper and mg.def.ends and (s == SLOT.END_A or s == SLOT.END_B) then
+            d = KP.GATE_DOOR[mg.face]
+        end
+    else
+        local idx = name and tonumber(string.match(name, "^" .. KP.BARRIER_TILESET .. "_(%d+)$"))
+        local real, base = nil, nil
+        if idx then real, base = laneOf(idx) end
+        if real and real >= M then d = base <= 2 and KP.GATE_DOOR.S or KP.GATE_DOOR.E end
+    end
+    return d and (d[1] ~= 0 or d[2] ~= 0) and d or nil
+end
+
+-- SpriteConfig OnIsValid（Knox Pass 每一種自建大門）：建造游標逐格問，伺服器驗建造時也經過。補原版兩個缺口：
+-- 一、安全屋只查游標原點那一格、而且只在客戶端查（:457）：一座門 3–19 格，其他格子與上面 shifted 的那一格都要查，
+--     不然原點在外面就能把門蓋進別人的安全屋。客戶端與伺服器都查（改過的客戶端直接送建造也擋）；單人沒有安全屋。
+--     不知道是誰在蓋（別的程式直接呼叫這個回呼）照原版放行
+-- 二、有 sprite 的格子不查空不空（:215 的 not 先結合，整段 isFree 被跳過）：滑動門的收納段有實心物（家具、機箱）或樹
+--     （樹不帶 solid，IsoGridSquare.java:3389 另外算）就不給蓋，不然門扇打開時穿過去。沿門線的牆與圍籬不是實心物，照樣能蓋
 function B.onIsValid(params)
     local sq = params.square
-    local mg = KP.modelGateOf(params.tileInfo:getSpriteName())
+    local name = params.tileInfo:getSpriteName()
+    local mg = KP.modelGateOf(name)
     if mg and mg.slot >= SLOT.STOW and mg.slot < SLOT.POSE_OPEN
-        and (sq:isSolid() or sq:isSolidTrans() or sq:has(IsoPropertyType.BLOCKS_PLACEMENT)) then
+        and (sq:isSolid() or sq:isSolidTrans() or sq:has(IsoPropertyType.BLOCKS_PLACEMENT) or sq:has(IsoObjectType.tree)) then
         return false
     end
-    if not isClient() then return true end
-    local d = KP.GATE_DOOR[string.upper(params.facing or "")]
-    local door = d and (d[1] ~= 0 or d[2] ~= 0) and getCell():getGridSquare(sq:getX() + d[1], sq:getY() + d[2], sq:getZ()) or nil
-    for n = 0, getNumActivePlayers() - 1 do
-        local p = getSpecificPlayer(n)
-        local who = p and getCell():getDrag(n) and p:getUsername()   -- 分割畫面：手上有建造游標的那幾位
-        if who and (SafeHouse.isSafeHouse(sq, who, true) or door and SafeHouse.isSafeHouse(door, who, true)) then return false end
+    local who = builder
+    if not who or not (isClient() or isServer()) then return true end
+    -- 能進別人安全屋的管理員不受限：客戶端的 isSafeHouse 自己放行，伺服器上那段不跑（SafeHouse.java:205-209），這裡對
+    if isServer() and who:getRole():hasCapability(Capability.CanGoInsideSafehouses) then return true end
+    local user = who:getUsername()
+    local d = shifted(name, mg)
+    local door = sq
+    if d then
+        -- 安全屋只看 x、y（SafeHouse.java:144-155）：那一層還沒有格子（樓上的邊緣，onCreate 會新建）就看地面那層，同 allowDismantle
+        local x, y = sq:getX() + d[1], sq:getY() + d[2]
+        door = getCell():getGridSquare(x, y, sq:getZ()) or getCell():getGridSquare(x, y, 0)
     end
-    return true
+    if door and not SafeHouse.isSafeHouse(sq, user, true) and not SafeHouse.isSafeHouse(door, user, true) then return true end
+    -- 一般客戶端在游標那一步就擋下了；伺服器走到這裡是有人繞過自己那邊的檢查
+    if isServer() then KP.log(string.format("build refused for %s: %d,%d is in someone else's safehouse", user, sq:getX(), sq:getY())) end
+    return false
 end
 
 -- 放上一道隱形牆，回傳有沒有放。門線那格（下一層）不在就不放：S／E 向的一端跨 chunk 時那格還沒載入，之後這一端再載入時補。
@@ -577,7 +618,9 @@ if not isClient() then
 
     -- 滑動門收納段的標記（MG.onCreate）：整座被移走時標記那格沒載入（跨 chunk）就收不到它（modelParts 找不到），留下一個
     -- 看不見、大錘游標也點不到的物件。標記載入時對一次：錨點那格載入了卻沒有這座門的車道 1 就是孤兒，移除；
-    -- 錨點那格沒載入先留著，下次載入再對（同上面的隱形牆）。記座標不記物件：一般 IsoObject 卸載後會被引擎配給別的物件
+    -- 錨點那格沒載入先留著，每 STOW_RETRY 個 tick 再對（標記還在就一直等到錨點載入）。記座標不記物件：一般 IsoObject
+    -- 卸載後會被引擎配給別的物件
+    local STOW_RETRY = 60
     local marks, stowCheck = {}, {}
     for ts, def in pairs(KP.MODEL_GATES) do
         if def.kind == "Slide" then
@@ -588,17 +631,24 @@ if not isClient() then
         local sq = obj:getSquare()
         if sq then stowCheck[#stowCheck + 1] = { sq:getX(), sq:getY(), sq:getZ(), obj:getSprite():getName() } end
     end, 6)
+    local stowTick = 0
     Events.OnTick.Add(function()
         if #stowCheck == 0 then return end
+        stowTick = stowTick + 1
         local list = stowCheck
         stowCheck = {}
         for _, q in ipairs(list) do
-            local mark = spriteAt(q[1], q[2], q[3], { [q[4]] = true })
+            local mark = (q[5] or 0) <= stowTick and spriteAt(q[1], q[2], q[3], { [q[4]] = true })
             local mg = mark and KP.modelGate(mark)
-            if mg then
+            if mark == false then
+                stowCheck[#stowCheck + 1] = q   -- 還沒輪到
+            elseif mg then
                 local ax, ay = KP.stowAnchor(mg, q[1], q[2])
                 local lane1 = { [mg.tileset .. "_" .. mg.index0] = true, [mg.tileset .. "_" .. (mg.index0 + SLOT.OPEN)] = true }
-                if getCell():getGridSquare(ax, ay, q[3]) and not spriteAt(ax, ay, q[3], lane1) then
+                if not getCell():getGridSquare(ax, ay, q[3]) then
+                    q[5] = stowTick + STOW_RETRY
+                    stowCheck[#stowCheck + 1] = q
+                elseif not spriteAt(ax, ay, q[3], lane1) then
                     mark:getSquare():transmitRemoveItemFromSquare(mark, false)
                     KP.log(string.format("stow marker orphan removed at %d,%d,%d", q[1], q[2], q[3]))
                 end
