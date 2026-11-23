@@ -331,16 +331,17 @@ function B.allowDismantle(list, player)
     return true
 end
 
--- 這一次建造驗證的施工者：ISBuildIsoEntity:isValid 的包裝記下，下面的 OnIsValid 回呼（參數只有格子）讀它。
--- 客戶端 player 是本機玩家序號（原版 :457 同用法）；伺服器是 BuildAction.parse 放進去的交易玩家（連線認證過的那位，
--- BuildAction.java:161），交易進行中（:72-76）與 create 扣料前（ISBuildIsoEntity.lua:543）都經過同一個 isValid
+-- 這一格建造驗證的施工者：ISBuildIsoEntity:isValidPerSquare 的包裝記下，下面的 OnIsValid 回呼（參數只有格子）讀它。
+-- 包在逐格這一層：游標的地面格線（:62）不經過整座的 isValid，直接問這裡。客戶端 player 是本機玩家序號（原版 :457 同用法）；
+-- 伺服器是 BuildAction.parse 放進去的交易玩家（連線認證過的那位，BuildAction.java:161）。伺服器只有 create 扣料前那一次
+-- 驗證（ISBuildIsoEntity.lua:543）會走到這裡，BuildAction.isValid 在 42.22 沒有人呼叫，不要把 create 那一道當成多餘的
 local builder = nil
-local vanillaIsValid = ISBuildIsoEntity.isValid
-function ISBuildIsoEntity:isValid(square)
+local vanillaPerSquare = ISBuildIsoEntity.isValidPerSquare
+function ISBuildIsoEntity:isValidPerSquare(square, tileInfo, requiresFloor, extendsN, extendsW)
     local p = self.player
     if type(p) == "number" then p = getSpecificPlayer(p) end
     builder = p or self.character
-    local ok = vanillaIsValid(self, square)
+    local ok = vanillaPerSquare(self, square, tileInfo, requiresFloor, extendsN, extendsW)
     builder = nil
     return ok
 end
@@ -363,7 +364,7 @@ local function shifted(name, mg)
     return d and (d[1] ~= 0 or d[2] ~= 0) and d or nil
 end
 
--- SpriteConfig OnIsValid（Knox Pass 每一種自建大門）：建造游標逐格問，伺服器驗建造時也經過。補原版兩個缺口：
+-- SpriteConfig OnIsValid（Knox Pass 每一種自建大門）：建造游標逐格問，伺服器 create 驗建造時也經過。補原版兩個缺口：
 -- 一、安全屋只查游標原點那一格、而且只在客戶端查（:457）：一座門 3–19 格，其他格子與上面 shifted 的那一格都要查，
 --     不然原點在外面就能把門蓋進別人的安全屋。客戶端與伺服器都查（改過的客戶端直接送建造也擋）；單人沒有安全屋。
 --     不知道是誰在蓋（別的程式直接呼叫這個回呼）照原版放行
@@ -380,7 +381,8 @@ function B.onIsValid(params)
     local who = builder
     if not who or not (isClient() or isServer()) then return true end
     -- 能進別人安全屋的管理員不受限：客戶端的 isSafeHouse 自己放行，伺服器上那段不跑（SafeHouse.java:205-209），這裡對
-    if isServer() and who:getRole():hasCapability(Capability.CanGoInsideSafehouses) then return true end
+    local role = isServer() and who:getRole() or nil
+    if role and role:hasCapability(Capability.CanGoInsideSafehouses) then return true end
     local user = who:getUsername()
     local d = shifted(name, mg)
     local door = sq
@@ -388,10 +390,12 @@ function B.onIsValid(params)
         -- 安全屋只看 x、y（SafeHouse.java:144-155）：那一層還沒有格子（樓上的邊緣，onCreate 會新建）就看地面那層，同 allowDismantle
         local x, y = sq:getX() + d[1], sq:getY() + d[2]
         door = getCell():getGridSquare(x, y, sq:getZ()) or getCell():getGridSquare(x, y, 0)
+        if not door then return false end   -- 門片要落的地方沒載入，查不了就不給蓋
     end
-    if door and not SafeHouse.isSafeHouse(sq, user, true) and not SafeHouse.isSafeHouse(door, user, true) then return true end
+    local bad = SafeHouse.isSafeHouse(sq, user, true) and sq or SafeHouse.isSafeHouse(door, user, true) and door
+    if not bad then return true end
     -- 一般客戶端在游標那一步就擋下了；伺服器走到這裡是有人繞過自己那邊的檢查
-    if isServer() then KP.log(string.format("build refused for %s: %d,%d is in someone else's safehouse", user, sq:getX(), sq:getY())) end
+    if isServer() then KP.log(string.format("build refused for %s: %d,%d is in someone else's safehouse", user, bad:getX(), bad:getY())) end
     return false
 end
 

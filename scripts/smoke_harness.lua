@@ -1443,13 +1443,13 @@ local FAKE_MODULES = {
             return true
         end
     end,
-    -- 原版建造驗證只留本 MOD 接的那一段（ISBuildIsoEntity.lua:444-485、:177-197）：對一格呼叫 SpriteConfig 的 OnIsValid。
-    -- 建造物件 { sprite＝那格的替代 tile, player＝客戶端的玩家序號／伺服器 BuildAction.parse 放的交易玩家（BuildAction.java:161） }
+    -- 原版建造驗證只留本 MOD 接的那一段（ISBuildIsoEntity.lua:177-197）：對一格呼叫 SpriteConfig 的 OnIsValid。整座的 isValid
+    -- （:444-485）與游標的地面格線（:62）都逐格呼叫它。
+    -- 建造物件 { player＝客戶端的玩家序號／伺服器 BuildAction.parse 放的交易玩家（BuildAction.java:161） }
     ["BuildingObjects/ISBuildIsoEntity"] = function()
         ISBuildIsoEntity = {}
-        function ISBuildIsoEntity:isValid(square)
-            local name = self.sprite
-            return MinidoracatKnoxPass.Barrier.onIsValid({ square = square, tileInfo = { getSpriteName = function() return name end } })
+        function ISBuildIsoEntity:isValidPerSquare(square, tileInfo)
+            return MinidoracatKnoxPass.Barrier.onIsValid({ square = square, tileInfo = tileInfo })
         end
     end,
     ["BuildingObjects/ISDestroyCursor"] = function()
@@ -5261,10 +5261,10 @@ local function scenarioModelGates()
     check(dismantle(slider, s4.B).why == "NeedHammer" and present(s4.A), "木板滑動門帶著焊槍也不行：NeedHammer")
     slider._inv:AddItem("Base.Hammer")
     check(dismantle(slider, s4.B).ok == true and gone(s4) and #square(1202, 100, 0)._objects == 0, "帶鎚子拆木板滑動門")
-    -- 建造逐格檢查（SpriteConfig OnIsValid，游標與伺服器驗建造都經過 ISBuildIsoEntity:isValid）：收納段那格有實心物或樹
-    -- 不給蓋；伺服器照交易的玩家逐格查安全屋（原版 entity 建造只在客戶端查，改過的客戶端直接送建造就繞過）
+    -- 建造逐格檢查（SpriteConfig OnIsValid，游標、地面格線與伺服器驗建造都經過 ISBuildIsoEntity:isValidPerSquare）：收納段那格
+    -- 有實心物或樹不給蓋；伺服器照交易的玩家逐格查安全屋（原版 entity 建造只在客戶端查，改過的客戶端直接送建造就繞過）
     local function valid(name, sq, who)
-        return ISBuildIsoEntity.isValid({ sprite = name, player = who }, sq)
+        return ISBuildIsoEntity.isValidPerSquare({ player = who }, sq, { getSpriteName = function() return name end })
     end
     -- 模型門 tileset 第一種寬度、face 向那一區塊的格位
     local function at(tileset, face, slot)
@@ -5306,6 +5306,21 @@ local function scenarioModelGates()
     builder._role._caps.CanGoInsideSafehouses = true
     check(valid(SL1 .. "16", spot, builder) == true, "伺服器：能進別人安全屋的管理員不受限（客戶端的 isSafeHouse 自己放行，伺服器要自己對）")
     builder._role._caps.CanGoInsideSafehouses = nil
+    local role, klog, lines = builder._role, KP.log, {}
+    builder._role = nil
+    check(valid(SL1 .. "16", spot, builder) == false and valid(SL1 .. "16", square(1300, 98, 0), builder) == true,
+        "伺服器：玩家沒有 role（IsoPlayer.getRole 可能為 nil）照一般玩家查，不出錯")
+    builder._role = role
+    KP.log = function(m) lines[#lines + 1] = m end
+    valid(SL1 .. "16", spot, builder)
+    valid(at("MinidoracatKnoxPass_slide1_a6l", "S", 16), square(1300, 99, 0), builder)
+    W.unloaded["1300,97,0"] = true
+    local unloaded = valid(at("MinidoracatKnoxPass_slide1_a6l", "S", 16), square(1300, 96, 0), builder)
+    W.unloaded["1300,97,0"] = nil
+    KP.log = klog
+    check(unloaded == false and #lines == 2 and string.find(lines[1], "builder: 1300,100 ", 1, true) ~= nil
+        and string.find(lines[2], "builder: 1300,100 ", 1, true) ~= nil,
+        "伺服器拒絕的 log 寫真正在安全屋裡的那一格（門片落的格，不是擺放格）；門片要落的格沒載入也不給蓋，但不記成安全屋")
     W.houseAt[spot] = nil
     -- 孤兒標記：整座被移走時標記那格沒載入（跨 chunk）收不到它；那格載入時錨點已經沒有這座門就移除，錨點沒載入先留著
     local so = buildModelGate("MinidoracatKnoxPass_slide1_a6r", 0, 6, "N", true, 1300, 110, builder, "R")
