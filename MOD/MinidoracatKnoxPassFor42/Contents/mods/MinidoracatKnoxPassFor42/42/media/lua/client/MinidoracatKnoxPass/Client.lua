@@ -172,6 +172,17 @@ function Action:new(character, door, command, ticks)
     return o
 end
 
+-- 讀頭上的動作（拆、換電瓶、換色）走位與面向的目標：讀頭旁的那片門。讀頭都在錨點那一端，只有往 A 端收的滑動門掛在
+-- 另一端（KP.readerEnd）：那種門走到最後一片，不然人在讀頭前點了動作，角色卻繞到門的另一頭。指令照舊帶帳本 key，
+-- 伺服器兩端都認（Server.lua nearGate）
+local function readerDoor(anchor)
+    local mg = KP.modelGate(anchor)
+    if not (mg and mg.def.kind == "Slide" and KP.stowAtA(mg)) then return anchor end
+    local adapter, first = G.resolve(anchor)
+    local pieces = adapter and G.pieces(adapter, first)
+    return pieces and pieces[#pieces] or anchor
+end
+
 -- 走到門邊（原版開關門／鎖門同款：ISWorldObjectContextMenu.lua:1510）→ 拿起子（:1371）→ 動作
 local function queue(player, door, action)
     local screwdriver = KP.screwdriverOf(player)
@@ -189,17 +200,19 @@ function C.queueInstall(player, door)
     queue(player, door, action)
 end
 
--- 拆讀頭走到錨點（伺服器量距離以錨點格為準）
+-- 拆讀頭走到讀頭旁（伺服器量距離以錨點格與滑動門的讀頭端為準）
 function C.queueUninstall(player, anchor, key)
-    local action = Action:new(player, anchor, "uninstall", UNINSTALL_TICKS)
+    local door = readerDoor(anchor)
+    local action = Action:new(player, door, "uninstall", UNINSTALL_TICKS)
     action.key = key
-    queue(player, anchor, action)
+    queue(player, door, action)
 end
 
 -- 讀頭的汽車電瓶：itemId＝要裝上的那顆，沒有＝取下（伺服器 H.battery 重驗權限、距離與物品）。不用工具
 function C.queueBattery(player, anchor, key, itemId)
-    if not luautils.walkAdjWindowOrDoor(player, anchor:getSquare(), anchor) then return end
-    local action = Action:new(player, anchor, "battery", BATTERY_TICKS)
+    local door = readerDoor(anchor)
+    if not luautils.walkAdjWindowOrDoor(player, door:getSquare(), door) then return end
+    local action = Action:new(player, door, "battery", BATTERY_TICKS)
     action.key, action.itemId = key, itemId
     ISTimedActionQueue.add(action)
 end
@@ -274,12 +287,13 @@ function Paint:new(character, color)
     return o
 end
 
--- target＝{ item = 物品欄的感應盒或讀頭 } 或 { door = 錨點, key = 帳本 key }（門上的讀頭：走到錨點，伺服器以錨點格量距離）
+-- target＝{ item = 物品欄的感應盒或讀頭 } 或 { door = 錨點, key = 帳本 key }（門上的讀頭：走到讀頭旁，同 C.queueUninstall）
 function C.queueRecolor(player, target, color)
     local action = Paint:new(player, color)
     if target.door then
-        if not luautils.walkAdjWindowOrDoor(player, target.door:getSquare(), target.door) then return end
-        action.door, action.key = target.door, target.key
+        local door = readerDoor(target.door)
+        if not luautils.walkAdjWindowOrDoor(player, door:getSquare(), door) then return end
+        action.door, action.key = door, target.key
     else
         action.itemId = target.item:getID()
     end

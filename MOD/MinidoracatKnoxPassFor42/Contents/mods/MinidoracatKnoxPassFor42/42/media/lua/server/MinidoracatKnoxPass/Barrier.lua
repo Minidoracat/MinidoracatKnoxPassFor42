@@ -73,7 +73,7 @@ local function barrierParts(obj)
     return out, key
 end
 
--- ── 模型門（Core.lua KP.MODEL_GATES：雙桿閘門、兩層樓捲門、兩層樓大門）─────────────────────────
+-- ── 模型門（Core.lua KP.MODEL_GATES：雙桿閘門、兩層樓捲門、兩層樓大門、滑動大門）────────────────
 local SLOT = KP.GATE_SLOT
 
 local function spriteAt(x, y, z, want)
@@ -292,7 +292,7 @@ function B.fullHealth(o, width, hp)
     return nil
 end
 
--- 二樓隱形牆：兩層樓捲門與兩層樓大門（KP.MODEL_GATES 的 upper）只有一樓有物件，上半截只是中間片（KP.hostLane）的 3D 模型，二樓不擋人、
+-- 二樓隱形牆：兩層樓的捲門、大門與滑動大門（KP.MODEL_GATES 的 upper）只有一樓有物件，上半截只是中間片（KP.hostLane）的 3D 模型，二樓不擋人、
 -- 二樓的房間也圍不起來（2026-10-22 Workshop 玩家回報）。每片車道與每一端的門線格（擺放格＋KP.GATE_DOOR）上一層，
 -- N／S 向放 N 邊、W／E 向放 W 邊一道看不見的牆（KP.UPPER_WALL_TILESET：擋人，IsoRegions 認它的 cut 旗標，二樓的房間
 -- 才封閉；看得穿的外觀用視線穿過的那張；tile 帶 CarSlowFactor，物理不在那格放牆，比一層樓高的車照樣開得過開著的門，
@@ -326,6 +326,30 @@ function B.allowDismantle(list, player)
         local x, y, z = upperSpot(o)
         local below = x and (cell:getGridSquare(x, y, z - 1) or cell:getGridSquare(x, y, 0))   -- 只看 x、y，下面那層沒建過就看地面
         if x and not (below and SafeHouse.isSafehouseAllowInteract(below, player)) then return false end
+    end
+    return true
+end
+
+-- SpriteConfig OnIsValid（Knox Pass 每一種自建大門）：建造游標逐格問，伺服器驗建造時也經過（BuildAction.java:72-76 呼叫
+-- 同一個 isValid；ISBuildIsoEntity.lua:186-197）。補原版兩個缺口：
+-- 一、安全屋只查游標原點那一格（:457）：一座門 3–19 格，其他格子、S／E 向門片實際落的下一列／下一行都要查，不然原點
+--     在外面就能把門蓋進別人的安全屋。和原版那一格一樣只在客戶端查（參數沒有施工者，伺服器不知道是誰在蓋）
+-- 二、有 sprite 的格子不查空不空（:215 的 not 先結合，整段 isFree 被跳過）：滑動門的收納段有實心物（家具、機箱）就不給蓋，
+--     不然門扇打開時穿過去。沿門線的牆與圍籬不是實心物，照樣能蓋
+function B.onIsValid(params)
+    local sq = params.square
+    local mg = KP.modelGateOf(params.tileInfo:getSpriteName())
+    if mg and mg.slot >= SLOT.STOW and mg.slot < SLOT.POSE_OPEN
+        and (sq:isSolid() or sq:isSolidTrans() or sq:has(IsoPropertyType.BLOCKS_PLACEMENT)) then
+        return false
+    end
+    if not isClient() then return true end
+    local d = KP.GATE_DOOR[string.upper(params.facing or "")]
+    local door = d and (d[1] ~= 0 or d[2] ~= 0) and getCell():getGridSquare(sq:getX() + d[1], sq:getY() + d[2], sq:getZ()) or nil
+    for n = 0, getNumActivePlayers() - 1 do
+        local p = getSpecificPlayer(n)
+        local who = p and getCell():getDrag(n) and p:getUsername()   -- 分割畫面：手上有建造游標的那幾位
+        if who and (SafeHouse.isSafeHouse(sq, who, true) or door and SafeHouse.isSafeHouse(door, who, true)) then return false end
     end
     return true
 end
@@ -550,4 +574,35 @@ if not isClient() then
         local sq, n = obj:getSquare(), KP.upperWall(obj)
         if sq and n then upperCheck[#upperCheck + 1] = { sq:getX(), sq:getY(), sq:getZ(), n % 2 == 1 } end
     end, 6)
+
+    -- 滑動門收納段的標記（MG.onCreate）：整座被移走時標記那格沒載入（跨 chunk）就收不到它（modelParts 找不到），留下一個
+    -- 看不見、大錘游標也點不到的物件。標記載入時對一次：錨點那格載入了卻沒有這座門的車道 1 就是孤兒，移除；
+    -- 錨點那格沒載入先留著，下次載入再對（同上面的隱形牆）。記座標不記物件：一般 IsoObject 卸載後會被引擎配給別的物件
+    local marks, stowCheck = {}, {}
+    for ts, def in pairs(KP.MODEL_GATES) do
+        if def.kind == "Slide" then
+            for b = 0, #def.widths * #def.faces - 1 do marks[#marks + 1] = ts .. "_" .. (b * 64 + SLOT.STOW_HOST) end
+        end
+    end
+    MapObjects.OnLoadWithSprite(marks, function(obj)
+        local sq = obj:getSquare()
+        if sq then stowCheck[#stowCheck + 1] = { sq:getX(), sq:getY(), sq:getZ(), obj:getSprite():getName() } end
+    end, 6)
+    Events.OnTick.Add(function()
+        if #stowCheck == 0 then return end
+        local list = stowCheck
+        stowCheck = {}
+        for _, q in ipairs(list) do
+            local mark = spriteAt(q[1], q[2], q[3], { [q[4]] = true })
+            local mg = mark and KP.modelGate(mark)
+            if mg then
+                local ax, ay = KP.stowAnchor(mg, q[1], q[2])
+                local lane1 = { [mg.tileset .. "_" .. mg.index0] = true, [mg.tileset .. "_" .. (mg.index0 + SLOT.OPEN)] = true }
+                if getCell():getGridSquare(ax, ay, q[3]) and not spriteAt(ax, ay, q[3], lane1) then
+                    mark:getSquare():transmitRemoveItemFromSquare(mark, false)
+                    KP.log(string.format("stow marker orphan removed at %d,%d,%d", q[1], q[2], q[3]))
+                end
+            end
+        end
+    end)
 end

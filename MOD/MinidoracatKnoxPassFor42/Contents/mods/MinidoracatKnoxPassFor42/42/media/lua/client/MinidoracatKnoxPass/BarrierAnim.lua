@@ -1,4 +1,4 @@
--- 閘門臂與模型門（雙桿閘門、兩層樓捲門、兩層樓大門）的模型掛載與動畫補播（SP 與 MP client）。
+-- 閘門臂與模型門（雙桿閘門、兩層樓捲門、兩層樓大門、滑動大門）的模型掛載與動畫補播（SP 與 MP client）。
 -- 3D 模型掛在中間那片（KP.hostLane：單臂閘門車道 2、模型門正中間），不掛錨點：半透明層只畫格子在畫面上的物件
 -- （FBORenderCell.java:3541、IsoGridSquare.java:7839-7867），掛錨點時錨點那格一出畫面整座都不畫（offscreen-sp）。
 -- 單臂閘門的車道 2 有自己的 sprite，模型寫在 tile 上；模型門的中間片全部共用一張 sprite（格位 1／9），只能逐物件指名：
@@ -39,7 +39,7 @@ local FAR = 120                                                  -- 離本機玩
 local STEPS = 96                                                 -- 4 秒 96 格＝每秒 24 格
 local SWEEP_MS = 1000                                            -- 多久查一次移除與距離
 
-local tracked = {}   -- 掛模型那片 → { anchor, open, start, q, chan, tileset, base, close, rest, width, fast, sm, want,
+local tracked = {}   -- 掛模型那片 → { anchor, open, start, q, chan, tileset, base, close, rest, width, fast, ms, sm, want,
                      --   滑動門另有 stow, mark, byMark, mstart, mchan, mq, msm }
 local anchors = {}   -- 錨點 → 掛模型那片（那格還沒載入：false）
 local channels = {}  -- 通道名稱 → { sm = SpriteModel 腳本物件, user = 正在用的那片（標記的通道也記中間片） }
@@ -77,11 +77,13 @@ local function restName(obj, s)
     return s.rest and name or nil
 end
 
+local function markName(s) return s.tileset .. "_" .. (s.rest - SLOT.HOST + SLOT.STOW_HOST) end
+
 -- 滑動門收納段的標記物件；那格沒載入或被移走回 nil
 local function markOf(s)
     local sq = getCell():getGridSquare(s.stow[1], s.stow[2], s.stow[3])
     local objects = sq and sq:getObjects()
-    local want = s.tileset .. "_" .. (s.rest - SLOT.HOST + SLOT.STOW_HOST)
+    local want = markName(s)
     for i = 0, (objects and objects:size() or 0) - 1 do
         local o = objects:get(i)
         local spr = o:getSprite()
@@ -90,9 +92,24 @@ local function markOf(s)
     return nil
 end
 
--- 標記的覆寫：name＝要畫的模型，nil＝不畫；沒變就不重設
+-- 快取的標記還是不是這座門的：一般 IsoObject 在 chunk 卸載時被引擎收回、配給別的地圖物件（WorldReuserThread.java:117-121、
+-- IsoObject.java:387-388），舊參照的 getObjectIndex 可能又有效，所以連格子與 sprite 一起對
+local function markValid(s)
+    local m = s.mark
+    local sq = m and m:getObjectIndex() ~= -1 and m:getSquare()
+    if not sq then return false end
+    local spr = m:getSprite()
+    return sq:getX() == s.stow[1] and sq:getY() == s.stow[2] and sq:getZ() == s.stow[3]
+        and spr ~= nil and spr:getName() == markName(s)
+end
+
+-- 標記的覆寫：name＝要畫的模型，nil＝不畫；沒變就不重設。參照已經不是我們的標記就不碰它，丟掉、下一個 tick 重找
 local function markDraw(s, name)
     if name == s.msm then return end
+    if not markValid(s) then
+        s.mark, s.msm = nil, false
+        return
+    end
     s.msm = name
     s.mark:setSpriteModelName(name)
     s.mark:setAnimating(name ~= nil)
@@ -226,9 +243,9 @@ local function release(user, name)
     if name and channels[name].user == user then channels[name].user = nil end
 end
 
--- 這次開關的起點時間：上一次還沒走完（prev）就從目前進度接著往回走，不跳回端點
-local function restart(prev, now, ms)
-    local done = prev and math.min(1, (now - prev) / ms) or 1
+-- 這次開關的起點時間：上一次還沒走完（prev，時長 was）就從目前進度接著往回走，不跳回端點
+local function restart(prev, now, was, ms)
+    local done = prev and math.min(1, (now - prev) / was) or 1
     return now - (1 - done) * ms
 end
 
@@ -262,9 +279,13 @@ end
 -- 開關變了：引擎沒在播（或已經是我們在播）就從目前進度接著走；反向中途改變（還在抬就要放下）不跳回端點
 local function toggled(obj, s, open, now)
     s.open = open
+    -- 這一次開關的時長在這裡定下來（s.ms）：動畫途中擁有者改了速度，下一次開關才換。不然中間片的原生 clip 照舊的時長走、
+    -- 標記照新的算，換手時門扇會跳
+    local was, ms = s.ms or animMs(s), animMs(s)
+    s.ms = ms
     -- 滑動門的標記自己計時（中間片可能是引擎在播原生 clip，沒有 s.start）；換方向時放掉通道，stowTick 再拿新方向的
     if s.stow then
-        s.mstart = restart(s.mstart, now, animMs(s))
+        s.mstart = restart(s.mstart, now, was, ms)
         release(obj, s.mchan)
         s.mchan = nil
     end
@@ -274,7 +295,7 @@ local function toggled(obj, s, open, now)
         setSm(obj, s, restName(obj, s))
         return
     end
-    s.start, s.q = restart(s.start, now, animMs(s)), nil
+    s.start, s.q = restart(s.start, now, was, ms), nil
     release(obj, s.chan)
     s.chan = acquire(obj, s.tileset, s.base + (open and 0 or s.close), KP.BARRIER_POSES + 1)
     if not s.chan then
@@ -291,11 +312,11 @@ end
 -- STOW_POSE 的通道照 s.mstart 走（打開那組之後 s.close 格是關上那組，共 POSE_CLOSE − STOW_POSE 個；都被拿走就共用，
 -- 沒登錄就畫靜止的）
 local function stowTick(obj, s, open, now, sweep)
-    if s.mark == nil or sweep and (not s.mark or s.mark:getObjectIndex() == -1) then
+    if s.mark == nil or sweep and not markValid(s) then
         local mark = markOf(s) or false   -- false＝找過了不在，每秒再找
         if mark ~= s.mark then s.mark, s.msm = mark, false end   -- 新找到的一律重設：SP 存檔帶著上次的覆寫
     end
-    local t = s.mstart and (now - s.mstart) / animMs(s)
+    local t = s.mstart and (now - s.mstart) / s.ms
     if t and t >= 1 then s.mstart, t = nil, nil end
     local hsq, msq = obj:getSquare(), s.mark and s.mark:getSquare()
     local by = hsq and msq and not wellOnScreen(hsq) and msq:IsOnScreen() or false
@@ -333,7 +354,7 @@ function A.tick()
     for obj, s in pairs(tracked) do
         if sweep and gone(obj) then
             if s.start then finish(obj, s) end
-            if s.mark and s.mark:getObjectIndex() ~= -1 then markDraw(s, nil) end
+            if s.mark then markDraw(s, nil) end
             release(obj, s.mchan)
             if anchors[s.anchor] == obj then anchors[s.anchor] = false end   -- 錨點還在：那片重新載入時再找
             drop = drop or {}
@@ -350,7 +371,7 @@ function A.tick()
             local open = obj:IsOpen()
             if open ~= s.open then toggled(obj, s, open, now) end
             if s.start then
-                local t = (now - s.start) / animMs(s)
+                local t = (now - s.start) / s.ms
                 if t >= 1 then
                     finish(obj, s)
                 else

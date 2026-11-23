@@ -419,6 +419,7 @@ def entity_script() -> str:
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.Barrier.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
 {faces(TILESET, BARRIER_FACES)}        }}
 
@@ -486,6 +487,7 @@ def rolldoor_script() -> str:
         {{
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.RollDoor.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
 {faces(ROLLDOOR_TILESET, fc)}        }}
 
@@ -824,6 +826,7 @@ def check() -> None:
     ent = ENTITY_SCRIPT.read_text(encoding="ascii")
     assert ent == entity_script(), "entity script is stale"
     assert "health = 1000," in ent and "OnCreate = MinidoracatKnoxPass.Barrier.onCreate," in ent
+    assert ent.count("OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,") == ent.count("component SpriteConfig")
     assert entity_faces(ent, TILESET) == {"N": [(6, 160, 161, 162)], "W": [(165,), (164,), (163,), (7,)],
                                           "S": [(240, 241, 242, 86)], "E": [(87,), (245,), (244,), (243,)]}
     rd = ROLLDOOR_SCRIPT.read_text(encoding="ascii")
@@ -848,7 +851,8 @@ def check() -> None:
                 "W": [(s * stride + w0 + j,) for j in reversed(range(w))]}
             time, xp, torch, rods, sheet_n, pipe, hinge = recipe[w]
             for line in (f"entityStyle = ES_{name},", "uiEnabled = false,", "dontNeedFrame = true,",
-                         "OnCreate = MinidoracatKnoxPass.RollDoor.onCreate,", "timedAction = BuildWallMetal,",
+                         "OnCreate = MinidoracatKnoxPass.RollDoor.onCreate,",
+                         "OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,", "timedAction = BuildWallMetal,",
                          f"time = {time},", "category = Welding,", "SkillRequired = MetalWelding:3,",
                          f"xpAward = MetalWelding:{xp},", f"item {torch} [Base.BlowTorch] flags[DontRecordInput],",
                          f"item {rods} [Base.WeldingRods] flags[DontRecordInput],", f"item {sheet_n} [Base.SheetMetal],",

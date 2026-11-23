@@ -203,7 +203,7 @@ One leaf slides along the fence line and stows to one side, so nothing swings ou
 [*] [b]Finding them[/b]: search the build menu for "Sliding Gate".
 [*] [b]Amounts[/b]: two stories take twice the one-story materials, and 6 wide takes twice what 3 or 4 wide does.
 [*] [b]Opens left or right[/b]: every look has two build entries, "opens left" and "opens right". The placement preview also shows the row the leaf stows into; if it points the wrong way, rotate, or pick the other entry.
-[*] [b]Leave a clear row[/b]: the stow row is as long as the gate, and those tiles must be empty to build. Once built, you can still walk there and build a fence along it.
+[*] [b]Leave a clear row[/b]: the stow row is as long as the gate, and you can't build while furniture, crates or other solid objects stand on those tiles. Once built, you can still walk there and build a fence along it.
 [*] [b]Motor cabinet[/b]: a drive cabinet sits behind the post at the stow end.
 [*] [b]Reader[/b]: none built in; once installed, it hangs on the face of the other post, the one the leaf closes against.
 [/list]

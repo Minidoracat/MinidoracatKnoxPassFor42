@@ -91,7 +91,8 @@ end
 -- 建在下一列／下一行（同轉 180° 的單臂閘門）。耐久照大小（2026-10-08 使用者決定）：一車 1000、兩車 1500、三車 2000，兩層樓 +500。
 -- upper＝兩層樓：二樓門線另放看不見的牆（server/Barrier.lua 的二樓隱形牆）
 -- 滑動門（kind Slide，scripts/blender/slide/spec.py）：單扇沿門線滑過一端門柱，收進和門一樣長的收納段。tileset 名尾 l／r＝
--- 從門柱那側看往左／右收。25 起＝收納段的建造替代 tile（k＝25＋k−1）：只為了建造時要求那幾格空著，OnCreate 當場移除
+-- 從門柱那側看往左／右收。25 起＝收納段的建造替代 tile（從收的那端算起第 k 格＝格位 25＋k−1）：建造時那幾格不能有
+-- 實心物（server/Barrier.lua B.onIsValid；原版對有 sprite 的格子不查空不空），OnCreate 當場移除
 -- （server/Barrier.lua），收納段不擋人車。門扇從車道滑進收納段，離掛模型那片最遠 L＋1 格，那片一出畫面就不畫
 -- （slide-sp 1123a：站在收納段旁、鏡頭拉近時門扇不見）：收納段第 KP.stowHost 格留一個看不見、沒有屬性的一般物件（格位 6），
 -- 中間片那格不在畫面上（或離畫面邊緣不到兩格）時改由它畫門扇（client 的 BarrierAnim 指名）：靜止 7／15（關／開），
@@ -216,10 +217,8 @@ function KP.upperWall(obj)
     return name and tonumber(string.match(name, "^" .. KP.UPPER_WALL_TILESET .. "_(%d)$")) or nil
 end
 
--- 物件是哪一扇模型門的哪一格：{ def, tileset, index0（區塊起點）, slot, width, face, fi（方向序，0 起） }；不是模型門回 nil
-function KP.modelGate(obj)
-    local spr = obj and obj.getSprite and obj:getSprite()
-    local name = spr and spr:getName()
+-- sprite 名稱是哪一扇模型門的哪一格：{ def, tileset, index0（區塊起點）, slot, width, face, fi（方向序，0 起） }；不是模型門回 nil
+function KP.modelGateOf(name)
     local ts, n = nil, nil
     if name then ts, n = string.match(name, "^(.+)_(%d+)$") end
     local def = ts and KP.MODEL_GATES[ts]
@@ -231,6 +230,12 @@ function KP.modelGate(obj)
     if not width then return nil end
     local fi = block % nf
     return { def = def, tileset = ts, index0 = block * 64, slot = idx % 64, width = width, face = def.faces[fi + 1], fi = fi }
+end
+
+-- 物件是哪一扇模型門的哪一格（同 KP.modelGateOf）；不是模型門回 nil
+function KP.modelGate(obj)
+    local spr = obj and obj.getSprite and obj:getSprite()
+    return KP.modelGateOf(spr and spr:getName())
 end
 
 -- 方向 → 車道 1 往車道 L 的方向、真門片相對擺放格的偏移（S／E 的門線在擺放那一列的南邊／那一行的東邊）
@@ -271,6 +276,13 @@ function KP.stowSpot(mg, ax, ay, k)
     local x1, y1, x2, y2 = KP.gateEnds(mg, ax, ay)
     if KP.stowAtA(mg) then return x1 - a[1] * k, y1 - a[2] * k end
     return x2 + a[1] * k, y2 + a[2] * k
+end
+
+-- 滑動門收納段標記物件的格 → 車道 1 真門片的格（KP.stowSpot 第 KP.stowHost 格反推；server/Barrier.lua 載入時認孤兒）
+function KP.stowAnchor(mg, x, y)
+    local a, d = ALONG[mg.face], KP.GATE_DOOR[mg.face]
+    local n = KP.stowAtA(mg) and KP.stowHost(mg.width) + 1 or -(KP.stowHost(mg.width) + mg.width)
+    return x + a[1] * n + d[1], y + a[2] * n + d[2]
 end
 
 -- 車道 tile 的 DoorWallN／W（關著時車輛的 WallN／WallW 物理形狀 IsoChunk.java:2070-2090、AutoDrive 的 closedDoor）

@@ -1,5 +1,6 @@
 -- 門柱上的讀頭模型：裝了讀頭的門，在錨點那片的外端門柱上多放一個 IsoObject（tileset MinidoracatKnoxPass_reader，
--- 索引＝讀頭顏色×8＋變體；兩層樓大門掛在 A 端門柱的柱面，tileset MinidoracatKnoxPass_readerpillar，Core.lua KP.readerCode）。
+-- 索引＝讀頭顏色×8＋變體；兩層樓大門掛在 A 端門柱的柱面、滑動大門掛在讀頭端門柱的柱面（KP.readerEnd），
+-- tileset MinidoracatKnoxPass_readerpillar，Core.lua KP.readerCode）。
 -- tile 沒有任何屬性：不擋人車、AutoDrive 當成沒東西、不能搬、不能拆；
 -- 3D 模型由 common/media/spriteModels.txt 掛上（有 spriteModel 的物件只畫模型，IsoObject.java:3565-3570）。
 -- 帳本是唯一依據，世界上的物件只是顯示，全部只在伺服器（含 SP）改：

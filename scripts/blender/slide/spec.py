@@ -60,7 +60,7 @@ LEAF_T = {"A": 0.08, "B": 0.10, "C": 0.08, "D": 0.12, "F": 0.112, "G": 0.10}
 STOW = 25                              # first stow slot (build_model_gates.py STOW, Lua KP.GATE_SLOT.STOW)
 # The open leaf lies in the stow section, L + 1 tiles from the lane that hosts the model, and the engine draws a model
 # only while its host's square is on screen: one stow tile keeps an invisible object (slot STOW_HOST) that draws the
-# open leaf at rest (spriteModels-only slot STOW_HOST + 8, client BarrierAnim.lua)
+# leaf instead: STOW_REST (+ OPEN) at rest, the STOW_POSE channels while sliding (Lua KP.GATE_SLOT, client BarrierAnim.lua)
 STOW_HOST = 6
 OPP = {"N": "S", "S": "N", "W": "E", "E": "W"}
 # model +X and +Y in PZ tile coordinates (x east, y south) under the face's rotation (../gate/spec.py ROTATE)

@@ -28,7 +28,7 @@ uv run --with pillow python assemble.py                          # icons/*.png�
 | 檔案 | 內容 |
 |---|---|
 | `textures/MinidoracatKnoxPass_slide_<外觀>.png` | 大門的貼圖加機箱兩色（`atlas.py`）；F 多警示斜紋，G 多刺絲，ABlack 是 A 塗黑 |
-| `export/MinidoracatKnoxPass_slide<樓層>_<外觀><寬>.glb`、`_fast.glb` | 門柱＋門扇，clip 4.0／2.5 秒；左收、右收共用；ABlack 用 A 的 |
+| `export/MinidoracatKnoxPass_slide<樓層>_<外觀><寬>.glb`、`_fast.glb` | 只有門扇，clip 6.0／3.75 秒（遊戲內 4.0／2.5 秒）；左收、右收共用；ABlack 用 A 的 |
 | `export/MinidoracatKnoxPass_slidepost<樓層>_<外觀>.glb` | 門扇關上去那一端的門柱（讀頭掛這根） |
 | `export/MinidoracatKnoxPass_slidemotor<樓層>_<外觀>.glb` | 收的那一端的門柱：後面多一個機箱，在門柱自己那格內 |
 | `cells/<外觀><樓層>/<N\|W\|S\|E>/{lane,endA,endB,motorA,motorB,stow}.png` | 建造虛影的 2D 圖格；各寬度與左右收共用，`motor*` 是帶機箱的那一端 |

@@ -120,6 +120,7 @@ end
 -- 其他的門只量錨點，和以前一樣
 local function nearGate(player, rec)
     if KP.near(player, rec.x, rec.y, rec.z, KP.MANAGE_RANGE) then return true end
+    if rec.kind ~= "Slide" then return false end   -- 帳本記的種類（伺服器登記時寫的）：別種門不必去找物件
     local _, anchor = G.findAt(rec)
     local mg = anchor and KP.modelGate(anchor)
     if not (mg and mg.def.kind == "Slide") then return false end

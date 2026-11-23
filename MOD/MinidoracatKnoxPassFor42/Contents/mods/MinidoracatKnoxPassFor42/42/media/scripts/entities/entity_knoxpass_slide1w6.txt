@@ -116,6 +116,7 @@ module Base
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
             face N
             {
@@ -209,6 +210,7 @@ module Base
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
             face N
             {
@@ -302,6 +304,7 @@ module Base
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
             face N
             {
@@ -395,6 +398,7 @@ module Base
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
             face N
             {
@@ -488,6 +492,7 @@ module Base
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
             face N
             {
@@ -580,6 +585,7 @@ module Base
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
             face N
             {
@@ -672,6 +678,7 @@ module Base
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
             face N
             {
@@ -764,6 +771,7 @@ module Base
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
             face N
             {
@@ -856,6 +864,7 @@ module Base
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
             face N
             {
@@ -949,6 +958,7 @@ module Base
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
             face N
             {
@@ -1042,6 +1052,7 @@ module Base
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
             face N
             {
@@ -1136,6 +1147,7 @@ module Base
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
             face N
             {
@@ -1230,6 +1242,7 @@ module Base
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
             face N
             {
@@ -1324,6 +1337,7 @@ module Base
             skillBaseHealth = 0,
             dontNeedFrame = true,
             OnCreate = MinidoracatKnoxPass.ModelGate.onCreate,
+            OnIsValid = MinidoracatKnoxPass.Barrier.onIsValid,
 
             face N
             {

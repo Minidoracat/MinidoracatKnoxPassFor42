@@ -70,6 +70,7 @@ END_A, END_B = 3, 4
 PLACEHOLDER = 16
 POSE_OPEN, POSE_CLOSE, POSES = 32, 48, 8
 ONCREATE = "MinidoracatKnoxPass.ModelGate.onCreate"
+ONISVALID = "MinidoracatKnoxPass.Barrier.onIsValid"   # per-square build check shared by every Knox Pass gate (server/Barrier.lua)
 FIRE = "900000"
 # the vanilla spelling: the lower-case one works too (IsoWorld.java:779-782) but logs "Property Name not found" at boot
 # (IsoPropertyType.java:215, :280-291)
@@ -688,7 +689,7 @@ def entity_script(kind: Kind) -> str:
         ents.append(f"    entity {name}\n    {{\n        component UiConfig\n        {{\n            xuiSkin = default,\n"
                     f"            entityStyle = ES_{name},\n            uiEnabled = false,\n        }}\n\n"
                     f"        component SpriteConfig\n        {{\n{hp}            dontNeedFrame = true,\n"
-                    f"            OnCreate = {ONCREATE},\n\n" + "\n".join(faces) + "        }\n\n"
+                    f"            OnCreate = {ONCREATE},\n            OnIsValid = {ONISVALID},\n\n" + "\n".join(faces) + "        }\n\n"
                     "        component CraftRecipe\n        {\n"
                     + "".join(f"            {k} = {v},\n" for k, v in head.items())
                     + "            inputs\n            {\n" + "".join(f"                {i},\n" for i in inputs)
@@ -868,6 +869,7 @@ def check(tsets: dict[str, dict], sm_text: str, pack_names: set[str]) -> str:
         text = entity_path(kind).read_text(encoding="ascii")
         assert text == entity_script(kind), f"{entity_path(kind).name} is stale"
         assert "GarageDoor" not in text and text.count(f"OnCreate = {ONCREATE},") == len(kind.entities)
+        assert text.count(f"OnIsValid = {ONISVALID},") == len(kind.entities)
         for name in kind.entities:
             with Image.open(kind.icons[name][0]) as im:
                 assert im.size == (64, 64) and im.getbbox(), name
