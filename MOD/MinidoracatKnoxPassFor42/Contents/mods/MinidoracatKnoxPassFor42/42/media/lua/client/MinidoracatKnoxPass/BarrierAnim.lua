@@ -233,7 +233,9 @@ end
 -- 開關變了：引擎沒在播（或已經是我們在播）就從目前進度接著走；反向中途改變（還在抬就要放下）不跳回端點
 local function toggled(obj, s, open, now)
     s.open = open
-    if obj:isAnimating() and not s.start then   -- 引擎自己在播原生 clip：換成新狀態的靜止模型（播完的姿勢；加速的門是加速版）
+    -- 引擎自己在播原生 clip：換成新狀態的靜止模型（播完的姿勢；加速的門是加速版）。例外：模型門的中間片當下沒有覆寫
+    -- （滑動門開著由標記畫）就沒有模型，PlayAnimation 取不到模型、clip 沒播、只留下 setAnimating(true)（同 resolve 那條）：往下由通道補播
+    if obj:isAnimating() and not s.start and not (s.rest and s.sm == nil) then
         setSm(obj, s, restName(obj, s))
         return
     end

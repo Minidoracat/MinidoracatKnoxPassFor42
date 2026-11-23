@@ -5285,6 +5285,16 @@ local function scenarioModelGates()
     check(host._smName == SL .. "48" and mark._smName == nil, "滑動門關上：當下清掉標記的覆寫，中間片走放下那組通道")
     runMs(4250)
     check(host._smName == SL .. "5" and mark._smName == nil and not host:isAnimating(), "關好：中間片畫關的靜止模型")
+    -- MP 收到關門同步時標記正在畫、中間片沒有模型：引擎的 PlayAnimation 取不到模型，clip 沒播、只 setAnimating(true)
+    -- （IsoDoor.java:1471-1478；knoxslide-mp-1123b 實測門扇直接跳到關好、animating 卡住）。不能當成引擎在播：由通道補播
+    host:ToggleDoor(me)
+    runMs(4250)
+    host:ToggleDoor(me)
+    host:setAnimating(true)
+    step()
+    check(host._smName == SL .. "48" and mark._smName == nil, "標記在畫時收到關門同步（中間片沒有模型、引擎沒播）：由通道補播，不直接跳到關好")
+    runMs(4250)
+    check(host._smName == SL .. "5" and not host:isAnimating(), "補播走完：關的靜止模型，清掉引擎留下的 animating")
     clean(from, "模型門動畫（SP）")
 
     -- MP client：寬門跨 chunk、片的載入順序不定；舊版存檔的門（錨點帶覆寫、中間片沒有）
