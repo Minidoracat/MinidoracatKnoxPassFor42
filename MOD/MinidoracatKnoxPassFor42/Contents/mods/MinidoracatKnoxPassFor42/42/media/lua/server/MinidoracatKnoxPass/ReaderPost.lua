@@ -14,11 +14,14 @@ require "MinidoracatKnoxPass/Core"
 require "BuildingObjects/ISDestroyCursor"
 local KP = MinidoracatKnoxPass
 
--- 大錘游標不列出讀頭模型與兩層樓門的二樓隱形牆（Barrier.lua；清單逐物件問 canDestroy，ISDestroyCursor.lua:293-362、410-421）。
+-- 大錘游標不列出讀頭模型、兩層樓門的二樓隱形牆與滑動門收納段的標記物件（Barrier.lua；清單逐物件問 canDestroy，
+-- ISDestroyCursor.lua:293-362、410-421）。標記沒有屬性，原版一律放行；它平常看不到，被敲掉只會讓收好的門扇鏡頭拉近時不畫。
 -- 不能搬、不能拆解（ISMoveableSpriteProps.lua:100-130 要 IsMoveAble／Material 屬性）靠 tile 沒有屬性
 local canDestroy = ISDestroyCursor.canDestroy
 function ISDestroyCursor:canDestroy(object)
-    if KP.readerCode(object) or KP.upperWall(object) then return false end
+    local mg = KP.modelGate(object)
+    if KP.readerCode(object) or KP.upperWall(object)
+        or mg and mg.def.kind == "Slide" and mg.slot == KP.GATE_SLOT.STOW_HOST then return false end
     return canDestroy(self, object)
 end
 

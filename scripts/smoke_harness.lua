@@ -5172,6 +5172,10 @@ local function scenarioModelGates()
         and san == sl.lanes[1] and #G.pieces(sad, san) == 6 and G.kind(sad, san) == "Slide" and KP.Ledger.get("907,100,0N") == nil
         and #KP.Barrier.parts(sl.B) == 9 and sl.lanes[1]:getSprite():getName() == "MinidoracatKnoxPass_slide1_a6l_0",
         "滑動門：六片車庫門鏈、錨點第 1 片、類型 Slide、耐久 1500、不自動登記，整座＝六片＋兩端＋收納段標記")
+    -- 大錘游標不列出收納段標記（原版 canDestroy 對沒有屬性的一般物件回 true，ISDestroyCursor.lua:310-362）：它平常看不到，
+    -- 被敲掉只會讓鏡頭拉近時收好的門扇不畫；車道片照舊敲得到（整座一起收）
+    check(ISDestroyCursor.canDestroy({}, sl.stow[3].res.object) == false and ISDestroyCursor.canDestroy({}, sl.lanes[1]) == true,
+        "大錘游標不列收納段標記，車道片照列")
     local sr = buildModelGate("MinidoracatKnoxPass_slide1_a6r", 1, 6, "W", true, 1000, 100, builder, "R")
     check(stowed(sr, function(k) return square(1000, 106 - k, 0) end, "MinidoracatKnoxPass_slide1_a6r_70") and sr.B._square == square(1000, 106, 0)
         and sr.A._square == square(1000, 113, 0) and sr.lanes[1]._square == square(1000, 112, 0) and not sr.lanes[1]._north
