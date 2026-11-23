@@ -21,7 +21,9 @@
 -- 逐物件覆寫優先，IsoObject.java:6258-6265），所以播的是加速版；通道姿勢是 clip 的比例時間，兩種速度共用，只換補播時長
 -- 滑動門開著時門扇整個在收納段，離中間片 L＋1 格，中間片那格一出畫面就不畫（slide-sp 1123a）：開著靜止時改由收納段的
 -- 標記物件畫（server/Barrier.lua MG.onCreate 留的一般物件，覆寫成格位 STOW_HOST＋OPEN），中間片不畫；開關一動就交回
--- 中間片（clip 與通道姿勢都以它為原點）。標記那格沒載入或被移走時照舊由中間片畫，每秒再找
+-- 中間片（clip 與通道姿勢都以它為原點）。標記那格沒載入或被移走時照舊由中間片畫，每秒再找。
+-- 標記是一般物件，靜止時烤進 chunk 貼圖，改覆寫也不會重畫（slide-sp 1123b：一般鏡頭下開著的門扇整片不見）：在畫的期間
+-- 標成 animating 才走每幀畫的那一層（FBORenderCell.java:1762、:1928，同通道補播時的中間片），接手與交回都把它的 chunk 標髒
 require "MinidoracatKnoxPass/Core"
 local KP = MinidoracatKnoxPass
 
@@ -84,11 +86,18 @@ local function markOf(s)
     return nil
 end
 
+-- 收納段標記的覆寫：name＝要畫的靜止模型，nil＝不畫
+local function markDraw(mark, name)
+    mark:setSpriteModelName(name)
+    mark:setAnimating(name ~= nil)
+    mark:invalidateRenderChunkLevel(256)
+end
+
 -- 靜止時的覆寫：s.mark（滑動門開著、標記找到了）在就由標記畫、中間片不畫，否則中間片畫
 local function settle(obj, s)
     local name = restName(obj, s)
     if s.mark then
-        s.mark:setSpriteModelName(restName(obj, s, SLOT.STOW_HOST + SLOT.OPEN - SLOT.HOST))
+        markDraw(s.mark, restName(obj, s, SLOT.STOW_HOST + SLOT.OPEN - SLOT.HOST))
         name = nil
     end
     setSm(obj, s, name)
@@ -289,7 +298,7 @@ function A.tick()
             if s.stow then
                 if not open or s.start or obj:isAnimating() then   -- 關著或在動：交回中間片（開關時 toggled 已設好它的覆寫）
                     if s.mark then
-                        if s.mark:getObjectIndex() ~= -1 then s.mark:setSpriteModelName(nil) end
+                        if s.mark:getObjectIndex() ~= -1 then markDraw(s.mark, nil) end
                         if s.sm == nil then setSm(obj, s, restName(obj, s)) end
                     end
                     s.mark = nil

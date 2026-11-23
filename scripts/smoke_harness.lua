@@ -5259,7 +5259,9 @@ local function scenarioModelGates()
     runMs(1350)
     check(a._smName == "MinidoracatKnoxPassFast_roll2f_white_141" and not a:isAnimating(),
         "2.5 秒走完（正常要 4 秒）：換成加速版（開的那張）")
-    -- 滑動門：開著靜止時門扇由收納段標記畫（格位 14）、中間片不畫；一動就交回中間片；標記不在時照舊由中間片畫
+    -- 滑動門：開著靜止時門扇由收納段標記畫（格位 14）、中間片不畫；一動就交回中間片；標記不在時照舊由中間片畫。
+    -- 標記是一般物件，靜止時烤進 chunk 貼圖、改覆寫也不重畫（knoxslide-sp-1123b：一般鏡頭下開著的門扇整片不見）：
+    -- 在畫的期間要標成 animating 才每幀畫（FBORenderCell.java:1762、:1928），接手與交回都把那個 chunk 標髒
     me._x, me._y = 505, 103
     local sg = buildModelGate("MinidoracatKnoxPass_slide1_a6l", 0, 6, "N", true, 500, 100, me, "L")
     local host, mark, SL = sg.lanes[4], sg.stow[3].res.object, "MinidoracatKnoxPass_slide1_a6l_"
@@ -5268,8 +5270,10 @@ local function scenarioModelGates()
     host:ToggleDoor(me)
     step()
     check(host._smName == SL .. "32" and mark._smName == nil, "滑動門打開中：中間片走通道，標記不畫")
+    local inv = W.invalidated
     runMs(4250)
     check(host._smName == nil and mark._smName == SL .. "14" and not host:isAnimating(), "滑動門開著走完：交給標記畫（＋14），中間片不畫")
+    check(mark:isAnimating() and W.invalidated >= inv + 2, "標記在畫時標成 animating（每幀畫，不烤進 chunk 貼圖），接手時重畫它的 chunk")
     sg.lanes[1]._modData[KP.MARKER_SPEED] = "fast"
     runMs(1000)
     check(host._smName == nil and mark._smName == "MinidoracatKnoxPassFast_slide1_a6l_14", "加速的滑動門：標記換成加速版，中間片仍不畫")
@@ -5280,9 +5284,11 @@ local function scenarioModelGates()
     host, mark = sg.lanes[4], sg.stow[3].res.object
     host:ToggleDoor(me)
     runMs(4250)
+    inv = W.invalidated
     host:ToggleDoor(me)
     step()
     check(host._smName == SL .. "48" and mark._smName == nil, "滑動門關上：當下清掉標記的覆寫，中間片走放下那組通道")
+    check(not mark:isAnimating() and W.invalidated > inv, "交回中間片：標記清掉 animating，重畫它的 chunk")
     runMs(4250)
     check(host._smName == SL .. "5" and mark._smName == nil and not host:isAnimating(), "關好：中間片畫關的靜止模型")
     -- MP 收到關門同步時標記正在畫、中間片沒有模型：引擎的 PlayAnimation 取不到模型，clip 沒播、只 setAnimating(true)
