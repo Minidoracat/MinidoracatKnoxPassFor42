@@ -408,5 +408,5 @@
     "IGUI_KnoxPass_MapNamesWorld": "Mostrar tipos de portão no mapa do mundo",
     "IGUI_KnoxPass_RoadText": "Texto KNOX PASS no asfalto",
     "IGUI_KnoxPass_RoadText_tooltip": "As cancelas e as cancelas duplas têm KNOX PASS pintado no asfalto, para mostrar que o portão bloqueia veículos. Desmarque para esconder o texto só na sua tela. A linha de parada branca continua.",
-    "IGUI_KnoxPass_WhatsNew": "Novo: portões de correr. O portão desliza ao longo da cerca e deixa a frente livre para estacionar. Menu de construção: 7 estilos, 3 larguras, 2 alturas."
+    "IGUI_KnoxPass_WhatsNew": "Novo: portões de correr. Deslizam ao longo da cerca e deixam a frente livre. Menu de construção: 7 estilos, 3 larguras, 2 alturas."
 }
