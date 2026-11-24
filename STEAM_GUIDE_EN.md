@@ -42,9 +42,9 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [/list]
 === 🧰 Gate Reader
 [list]
-[*] [b]Where it fits[/b]: map doors, fence gates, double doors, garage doors, player-built doors and gates, and Knox Pass's own roll-up garage doors, two-story roll-up doors, two-story gates and sliding gates (see "Build your own gates").
+[*] [b]Where it fits[/b]: map doors, fence gates, double doors, garage doors, player-built doors and gates, and Knox Pass's own roll-up garage doors, two-story roll-up doors and gates, and sliding gates (see "Build your own gates").
 [*] [b]Installing[/b]: right-click the gate with the reader and a screwdriver. Whoever installs it owns it. The server can limit readers to your own safehouse (see "Server settings").
-[*] [b]Where it shows[/b]: on the gate post; on the face of the pillar for two-story gates and sliding gates (on a sliding gate, the post the leaf closes against), and on top of the cabinet for boom barriers and double boom barriers. It doesn't block people or cars.
+[*] [b]Where it shows[/b]: on the gate post; on the face of the pillar for two-story gates and sliding gates (the post the leaf closes against), and on top of the cabinet for boom barriers and double boom barriers. It doesn't block people or cars.
 [*] [b]Removing[/b]: the owner or a server admin can take the reader back with a screwdriver. If Knox Pass has the gate open, it closes it first and restores the original lock. Co-managers can't remove it.
 [/list]
 [h3]Management window[/h3]
@@ -69,7 +69,7 @@ Knox Pass lets you drive home without getting out: put a tag in the car and a re
 [*] [b]Server default[/b]: follows the sandbox setting.
 [*] [b]If the server narrows the limits[/b]: gates that were set follow the new limits and keep their value.
 [*] [b]Opens on[/b]: [b]Approach[/b] by default. With [b]Headlight flash[/b], a registered car first flashes its headlights at the gate (toggle them twice within 1.5 seconds: press the headlight key twice, F by default, or click the dashboard light button twice), then the gate opens if the car gets within the read range in the next 5 seconds. No extra key to learn, and unlike the horn it doesn't draw zombies. Cars on AutoDrive still get the gate opened for them. When you drive toward such a gate yourself, a one-time hint tells you to flash your headlights. The keyboard only toggles the headlights when "Toggle Vehicle Headlights" and "Equip/Turn On/Off Light Source" share the same key (that's how vanilla works; both are F by default); if you changed only one of them, the hint points you to the dashboard button instead.
-[*] [b]Speed[/b]: boom barriers, double boom barriers, two-story roll-up doors, two-story gates and sliding gates can be set to [b]Normal (4 s)[/b] or [b]Fast (2.5 s)[/b] under "Speed", and every player sees the same speed.
+[*] [b]Speed[/b]: boom and double boom barriers, two-story roll-up doors and gates, and sliding gates can be set to [b]Normal (4 s)[/b] or [b]Fast (2.5 s)[/b] under "Speed", and every player sees the same speed.
 [*] [b]Fixed speed[/b]: one-story roll-up doors and vanilla doors; the dropdown says "Not adjustable".
 [*] [b]Share with[/b]: pick [b]Faction[/b], [b]Safehouse[/b] or [b]Faction + safehouse[/b] to let teammates open and close this gate on foot without a tag (see "Opening and closing on foot"). Not shared by default.
 [*] [b]Counts as indoors[/b]: on garage-style gates (vanilla garage doors, and the roll-up doors, barriers and gates Knox Pass builds), the owner, a co-manager or an admin can tick "Counts as indoors (even when open)". Off by default. Ticked, the gate always counts as a wall, even when open: a ground floor walled in by a barrier or two-story door counts as indoors once the walls and roof are finished, and cars and people still get through the open gate. On boom barriers, double boom barriers, two-story roll-up doors, two-story gates and sliding gates, the gate is also cut away like a wall when it blocks your view of your character. Fence gates and other doors can't be ticked; doors in frames already count as wall.
