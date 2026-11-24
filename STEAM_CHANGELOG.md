@@ -1,20 +1,25 @@
-[h1]Minidoracat Knox Pass for B42 42.22.2-0.12.0[/h1]
-[i]2026-11-12[/i]
+[h1]Minidoracat Knox Pass for B42 42.22.2-0.13.0[/h1]
+[i]2026-11-24[/i]
 
 [b]English summary[/b]
 [list]
-[*] New: a gate reader can take a vanilla car battery. Carry one, right-click the gate → Knox Pass → "Install car battery". No tool needed; the owner, co-managers and server admins can do it.
-[*] It is only used when no grid power or generator reaches the gate. Each opening uses 0.5% of a full charge (about 200 openings); a closed gate uses none. The reader window's "Power" row shows the charge and openings left.
-[*] The battery does not recharge on the reader: right-click → "Remove car battery", then charge it in a car or with the vanilla battery charger. Removing the reader returns the battery; if the gate is dismantled or destroyed it drops at the gate.
-[*] Servers: new sandbox option "Reader battery drain multiplier (percent)" (0 = no drain). Servers with "Gate readers need power" off do not need batteries.
+[*] New: sliding gates in the build menu. The whole gate slides along the fence line and tucks away on one side. Nothing swings out, so you can park right in front of it or behind it.
+[*] Seven looks (chain-link, steel plate, iron bars, wooden planks, industrial yellow, barbed wire, black chain-link), one or two stories tall, 3, 4 or 6 tiles wide. Each one comes as "opens left" or "opens right".
+[*] Keep a clear strip next to the gate, as long as the gate is wide. The placement preview shows it. Furniture, crates or trees there stop you from building. Once built, you can walk on that strip and build fences along it.
+[*] Sensor opening, readers, locks, sharing, speed (Normal 4 s, Fast 2.5 s), indoor cutaway, Indestructible and dismantling work the same as on the other buildable gates. The reader hangs on the post the gate closes against.
+[*] Fix: a stronger safehouse check when you build any Knox Pass gate. No part of the gate can sit inside someone else's safehouse, and the preview turns red there.
 [/list]
 
 [h3]✨ 新增[/h3]
 [list]
-[*] [b]大門讀頭可以裝汽車電瓶[/b]：大門離房子遠、發電機照不到時，不必再專門為大門開一台發電機。身上帶一顆原版汽車電瓶，對大門按右鍵 → Knox Pass →「裝上汽車電瓶」，不用工具；擁有者、共同管理者與伺服器管理員都能裝。
-[*] [b]只在開門時用電[/b]：門沒有電網、也不在發電機範圍內才會用電瓶。每開一次用掉滿電的 0.5%，滿電大約開 200 次；門關著放著不耗電。電不夠開一次時門不會開。
-[*] [b]電量看管理視窗[/b]：「供電」那一列會寫電瓶電量和還能開幾次。
-[*] [b]充電要取下來[/b]：電瓶在讀頭上不會充電。右鍵「取下汽車電瓶」，裝回車上開一開，或用原版的電瓶充電器充好再裝回去。
-[*] [b]電瓶不會不見[/b]：拆讀頭時電瓶退給拆的人；拆除整座大門或門被打壞時，電瓶掉在門口的地上。
-[*] [b]伺服器設定[/b]：沙盒新增「讀頭電瓶耗電倍率（百分比）」，0 表示不耗電；關掉「讀頭需要供電」的伺服器不需要電瓶。
+[*] [b]滑動大門[/b]：有玩家希望有往旁邊滑開的大門。建造選單現在多了「滑動大門」：整扇門沿著圍牆滑到一側收起來，不像雙開大門要留門扇打開的空間，門前門後都可以停車、放東西。感應開門、讀頭、門鎖、分享、開關速度（正常 4 秒、加速 2.5 秒）、算室內、不會被破壞與拆除，都和其他自己蓋的大門一樣。
+[*] [b]七種外觀、兩種高度、三種寬度[/b]：鐵網、鋼板、鐵欄杆、木板、工業黃、帶刺鐵絲網、黑色鐵網；一層樓高或兩層樓高（箱型車、卡車過得去）；3、4、6 格寬。每一款都分「往左收」與「往右收」，蓋之前先決定門要收到哪一邊。
+[*] [b]門旁邊要留一排空地[/b]：門扇收起來的位置和門一樣寬，擺放時預覽會一起顯示。那幾格不能有家具、箱子、樹這類擋路的東西，不然蓋不下去。蓋好以後那排地照樣可以走、可以沿著蓋圍牆。
+[*] [b]機箱與讀頭[/b]：收起來那一端的門柱後面有一個驅動機箱；讀頭掛在另一端（門扇關上去的那一根門柱）的柱面上。
+[*] [b]材料[/b]：鐵的外觀用瓦斯噴槍、焊條、鐵管與鐵條，鐵網多鐵絲、鋼板多金屬片、帶刺鐵絲網再多帶刺鐵絲，黑色鐵網多一整罐黑色油漆；木板款用鐵鎚、木板、釘子與鐵條。一層樓要金工（木板款是木工）4 級，兩層樓要 5 級、材料是一層樓的兩倍；6 格寬的材料是 3、4 格寬的兩倍。
+[/list]
+
+[h3]🔧 修正[/h3]
+[list]
+[*] [b]在別人的安全屋旁邊蓋大門[/b]：強化了蓋大門時的安全屋檢查。每一種自己蓋的大門（抬升閘門、雙桿閘門、車庫捲門、兩層樓捲門、兩層樓大門與滑動大門），整座門都不能落在別人的安全屋裡，擺放預覽會直接變紅。自己是成員的安全屋照常可以蓋。
 [/list]
