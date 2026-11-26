@@ -468,7 +468,7 @@ function B.settle()
         local adapter, anchor = G.resolve(e.anchor)
         if adapter and not KP.Ledger.get(G.key(anchor)) then
             local name, sid = KP.principal(e.who)
-            KP.registerReader(adapter, anchor, name, sid, true)
+            KP.registerReader(adapter, anchor, name, sid, true, nil)   -- 內建讀頭不記顏色；Kahlua 少傳不補 nil，傳齊
         end
     end
 end

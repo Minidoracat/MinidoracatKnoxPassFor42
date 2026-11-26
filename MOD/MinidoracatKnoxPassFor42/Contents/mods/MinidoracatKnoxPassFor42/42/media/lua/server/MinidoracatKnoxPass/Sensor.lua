@@ -516,7 +516,8 @@ local function scanWalker(p, gates, now, range)
     for key in pairs(keys) do
         local rec = gates[key]
         if rec and rec.walk ~= false and math.abs(rec.z - z) < 1 then
-            local d2, ex, ey = KP.segDistSq(x, y, span(rec))
+            local ax, ay, bx, by = span(rec)
+            local d2, ex, ey = KP.segDistSq(x, y, ax, ay, bx, by)
             if d2 <= range * range and ex * vx + ey * vy >= WALK_COS * speed * math.sqrt(d2) then
                 walkOpen(p, key, rec, serial, now)
             end
