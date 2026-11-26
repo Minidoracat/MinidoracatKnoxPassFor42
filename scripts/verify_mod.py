@@ -9,13 +9,18 @@
 
   1. luac -p 語法        — 需要 PATH 有 luac；沒有則列為 SKIP 而非 PASS
  1b. 每個函式的累計 local — Debug 用固定 200 格記錄宣告；含離開作用域的變數，預算 190
+ 1c. 呼叫自己的 Lua 函式時固定參數傳齊 — Kahlua 不替少傳的固定參數補 nil，陣列建構式最後一項是呼叫或 ... 之後
+                         少傳的參數讀到堆疊殘值（KahluaThread.java:604-613,839-859、LuaCallFrame.java:96-109；
+                         2026-10-31 Builder 宣傳片情境 cellsX(4, 8, 1) 的 z 收到 2）。既有的少傳記在
+                         scripts/kahlua_args_baseline.txt，只有比它多才 FAIL；沒有 baseline 時 WARN（不擋），
+                         python scripts/verify_mod.py --rebase-args 建一份。檢查本身每次先用內建 fixture 自驗
   2. BOM / CRLF          — 有 BOM 或 CRLF 的翻譯檔會被引擎「靜默忽略」
   3. 翻譯鍵集一致          — 缺鍵的語系會顯示原始 key
   4. 裸 % 檢查           — 42.20.1 起 formatted() 遇裸 % 崩潰；只允許 %1-%9 與 %%
- 4b. 翻譯佔位與 EN 相同   — 各語系同一鍵的 %1-%9（多重集合）與 %% 數量要和 EN 一樣：漏掉的佔位少顯示資料，多出的沒有參數可填
- 4c. Lua 字串字面值純 ASCII  — Kahlua 把 code point > 255 截成 1 byte：顯示亂碼、寫檔截出控制字元、
-                          比對永遠不中；luac 與標準 Lua harness 都正確處理 UTF-8，攔不住。註解不掃
-  5. Kahlua 禁用全域       — next/xpcall 不存在（BaseLib 未註冊），呼叫→
+ 4b. 翻譯佔位與 EN 相同   — 各語系同一鍵的 %1-%9（多重集合）與 %% 數量要和 EN 一樣：漏掉的佔位少顯示資料，
+                          多出的沒有參數可填（12 語多數是 AI 翻譯，鍵集一致與裸 % 檢查都抓不到）
+  5. Kahlua 禁用全域       — next/xpcall 不存在（BaseLib 未註冊），os.clock 也沒有（OsLib 只註冊 date／difftime／time，
+                           OsLib.java:322-324；2026-11-26 從 Safehouse 移來），呼叫→
                            「Object tried to call nil」。luac 與標準 Lua 測試都攔不住
                            （語法合法、標準 Lua 有這些函式），只能靜態掃描
                            assert 不在此列：遊戲根目錄 stdlib.lua 以 Lua 定義，Kahlua 可用
@@ -23,12 +28,23 @@
                            已排序輸入退化 O(n) 深度、數百筆即溢位；一律用迭代 merge sort
   7. MOD/ 樹雜物          — .omc/.claude/.gitnexus 目錄與 .gitkeep 檔；Workshop 整包上傳不看 .gitignore
  7b. mod.info 多值欄位語法 — require/incompatible/load order 只接受逗號且 key 緊貼 =
+ 7c. MOD 清單封面與首發預覽 — 主選單 MOD 清單走一般貼圖、只畫 poster= 第一張，APNG 只解出各幀、主貼圖空白
+                         （ChooseGameInfo.java:519-536、ImageData.java:136-191；2026-10-26 盤點 24 個 MOD 封面都是 APNG）。
+                         MOD/<資料夾>/preview.png 首發前（workshop_publish.json 的 published_file_id 是 null 或沒有）也要
+                         靜態：遊戲內上傳器的預覽框用 getTexture 畫（WorkshopSubmitScreen.lua:318），APNG 一樣空白
+                         （Tesla 首發 2026-10-29 照舊文件用 APNG）。已發布只 PASS 註明：preview.png 只在首發用
   8. 佔位符殘留            — {{TOKEN}} 漏替換（略過根層 temp/、output/ 與各層 node_modules/）
   9. Steam 描述位元組      — 各語言 ≤8000 UTF-8 bytes（中日文 3 bytes/字，容易低估）
+ 9b. Steam 指南稿長度     — STEAM_GUIDE.md／STEAM_GUIDE_EN.md 照 pz-family-docs/scripts/steam_guide.js 的 parse 切章：
+                          檔頭要有標題／摘要註解，標題、章名 ≤128 bytes，摘要、每章內文 ≤8000 bytes（{{img:名}} 以
+                          最長的 previewicon 標籤估算）。超過時上傳工具送到一半才丟錯（2026-11-26 從 Builder 移來）。
+                          沒有指南稿則 SKIP
  10. 沙盒選項翻譯配對       — 每個 option 要有 Sandbox_<translation> 標題＋ _tooltip＋分頁名
  11. 公開文件洩漏掃描      — CHANGELOG bullet 與 STEAM_*.md 都會原樣貼到公開 Steam 頁；掃基礎設施
                            樣式（/home/ 路徑、IP、SteamID64、ssh、主機名）當最後防線。
                            攻擊配方與玩家識別資訊機器認不出來，靠撰寫規則（AGENTS.md）
+ 11b. 更新說明日期不晚於今天 — CHANGELOG.md 的 `## [版本] - YYYY-MM-DD` 與 STEAM_CHANGELOG.md 裡的 YYYY-MM-DD 晚於今天
+                          （本機日期）＝FAIL（Tesla 0.7.0 2026-11-13 寫成 11-15，備妥後才發現）。認不出的寫法不檢查
  12. drainable 輸入消耗語意 — 配方的 drainable 輸入要帶 flags[ItemCount] 或 flags[IsFull]，
                           否則按剩餘用量計，空件會被整批連坐銷毀（AutoDrive 正式服實爆）
  13. PACKS 使用者包範本    — PACKS/<Item>/ 是給服主自備素材後自行上傳的 MOD 形狀資料夾：
@@ -46,24 +62,41 @@
  16. client 物品名稱用 getItemName — getItemNameFromFullType 只回翻譯表的物品名；原版背包顯示車輛零件時再接上車型，
                           getItemName 照同一規則（LuaManager.java:8745-8763）。BigGasTank1／2／3 因此都顯示「油箱 (大型)」
                           （Economy、UIFor42 2026-10-18）。不拿來顯示或不會出現車輛零件的用法寫進 verify_ignore.txt 並註明查證依據
+ 17. vehiclewheel 模型兩層 UV — vehiclewheel_static.vert 從 location 3 讀 uv，FBX／GLB 靜態網格進引擎是 pos、normal、
+                          UV0、UV1（ImportedStaticMesh.java:29-35）；只有一層時讀到前一次 draw 留下的 attribute 3，
+                          車上零件拿到車身的 UV1，貼圖亂掉、沒有錯誤（Tesla 輪子 2026-10-24）。第二層放同一份 UV
+ 18. server／shared 用顯示名稱 setName（WARN，不擋）— setName 的名稱和原名（專用伺服器上是物品全名）不同時存進存檔、
+                         照原樣送給每個客戶端（InventoryItem.java:1711-1714 存、:2038 讀回），伺服器用自己語言的顯示名稱
+                         命名，所有玩家都看到伺服器語言（Tesla 0.1.0 正式服 2026-10-29：卡片鑰匙、手機變英文）。
+                         做法：伺服器不命名、客戶端用自己的語言命名（Tesla client/MinidoracatTesla/KeysUI.lua 的 UI.nameAll）；
+                         `x:setName(x:getScriptItem():getDisplayName())` 是設回原名、不存不送，不列（Bags bags-names-1030a）；
+                         本來就要改名的 repo（翻譯包）寫進 verify_ignore.txt 並註明理由。抓不到原版程式寫進的名字
+                         （ISClothingExtraAction:createItemNew 換穿時把帶磨損、染血字樣的 getName() 當成改名，:76-79）
+ 19. repo 專屬檢查        — scripts/verify_local.py（選用）：只有單一 MOD 用得到的靜態檢查放那裡，不改本檔
+                          （本檔是家族模板的副本，照模板更新時整份覆寫）。它照本檔格式印 PASS／FAIL／SKIP／WARN 行
+                          （行首要有空白），本檔逐行轉印並算進總結；結束碼非零卻沒印 FAIL 行也算 FAIL。
+                          verify_ignore.txt 不套用到它的輸出，豁免由它自己決定
+                          （Builder 管理面板規則頁的標籤寬：ES、PT 的譯文從 0.2.0 起被截，2026-11-01 才由 E2E 看到）
 
 新增檢查時：同步把對應的坑記進 AGENTS.md 踩坑錄，並依「踩坑進化協議」回流到
 pz-mod-template（見 AGENTS.md）。
 """
+from datetime import date
 import json
 import os
 import re
 import shutil
 import subprocess
+import struct
 import sys
 import tempfile
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-passed, failed, skipped = [], [], []
+passed, failed, skipped, warned = [], [], [], []
 
 # 豁免清單（選用）：scripts/verify_ignore.txt，每行一個子字串樣式（# 開頭為註解）。
-# 命中樣式的 finding 會列出但不計 FAIL——用於「已逐一查證屬合理例外」的殘留
+# 命中樣式的 finding 會列出但不計 FAIL／WARN——用於「已逐一查證屬合理例外」的殘留
 # （例：翻譯包鏡像了來源 MOD 原文的裸 %）。每個樣式旁必須有註解說明查證依據。
 IGNORE_PATTERNS = []
 _ign = os.path.join(os.path.dirname(os.path.abspath(__file__)), "verify_ignore.txt")
@@ -80,20 +113,39 @@ def ok(label):
     print(f"  PASS  {label}")
 
 
-def fail(label, details=None):
+def _unwaived(label, details):
+    """印出 verify_ignore.txt 豁免的 finding，回傳剩下的；全數豁免（或本來就沒有）時記成 PASS。"""
     details = details or []
     kept = [d for d in details if not any(p in d for p in IGNORE_PATTERNS)]
     waived = [d for d in details if any(p in d for p in IGNORE_PATTERNS)]
     for d in waived:
         print(f"  WAIVE {label}: {d}（verify_ignore.txt 豁免）")
     if not kept:
-        if waived:
-            ok(f"{label}（{len(waived)} 筆豁免）")
-        else:
-            ok(label)
+        ok(f"{label}（{len(waived)} 筆豁免）" if waived else label)
+    return kept
+
+
+def fail(label, details=None):
+    if not details:  # 沒帶細節也是失敗；不能經 _unwaived，空清單在那裡會記成 PASS
+        failed.append(label)
+        print(f"  FAIL  {label}")
+        return
+    kept = _unwaived(label, details)
+    if not kept:
         return
     failed.append(label)
     print(f"  FAIL  {label}")
+    for d in kept:
+        print(f"        {d}")
+
+
+def warn(label, details):
+    """列出但不影響結束碼。"""
+    kept = _unwaived(label, details)
+    if not kept:
+        return
+    warned.append(label)
+    print(f"  WARN  {label}")
     for d in kept:
         print(f"        {d}")
 
@@ -166,6 +218,364 @@ if __name__ == "__main__" and "--self-test-lua-limits" in sys.argv:
     sys.exit(0)
 
 
+def lua_clean(src):
+    """註解換成空白、字串內容換成底線（長度與換行不變），之後才能用樣式找呼叫。"""
+    out, i, n = [], 0, len(src)
+    while i < n:
+        c = src[i]
+        long_open = re.match(r"(--)?\[(=*)\[", src[i:]) if c in "-[" else None
+        if long_open:
+            end = src.find("]" + long_open.group(2) + "]", i)
+            end = n if end < 0 else end + len(long_open.group(2)) + 2
+            fill = " " if long_open.group(1) else "_"
+            body = "".join("\n" if ch == "\n" else fill for ch in src[i:end])
+            out.append(body if long_open.group(1) else '"' + body[1:-1] + '"')
+            i = end
+        elif src.startswith("--", i):
+            end = src.find("\n", i)
+            end = n if end < 0 else end
+            out.append(" " * (end - i))
+            i = end
+        elif c in "\"'":
+            j = i + 1
+            while j < n and src[j] != c and src[j] != "\n":
+                j += 2 if src[j] == "\\" else 1
+            out.append(c + "_" * (j - i - 1) + c)
+            i = j + 1
+        else:
+            out.append(c)
+            i += 1
+    return "".join(out)
+
+
+def call_args(text, open_at):
+    """open_at 是呼叫的 '('。回 (引數個數, 第一個引數, 最後一個引數)；括號不成對回 None。巢狀函式本體裡的逗號不算。"""
+    depth, block, count, start, first, i, n = 0, 0, 0, open_at + 1, None, open_at, len(text)
+    while i < n:
+        c = text[i]
+        if c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+            if depth == 0:
+                last = text[start:i].strip()
+                if last or count:
+                    count += 1
+                return count, (last if first is None else first), last
+        elif c == "," and depth == 1 and block == 0:
+            if first is None:
+                first = text[start:i].strip()
+            count += 1
+            start = i + 1
+        elif c.isalpha() or c == "_":
+            word = re.match(r"\w+", text[i:]).group(0)
+            if word == "function" or (block > 0 and word in ("if", "do", "repeat")):
+                block += 1
+            elif block > 0 and word in ("end", "until"):
+                block -= 1
+            i += len(word)
+            continue
+        i += 1
+    return None
+
+
+def expands(arg):
+    """引數是不是單獨一個呼叫（放在最後會展開成它全部的回傳值）。有運算子、或整個包在括號裡的只算一個值。"""
+    if not arg.endswith(")"):
+        return False
+    depth, first_zero, i, n = 0, None, 0, len(arg)
+    while i < n:
+        c = arg[i]
+        if c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+            if depth == 0 and first_zero is None:
+                first_zero = i
+        elif depth == 0:
+            if c in "+-*/%^#<>=~" or arg.startswith("..", i):
+                return False
+            if c.isalpha() or c == "_":
+                word = re.match(r"\w+", arg[i:]).group(0)
+                if word in ("and", "or", "not"):
+                    return False
+                i += len(word)
+                continue
+        i += 1
+    return not (arg[0] == "(" and first_zero == n - 1)
+
+
+def short_calls(lua_roots, extra=()):
+    """lua_roots（各 MOD 的 42/media/lua）裡，傳的引數比定義的固定參數少的呼叫。回 [(key, 位置說明)]，
+    key＝檔|函式|傳幾個<要幾個（檔是相對 media/lua 的路徑）。Builder scripts/verify_local.py 2026-11-19 起的做法搬來：
+    MOD 的根表＝頂層 `X = X or {}`／`X = {}` 宣告的全域。呼叫照「哪個模組的哪個函式」對定義：`Queue.cancel(`、
+    `Root.Queue.cancel(`、`local Q = Root.Queue` 之後的 `Q.cancel(` 都對 `Root.Queue = Queue` 那個檔的那一個（照名稱對、
+    同名取最少的做法，別的模組有同名而參數較少的函式時會漏）。別名照呼叫的位置找：看得到、最近宣告的那個
+    `local 名稱 = …`，`local A, B = R.A, R.B` 這種平行指派也認。沒前綴的呼叫對同檔最近、還在範圍內的 local 函式，
+    `local f = Check.safehouse` 這種別名跟著對；`self:f(` 對同檔的方法；認不出接收者的 `obj:f(` 照方法名對（同名取
+    最少的），`x.f(` 不看（別人的表或欄位裡的函式：`ArrayList.new()`、`UI.Button.new`）。
+    最後一個引數是 ... 的不報；是單獨一個呼叫的（會展開成好幾個值）當一個算、照報，key 的 < 換成 ~、後面接那個
+    呼叫的函式名（換成別的函式就不算 baseline 裡那一筆）。
+    定義只認 `function A.b(…)`、`function A:b(…)`、`local function b(…)`、`A.b = function(…)`（表建構式裡的欄位不算）；
+    `pcall(f, …)` 當成呼叫 f。extra＝另外要看的檔（自驗 fixture）：當成 MOD 的檔掃，key 的檔是相對 REPO。"""
+    name_re = r"[A-Za-z_]\w*"
+    chain_re = rf"{name_re}(?:\.{name_re})*"
+    texts, base_of, defs, def_parens, roots, mods, aliases = {}, {}, {}, set(), {}, {}, {}
+
+    def split_top(src):
+        out, depth, cur = [], 0, ""
+        for ch in src:
+            depth += (ch in "({[") - (ch in ")}]")
+            if ch == "," and depth == 0:
+                out.append(cur.strip())
+                cur = ""
+            else:
+                cur += ch
+        return out + [cur.strip()]
+
+    def fixed(params):
+        return len([p for p in (q.strip() for q in params.split(",")) if p and p != "..."])
+
+    def scope_end(text, pos):
+        """local 函式看得到的範圍：到縮排比它淺的下一行（外層區塊收尾）為止；頂層的到檔尾。"""
+        start = text.rfind("\n", 0, pos) + 1
+        indent = len(text[start:pos]) - len(text[start:pos].lstrip())
+        if indent:
+            for m in re.finditer(r"\n([ \t]*)\S", text[pos:]):
+                if len(m.group(1)) < indent:
+                    return pos + m.start() + 1
+        return len(text)
+
+    def add(name, path, pos, table, form, params, local):
+        text = texts[path]
+        defs.setdefault(name, []).append({
+            "path": path, "line": text.count("\n", 0, pos) + 1, "pos": pos, "table": table, "form": form,
+            "need": fixed(params), "local": local, "end": scope_end(text, pos) if local else len(text)})
+
+    files = [(f, root) for root in lua_roots for f in iter_files(root, {".lua"})] + [(f, REPO) for f in extra]
+    for path, root in files:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            texts[path] = lua_clean(fh.read())
+        base_of[path] = root
+    root_names = {r for text in texts.values()
+                  for r in re.findall(rf"^({name_re})\s*=\s*(?:\1\s+or\s+)?\{{", text, re.M)} - {"local"}
+
+    for path, text in texts.items():
+        # local a, b = e1, e2（同一行分號後面的也算）：（位置, 看得到的範圍結尾, 名稱, 運算式）
+        aliases[path] = [(m.end(1), scope_end(text, m.end(1)), n.strip(), e)
+                         for m in re.finditer(rf"(?:^|;)([ \t]*)local\s+({name_re}(?:\s*,\s*{name_re})*)\s*=\s*([^;\n]+)", text, re.M)
+                         for n, e in zip(m.group(2).split(","), split_top(m.group(3)))]
+        roots[path] = root_names | {a[2] for a in aliases[path] if a[3] in root_names}
+        root = "|".join(sorted(roots[path]))
+        mods[path] = {t: x for x, t in re.findall(rf"^[ \t]*(?:{root})\.({name_re})\s*=\s*({name_re})[ \t]*$", text, re.M)} \
+            if root else {}
+        for m in re.finditer(rf"(local\s+)?\bfunction\s+({chain_re})(?::({name_re}))?\s*\(([^)]*)\)", text):
+            local, dotted, method, params = m.groups()
+            def_parens.add((path, text.index("(", m.start(2))))
+            if method:
+                add(method, path, m.start(), dotted, "colon", params, False)
+            elif "." in dotted:
+                add(dotted.rsplit(".", 1)[1], path, m.start(), dotted.rsplit(".", 1)[0], "dot", params, False)
+            else:
+                add(dotted, path, m.start(), None, "bare", params, bool(local))
+        for m in re.finditer(rf"^[ \t]*(local\s+)?({chain_re})\s*=\s*function\s*\(([^)]*)\)", text, re.M):
+            local, dotted, params = m.groups()
+            if "." in dotted:
+                add(dotted.rsplit(".", 1)[1], path, m.start(), dotted.rsplit(".", 1)[0], "dot", params, False)
+            else:
+                add(dotted, path, m.start(), None, "bare", params, bool(local))
+    modkeys = {x for path in texts for x in mods[path].values()}
+
+    def alias_of(path, name, at):
+        """at 這個位置看得到、最近宣告的 `local name = 運算式` 那一筆（位置, 範圍結尾, 名稱, 運算式）；沒有回 None。"""
+        seen = [a for a in aliases[path] if a[2] == name and a[0] < at < a[1]]
+        return max(seen) if seen else None
+
+    def is_root(path, name, at):
+        a = alias_of(path, name, at)
+        return a[3] in root_names if a else name in root_names
+
+    def modkey(path, chain, at):
+        """at 這個位置，a.b 這種接收者指的是哪個模組（根表.X 的 X）；認不出回 None。
+        別名的右邊照它宣告的位置解析（之後同名的變數換了別的東西，不影響先前取好的）。"""
+        comps = chain.split(".")
+        if len(comps) == 2 and is_root(path, comps[0], at):
+            return comps[1] if comps[1] in modkeys else None
+        if len(comps) == 1:
+            a = alias_of(path, chain, at)
+            m = a and re.fullmatch(rf"({name_re})\.({name_re})(?:\s+or\s+\{{\s*\}})?", a[3])
+            if m and is_root(path, m.group(1), a[0]):
+                return m.group(2) if m.group(2) in modkeys else None
+            return mods[path].get(chain) or (chain if a is None and chain in modkeys else None)
+        return None
+
+    def of_module(name, key):
+        return [d for d in defs.get(name, []) if d["form"] != "bare" and d["table"]
+                and modkey(d["path"], d["table"], d["pos"]) == key]
+
+    def receiver(text, at):
+        """at 是呼叫名稱前面那個 . 或 : 的位置。回接收者（a.b 這種一串名字）；前面是運算式（x[i].f、g().f）回 None。"""
+        head = text[max(0, at - 160):at]
+        m = re.search(rf"({chain_re})\s*$", head)
+        return None if not m or head[:m.start()].rstrip()[-1:] in (".", ":") else m.group(1)
+
+    keywords = {"if", "and", "or", "not", "return", "while", "until", "elseif", "in", "function", "for", "do", "then", "else", "end", "local"}
+    hits = []
+    for path, text in texts.items():
+        rel = os.path.relpath(path, base_of[path]).replace(os.sep, "/")
+        for m in re.finditer(rf"([.:]?)\b({name_re})\s*\(", text):
+            sep, name = m.groups()
+            open_at = m.end() - 1
+            if name in keywords or (path, open_at) in def_parens:
+                continue
+            got = call_args(text, open_at)
+            if not got:
+                continue
+            count, first, last = got
+            chain = receiver(text, m.start()) if sep else None
+            if name == "pcall" and sep == "" and re.fullmatch(chain_re, first or ""):
+                chain, name, count = first.rpartition(".")[0] or None, first.rsplit(".", 1)[-1], count - 1
+                sep = "." if chain else ""
+            named = defs.get(name, [])
+            if sep == "":
+                here = [d for d in named if d["form"] == "bare" and d["path"] == path]
+                scoped = [d for d in here if d["local"] and d["pos"] < m.start() < d["end"]]
+                alias = alias_of(path, name, m.start())
+                alias = alias if alias and re.fullmatch(rf"{name_re}(?:\.{name_re})+", alias[3]) else None
+                if scoped:
+                    cands = [max(scoped, key=lambda d: d["pos"])]
+                elif [d for d in here if not d["local"]]:   # 先宣告、後面才 `f = function` 的
+                    cands = [d for d in here if not d["local"]]
+                elif alias:
+                    key = modkey(path, alias[3].rpartition(".")[0], alias[0])
+                    cands = of_module(alias[3].rsplit(".", 1)[1], key) if key else []
+                    sep = "."
+                else:
+                    cands = [d for d in named if d["form"] == "bare" and not d["local"]]
+            else:
+                key = chain and modkey(path, chain, m.start())
+                mine = [d for d in named if d["form"] != "bare" and d["path"] == path]
+                if key:
+                    cands = of_module(name, key)
+                elif chain == "self" and mine:
+                    cands = mine
+                elif chain and [d for d in mine if d["table"] == chain]:
+                    cands = [d for d in mine if d["table"] == chain]
+                elif sep == ":":   # 認不出是誰的方法呼叫：照方法名，同名取最少的
+                    cands = [d for d in named if d["form"] == "colon"]
+                else:              # 別人的表或欄位裡的函式
+                    cands = []
+            if not cands or last == "...":
+                continue
+            need = min(d["need"] + (1 if sep == "." and d["form"] == "colon" else -1 if sep == ":" and d["form"] == "dot" else 0)
+                       for d in cands)
+            if count < need:
+                d = min(cands, key=lambda d: d["need"])
+                line = text.count("\n", 0, m.start()) + 1
+                tail = expands(last)
+                callee = "?"   # f(x):g() 展開的是 g 的值：具名呼叫的右括號在引數最後面才記它的名字
+                cm = re.match(rf"({chain_re}(?::{name_re})?)\s*\(", last.strip()) if tail else None
+                depth = 0
+                for i in range(cm.end() - 1, len(last.strip())) if cm else ():
+                    depth += (last.strip()[i] == "(") - (last.strip()[i] == ")")
+                    if depth == 0:
+                        callee = cm.group(1) if i == len(last.strip()) - 1 else "?"
+                        break
+                hits.append((f"{rel}|{name}|{count}{'~' if tail else '<'}{need}" + (f"|{callee}" if tail else ""),
+                             f"{rel}:{line}  {name} 傳 {count} 個{'（最後一個是呼叫，它回幾個值要自己看）' if tail else ''}、"
+                             f"定義 {need} 個（{os.path.basename(d['path'])}:{d['line']}）"))
+    return hits
+
+
+# 1c 的自驗 fixture：行尾 --! 的行要被報成少傳，其他行不能報；驚嘆號後面接的字是尾端呼叫那一筆 key 最後記的函式名。
+ARGS_FIXTURE_DEFS = """FixRoot = FixRoot or {}
+local Queue = {}
+FixRoot.Queue = Queue
+function Queue.push(p, name, anchors) end
+local Lib = {}
+FixRoot.PlanLibrary = Lib
+function Lib.saveFirst(pn, go) end
+function Lib.opt(pn, ...) end
+local Check = {}
+FixRoot.Check = Check
+function Check.item(p, name, d, anchor) end
+function Check.safehouse(p, c, x) end
+local Cursor = {}
+FixRoot.Cursor = Cursor
+function Cursor.send(p, name, anchors) end
+local Mode = {}
+FixRoot.PlanMode = Mode
+function Mode.selectRect(a, b, c, d, e) end
+function Mode:pick(a, b) end
+"""
+ARGS_FIXTURE_CALLS = """local B = FixRoot
+local Q, L = B.Queue, B.PlanLibrary -- 平行指派的別名
+local C = B.Check
+local function one() return 1 end
+local sh = C.safehouse -- 函式別名：之後 C 換成別的模組，sh 還是 Check.safehouse
+
+Q.push(p, name) --!
+Q.push(p, name, anchors)
+L.saveFirst(pn) --!
+L.saveFirst(pn, go)
+L.opt(pn)
+L.opt() --!
+B.Queue.push(p, one()) --!one
+B.Queue.push(p, one():rep(2)) --!?
+B.Queue.push(p, ...)
+C.item(p, name, d) --!
+C.item(p, name, d, anchor)
+local function inner()
+    local C = B.Cursor -- 同名的別名在這個函式裡指另一個模組
+    C.send(p, name) --!
+    C.send(p, name, anchors)
+    sh(p, c) --!
+    sh(p, c, true)
+end
+C.item(p, name, d, anchor) -- 出了那個函式 C 又是 Check
+C.item(p) --!
+pcall(Q.push, p, name) --!
+pcall(Q.push, p, name, anchors)
+local function shadow()
+    local B = {} -- 這個 B 不是 MOD 的根
+    B.Queue.push(p, name)
+end
+local function sameLine()
+    local M = B.PlanMode; M.selectRect(1, 2) --!
+end
+B.PlanMode:pick(1) --!
+B.PlanMode:pick(1, 2)
+B.PlanMode.pick(B.PlanMode, 1, 2)
+one(1, 2)
+"""
+
+
+def self_test_args():
+    """用 ARGS_FIXTURE_* 驗 short_calls：標 --! 的行要報（尾端呼叫要記對函式名）、其他行不報。回錯誤說明或 None。"""
+    with tempfile.TemporaryDirectory(dir=REPO) as directory:
+        defs_path, calls_path = os.path.join(directory, "defs.lua"), os.path.join(directory, "calls.lua")
+        for path, body in ((defs_path, ARGS_FIXTURE_DEFS), (calls_path, ARGS_FIXTURE_CALLS)):
+            with open(path, "w", encoding="utf-8", newline="\n") as fh:
+                fh.write(body)
+        calls = os.path.relpath(calls_path, REPO).replace(os.sep, "/")
+        want = {i: m.group(1) for i, line in enumerate(ARGS_FIXTURE_CALLS.splitlines(), 1)
+                for m in [re.search(r"--!(\S*)", line)] if m}
+        seen = {}
+        for key, where in short_calls([], [defs_path, calls_path]):
+            if not key.startswith(calls + "|"):
+                return f"fixture 的定義檔被報：{where}"
+            seen[int(where.split("  ")[0].rsplit(":", 1)[1])] = key.rsplit("|", 1)[1] if "~" in key else ""
+    if seen != want:
+        return f"fixture 標的 {sorted(want.items())}，實際報的 {sorted(seen.items())}"
+    return None
+
+
+if __name__ == "__main__" and "--self-test-args" in sys.argv:
+    _err = self_test_args()
+    print(f"FAIL 固定參數檢查自驗：{_err}" if _err else "PASS 固定參數檢查自驗")
+    sys.exit(1 if _err else 0)
+
+
 MEDIA_DIRS = find_media()
 if not MEDIA_DIRS:
     print("找不到 MOD/*/Contents/mods/*/42/media，中止")
@@ -193,6 +603,45 @@ else:
     fail("Kahlua local 預算（每個函式 ≤190）", bad_limits) if bad_limits \
         else ok("Kahlua local 預算（每個函式 ≤190）")
 
+
+# ---- 1c. 呼叫自己的 Lua 函式時固定參數傳齊（Kahlua 不補 nil）----
+_t = "呼叫自己的 Lua 函式時固定參數傳齊（Kahlua 不補 nil）"
+_base_path = os.path.join(REPO, "scripts", "kahlua_args_baseline.txt")
+_err = self_test_args()
+if _err:
+    fail(_t, [f"檢查本身壞了：{_err}"])
+else:
+    _now = {}
+    for _key, _where in short_calls([os.path.join(m, "lua") for m in MEDIA_DIRS if os.path.isdir(os.path.join(m, "lua"))]):
+        _now.setdefault(_key, []).append(_where)
+    _total = sum(len(v) for v in _now.values())
+    if "--rebase-args" in sys.argv:
+        with open(_base_path, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write("# 既有的「固定參數少傳」呼叫（scripts/verify_mod.py 第 1c 項）。只會變少：改掉一處就重跑\n"
+                     "# python scripts/verify_mod.py --rebase-args。不要為了讓新的呼叫通過而重跑：少的補 nil 傳齊，\n"
+                     "# 或把選用參數改成 ... 接。只有確定呼叫的是 Java 方法，或最後一個引數的呼叫確定每條路都回夠多個值\n"
+                     "# （key 裡是 ~，後面是那個呼叫的函式名）才加進來。\n")
+            for _key in sorted(_now):
+                fh.write(f"{len(_now[_key])}\t{_key}\n")
+        ok(f"{_t}（baseline 重寫，{_total} 處）")
+    elif not os.path.isfile(_base_path):
+        warn(f"{_t}：沒有 scripts/kahlua_args_baseline.txt（先 --rebase-args 建一份才會擋新增的）",
+             [w for k in sorted(_now) for w in _now[k]]) if _now else ok(_t)
+    else:
+        _base = {}
+        with open(_base_path, encoding="utf-8") as fh:
+            for _line in fh:
+                if _line.strip() and not _line.startswith("#"):
+                    _n, _key = _line.rstrip("\n").split("\t", 1)
+                    _base[_key] = int(_n)
+        _bad = [w + (f"（這個檔同樣的呼叫 baseline 只有 {_base[k]} 處）" if k in _base else "")
+                for k in sorted(_now) if len(_now[k]) > _base.get(k, 0) for w in _now[k]]
+        if _bad:
+            fail(_t, _bad + ["少的補 nil 傳齊，或把選用參數改成 ... 接（local a, b = ...）；"
+                             "確定呼叫的是 Java 方法才 python scripts/verify_mod.py --rebase-args"])
+        else:
+            ok(f"{_t}（新增 0 處；既有 {_total} 處記在 baseline）")
+
 # ---- 2. BOM / CRLF ----
 bad = []
 for m in MEDIA_DIRS:
@@ -214,7 +663,9 @@ fail("BOM / CRLF（42/media 下）", bad) if bad else ok("BOM / CRLF（42/media 
 # 刻意不含 printf 旗標字元（-+空白#0）：含空白旗標會讓「50% done」的「% d」被解析成
 # 合法指令而漏抓——翻譯實務上只會出現簡單的 %s/%d/%.1f，罕見旗標用法交給豁免清單
 PRINTF_RE = re.compile(r"%\d*(?:\.\d+)?[sdifuxXcqgGeE]")
-PCT_N_RE = re.compile(r"%[1-9]")
+# 和引擎 FORMAT_TOKEN 一樣從左到右切（Translator.java:170）：「%%20」是 %% 加 20，不是 %2（TR 把 % 寫在數字前）；
+# findall 對 %% 回空字串、對 %N 回數字，排序後比對同時涵蓋 %1-%9 與 %% 的數量
+PCT_N_RE = re.compile(r"%%|%([1-9])")
 
 
 def find_bare_pct(value, tolerant):
@@ -272,9 +723,8 @@ for m in MEDIA_DIRS:
             for l, d in datas.items():
                 for k, v in d.items():
                     ev = en.get(k)
-                    if l != "EN" and isinstance(ev, str) and isinstance(v, str) and (
-                            sorted(PCT_N_RE.findall(v)) != sorted(PCT_N_RE.findall(ev))
-                            or v.count("%%") != ev.count("%%")):
+                    if l != "EN" and isinstance(ev, str) and isinstance(v, str) and \
+                            sorted(PCT_N_RE.findall(v)) != sorted(PCT_N_RE.findall(ev)):
                         pctdiff.append(f"{l}/{n} 的 {k}")
     if broken:
         fail("翻譯 JSON 可解析", broken)
@@ -287,7 +737,7 @@ for m in MEDIA_DIRS:
         label = "翻譯佔位與 EN 相同（%1-%9、%%）"
         fail(label, pctdiff) if pctdiff else ok(label)
 
-# ---- 4c. Lua 字串字面值不得含非 ASCII ----
+# ---- 4b. Lua 字串字面值不得含非 ASCII ----
 # Kahlua 的 LexState 以 Reader 讀入 char 卻用 byte[] 存 token（LexState.java:70,178,194-199），任何 code point > 255
 # 的字面值到執行期都是亂碼（pz-family-docs pitfalls「非 ASCII 字串字面值」）。luac -p 與標準 Lua 的 harness 都正確處理
 # UTF-8，只有實機才炸：Economy 2026-09-06 中文 toast 變 !p8；Safehouse 2026-10-11 寫出的報告檔頭截出單獨的 \r，
@@ -316,6 +766,7 @@ fail("Lua 字串字面值純 ASCII（Kahlua 截斷）", nonascii) if nonascii \
 
 # ---- 5+6. Kahlua 禁用全域 / table.sort ----
 FORBIDDEN = ("next", "xpcall")
+FORBIDDEN_MEMBERS = ("os.clock",)  # OsLib.java:322-324 只註冊 date／difftime／time，os.clock 是 nil
 hits_forbidden, hits_sort = [], []
 for f in LUA_FILES:
     rel = os.path.relpath(f, REPO)
@@ -325,10 +776,13 @@ for f in LUA_FILES:
             for name in FORBIDDEN:
                 for mm in re.finditer(rf"(?<![\w_:.]){name}\s*\(", code):
                     hits_forbidden.append(f"{rel}:{lineno} 用了 {name}()")
+            for name in FORBIDDEN_MEMBERS:
+                if re.search(rf"(?<![\w_.]){re.escape(name)}\s*\(", code):
+                    hits_forbidden.append(f"{rel}:{lineno} 用了 {name}()")
             if re.search(r"(?<![\w_])table\.sort\s*\(", code):
                 hits_sort.append(f"{rel}:{lineno}")
-fail("Kahlua 禁用全域（next/xpcall）", hits_forbidden) if hits_forbidden \
-    else ok("Kahlua 禁用全域（next/xpcall）")
+fail("Kahlua 禁用全域（next/xpcall/os.clock）", hits_forbidden) if hits_forbidden \
+    else ok("Kahlua 禁用全域（next/xpcall/os.clock）")
 fail("無 table.sort（用迭代 sortSafe，見 AGENTS.md）", hits_sort) if hits_sort \
     else ok("無 table.sort")
 
@@ -428,6 +882,26 @@ for base, _, files in os.walk(os.path.join(REPO, "MOD")):
 fail("MOD 清單封面（poster=）", poster_bad) if poster_bad \
     else ok(f"MOD 清單封面是靜態 PNG（{poster_n} 張）")
 
+# ---- 7c（續）. 首發前 preview.png 是靜態 PNG ----
+# 遊戲內上傳器的預覽框用 getTexture 畫 preview.png（WorkshopSubmitScreen.lua:318），APNG 走這條路只解出各幀、
+# 主貼圖空白（Tesla 首發 2026-10-29 照舊文件用 APNG，預覽框空白）。preview.png 只在首發用：已發布不擋。
+_pub_file = os.path.join(REPO, "scripts", "workshop_publish.json")
+_published = False
+if os.path.isfile(_pub_file):
+    with open(_pub_file, encoding="utf-8") as fh:
+        _published = bool(json.load(fh).get("published_file_id"))
+_mod_root = os.path.join(REPO, "MOD")
+_previews = [os.path.join(_mod_root, d, "preview.png") for d in sorted(os.listdir(_mod_root))
+             if os.path.isfile(os.path.join(_mod_root, d, "preview.png"))] if os.path.isdir(_mod_root) else []
+_apng = [os.path.relpath(p, REPO) for p in _previews if png_animated(p)]
+_t = "首發 preview.png 是靜態 PNG（上傳器預覽框）"
+if _apng and not _published:
+    fail(_t, [f"{p}: APNG 在遊戲內上傳器預覽框畫成空白，首發前改用靜態 PNG" for p in _apng])
+elif _apng:
+    ok(f"{_t}：已發布，preview.png 只在首發用（{len(_apng)} 張 APNG 不擋）")
+else:
+    ok(f"{_t}（{len(_previews)} 張）")
+
 # ---- 8. 佔位符殘留 ----
 tokens = []
 SELF = os.path.abspath(__file__)   # 本檔 docstring 有 {{TOKEN}} 範例字樣，排除自己
@@ -459,6 +933,55 @@ for f in descs:
         over.append(f"{f}: {size} bytes（上限 8000）")
 if descs:
     fail("Steam 描述 ≤8000 bytes", over) if over else ok(f"Steam 描述 ≤8000 bytes（{len(descs)} 檔）")
+
+# ---- 9b. Steam 指南稿長度 ----
+# 照 pz-family-docs/scripts/steam_guide.js 的 parse()（改那邊就要照著改這裡）：整行 <!-- --> 註解不送；以行首「=== 」切章、
+# 第一行是章名；內文頭尾去空白、章內 [h3] 前補一個空行；{{img:名}} 以最長的 previewicon 標籤估算。上限出處：
+# pz-family-docs/release.md「長度上限都算 UTF-8 位元組」（2026-10-11 實測：章內文 8001 bytes 被拒；章名、指南標題 ≤128）。
+_t = "Steam 指南稿：標題、章名 ≤128 bytes，摘要、每章 ≤8000 bytes"
+_guides = [g for g in ("STEAM_GUIDE.md", "STEAM_GUIDE_EN.md") if os.path.isfile(os.path.join(REPO, g))]
+_bad, _n = [], 0
+
+
+def _u8(s):
+    return len(s.encode("utf-8"))
+
+
+for _g in _guides:
+    with open(os.path.join(REPO, _g), encoding="utf-8") as fh:
+        _lines = fh.read().replace("\r\n", "\n").split("\n")
+    _meta = {}
+    for _line in _lines:
+        _m = re.match(r"^<!--\s*(指南網址|標題|摘要)：(.*?)\s*-->$", _line)
+        if _m:
+            _meta[_m[1]] = _m[2].strip()
+    for _k, _cap in (("標題", 128), ("摘要", 8000)):
+        if not _meta.get(_k):
+            _bad.append(f"{_g}：檔頭缺 <!-- {_k}：… -->")
+        elif _u8(_meta[_k]) > _cap:
+            _bad.append(f"{_g} 指南{_k} {_u8(_meta[_k])} bytes（上限 {_cap}）")
+    _chunks = re.split(r"^=== ", "\n".join(x for x in _lines if not re.match(r"^<!--.*-->$", x)), flags=re.M)[1:]
+    if not _chunks:
+        _bad.append(f"{_g}：沒有「=== 章名」開頭的章節")
+    for _c in _chunks:
+        _n += 1
+        _title, _, _body = _c.partition("\n")
+        _title = _title.strip()
+        _body = re.sub(r"([^\n])\n\[h3\]", r"\1\n\n[h3]", _body.strip())
+        if not _title or _u8(_title) > 128:
+            _bad.append(f"{_g}：章名空白或超過 128 bytes：「{_title}」")
+        if not _body:
+            _bad.append(f"{_g}「{_title}」：沒有內文")
+        _size = _u8(re.sub(r"\{\{img:([^}]+)\}\}",
+                           lambda m: f"[previewicon=000000000000;sizeOriginal,inline;{m[1]}][/previewicon]", _body))
+        if _size > 8000:
+            _bad.append(f"{_g}「{_title}」：{_size} bytes（上限 8000；中文字 3、emoji 4）")
+if not _guides:
+    skip(_t, "沒有 STEAM_GUIDE.md／STEAM_GUIDE_EN.md")
+elif _bad:
+    fail(_t, _bad + ["縮短或照功能拆章；上傳工具 pz-family-docs/scripts/steam_guide.js 用同樣的規則"])
+else:
+    ok(f"{_t}（{len(_guides)} 檔 {_n} 章）")
 
 # ---- 10. 沙盒選項翻譯配對 ----
 for m in MEDIA_DIRS:
@@ -502,6 +1025,24 @@ for _n in _pub:
                     leaks.append(f"{_n}:{lineno} {desc}（{mm.group()[:40]}）")
 _t = f"公開文件無基礎設施洩漏樣式（{len(_pub)} 檔）"
 fail(_t, leaks) if leaks else ok(_t)
+
+# ---- 11b. 更新說明日期不晚於今天 ----
+# 日期是手打的，寫成未來的日子沒有別的檢查會抓：Tesla 0.7.0 2026-11-13 的 CHANGELOG 與 STEAM_CHANGELOG 寫成 11-15，
+# 備妥上車後才發現。只認 YYYY-MM-DD（家族的 `## [版本] - YYYY-MM-DD` 與 `[i]YYYY-MM-DD[/i]`），其他寫法與不存在的日期不檢查。
+_dates = []
+for _n, _pat in (("CHANGELOG.md", r"(?m)^## \[[^\]]+\] - (\d{4})-(\d{2})-(\d{2})\b"),
+                 ("STEAM_CHANGELOG.md", r"(?<!\d)(\d{4})-(\d{2})-(\d{2})(?!\d)")):
+    if os.path.isfile(os.path.join(REPO, _n)):
+        with open(os.path.join(REPO, _n), encoding="utf-8") as fh:
+            for mm in re.finditer(_pat, fh.read()):
+                try:
+                    _dates.append((_n, mm.group(), date(*map(int, mm.groups()))))
+                except ValueError:
+                    pass
+_today = date.today()
+_t = f"更新說明日期不晚於今天 {_today}（{len(_dates)} 個日期）"
+_future = [f"{n}: {s.strip()}" for n, s, d in _dates if d > _today]
+fail(_t, _future) if _future else ok(_t)
 
 # ---- 12. drainable 輸入消耗語意（本 MOD drainable）----
 # CraftRecipeManager.java:633/652：item 輸入沒有 flags[ItemCount] 時計量按
@@ -880,7 +1421,125 @@ for f in LUA_FILES:
 _t = "client 顯示物品名稱用 getItemName（getItemNameFromFullType 沒有車型）"
 fail(_t, plain_names) if plain_names else ok(_t)
 
+# ---- 17. vehiclewheel 模型的 FBX／GLB 要兩層 UV ----
+# vehiclewheel_static.vert 從 location 3 讀 uv（location 2 是原版 .txt 網格的 tangent）；FBX／GLB 靜態網格進引擎是
+# pos、normal、UV0、UV1，照元素序號綁 location（ImportedStaticMesh.java:29-35、VertexBufferObject.java:324-345）。
+# 只有一層時 shader 讀到前一次 draw 留下的 attribute 3（FinishDraw 不關 array，VertexBufferObject.java:368-375）：
+# 車上零件拿到車身同序號頂點的 UV1，貼圖亂掉、沒有任何錯誤（Tesla 輪子 2026-10-24：平灰圓片、整顆黑）。
+# 做法：網格加第二層 UV，內容同第一層。
+def mesh_uv_layers(path):
+    with open(path, "rb") as fh:
+        data = fh.read()
+    if path.lower().endswith(".glb"):
+        n = struct.unpack_from("<I", data, 12)[0]
+        prims = [p for mm in json.loads(data[20:20 + n]).get("meshes", []) for p in mm.get("primitives", [])]
+        return min((sum(k.startswith("TEXCOORD_") for k in p.get("attributes", {})) for p in prims), default=0)
+    if data.startswith(b"Kaydara FBX Binary"):
+        return data.count(b"\x0eLayerElementUV")  # 節點名：長度 14 緊接名稱（字串屬性值前是 4 位元組長度）
+    return len(re.findall(rb"(?m)^\s*LayerElementUV:\s*\d+", data))
+
+
+def model_blocks(body):
+    for mm in re.finditer(r"(?m)^\s*model\s+(\w+)\s*\{", body):
+        depth, i = 1, mm.end()
+        while depth and i < len(body):
+            depth += {"{": 1, "}": -1}.get(body[i], 0)
+            i += 1
+        inner = body[mm.end():i - 1]
+        while re.search(r"\{[^{}]*\}", inner):
+            inner = re.sub(r"\{[^{}]*\}", "", inner)
+        yield mm.group(1), {k.lower(): v.strip() for k, v in re.findall(r"(\w+)\s*=\s*([^,\n]*)", inner)}
+
+
+wheel_uv, model_names, model_refs = [], set(), []
+for m in MEDIA_DIRS:
+    sdir = os.path.join(m, "scripts")
+    if not os.path.isdir(sdir):
+        continue
+    for f in iter_files(sdir, {".txt"}):
+        with open(f, encoding="utf-8") as fh:
+            body = re.sub(r"/\*.*?\*/", "", fh.read(), flags=re.S)
+        model_names.update(name for name, _ in model_blocks(body))
+        model_refs += [(f, name) for name in re.findall(r"(?m)^\s*file\s*=\s*(\w+)\s*,?\s*$", body)]
+        for name, kv in model_blocks(body):
+            if kv.get("shader", "").lower() != "vehiclewheel" or kv.get("static", "true").lower() == "false":
+                continue
+            for ext in (".fbx", ".glb"):
+                mesh = os.path.join(m, "models_X", kv.get("mesh", "") + ext)
+                if os.path.isfile(mesh) and mesh_uv_layers(mesh) < 2:
+                    wheel_uv.append(f"model {name}: {_prel(mesh)} 只有 {mesh_uv_layers(mesh)} 層 UV")
+_t = "vehiclewheel 模型的 FBX／GLB 有兩層 UV（引擎從第二層讀）"
+fail(_t, wheel_uv) if wheel_uv else ok(_t)
+
+# ---- 17b. 零件 `file = X` 指到的 model 要有定義 ----
+# 車輛零件的 `file = X` 沒有對應的 `model X` 區塊時，那個零件在遊戲裡不畫（Tesla Model S 後輪 2026-11-13：加了
+# `_WheelRear` 的 FBX、貼圖與輪胎零件，漏了 scripts/models 的 model 區塊，實機八個朝向後輪都只剩卡鉗；離線出圖
+# 不讀遊戲腳本，看不出來）。只查 MOD 自己有同名網格檔的名字：指到原版 model 的不算。
+_meshes = {os.path.splitext(os.path.basename(f))[0] for m in MEDIA_DIRS if os.path.isdir(os.path.join(m, "models_X"))
+           for f in iter_files(os.path.join(m, "models_X"), {".fbx", ".glb", ".x"})}
+model_missing = sorted({f"{_prel(f)}: file = {name} 沒有 model {name} 區塊"
+                        for f, name in model_refs if name in _meshes and name not in model_names})
+_t = "零件 file 指到的自家網格都有 model 區塊"
+fail(_t, model_missing) if model_missing else ok(_t)
+
+# ---- 18. server／shared 不用顯示名稱 setName（警告）----
+# 伺服器端 setName 的名稱和原名不同時存進存檔、照原樣送給每個客戶端（InventoryItem.java:1711-1714 存、:2038 讀回）；
+# 專用伺服器上新物品的原名是物品全名，用伺服器語言的顯示名稱 setName，所有玩家都看到伺服器語言
+# （Tesla 0.1.0 正式服 2026-10-29：卡片鑰匙、手機變英文）。做法：伺服器不命名，客戶端用自己的語言命名
+# （Tesla client/MinidoracatTesla/KeysUI.lua 的 UI.nameAll）。`x:setName(x:getScriptItem():getDisplayName())` 設的是
+# 原名，不存不送（Bags 2026-10-30 bags-names-1030a 英文伺服器＋中文客戶端實測），不列。翻譯包這類本來就要改名的
+# repo：把 finding 寫進 scripts/verify_ignore.txt（例 `setName in shared/Foo.lua:`），上一行用 # 註明理由。
+# 只看參數，括號跨行也算。抓不到原版程式寫進的名字：原版 ISClothingExtraAction:createItemNew 換穿時把伺服器
+# getName()（帶磨損、染血字樣）和腳本名稱比，不同就當成改名寫進新物品（ISClothingExtraAction.lua:76-79）。
+_DISPLAY_NAME = re.compile(r"(?<!\w)(?:getDisplayName|getItemName|getText|getTextOrNull)\s*\(")
+server_names = []
+for f in LUA_FILES:
+    lua_rel = os.path.relpath(f, REPO).replace(os.sep, "/").split("/lua/", 1)[-1]
+    if not lua_rel.startswith(("server/", "shared/")):
+        continue
+    with open(f, encoding="utf-8", errors="replace") as fh:
+        src = _LONG_COMMENT.sub(lambda mm: "\n" * mm.group().count("\n"), fh.read())
+    code = "\n".join(line.split("--", 1)[0] for line in src.split("\n"))
+    for mm in re.finditer(r"(\w[\w.]*)?:setName\s*\(", code):
+        depth, i = 1, mm.end()
+        while depth and i < len(code):
+            depth += {"(": 1, ")": -1}.get(code[i], 0)
+            i += 1
+        arg = code[mm.end():i - 1]
+        if mm.group(1) and re.fullmatch(rf"\s*{re.escape(mm.group(1))}\s*:\s*getScriptItem\s*\(\s*\)\s*:\s*getDisplayName\s*\(\s*\)\s*", arg):
+            continue  # 設回原名
+        if _DISPLAY_NAME.search(arg):
+            server_names.append(f"setName in {lua_rel}:{code.count(chr(10), 0, mm.end()) + 1}")
+warn("server／shared 不用顯示名稱 setName（名稱存檔並照原樣送給所有客戶端）", server_names)
+
+# ---- 19. repo 專屬檢查（scripts/verify_local.py，選用）----
+# 只有單一 MOD 用得到的檢查放那個檔，本檔照模板整份更新時才不會蓋掉它（Builder 2026-11-01：管理面板規則頁的標籤寬）。
+# 它的 PASS／FAIL／SKIP／WARN 行逐行轉印並算進總結（2026-11-26 以前併成一行 PASS，裡面的 SKIP 看不出來）。
+# verify_ignore.txt 不套用：ModMaps 的豁免樣式只為了模板第 3 項，套到這裡會把它真的鍵集檢查一起靜音。
+_local = os.path.join(REPO, "scripts", "verify_local.py")
+if os.path.isfile(_local):
+    _t = "repo 專屬檢查（scripts/verify_local.py）"
+    _p = subprocess.run([sys.executable, _local], cwd=REPO, capture_output=True, text=True, encoding="utf-8",
+                        errors="replace", env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+    _lists = {"PASS": passed, "FAIL": failed, "SKIP": skipped, "WARN": warned}
+    _seen = {k: 0 for k in _lists}
+    print(f"  ---- {_t} ----")
+    for _line in (_p.stdout + _p.stderr).splitlines():
+        if not _line.strip():
+            continue
+        print(_line)
+        _m = re.match(r"^\s+(PASS|FAIL|SKIP|WARN)\s+(\S.*)$", _line)
+        if _m:
+            _lists[_m[1]].append(f"verify_local：{_m[2]}")
+            _seen[_m[1]] += 1
+    if _p.returncode and not _seen["FAIL"]:
+        fail(f"{_t}：結束碼 {_p.returncode}，沒有印 FAIL 行")
+    elif not any(_seen.values()):
+        ok(_t)
+
 # ---- 總結 ----
 print()
 print(f"PASS {len(passed)} / FAIL {len(failed)} / SKIP {len(skipped)}")
+if warned:
+    print(f"WARN {len(warned)}（不影響結束碼）")
 sys.exit(1 if failed else 0)
