@@ -200,6 +200,8 @@ def main():
     mb.transform(Matrix.Translation((0, -0.0075, -(top + 0.002))))                                # 原點＝黏貼墊上緣中心
     # 不在模型裡烘傾角：各車型擋風玻璃後傾 22–66°，由 Parts.lua 寫零件 model 的 rotate（DockSpots.lua 的第 3 欄）
     dock = mb.build("MinidoracatKnoxPassTagDock", tag_img)
+    # shader vehiclewheel 從第二層 UV 讀貼圖座標，只有一層時讀到車身的 UV1（家族 pitfalls.md「vehiclewheel」）；new() 複製第一層
+    dock.data.uv_layers.new(name="UVMap2")
     export(dock, os.path.join(MEDIA, "models_X", "vehicles", "MinidoracatKnoxPassTagDock.fbx"))
 
     # 3. 讀頭物品：平板天線罩面朝上，接線盒與線放在下緣旁
