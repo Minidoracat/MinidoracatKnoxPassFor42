@@ -82,7 +82,8 @@ end
 -- 解鎖與拿掉門鎖時照它還原，引擎在有人試開時把 locked 補成的鑰匙鎖（IsoDoor.java:1343-1346）也就不會被當成原本的鎖。
 -- 車庫門在 MP 回不到「只有 locked」：客戶端收到後鏈上其他片的鑰匙鎖由 true 變 false，setLockedByKey 會把 locked=false
 -- 回送伺服器（IsoDoor.java:1840-1845），原版地圖車庫門解鑰匙鎖也一樣（zombielock-mp Z6）；一般門與 SP 照常還原
--- 引擎會在別的路徑清掉鎖（柵欄門有人試開、有鑰匙的人開關，IsoDoor.java:1331-1334、1376-1379），Sensor 每 5 秒補回（S.relock）
+-- 引擎會在別的路徑清掉鎖（柵欄門有人試開、有鑰匙的人開關，IsoDoor.java:1331-1334、1376-1379），Sensor 每 5 秒補回（S.relock）；
+-- 車庫門鏈要等鏈靜下來才補（Sensor.lua lockBack）
 local KNOX_LOCKED = "KnoxPassLocked"
 
 local function syncDoor(p) p:syncIsoObject(false, 0, nil, nil) end
@@ -116,6 +117,9 @@ end
 -- 會把那片當下的開關回送伺服器（:1625-1636、:1836-1846），伺服器照單全收、轉給其他附近客戶端（:1659-1670）。
 -- 客戶端一卡，晚到的回送就把門翻回去，附近兩人以上時互相觸發（正式服 2026-10-11，0.3.0：九格閘門附近 4–5 條連線
 -- 各 200–1914 包/秒，多數人斷線）。鎖不變，客戶端沒有片要改，就不回送。
+-- 有人用手（E 鍵不查門鎖，IsoPlayer.java:4719-4724）關上開著的鏈時清鎖送 false，這時 Knox 再送 true（補鎖，或關門那包帶的鎖），
+-- 兩個值同時在路上，附近兩個客戶端互相回送、各自翻轉不收斂（正式服 2026-11-27 兩層樓捲門）：鏈被清過鎖就等靜下來才補、
+-- Knox 自動關門前門口要淨空（Sensor.lua lockBack、closeNow）。
 -- 尋路用 setSquareChanged（IsoGridSquare.java:4719-4724，內含 toggle 呼叫的 PolygonalMap2.squareChanged，後者沒曝露給 Lua），
 -- 它也通知室內判定（IsoRegions.squareChanged）：照原版放、拆東西（IsoGridSquare.java:5801、5837）先記下翻之前的位元，
 -- 位元變了才重算這格。不先記的話，比的是上一個呼叫者留下的靜態值（IsoRegions.java:301-320），剛好相同就漏掉；
@@ -307,6 +311,18 @@ local doorAdapter = {
             end
         end)
     end,
+    -- 車庫門鏈每片一個字元：開著＋1、鑰匙鎖＋2、Knox Pass 門鎖（CustomLock）＋4（整條關著、上了 Knox 門鎖＝全 "6"）；
+    -- 不是車庫門鏈回 nil（Sensor.lua lockBack）
+    chainState = function(anchor, pieces)
+        if not isGarage(anchor) then return nil end
+        local out = {}
+        for i = 1, #pieces do
+            local p = pieces[i]
+            out[i] = tostring((p:IsOpen() and 1 or 0) + (p:isLockedByKey() and 2 or 0)
+                + (p:getModData().CustomLock == true and 4 or 0))
+        end
+        return table.concat(out)
+    end,
 }
 
 -- ── IsoThumpable（玩家建造的門）─────────────────────────────────────────
@@ -487,6 +503,13 @@ end
 
 function G.unlockKnox(adapter, anchor, pieces)
     call(adapter, "unlockKnox", anchor, pieces)
+end
+
+-- 車庫門鏈的狀態簽章（doorAdapter.chainState）；其他門與其他 MOD 的 adapter 回 nil
+function G.chainState(adapter, anchor, pieces)
+    local ok, sig = call(adapter, "chainState", anchor, pieces)
+    if ok and type(sig) == "string" then return sig end
+    return nil
 end
 
 -- 整組門的中心（算感應距離用）

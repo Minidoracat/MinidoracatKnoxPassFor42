@@ -675,16 +675,56 @@ end
 -- client 收到 SyncIsoObject（D:1586-1588）：車庫門另外逐片 setOpen＋setLockedByKey(bLockedByKey)（D:1625-1636），
 -- setLockedByKey 會連帶設 locked（D:1836-1839）。所以車庫門只有鑰匙鎖送得到 client，只有 locked 的會被蓋成 false。
 -- 鏈上其他片在 client 的鑰匙鎖因此改變時，client 的 setLockedByKey 會 sync，把那片當下的狀態（含開關）送回伺服器
--- （D:1840-1845、1495-1508）；回送 W.echoLagMs 之後才到（step 套用；預設下一個 tick，卡住的客戶端更晚）
-local function echoChain(o, open, byKey)
-    if not isServer() then return end
+-- （D:1840-1845、1495-1508）；回送 lag 毫秒之後才到（step 套用；預設下一個 tick，卡住的客戶端更晚）。
+-- 客戶端：預設只有第一個（視角 _view、延遲 W.echoLagMs）；addClient 加第二個（視角 _viewB），伺服器把回送轉給
+-- 來源以外的客戶端（D:1659-1670），兩個客戶端才互相觸發
+local CLIENT_A = { field = "_view" }
+local function clientList() return W.clients or { CLIENT_A } end
+local function lagOf(c) return c.lag or W.echoLagMs end
+local function viewOf(c, p)   -- 第二個客戶端第一次看到這片：照伺服器當下的狀態（加入時已同步）
+    local v = p[c.field]
+    if not v then
+        v = { modData = {}, open = p._open, locked = p._lockedByKey, lockedByKey = p._lockedByKey }
+        p[c.field] = v
+    end
+    return v
+end
+local function addClient(lagMs)
+    local c = { field = "_viewB", lag = lagMs }
+    W.clients = { CLIENT_A, c }
+    return c
+end
+-- 客戶端 c 收到片 o 的 (open, byKey)：鏈上其他片的鑰匙鎖變了就排回送，再把整條鏈設成收到的值
+local function deliver(c, o, open, byKey)
     for _, p in ipairs(garageChain(o)) do
-        if p ~= o and p._view.lockedByKey ~= byKey then
+        local v = viewOf(c, p)
+        if p ~= o and v.lockedByKey ~= byKey then
             W.echo = W.echo or {}
-            W.echo[#W.echo + 1] = { p, byKey, open, due = nowMs + W.echoLagMs }
+            W.echo[#W.echo + 1] = { p, byKey, open, due = nowMs + lagOf(c), from = c }
             W.echoQueued = W.echoQueued + 1
         end
+        v.open, v.locked, v.lockedByKey = open, byKey, byKey
     end
+end
+local function broadcastChain(o, open, byKey)
+    if isServer() then
+        for _, c in ipairs(clientList()) do deliver(c, o, open, byKey) end
+        return
+    end
+    for _, p in ipairs(garageChain(o)) do
+        p._view.open, p._view.locked, p._view.lockedByKey = open, byKey, byKey
+    end
+end
+-- 客戶端 c 的玩家按 E（IsoPlayer.performContextualAction → ToggleDoor，不查 couldBeOpen，D:3167-3209）：
+-- 只改 c 自己那份（整條翻開關、清鎖，setLockedByKey(false, false) 不回送），再送一包被按那片給伺服器，lag 後到
+local function clientToggle(c, o)
+    local open = not viewOf(c, o).open
+    for _, p in ipairs(garageChain(o)) do
+        local v = viewOf(c, p)
+        v.open, v.locked, v.lockedByKey = open, false, false
+    end
+    W.echo = W.echo or {}
+    W.echo[#W.echo + 1] = { o, false, open, due = nowMs + lagOf(c), from = c }
 end
 function Door:syncIsoObject(bRemote)
     if bRemote then return end
@@ -693,12 +733,7 @@ function Door:syncIsoObject(bRemote)
     W.syncIds = W.syncIds or {}
     W.syncIds[#W.syncIds + 1] = self._lastPlayerId or -1   -- 封包帶的開關者 ID（D:1590-1620 在他身上播門聲、setNoCollision）
     syncView(self)
-    if self._garage then
-        echoChain(self, self._open, self._lockedByKey)
-        for _, p in ipairs(garageChain(self)) do
-            p._view.open, p._view.locked, p._view.lockedByKey = self._open, self._lockedByKey, self._lockedByKey
-        end
-    end
+    if self._garage then broadcastChain(self, self._open, self._lockedByKey) end
 end
 local function garageStraddled(o)   -- D:3219-3280：任一片的格子與門線另一側那格被同一台車壓到
     for _, p in ipairs(garageChain(o)) do
@@ -720,10 +755,7 @@ local function toggleGarage(o)
         p:setLockedByKey(false)
         if p._closedName then p._spriteObj = namedSprite(p._open and p._openName or p._closedName) end
     end
-    echoChain(o, o._open, false)
-    for _, p in ipairs(chain) do
-        p._view.open, p._view.locked, p._view.lockedByKey = p._open, false, false
-    end
+    broadcastChain(o, o._open, false)
 end
 -- D:1694-1709：只翻這一片的開關與 sprite，不動鎖、不 sync
 function Door:ToggleDoorSilent()
@@ -1542,12 +1574,12 @@ end
 local function step(fn)
     nowMs = nowMs + 250
     -- 車庫門 client 回送的狀態到伺服器：伺服器照單全收，整條鏈照回送的開關與鑰匙鎖改（GameServer.java:2991-3010、
-    -- D:1586-1588、1612-1636）。回送把開著的門關上的次數記在 W.echoClosed；還沒到時間的留著
-    local echo, later = W.echo, nil
+    -- D:1586-1588、1612-1636），再轉給來源以外的客戶端（D:1659-1670；沒有 from 的手工回送算第一個客戶端）。
+    -- 回送把開著的門關上的次數記在 W.echoClosed；還沒到時間的留著，套用途中新排的接在後面
+    local echo, later = W.echo, {}
     W.echo = nil
     for _, e in ipairs(echo or {}) do
         if e.due > nowMs then
-            later = later or {}
             later[#later + 1] = e
         else
             local chain = garageChain(e[1])
@@ -1557,9 +1589,13 @@ local function step(fn)
                 p._locked, p._lockedByKey, p._open = e[2], e[2], e[3]
                 if p._closedName then p._spriteObj = namedSprite(p._open and p._openName or p._closedName) end
             end
+            for _, c in ipairs(clientList()) do
+                if c ~= (e.from or CLIENT_A) then deliver(c, e[1], e[3], e[2]) end
+            end
         end
     end
-    W.echo = later
+    for _, e in ipairs(W.echo or {}) do later[#later + 1] = e end
+    W.echo = #later > 0 and later or nil
     if fn then fn() end
     fire("OnTick")
 end
@@ -2662,9 +2698,9 @@ local function scenarioGarage()
     step()   -- 開與關之間至少隔一個 tick：開門的回送先到
     orig[2]:ToggleDoor(holder)
     check(not a.door:IsOpen() and not a.door:isLockedByKey() and not a.door:isLocked(), "（引擎）有鑰匙的人用手開關：鎖被清掉")
-    runMs(5250)
+    runMs(KP.Sensor.RELOCK_MS + KP.Sensor.QUIET_MS + 500)   -- 車庫門鏈被清過鎖：鏈靜下來 QUIET_MS 才補（Sensor.lua lockBack）
     check(allPieces(a, function(p) return p:isLockedByKey() and p._view.locked == true and p._modData.KnoxPassLocked == 1 end),
-        "5 秒內補回鑰匙鎖並同步，原本的鎖仍記成 1")
+        "鏈靜下來後補回鑰匙鎖並同步，原本的鎖仍記成 1")
     check(cmd(a.owner, "lock", { key = a.key, on = false }).ok == true and allPieces(a, function(p)
         return p._modData.KnoxPassLocked == nil and p._modData.CustomLock == nil
     end), "關閉門鎖：拿掉 CustomLock 與標記")
@@ -5004,8 +5040,10 @@ local function scenarioLockHold()
     check(math.abs(charge(v) - 0.98) < 1e-4, string.format("重開再扣一次電（%.3f）", charge(v)))
     moveCar(v, v._x, v._y + 40)
     runMs(5000)
+    check(not n[0]:IsOpen() and W.echoClosed == 0, "開走後照延遲關上")
+    runMs(KP.Sensor.QUIET_MS + 500)   -- 鏈被手關清過鎖：靜下來才補（Sensor.lua lockBack）
     check(not n[0]:IsOpen() and n[0]:isLockedByKey() and n[2]:isLockedByKey() and n[2]._view.lockedByKey == true
-        and W.echoClosed == 0, "開走後照延遲關上並鎖回，client 也看到鎖")
+        and W.echoClosed == 0, "鏈靜下來後鎖回，client 也看到鎖")
     clean(from, "上鎖的閘門被登記車撐著")
 end
 
@@ -6015,6 +6053,165 @@ local function scenarioLaggyEcho()
         return not p:IsOpen() and not p:isLockedByKey() and p._view.lockedByKey == false and p._modData.CustomLock == nil
     end) and KP.Ledger.get(key).unlockOnClose == nil, "關好才拿掉門鎖，client 也看到沒鎖")
     clean(from, "上鎖的九格閘門與卡頓客戶端的回送")
+end
+
+-- 正式服（2026-11-27，0.13.2）：上鎖的九格兩層樓捲門，右鍵開門後約 7 秒起 SyncIsoObject 洪流、近 5 分鐘。
+-- 開著的門任何人按 E 都關得了（IsoPlayer.performContextualAction 不查 couldBeOpen），整條鏈清鎖送出 false；
+-- 同時 Knox 送出 true（關好就補鎖，或關門那包帶著鎖），兩個值同時在路上，兩個客戶端互相回送、各自翻轉，不會收斂。
+-- 這裡有第二個客戶端（回送晚 2 秒）：A 站上門口按 E、下一步離開。順序 a＝手關先到伺服器、Knox 才看到門關了；
+-- 順序 b＝A 回送晚 500 ms，Knox 撐門到期那一刻門還開著。修好後鎖只翻兩次（手關清掉、靜候後補回），回送停下。
+-- 常數照服主核准的值寫死（靜候 5000、淨空 2000），不讀實作：改了常數這裡要跟著紅
+local QUIET, CLEAR = 5000, 2000
+local function scenarioRollFlood()
+    out("情境：上鎖的九格捲門被人按 E 關上（兩個客戶端）")
+    -- hook(t, owner, lanes)：每個 tick 額外做的事；lo～hi：補鎖該落在哪段時間（ms，從開門起算；nil＝不查）
+    local function case(label, lagA, pressAt, hook, lo, hi)
+        freshWorld()
+        local from = #logLines + 1
+        local owner = newPlayer("owner", 301, 101)   -- 錨點 (300,100) 旁；門線 y=100 北向，門口格是 y=100 與 y=99
+        local rf = buildModelGate("MinidoracatKnoxPass_roll2f_industry", 6, 9, "N", false, 300, 100, owner)
+        step()
+        square(300, 100, 0)._grid = true
+        local lanes = rf.lanes
+        local inst = cmd(owner, "install", { x = 301, y = 100, z = 0, index = lanes[2]:getObjectIndex(),
+            itemId = owner._inv:AddItem(READER):getID() })
+        local key = inst.key
+        local lk = cmd(owner, "lock", { key = key, on = true })
+        check(inst.ok == true and lk.ok == true, label .. "：裝讀頭、開門鎖（" .. tostring(inst.why) .. "／" .. tostring(lk.why) .. "）")
+        step()
+        W.echoLagMs = lagA
+        local B = addClient(2000)
+        local function sig()
+            local t = {}
+            for k = 1, 9 do t[k] = lanes[k]:isLockedByKey() and "1" or "0" end
+            return table.concat(t)
+        end
+        local function all(fn)
+            for k = 1, 9 do if not fn(lanes[k]) then return false end end
+            return true
+        end
+        local sounds = #W.sounds
+        check(cmd(owner, "open", { key = key }).ok == true and lanes[1]:IsOpen() and sig() == "111111111",
+            label .. "：右鍵用 Knox Pass 開門，開著照樣上鎖")
+        local t0, last, flips, at, echoAt30 = nowMs, sig(), 0, {}, nil
+        runMs(60000, function()
+            local t = nowMs - t0
+            local s = sig()
+            if s ~= last then flips, last = flips + 1, s; at[#at + 1] = t end
+            if t == pressAt - 250 then owner._x, owner._y = 301.5, 100.5 end    -- 站上第 2 片那格
+            if t == pressAt then clientToggle(CLIENT_A, lanes[2]) end
+            if t == pressAt + 250 then owner._x, owner._y = 301.5, 101.5 end    -- 離開門口
+            if hook then hook(t, owner, lanes) end
+            if t == 55000 then echoAt30 = W.echoQueued end
+        end)
+        if sig() ~= last then flips = flips + 1; at[#at + 1] = nowMs - t0 end
+        local closes = 0
+        for i = sounds + 1, #W.sounds do
+            if string.find(W.sounds[i].name, "Close", 1, true) then closes = closes + 1 end
+        end
+        out(string.format("    %s：鎖翻轉 %d 次（%s ms），回送 %d 筆（55 秒時 %s），Knox 關門 %d 次", label, flips,
+            table.concat(at, ","), W.echoQueued, tostring(echoAt30), closes))
+        check(flips == 2 and W.echoQueued == echoAt30,
+            label .. "：鎖只翻兩次（手關清掉、Knox 補回），55 秒後不再有回送")
+        check(flips == 2 and at[2] - at[1] >= QUIET, label .. "：鏈靜下來 " .. QUIET .. " ms 後才補鎖")
+        if lo then
+            check(flips == 2 and at[2] >= lo and at[2] <= hi,
+                label .. "：補鎖落在 " .. lo .. "～" .. hi .. " ms（實際 " .. tostring(at[2]) .. " ms）")
+        end
+        check(all(function(p)
+            return not p:IsOpen() and p:isLockedByKey() and p._view.lockedByKey == true and p._viewB.lockedByKey == true
+                and not p._view.open and not p._viewB.open
+        end) and KP.Ledger.get(key).open == nil, label .. "：最後關著，伺服器與兩個客戶端九片都上鎖")
+        check(closes == 0, label .. "：門由按 E 的人關上，Knox 沒有再關一次")
+        clean(from, "上鎖的九格捲門被人按 E 關上：" .. label)
+    end
+    case("順序 a（手關先到）", 250, 4500, nil, nil, nil)
+    case("順序 b（Knox 撐門到期時門還開著）", 500, 4750, nil, nil, nil)
+    -- 靜候途中 A 回到門口 1 秒（7500～8500）：從他離開起重算
+    case("靜候途中又站回門口", 250, 4500, function(t, owner)
+        if t == 7500 then owner._x, owner._y = 301.5, 100.5 end
+        if t == 8500 then owner._x, owner._y = 301.5, 101.5 end
+    end, 8500 + QUIET, 8500 + QUIET + 500)
+    -- 跨區塊的鏈只載入一部分：錨點關著、中間第 5 片開著（8500～44000：回送都到了之後，超過 30 秒上限＋QUIET；只改伺服器欄位）
+    -- 時一直不補（補那片會連它的「開著」一起同步，客戶端整條打開），關上後重算
+    case("靜候途中有一片開著", 250, 4500, function(t, owner, lanes)
+        if t == 8500 then lanes[5]:setOpen(true) end
+        if t == 44000 then lanes[5]:setOpen(false) end
+    end, 44000 + QUIET, 44000 + QUIET + 1000)
+    -- A 回到門口就不走：靜候最多等 30 秒（從撐門到期、登記靜候起算），之後不看門口，鏈靜滿 QUIET 就補
+    case("有人一直站在門口", 250, 4500, function(t, owner)
+        if t == 6000 then owner._x, owner._y = 301.5, 100.5 end
+    end, 5000 + 30000, 5500 + 30000 + QUIET + 500)
+    -- 靜候途中鏈狀態變了（第 5 片的 Knox 門鎖標記不見）：從變的那一刻重算，鏈還在變時不補
+    case("靜候途中鏈狀態變了", 250, 4500, function(t, owner, lanes)
+        if t == 8500 then lanes[5]._modData.CustomLock = nil end
+    end, 8500 + QUIET, 8500 + QUIET + 750)
+end
+
+-- 髒鏈靜候的另外兩個邊界：沒人按 E 時，走路的人離開門口後 Knox 等淨空 CLEAR 才自動關；
+-- 門開著時才第一次開 Knox 門鎖（鏈上還沒有 CustomLock），關好馬上鎖，不等靜候
+local function scenarioRollFloodEdges()
+    out("情境：上鎖捲門的淨空等待與第一次上鎖")
+    freshWorld()
+    local from = #logLines + 1
+    local owner = newPlayer("owner", 301, 102)
+    local rf = buildModelGate("MinidoracatKnoxPass_roll2f_industry", 6, 9, "N", false, 300, 100, owner)
+    step()
+    square(300, 100, 0)._grid = true
+    local lanes = rf.lanes
+    local key = cmd(owner, "install", { x = 301, y = 100, z = 0, index = lanes[2]:getObjectIndex(),
+        itemId = owner._inv:AddItem(READER):getID() }).key
+    step()
+    W.echoLagMs = 250
+    addClient(2000)
+    local function all(fn)
+        for k = 1, 9 do if not fn(lanes[k]) then return false end end
+        return true
+    end
+    -- 第一次上鎖：門開著時開門鎖，Knox 撐門到期關上的那一刻就上鎖
+    check(cmd(owner, "open", { key = key }).ok == true and lanes[1]:IsOpen(), "沒上鎖的捲門：右鍵開門")
+    check(cmd(owner, "lock", { key = key, on = true }).ok == true, "門開著時開 Knox 門鎖")
+    local t0, closedAt, lockedAt = nowMs, nil, nil
+    runMs(12000, function()
+        if not closedAt and not lanes[1]:IsOpen() then closedAt = nowMs - t0 end
+        if not lockedAt and all(function(p) return p:isLockedByKey() and p._modData.CustomLock == true end) then
+            lockedAt = nowMs - t0
+        end
+    end)
+    check(closedAt ~= nil and lockedAt ~= nil and lockedAt == closedAt,
+        "第一次上鎖不等靜候：關好那一刻九片上鎖（關 " .. tostring(closedAt) .. "、鎖 " .. tostring(lockedAt) .. " ms）")
+    -- 淨空：A 在撐門到期前站進門口、到期後 1 秒離開；Knox 等他離開滿 CLEAR 才關，鎖沒動過
+    runMs(QUIET + 1000)
+    local sounds = #W.sounds
+    check(cmd(owner, "open", { key = key }).ok == true and lanes[1]:IsOpen(), "上鎖的捲門：右鍵開門")
+    t0, closedAt = nowMs, nil
+    local unlocked = false
+    runMs(15000, function()
+        local t = nowMs - t0
+        if t == 4000 then owner._x, owner._y = 301.5, 100.5 end
+        if t == 6000 then owner._x, owner._y = 301.5, 102.5 end
+        if not closedAt and not lanes[1]:IsOpen() then closedAt = t end
+        if not all(function(p) return p:isLockedByKey() end) then unlocked = true end
+    end)
+    check(closedAt ~= nil and closedAt >= 6000 + CLEAR and closedAt <= 6000 + CLEAR + 500,
+        "走路的人離開門口滿 " .. CLEAR .. " ms 後 Knox 才自動關（離開 6000、關 " .. tostring(closedAt) .. " ms）")
+    local closes = 0
+    for i = sounds + 1, #W.sounds do
+        if string.find(W.sounds[i].name, "Close", 1, true) then closes = closes + 1 end
+    end
+    check(closes == 1 and not unlocked and all(function(p)
+        return not p:IsOpen() and p._view.lockedByKey == true and p._viewB.lockedByKey == true
+    end), "Knox 自己關一次，鑰匙鎖全程沒動，兩個客戶端都看到上鎖")
+    -- 右鍵「用 Knox Pass 關門」不等淨空：剛離開門口 250 ms 就關得了
+    runMs(QUIET + 1000)
+    check(cmd(owner, "open", { key = key }).ok == true and lanes[1]:IsOpen(), "上鎖的捲門：再右鍵開門")
+    owner._x, owner._y = 301.5, 100.5
+    runMs(500)
+    owner._x, owner._y = 301.5, 102.5
+    runMs(250)
+    check(cmd(owner, "close", { key = key }).ok == true and not lanes[1]:IsOpen(),
+        "右鍵用 Knox Pass 關門不等門口淨空 " .. CLEAR .. " ms")
+    clean(from, "上鎖捲門的淨空等待與第一次上鎖")
 end
 
 -- 共同管理者（Server.lua H.managers／H.findPlayers、coManager；Ledger.lua 伺服器認得的玩家）：擁有者或管理員從伺服器認得的玩家
@@ -7097,7 +7294,8 @@ local tests = {
     scenarioDoubleDoorway, scenarioAutoDrive, scenarioLoadChunk, scenarioTagScript,
     scenarioTagHooks, scenarioPasses, scenarioWillOpenFor, scenarioBarrier, scenarioBarrierAnim, scenarioDriveWarn,
     scenarioReaderPost, scenarioColors, scenarioLoot, scenarioBarrierMirror, scenarioRollDoor, scenarioSettings,
-    scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioUpperWall, scenarioLaggyEcho, scenarioShare,
+    scenarioPassThrough, scenarioZombieLock, scenarioLockHold, scenarioModelGates, scenarioUpperWall, scenarioLaggyEcho, scenarioRollFlood, scenarioRollFloodEdges,
+    scenarioShare,
     scenarioCoManagers, scenarioOutsideSafehouse, scenarioWatchWalk, scenarioWatchMissing, scenarioNeatCrafting, scenarioWatchDrive, scenarioIndestructible,
     scenarioRoadText, scenarioBasement, scenarioForceOpen,
     scenarioFlash,

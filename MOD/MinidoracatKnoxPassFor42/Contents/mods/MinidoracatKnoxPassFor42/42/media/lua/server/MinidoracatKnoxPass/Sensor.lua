@@ -26,11 +26,15 @@ S.MISSING_MS = 30000   -- 格子載入但門不在，持續多久才當作門被
 S.PASSES_MS = 5000     -- 已授權大門清單沒變動時，多久補推一次給本人
 S.WALK_MS = 5000       -- 右鍵開門至少開這麼久才開始算延遲（人還要走到門口；延遲設 0 時人也走得過去）
 S.RELOCK_MS = 5000     -- 多久替關著的上鎖門補一次鎖（S.relock）、核對一次室內判定（S.syncRegions）與耐久（S.shieldAll）
+S.QUIET_MS = 5000      -- 車庫門鏈被人清了鎖：鏈要關著、狀態不變、門口沒有走路的人這麼久才補鎖（lockBack）
+S.SETTLE_MAX_MS = 30000   -- 門口一直有人時最多等這麼久，之後不看門口，只看鏈關著、狀態不變滿 QUIET_MS（settleChains）
+S.CLEAR_MS = 2000      -- Knox 自動關車庫門鏈前，門口要沒有走路的人這麼久（closeNow）
 S.FLASH_PAIR_MS = 1500     -- 同一台車兩次切大燈相隔多久內算一次閃燈
 S.FLASH_WINDOW_MS = 5000   -- 閃燈後多久內進到感應距離，「閃一下大燈才開」的門才開
 
--- gateKey → { presence, retryAt, failAt, missingSince, by, holdUntil, cars }；
--- cars＝這扇門範圍內每台登記車的通過紀錄（車輛 runtime id → { from, passed }），只在記憶體
+-- gateKey → { presence, retryAt, failAt, missingSince, by, holdUntil, cars, busyAt, settle }；
+-- cars＝這扇門範圍內每台登記車的通過紀錄（車輛 runtime id → { from, passed }），只在記憶體；
+-- busyAt＝門開著時最後一次看到走路的人在門口；settle＝等著補鎖的車庫門鏈 { sig, since, first }（lockBack、settleChains）
 local runtime = {}
 local tracks = {}      -- 車輛 runtime id → { x, y, t, vx, vy }（算行進速度，平滑過）
 local walkers = {}     -- 戴模組走路的人：使用者名稱 → { x, y, t, vx, vy }（同上）
@@ -68,23 +72,25 @@ local function doorwayOf(pieces)
     return out
 end
 
-local function hasPlayer(x, y, z)
+-- onFoot＝只算走路的人（車上的人按不到 E：在車上時 update 走 updateWhileInVehicle 就回去，跑不到 updateUseKey，IsoPlayer.java:2343-2356）
+local function hasPlayer(x, y, z, onFoot)
     local sq = getCell():getGridSquare(x, y, z)
     if not sq then return false end
     local list = sq:getMovingObjects()
     for i = 0, list:size() - 1 do
-        if instanceof(list:get(i), "IsoPlayer") then return true end
+        local o = list:get(i)
+        if instanceof(o, "IsoPlayer") and not (onFoot and o:getVehicle() ~= nil) then return true end
     end
     return false
 end
 
-local function doorwayOccupied(rec, pieces)
+local function doorwayOccupied(rec, pieces, onFoot)
     local spots = rec.doorway or doorwayOf(pieces)
     for i = 1, #spots do
         local s = spots[i]
-        if hasPlayer(s.x, s.y, s.z) then return true end
-        if s.n == true and hasPlayer(s.x, s.y - 1, s.z) then return true end
-        if s.n == false and hasPlayer(s.x - 1, s.y, s.z) then return true end
+        if hasPlayer(s.x, s.y, s.z, onFoot) then return true end
+        if s.n == true and hasPlayer(s.x, s.y - 1, s.z, onFoot) then return true end
+        if s.n == false and hasPlayer(s.x - 1, s.y, s.z, onFoot) then return true end
     end
     return false
 end
@@ -137,6 +143,24 @@ local function drain(tag, part, vehicle)
     end
 end
 
+-- 補回鎖。車庫門鏈被人清過鎖（E 鍵關門、室內的人試開、有鑰匙的人開關）時不馬上補：清鎖那包送出的 false 還在客戶端之間
+-- 回送，這時送 true，兩個值同時在路上，附近兩個客戶端會互相回送、各自翻轉不收斂（正式服 2026-11-27 兩層樓捲門，
+-- SyncIsoObject 約 200 包/秒、近 5 分鐘）。記下來交給 settleChains：鏈關著、狀態不變、門口沒有走路的人滿 QUIET_MS 才補。
+-- 鏈整條關著上鎖（Knox 自己開關，鎖沒動過）照舊馬上呼叫，G.lock 沒有片要改就不傳送。第一次上 Knox 門鎖（鏈上還沒有
+-- CustomLock）也馬上補：客戶端那份本來就沒鑰匙鎖，清鎖那包不會引起回送，等的話這幾秒一般玩家用手開得了。SP 沒有回送，照舊馬上補
+local function lockBack(key, rec, adapter, anchor, pieces, keyed)
+    local sig = isServer() and rec.lock and G.chainState(adapter, anchor, pieces)
+    if sig and sig ~= string.rep("6", #pieces) and sig:find("[4-7]") then
+        local r = rt(key)
+        if not r.settle then
+            local now = getTimestampMs()
+            r.settle = { sig = sig, since = now, first = now }
+        end
+        return
+    end
+    G.lock(adapter, anchor, pieces, rec.lock, keyed)
+end
+
 -- 門關好之後：鎖回 Knox Pass 門鎖或原本的鑰匙鎖，清掉開著的狀態。門開著時擁有者拿掉了門鎖（Server.lua H.lock 記
 -- rec.unlockOnClose），這時才拿：車庫門鏈開著時仍上鎖（Gates.lua setGarageOpen），開著改鎖的話，客戶端回送的「開著」
 -- 晚到時會把剛關上的門打開
@@ -144,7 +168,7 @@ local function settleClosed(key, rec, adapter, anchor)
     if G.supportsLock(adapter) then
         local pieces = G.pieces(adapter, anchor)
         if rec.unlockOnClose then G.unlockKnox(adapter, anchor, pieces) end
-        if rec.lock or rec.keyed then G.lock(adapter, anchor, pieces, rec.lock, rec.keyed) end
+        if rec.lock or rec.keyed then lockBack(key, rec, adapter, anchor, pieces, rec.keyed) end
     end
     rec.keyed, rec.doorway, rec.unlockOnClose = nil, nil, nil
     L.setOpen(key, rec, false)
@@ -194,7 +218,7 @@ function S.open(key, rec, who, tag, part, vehicle, now, holdMs)
             rec.keyed = keyed
             return fail("Blocked")
         end
-        if G.supportsLock(adapter) then G.lock(adapter, anchor, pieces, rec.lock, keyed) end
+        if G.supportsLock(adapter) then lockBack(key, rec, adapter, anchor, pieces, keyed) end
         return false, "Blocked"
     end
     rec.keyed = keyed or nil
@@ -224,8 +248,15 @@ local function closeNow(key, rec, now, who)
         return true
     end
     local pieces = G.pieces(adapter, anchor)
+    -- 自動關車庫門鏈：走路的人剛離開門口時先不關，他可能正要按 E 關門（E 鍵不查門鎖），和 Knox 的關門封包撞在一起時
+    -- 兩個鎖值同時在路上（lockBack 註解）。等門口淨空 CLEAR_MS，那一下 E 早已到伺服器，就變成上面「有人先用手關上了」。
+    -- 右鍵「用 Knox Pass 關門」（who 有值）不等
+    if isServer() and not who and rec.lock and r.busyAt and now >= r.busyAt and now - r.busyAt <= S.CLEAR_MS
+        and G.chainState(adapter, anchor, pieces) then
+        return false, "Blocked", r.busyAt + S.CLEAR_MS
+    end
     who = who or actor(r, rec)
-    if not who or G.isBlocked(adapter, anchor) or doorwayOccupied(rec, pieces)
+    if not who or G.isBlocked(adapter, anchor) or doorwayOccupied(rec, pieces, nil)
         or not G.setOpen(adapter, anchor, false, who, rec.indoor) then
         return false, "Blocked"
     end
@@ -236,9 +267,10 @@ end
 -- 這一輪掃描剛被撐住（presence＝now）的門不判關門：延遲 0 時，否則同一個 tick 開了又關（r3-mp 1007d 實踩）
 local function tryClose(key, rec, now, delayMs)
     local r = rt(key)
+    if isServer() and rec.lock and rec.doorway and doorwayOccupied(rec, nil, true) then r.busyAt = now end   -- 只給 closeNow 的 CLEAR 用
     if r.presence == now or now - r.presence < delayMs or now < r.retryAt or now < (r.holdUntil or 0) then return end
-    local ok, why = closeNow(key, rec, now)
-    if not ok and why ~= "NoGate" then r.retryAt = now + S.RETRY_MS end
+    local ok, why, at = closeNow(key, rec, now, nil)
+    if not ok and why ~= "NoGate" then r.retryAt = at or now + S.RETRY_MS end
 end
 
 -- 右鍵「用 Knox Pass 關門」：門被別人打開（會開門的殭屍、有鑰匙的人）時，Knox Pass 門鎖讓玩家用手關不了
@@ -529,11 +561,40 @@ end
 -- IsoDoor.java:1321-1334、1376-1379），會開門的殭屍就又開得了（Gates.lua IsoDoor 段）。舊存檔只有 CustomLock 的門也在這裡補上。
 -- G.lock 已是該狀態就不傳送；門開著（有人在用、或 Knox Pass 開著）不動。只看已載入的格，門數是全伺服器登記的大門數
 function S.relock(gates)
-    for _, rec in pairs(gates) do
+    for key, rec in pairs(gates) do
         if rec.lock and not rec.open then
             local adapter, anchor = G.findAt(rec)
             if adapter and G.supportsLock(adapter) and not G.isOpen(adapter, anchor) then
-                G.lock(adapter, anchor, G.pieces(adapter, anchor), true, nil)
+                lockBack(key, rec, adapter, anchor, G.pieces(adapter, anchor), nil)
+            end
+        end
+    end
+end
+
+-- 等著補鎖的車庫門鏈（lockBack）：門開了、門鎖關了、沒載入、不再是車庫門鏈就不等了（關好後 settleClosed 或 S.relock 再記）；
+-- 鏈狀態變了、還有片開著（跨區塊的鏈只載入一部分時錨點關著、別片開著）或門口有走路的人就重新計時，滿 QUIET_MS 才補。
+-- 門口的人最多等 SETTLE_MAX_MS：鑰匙鎖不能無限期空著（會開門的殭屍只看鑰匙鎖），到期後不再看門口。有片開著時一直等：
+-- 那片缺鎖要補的話，同步帶的是它的「開著」，客戶端會把整條鏈打開（IsoDoor.java:1635-1636）。時鐘往回調就從現在重算。
+-- since 是最後一次看到人（或狀態變）的掃描，人在下一次掃描前就走了，所以要「超過」QUIET_MS
+local function settleChains(gates, now)
+    for key, r in pairs(runtime) do
+        local s = r.settle
+        if s then
+            local rec = gates[key]
+            local adapter, anchor = nil, nil
+            if rec and rec.lock and not rec.open then adapter, anchor = G.findAt(rec) end
+            local pieces = adapter and not G.isOpen(adapter, anchor) and G.pieces(adapter, anchor)
+            local sig = pieces and G.chainState(adapter, anchor, pieces)
+            if now < s.first then s.first = now end
+            local capped = now - s.first >= S.SETTLE_MAX_MS
+            if not sig then
+                r.settle = nil
+            elseif sig ~= s.sig or now < s.since or sig:find("[1357]")
+                or (not capped and doorwayOccupied(rec, pieces, true)) then
+                s.sig, s.since = sig, now
+            elseif now - s.since > S.QUIET_MS then
+                r.settle = nil
+                G.lock(adapter, anchor, pieces, true, nil)
             end
         end
     end
@@ -682,7 +743,7 @@ function S.tick()
         end
     end
     local now = getTimestampMs()
-    if now - lastScan < S.SCAN_MS then return end
+    if now >= lastScan and now - lastScan < S.SCAN_MS then return end   -- 時鐘往回調就照常掃
     lastScan = now
     local gates = L.gates()
     if not gates then return end
@@ -697,6 +758,7 @@ function S.tick()
         local rec = gates[key]
         if rec then tryClose(key, rec, now, KP.gateDelay(rec) * 1000) end
     end
+    settleChains(gates, now)
     if now - lastRelock >= S.RELOCK_MS then
         lastRelock = now
         S.relock(gates)
