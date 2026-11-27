@@ -1,12 +1,12 @@
-[h1]Minidoracat Knox Pass for B42 42.22.2-0.13.1[/h1]
-[i]2026-11-26[/i]
+[h1]Minidoracat Knox Pass for B42 42.22.2-0.13.2[/h1]
+[i]2026-11-27[/i]
 
 [b]English summary[/b]
 [list]
-[*] Fix: a Knox Pass Vehicle Tag installed on a car now looks right in all seven colors. Before, the logo looked sliced and the mount and power cord took the case color. Looks only; sensing and charging are unchanged.
+[*] Fix: in rare cases, two spots could read a wrong value: the built-in reader of a new boom barrier, and walk-to-open with the map watch module. Nothing was reported; gates work the same.
 [/list]
 
 [h3]🔧 修正[/h3]
 [list]
-[*] [b]車上感應盒的外觀[/b]：裝在車上、擋風玻璃上的感應盒，貼圖原本是亂的（標誌斜斜地被切開，固定座和電源線變成外殼的顏色）。現在照設計畫出灰色固定座、黑色電源線和盒背，七種顏色都一樣。只影響外觀，感應與充電不變。
+[*] [b]少數情況下的錯誤數值[/b]：建好抬升閘門與雙桿閘門時登記內建讀頭，以及戴地圖手錶走向大門時算離門多遠，這兩處在少數情況下可能讀到錯的數值。現在都照設計傳完整的資料。目前沒有收到相關回報，開門、登記與外觀都不變。
 [/list]
